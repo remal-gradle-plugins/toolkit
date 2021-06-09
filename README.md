@@ -1,3 +1,3 @@
-# name.remal.template.v2
+# toolkit
 
-Gradle plugin template
+Gradle plugins development toolkit
