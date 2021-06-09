@@ -1,0 +1,152 @@
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
+import org.gradle.api.internal.tasks.compile.HasCompileOptions
+
+allprojects {
+    pluginManager.withPlugin('java') {
+        apply plugin: 'name.remal.insert-null-checks'
+
+        sourceCompatibility = JavaVersion.VERSION_1_8.toString()
+        targetCompatibility = sourceCompatibility.toString()
+
+        repositories {
+            mavenCentral()
+            gradlePluginPortal()
+
+            maven {
+                name = 'Gradle API'
+                url = 'https://maven.pkg.github.com/remal-gradle-api/packages'
+                credentials {
+                    username = System.getenv('GITHUB_ACTOR') ?: 'x-access-token'
+                    password = System.getenv('READ_PACKAGES_GITHUB_TOKEN') ?:
+                        'g' + 'hp_xmGQ2dHvCiK685' + 'qNEFuA3IAvv6Vfg62WM1hG'
+                }
+            }
+        }
+        repositories.all {
+            content {
+                if (name == 'Gradle API') {
+                    includeGroup('name.remal.gradle-api')
+                } else {
+                    excludeGroup('name.remal.gradle-api')
+                }
+            }
+        }
+
+        configurations.create('optional') { Configuration conf ->
+            sourceSets.all { SourceSet sourceSet ->
+                if (sourceSet.name == SourceSet.MAIN_SOURCE_SET_NAME) {
+                    configurations[sourceSet.compileOnlyConfigurationName].extendsFrom(conf)
+                } else {
+                    configurations[sourceSet.implementationConfigurationName].extendsFrom(conf)
+                }
+            }
+        }
+
+        configurations.create('apt') { Configuration conf ->
+            sourceSets.all { SourceSet sourceSet ->
+                configurations[sourceSet.annotationProcessorConfigurationName].extendsFrom(conf)
+                configurations[sourceSet.compileOnlyConfigurationName].extendsFrom(conf)
+            }
+        }
+
+        dependencies {
+            compileOnly 'com.google.code.findbugs:jsr305'
+            compileOnly 'org.jetbrains:annotations'
+
+            apt 'org.projectlombok:lombok'
+
+
+            testImplementation 'org.junit.jupiter:junit-jupiter-api'
+            testImplementation 'org.junit.jupiter:junit-jupiter-params'
+            testImplementation 'org.mockito:mockito-junit-jupiter'
+            testImplementation 'org.mockito:mockito-inline'
+            testImplementation 'com.google.code.findbugs:jsr305'
+            testImplementation 'org.jetbrains:annotations'
+
+            testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+        }
+
+        sourceSets.all { SourceSet sourceSet ->
+            configurations[sourceSet.compileClasspathConfigurationName].attributes { attrs ->
+                attrs.
+                    attribute(
+                        LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+                        objects.named(LibraryElements, LibraryElements.JAR)
+                    )
+            }
+            configurations[sourceSet.runtimeClasspathConfigurationName].attributes { attrs ->
+                attrs.
+                    attribute(
+                        LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
+                        objects.named(LibraryElements, LibraryElements.JAR)
+                    )
+            }
+        }
+
+        tasks.matching({ it instanceof HasCompileOptions }).configureEach { HasCompileOptions task ->
+            task.options.with {
+                it.fork = false
+                it.encoding = 'UTF-8'
+                it.deprecation = true
+                it.compilerArgs.addAll(
+                    [
+                        '-parameters',
+                        '-Werror',
+                        '-Xlint:all',
+                        '-Xlint:-rawtypes',
+                        '-Xlint:-serial',
+                        '-Xlint:-processing',
+                    ]
+                )
+            }
+        }
+
+        tasks.matching { it instanceof JavaForkOptions }.all {
+            List<String> jvmArgs = it.jvmArgs
+            jvmArgs += '--illegal-access=deny'
+            it.jvmArgs = jvmArgs
+        }
+
+        tasks.withType(Test) {
+            useJUnitPlatform()
+            enableAssertions = true
+
+            testLogging {
+                showExceptions = true
+                showCauses = true
+                showStackTraces = true
+                exceptionFormat = 'FULL'
+                stackTraceFilters('GROOVY')
+                events('FAILED')
+            }
+
+            Set<Object> testsWithStdErr = Collections.newSetFromMap(new ConcurrentHashMap<>())
+            ConcurrentMap<Object, List<String>> testsMessages = new ConcurrentHashMap<>()
+            onOutput { TestDescriptor descr, TestOutputEvent event ->
+                if (event.destination.name() == 'StdErr') {
+                    testsWithStdErr.add(descr.id)
+                }
+
+                List<String> testMessages = testsMessages.computeIfAbsent(descr.id, { new ArrayList<>() })
+                testMessages.add(event.getMessage())
+            }
+            afterTest { TestDescriptor descr, TestResult result ->
+                if (result.resultType.name() == 'FAILURE' || testsWithStdErr.contains(descr.id)) {
+                    List<String> testMessages = testsMessages.get(descr.id)
+                    if (testMessages != null) {
+                        println()
+                        println("Output of $descr.className > $descr.displayName:")
+                        testMessages.forEach { print(" > $it") }
+                    }
+                }
+            }
+        }
+
+        tasks.withType(Javadoc) {
+            if (JavaVersion.current().isJava9Compatible()) {
+                options.addBooleanOption('html5', true)
+            }
+        }
+    }
+}
