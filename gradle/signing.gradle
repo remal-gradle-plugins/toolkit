@@ -1,3 +1,6 @@
+println 'key: ' + findProperty('signing.key')?.toString()?.length()
+println 'keyId: ' + findProperty('signing.keyId')?.toString()?.length()
+println 'password: ' + findProperty('signing.password')?.toString()?.length()
 allprojects {
     if (hasProperty('signing.key') && !property('signing.key').toString().isEmpty()) {
         apply plugin: 'signing'
