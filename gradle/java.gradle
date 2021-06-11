@@ -65,8 +65,12 @@ allprojects {
         dependencies {
             compileOnlyAll 'com.google.code.findbugs:jsr305'
             compileOnlyAll 'org.jetbrains:annotations'
+            compileOnlyAll 'name.remal:gradle-plugins-api'
 
             apt 'org.projectlombok:lombok'
+
+            annotationProcessorAll 'com.google.auto.service:auto-service'
+            compileOnlyAll 'com.google.auto.service:auto-service-annotations'
 
 
             testImplementation 'org.junit.jupiter:junit-jupiter-api'

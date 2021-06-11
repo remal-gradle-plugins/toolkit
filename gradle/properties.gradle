@@ -1,3 +1,4 @@
+import java.util.regex.Pattern
 import org.gradle.util.GradleVersion
 
 allprojects {
@@ -70,12 +71,14 @@ allprojects {
     }
 
     String rootPackage = rootProject.group
-    if (!rootPackage.endsWith(".${rootProject.name}")) {
-        rootPackage += ".${rootProject.name}"
+    if (rootPackage.endsWith(".${rootProject.name}")) {
+        rootPackage = rootPackage.substring(0, rootPackage.length() - ".${rootProject.name}".length())
     }
     ext['baseJavaPackage'] = "${rootPackage}${project.path}"
+        .replaceAll(/\bremal-gradle-plugins-/, '')
         .replace('-', '')
         .replace(':', '.')
         .replaceFirst(/\.+$/, '')
         .replaceAll(/\.{2,}/, '.')
+        .replaceAll(/(?:(\.${Pattern.quote(rootProject.name)})){2,}/, '$1')
 }

@@ -1,0 +1,4 @@
+include(
+    ':remal-gradle-plugins-toolkit',
+    ':remal-gradle-plugins-testkit',
+)
