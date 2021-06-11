@@ -5,6 +5,7 @@ println 'keyId: ' + findProperty('signing.keyId')?.toString()?.length()
 println 'password: ' + findProperty('signing.password')?.toString()?.length()
 allprojects {
     if (hasProperty('signing.key') && !property('signing.key').toString().isEmpty()) {
+        println "apply plugin: 'signing'"
         apply plugin: 'signing'
     }
 
