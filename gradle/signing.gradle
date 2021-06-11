@@ -1,6 +1,3 @@
-println findProperty('signing.key')
-println findProperty('signing.keyId')
-println findProperty('signing.password')
 allprojects {
     if (hasProperty('signing.key') && !property('signing.key').toString().isEmpty()) {
         apply plugin: 'signing'
