@@ -115,7 +115,7 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
                 val runner = createGradleRunner();
                 currentBuildResult = runner.build();
 
-                val output = buildResult.getOutput();
+                val output = currentBuildResult.getOutput();
                 List<String> outputLines = Stream.of(output.split("\n"))
                     .map(it -> TRIM_RIGHT.matcher(it).replaceFirst(""))
                     .filter(it -> !it.isEmpty())

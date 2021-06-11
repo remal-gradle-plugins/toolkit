@@ -25,7 +25,8 @@ class FunctionalTestExtensionTest extends AbstractJupiterTestEngineTests {
             assertTrue(project1.getProjectDir().isDirectory());
             assertTrue(project2.getProjectDir().isDirectory());
 
-            project1.withoutPluginClasspath().assertBuildSuccessfully();
+            project1.withoutPluginClasspath()
+                .assertBuildSuccessfully();
         }
 
     }
