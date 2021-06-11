@@ -1,3 +1,5 @@
+println "hasProperty('signing.key'): ${hasProperty('signing.key')}"
+println "!property('signing.key').toString().isEmpty(): ${!property('signing.key').toString().isEmpty()}"
 println 'key: ' + findProperty('signing.key')?.toString()?.length()
 println 'keyId: ' + findProperty('signing.keyId')?.toString()?.length()
 println 'password: ' + findProperty('signing.password')?.toString()?.length()
@@ -9,9 +11,9 @@ allprojects {
     pluginManager.withPlugin('signing') {
         signing {
             useInMemoryPgpKeys(
-                findProperty('signing.keyId')?.toString(),
-                findProperty('signing.key')?.toString(),
-                findProperty('signing.password')?.toString()
+                property('signing.keyId').toString(),
+                property('signing.key').toString(),
+                property('signing.password').toString()
             )
         }
     }
