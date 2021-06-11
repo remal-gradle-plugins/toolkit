@@ -109,11 +109,8 @@ jobs:
         ./gradlew allClasses
         echo "DISABLE_COMPILATION=true" >> "$GITHUB_ENV"
     - name: Build
-      env:
-        SIGNING_SECRET_KEY_RING: ${{secrets.SIGNING_SECRET_KEY_RING}}
       run: |
-        echo ${#SIGNING_SECRET_KEY_RING}
-        ./gradlew build generateAllPoms -Pdisable-tests=true  "-Psigning.key=${{secrets.SIGNING_SECRET_KEY_RING}}" "-Psigning.keyId=${{secrets.SIGNING_KEY_ID}}" "-Psigning.password=${{secrets.SIGNING_PASSWORD}}"
+        ./gradlew build publishToMavenLocal -Pdisable-tests=true  "-Psigning.key=${{secrets.SIGNING_SECRET_KEY_RING}}" "-Psigning.keyId=${{secrets.SIGNING_KEY_ID}}" "-Psigning.password=${{secrets.SIGNING_PASSWORD}}"
     - name: Archive workspace
       run: |
         tar -cz -f "/tmp/workspace-${{github.run_id}}.tar.gz" `git ls-files -m -o`
