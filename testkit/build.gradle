@@ -1,0 +1,12 @@
+apply plugin: 'java-library'
+apply plugin: 'maven-publish'
+
+dependencies {
+    optional 'name.remal.gradle-api:gradle-test-kit'
+    optional 'org.junit.jupiter:junit-jupiter-api'
+
+    api project(':')
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine'
+    testImplementation 'org.junit.platform:junit-platform-testkit'
+}
