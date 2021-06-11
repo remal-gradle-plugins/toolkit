@@ -53,7 +53,7 @@ jobs:
     - name: Create cache content
       if: ${{steps.cache.outputs.cache-hit != 'true'}}
       run: |
-        ./gradlew downloadDependencies  "-Psigning.key=${{secrets.SIGNING_SECRET_KEY_RING}}" "-Psigning.keyId=${{secrets.SIGNING_KEY_ID}}" "-Psigning.password=${{secrets.SIGNING_PASSWORD}}"
+        ./gradlew downloadDependencies
 
   build:
     needs:
@@ -110,7 +110,7 @@ jobs:
         echo "DISABLE_COMPILATION=true" >> "$GITHUB_ENV"
     - name: Build
       run: |
-        ./gradlew build publishToMavenLocal -Pdisable-tests=true  "-Psigning.key=${{secrets.SIGNING_SECRET_KEY_RING}}" "-Psigning.keyId=${{secrets.SIGNING_KEY_ID}}" "-Psigning.password=${{secrets.SIGNING_PASSWORD}}"
+        ./gradlew build publishToMavenLocal -Pdisable-tests=true
     - name: Archive workspace
       run: |
         tar -cz -f "/tmp/workspace-${{github.run_id}}.tar.gz" `git ls-files -m -o`

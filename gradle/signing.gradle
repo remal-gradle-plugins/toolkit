@@ -2,11 +2,7 @@ allprojects {
     String signingKey = findProperty('signing.key')?.toString()
     String signingKeyId = findProperty('signing.keyId')?.toString()
     String signingPassword = findProperty('signing.password')?.toString()
-    println "signingKey: ${signingKey?.length()}"
-    println "signingKeyId: ${signingKeyId?.length()}"
-    println "signingPassword: ${signingPassword?.length()}"
     if (signingKey != null && !signingKey.isEmpty()) {
-        println "apply plugin: 'signing'"
         apply plugin: 'signing'
     }
 
