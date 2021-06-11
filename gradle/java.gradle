@@ -78,7 +78,6 @@ allprojects {
             testImplementation 'org.junit.jupiter:junit-jupiter-params'
             testImplementation 'org.mockito:mockito-junit-jupiter'
             testImplementation 'org.mockito:mockito-inline'
-            testImplementation 'name.remal.gradle-plugins.toolkit:testkit'
 
             testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
         }
