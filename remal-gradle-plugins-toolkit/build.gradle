@@ -1,9 +1,0 @@
-apply plugin: 'java-library'
-apply plugin: 'maven-publish'
-apply plugin: 'name.remal.classes-relocation'
-
-dependencies {
-    relocateClasses 'org.apache.commons:commons-text'
-
-    optional 'name.remal.gradle-api:gradle-api'
-}
