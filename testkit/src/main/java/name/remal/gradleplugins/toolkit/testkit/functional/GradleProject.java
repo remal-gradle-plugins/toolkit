@@ -97,7 +97,8 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
     ));
 
     private static final List<String> OPTIMIZATIONS_DISABLED_WARNING_MESSAGES = unmodifiableList(asList(
-        "Execution optimizations have been disabled for task"
+        "Execution optimizations have been disabled for task",
+        "This can lead to incorrect results being produced, depending on what order the tasks are executed"
     ));
 
     private BuildResult buildResult;
