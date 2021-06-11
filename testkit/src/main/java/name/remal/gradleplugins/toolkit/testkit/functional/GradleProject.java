@@ -96,6 +96,10 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
         "configuration is resolved from a thread not managed by Gradle"
     ));
 
+    private static final List<String> OPTIMIZATIONS_DISABLED_WARNING_MESSAGES = unmodifiableList(asList(
+        "Execution optimizations have been disabled for task"
+    ));
+
     private BuildResult buildResult;
     private Throwable buildException;
 
@@ -122,6 +126,7 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
                     .collect(toList());
                 assertNoDeprecationMessages(outputLines);
                 assertNoMutableProjectStateWarnings(outputLines);
+                assertNoOptimizationsDisabledWarnings(outputLines);
 
             } catch (Throwable e) {
                 buildException = e;
@@ -238,6 +243,22 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
             val sb = new StringBuilder();
             sb.append("Mutable Project State warnings were found:");
             mutableProjectStateWarnings.forEach(it -> sb.append("\n  * ").append(it));
+            throw new AssertionError(sb.toString());
+        }
+    }
+
+    private void assertNoOptimizationsDisabledWarnings(List<String> outputLines) {
+        Collection<String> optimizationsDisabledWarnings = new LinkedHashSet<>();
+        for (final String line : outputLines) {
+            val hasWarning = OPTIMIZATIONS_DISABLED_WARNING_MESSAGES.stream().anyMatch(line::contains);
+            if (hasWarning) {
+                optimizationsDisabledWarnings.add(line);
+            }
+        }
+        if (!optimizationsDisabledWarnings.isEmpty()) {
+            val sb = new StringBuilder();
+            sb.append("Optimizations disabled warnings were found:");
+            optimizationsDisabledWarnings.forEach(it -> sb.append("\n  * ").append(it));
             throw new AssertionError(sb.toString());
         }
     }
