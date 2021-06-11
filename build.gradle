@@ -24,6 +24,7 @@ apply from: 'gradle/ci.gradle'
 apply from: 'gradle/dependencies.gradle'
 apply from: 'gradle/java.gradle'
 apply from: 'gradle/groovy.gradle'
+apply from: 'gradle/classes-relocation.gradle'
 apply from: 'gradle/checkstyle.gradle'
 apply from: 'gradle/base-package.gradle'
 apply from: 'gradle/publish-maven.gradle'
@@ -33,10 +34,3 @@ apply from: 'gradle/ide.gradle'
 apply from: 'gradle/renovate.gradle'
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-apply plugin: 'java-library'
-apply plugin: 'maven-publish'
-
-dependencies {
-    optional 'name.remal.gradle-api:gradle-api'
-}

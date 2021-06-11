@@ -33,6 +33,12 @@ allprojects {
             }
         }
 
+        configurations.create('compileOnlyAll') { Configuration conf ->
+            sourceSets.all { SourceSet sourceSet ->
+                configurations[sourceSet.compileOnlyConfigurationName].extendsFrom(conf)
+            }
+        }
+
         configurations.create('optional') { Configuration conf ->
             sourceSets.all { SourceSet sourceSet ->
                 if (sourceSet.name == SourceSet.MAIN_SOURCE_SET_NAME) {
@@ -50,19 +56,27 @@ allprojects {
             }
         }
 
+        configurations.create('annotationProcessorAll') { Configuration conf ->
+            sourceSets.all { SourceSet sourceSet ->
+                configurations[sourceSet.annotationProcessorConfigurationName].extendsFrom(conf)
+            }
+        }
+
         dependencies {
-            compileOnly 'com.google.code.findbugs:jsr305'
-            compileOnly 'org.jetbrains:annotations'
+            compileOnlyAll 'com.google.code.findbugs:jsr305'
+            compileOnlyAll 'org.jetbrains:annotations'
+            compileOnlyAll 'name.remal:gradle-plugins-api'
 
             apt 'org.projectlombok:lombok'
+
+            annotationProcessorAll 'com.google.auto.service:auto-service'
+            compileOnlyAll 'com.google.auto.service:auto-service-annotations'
 
 
             testImplementation 'org.junit.jupiter:junit-jupiter-api'
             testImplementation 'org.junit.jupiter:junit-jupiter-params'
             testImplementation 'org.mockito:mockito-junit-jupiter'
             testImplementation 'org.mockito:mockito-inline'
-            testImplementation 'com.google.code.findbugs:jsr305'
-            testImplementation 'org.jetbrains:annotations'
 
             testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
         }
@@ -110,6 +124,7 @@ allprojects {
 
         tasks.withType(Test) {
             useJUnitPlatform()
+            systemProperty('junit.jupiter.extensions.autodetection.enabled', 'true')
             enableAssertions = true
 
             testLogging {
@@ -144,6 +159,7 @@ allprojects {
         }
 
         tasks.withType(Javadoc) {
+            options.addBooleanOption('Xdoclint:none', true)
             if (JavaVersion.current().isJava9Compatible()) {
                 options.addBooleanOption('html5', true)
             }
