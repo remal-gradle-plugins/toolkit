@@ -39,6 +39,17 @@ apply from: 'gradle/renovate.gradle'
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+allprojects {
+    pluginManager.withPlugin('java') {
+        dependencies {
+            annotationProcessorAll 'com.google.auto.service:auto-service'
+            compileOnlyAll 'com.google.auto.service:auto-service-annotations'
+        }
+    }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 apply plugin: 'java-library'
 apply plugin: 'maven-publish'
 apply plugin: 'name.remal.classes-relocation'
