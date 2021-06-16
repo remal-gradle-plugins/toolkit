@@ -1,12 +1,9 @@
 package name.remal.gradleplugins.toolkit.testkit.functional;
 
 import com.google.auto.service.AutoService;
-import java.lang.reflect.Member;
 import lombok.val;
-import name.remal.gradleplugins.toolkit.testkit.internal.containers.ExtensionStore;
+import name.remal.gradleplugins.toolkit.testkit.internal.AbstractProjectDirPrefixExtension;
 import name.remal.gradleplugins.toolkit.testkit.internal.containers.GradleProjectsContainer;
-import name.remal.gradleplugins.toolkit.testkit.internal.containers.ProjectDirPrefix;
-import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
@@ -14,9 +11,7 @@ import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
 @AutoService(Extension.class)
-public class FunctionalTestExtension implements ParameterResolver, BeforeEachCallback {
-
-    private final ExtensionStore extensionStore = new ExtensionStore(this);
+public class FunctionalTestExtension extends AbstractProjectDirPrefixExtension implements ParameterResolver {
 
     @Override
     public boolean supportsParameter(
@@ -34,13 +29,6 @@ public class FunctionalTestExtension implements ParameterResolver, BeforeEachCal
     ) throws ParameterResolutionException {
         val gradleProjects = GradleProjectsContainer.getGradleProjectsContainer(extensionStore, extensionContext);
         return gradleProjects.resolveParameterGradleProject(parameterContext);
-    }
-
-    @Override
-    public void beforeEach(ExtensionContext context) {
-        val dirPrefix = ProjectDirPrefix.getProjectDirPrefix(extensionStore, context);
-        context.getTestClass().map(Class::getName).ifPresent(dirPrefix::push);
-        context.getTestMethod().map(Member::getName).ifPresent(dirPrefix::push);
     }
 
 }

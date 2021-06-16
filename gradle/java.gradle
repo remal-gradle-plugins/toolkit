@@ -81,14 +81,11 @@ allprojects {
 
             apt 'org.projectlombok:lombok'
 
-            relocateClasses 'name.remal.gradle-plugins.toolkit:toolkit'
-
 
             testImplementation 'org.junit.jupiter:junit-jupiter-api'
             testImplementation 'org.junit.jupiter:junit-jupiter-params'
             testImplementation 'org.mockito:mockito-junit-jupiter'
             testImplementation 'org.mockito:mockito-inline'
-            testImplementation 'name.remal.gradle-plugins.toolkit:testkit'
 
             testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
         }

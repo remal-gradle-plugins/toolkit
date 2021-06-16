@@ -3,6 +3,7 @@ package name.remal.gradleplugins.toolkit.testkit;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.extension.ConditionEvaluationResult.disabled;
 import static org.junit.jupiter.api.extension.ConditionEvaluationResult.enabled;
+import static org.junit.jupiter.engine.config.JupiterConfiguration.DEFAULT_TEST_METHOD_ORDER_PROPERTY_NAME;
 import static org.junit.jupiter.engine.config.JupiterConfiguration.EXTENSIONS_AUTODETECTION_ENABLED_PROPERTY_NAME;
 import static org.junit.jupiter.engine.config.JupiterConfiguration.PARALLEL_EXECUTION_ENABLED_PROPERTY_NAME;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
@@ -11,6 +12,7 @@ import static org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder.r
 
 import java.util.Set;
 import lombok.val;
+import org.junit.jupiter.api.MethodOrderer.MethodName;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -70,6 +72,7 @@ public abstract class AbstractJupiterTestEngineTests {
         return request
             .configurationParameter(PARALLEL_EXECUTION_ENABLED_PROPERTY_NAME, "false")
             .configurationParameter(EXTENSIONS_AUTODETECTION_ENABLED_PROPERTY_NAME, "false")
+            .configurationParameter(DEFAULT_TEST_METHOD_ORDER_PROPERTY_NAME, MethodName.class.getName())
             ;
     }
 
