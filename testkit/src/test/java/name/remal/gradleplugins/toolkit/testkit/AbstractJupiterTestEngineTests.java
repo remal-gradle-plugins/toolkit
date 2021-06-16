@@ -13,6 +13,7 @@ import static org.junit.platform.engine.discovery.DiscoverySelectors.selectMetho
 import static org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder.request;
 
 import java.lang.annotation.Documented;
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.util.Set;
@@ -85,6 +86,7 @@ public abstract class AbstractJupiterTestEngineTests {
 
     @ExtendWith(DisabledIfNotExecutedFromTestKit.class)
     @TestMethodOrder(MethodName.class)
+    @Inherited
     @Target({TYPE, ANNOTATION_TYPE})
     @Retention(RUNTIME)
     @Documented
