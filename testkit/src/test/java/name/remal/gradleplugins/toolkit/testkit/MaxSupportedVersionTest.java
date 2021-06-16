@@ -17,7 +17,7 @@ class MaxSupportedVersionTest extends AbstractSupportedVersionExtensionTests {
 
     @ExtendWith(ModuleVersion6.class)
     @MaxSupportedVersion(module = "module", version = "5.0")
-    @ExtendWith(DisabledIfNotExecutedFromTestKit.class)
+    @ExampleTests
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class ClassExample5 {
         @Test
@@ -33,7 +33,7 @@ class MaxSupportedVersionTest extends AbstractSupportedVersionExtensionTests {
 
     @ExtendWith(ModuleVersion6.class)
     @MaxSupportedVersion(module = "module", version = "6.0")
-    @ExtendWith(DisabledIfNotExecutedFromTestKit.class)
+    @ExampleTests
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class ClassExample6 {
         @Test
@@ -50,7 +50,7 @@ class MaxSupportedVersionTest extends AbstractSupportedVersionExtensionTests {
 
     @ExtendWith(ModuleVersion6.class)
     @MaxSupportedVersion(module = "module", version = "7.0")
-    @ExtendWith(DisabledIfNotExecutedFromTestKit.class)
+    @ExampleTests
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class ClassExample7 {
         @Test
@@ -66,7 +66,7 @@ class MaxSupportedVersionTest extends AbstractSupportedVersionExtensionTests {
 
 
     @ExtendWith(ModuleVersion6.class)
-    @ExtendWith(DisabledIfNotExecutedFromTestKit.class)
+    @ExampleTests
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class MethodExample5 {
         @Test
@@ -87,7 +87,7 @@ class MaxSupportedVersionTest extends AbstractSupportedVersionExtensionTests {
 
 
     @ExtendWith(ModuleVersion6.class)
-    @ExtendWith(DisabledIfNotExecutedFromTestKit.class)
+    @ExampleTests
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class MethodExample6 {
         @Test
@@ -108,7 +108,7 @@ class MaxSupportedVersionTest extends AbstractSupportedVersionExtensionTests {
 
 
     @ExtendWith(ModuleVersion6.class)
-    @ExtendWith(DisabledIfNotExecutedFromTestKit.class)
+    @ExampleTests
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class MethodExample7 {
         @Test

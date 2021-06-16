@@ -11,7 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 class FunctionalTestExtensionTest extends AbstractJupiterTestEngineTests {
 
     @ExtendWith(FunctionalTestExtension.class)
-    @ExtendWith(DisabledIfNotExecutedFromTestKit.class)
+    @ExampleTests
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class SimpleExample {
 

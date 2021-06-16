@@ -13,7 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
 
     @ExtendWith(GradleProjectExtension.class)
-    @ExtendWith(DisabledIfNotExecutedFromTestKit.class)
+    @ExampleTests
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class SimpleExample {
 
@@ -38,7 +38,7 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
 
 
     @ExtendWith(GradleProjectExtension.class)
-    @ExtendWith(DisabledIfNotExecutedFromTestKit.class)
+    @ExampleTests
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class FullExample {
 
@@ -63,7 +63,7 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
 
 
     @ExtendWith(GradleProjectExtension.class)
-    @ExtendWith(DisabledIfNotExecutedFromTestKit.class)
+    @ExampleTests
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class ReferencesToItselfExample {
 
@@ -85,7 +85,7 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
 
 
     @ExtendWith(GradleProjectExtension.class)
-    @ExtendWith(DisabledIfNotExecutedFromTestKit.class)
+    @ExampleTests
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class InvalidReferenceExample {
 

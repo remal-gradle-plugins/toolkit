@@ -1,20 +1,27 @@
 package name.remal.gradleplugins.toolkit.testkit;
 
+import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.extension.ConditionEvaluationResult.disabled;
 import static org.junit.jupiter.api.extension.ConditionEvaluationResult.enabled;
-import static org.junit.jupiter.engine.config.JupiterConfiguration.DEFAULT_TEST_METHOD_ORDER_PROPERTY_NAME;
 import static org.junit.jupiter.engine.config.JupiterConfiguration.EXTENSIONS_AUTODETECTION_ENABLED_PROPERTY_NAME;
 import static org.junit.jupiter.engine.config.JupiterConfiguration.PARALLEL_EXECUTION_ENABLED_PROPERTY_NAME;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectMethod;
 import static org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder.request;
 
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 import java.util.Set;
 import lombok.val;
 import org.junit.jupiter.api.MethodOrderer.MethodName;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExecutionCondition;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.engine.JupiterTestEngine;
 import org.junit.platform.engine.DiscoverySelector;
@@ -72,12 +79,19 @@ public abstract class AbstractJupiterTestEngineTests {
         return request
             .configurationParameter(PARALLEL_EXECUTION_ENABLED_PROPERTY_NAME, "false")
             .configurationParameter(EXTENSIONS_AUTODETECTION_ENABLED_PROPERTY_NAME, "false")
-            .configurationParameter(DEFAULT_TEST_METHOD_ORDER_PROPERTY_NAME, MethodName.class.getName())
             ;
     }
 
 
-    protected static class DisabledIfNotExecutedFromTestKit implements ExecutionCondition {
+    @ExtendWith(DisabledIfNotExecutedFromTestKit.class)
+    @TestMethodOrder(MethodName.class)
+    @Target({TYPE, ANNOTATION_TYPE})
+    @Retention(RUNTIME)
+    @Documented
+    protected @interface ExampleTests {
+    }
+
+    private static class DisabledIfNotExecutedFromTestKit implements ExecutionCondition {
 
         private static final String TEST_KIT_PACKAGE_NAME_PREFIX = "org.junit.platform.testkit.";
 
