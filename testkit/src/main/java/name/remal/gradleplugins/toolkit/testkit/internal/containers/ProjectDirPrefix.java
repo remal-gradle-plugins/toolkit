@@ -1,7 +1,7 @@
 package name.remal.gradleplugins.toolkit.testkit.internal.containers;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 import lombok.val;
@@ -27,9 +27,7 @@ public class ProjectDirPrefix {
     }
 
 
-    private static final Pattern FORBIDDEN_DIR_PREFIX_CHARS = Pattern.compile("[\\\\/:<>\"'|?*]");
-
-    private final Collection<String> dirPrefixes = new ArrayList<>();
+    private final Deque<String> dirPrefixes = new ArrayDeque<>();
 
     @Nullable
     private final ProjectDirPrefix parent;
@@ -49,10 +47,24 @@ public class ProjectDirPrefix {
     @Contract("_ -> this")
     public ProjectDirPrefix push(@Nullable String dirPrefix) {
         if (dirPrefix != null && !dirPrefix.isEmpty()) {
-            dirPrefix = FORBIDDEN_DIR_PREFIX_CHARS.matcher(dirPrefix).replaceAll("-");
-            dirPrefixes.add(dirPrefix);
+            dirPrefix = normalizeDirPrefix(dirPrefix);
+            dirPrefixes.addLast(dirPrefix);
         }
         return this;
+    }
+
+    @Nullable
+    public String pop(String expectedLastDirPrefix) {
+        if (dirPrefixes.isEmpty()) {
+            return null;
+        }
+
+        expectedLastDirPrefix = normalizeDirPrefix(expectedLastDirPrefix);
+        val lastItem = dirPrefixes.peekLast();
+        if (expectedLastDirPrefix.equals(lastItem)) {
+            dirPrefixes.removeLast();
+        }
+        return lastItem;
     }
 
     private void fillStringBuilder(StringBuilder sb) {
@@ -73,6 +85,13 @@ public class ProjectDirPrefix {
         val sb = new StringBuilder();
         fillStringBuilder(sb);
         return sb.toString();
+    }
+
+
+    private static final Pattern FORBIDDEN_DIR_PREFIX_CHARS = Pattern.compile("[\\\\/:<>\"'|?*]");
+
+    private static String normalizeDirPrefix(String dirPrefix) {
+        return FORBIDDEN_DIR_PREFIX_CHARS.matcher(dirPrefix).replaceAll("-");
     }
 
 }
