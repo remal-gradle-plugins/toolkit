@@ -9,10 +9,12 @@ import java.util.LinkedHashSet;
 import lombok.val;
 import name.remal.gradleplugins.toolkit.Version;
 import name.remal.gradleplugins.toolkit.testkit.MaxSupportedVersion;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.platform.commons.util.AnnotationUtils;
 
+@Internal
 public class MaxSupportedVersionExtension extends AbstractSupportedVersionExtension {
 
     @Override

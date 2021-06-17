@@ -5,9 +5,11 @@ import static name.remal.gradleplugins.toolkit.testkit.internal.containers.Proje
 import java.util.ArrayList;
 import java.util.Collection;
 import lombok.val;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ExtensionContext.Store.CloseableResource;
 
+@Internal
 public abstract class AbstractExtensionContextContainer<Resource> implements CloseableResource {
 
     protected void cleanup(Resource resource, boolean isExceptionThrown) throws Throwable {

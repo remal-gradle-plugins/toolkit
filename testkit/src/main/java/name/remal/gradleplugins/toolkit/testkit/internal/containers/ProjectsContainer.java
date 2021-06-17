@@ -15,9 +15,11 @@ import name.remal.gradleplugins.toolkit.testkit.ChildProjectOf;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectStateInternal;
 import org.gradle.testfixtures.ProjectBuilder;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 
+@Internal
 public class ProjectsContainer extends AbstractExtensionContextContainer<Project> {
 
     public static ProjectsContainer getProjectsContainer(ExtensionStore extensionStore, ExtensionContext context) {

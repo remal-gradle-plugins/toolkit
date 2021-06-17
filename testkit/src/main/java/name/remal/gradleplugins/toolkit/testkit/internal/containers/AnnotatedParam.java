@@ -14,10 +14,12 @@ import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.Value;
 import lombok.val;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.junit.platform.commons.util.AnnotationUtils;
 
 @Value
 @EqualsAndHashCode(of = "parameter")
+@Internal
 class AnnotatedParam {
 
     @NonNull

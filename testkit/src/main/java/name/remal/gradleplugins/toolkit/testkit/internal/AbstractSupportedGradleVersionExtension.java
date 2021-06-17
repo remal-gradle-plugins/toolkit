@@ -2,11 +2,13 @@ package name.remal.gradleplugins.toolkit.testkit.internal;
 
 import lombok.val;
 import org.gradle.util.GradleVersion;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
 
+@Internal
 abstract class AbstractSupportedGradleVersionExtension implements ExecutionCondition {
 
     @VisibleForTesting
