@@ -5,9 +5,11 @@ import java.util.Deque;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 import lombok.val;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Contract;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
+@Internal
 public class ProjectDirPrefix {
 
     public static ProjectDirPrefix getProjectDirPrefix(ExtensionStore extensionStore, ExtensionContext context) {

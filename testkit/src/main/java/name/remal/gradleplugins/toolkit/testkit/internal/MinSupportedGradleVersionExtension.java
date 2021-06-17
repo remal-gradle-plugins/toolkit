@@ -7,10 +7,12 @@ import static org.junit.jupiter.api.extension.ConditionEvaluationResult.enabled;
 import lombok.val;
 import name.remal.gradleplugins.toolkit.testkit.MinSupportedGradleVersion;
 import org.gradle.util.GradleVersion;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.platform.commons.util.AnnotationUtils;
 
+@Internal
 public class MinSupportedGradleVersionExtension extends AbstractSupportedGradleVersionExtension {
 
     @Override

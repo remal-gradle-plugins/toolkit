@@ -5,12 +5,17 @@ import static name.remal.gradleplugins.toolkit.testkit.internal.containers.Proje
 import java.util.ArrayList;
 import java.util.Collection;
 import lombok.val;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ExtensionContext.Store.CloseableResource;
 
+@Internal
 public abstract class AbstractExtensionContextContainer<Resource> implements CloseableResource {
 
-    protected void cleanup(Resource resource, boolean isExceptionThrown) {
+    protected void cleanup(Resource resource, boolean isExceptionThrown) throws Throwable {
+    }
+
+    protected void additionalCleanup(boolean isExceptionThrown) throws Throwable {
     }
 
 
@@ -25,8 +30,9 @@ public abstract class AbstractExtensionContextContainer<Resource> implements Clo
     }
 
     @Override
-    public final synchronized void close() {
+    public final synchronized void close() throws Throwable {
         val isExceptionThrown = context.getExecutionException().isPresent();
+
         val registeredResourcesIterator = registeredResources.iterator();
         while (registeredResourcesIterator.hasNext()) {
             val resource = registeredResourcesIterator.next();
@@ -34,7 +40,10 @@ public abstract class AbstractExtensionContextContainer<Resource> implements Clo
 
             cleanup(resource, isExceptionThrown);
         }
+
+        additionalCleanup(isExceptionThrown);
     }
+
 
     protected final synchronized void registerResource(Resource resource) {
         registeredResources.add(resource);

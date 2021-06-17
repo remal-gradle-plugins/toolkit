@@ -4,18 +4,22 @@ import static java.lang.String.format;
 import static java.nio.file.Files.createTempDirectory;
 import static org.codehaus.groovy.runtime.ResourceGroovyMethods.deleteDir;
 
+import java.lang.reflect.Parameter;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import lombok.val;
+import name.remal.gradleplugins.toolkit.testkit.ApplyPlugin;
 import name.remal.gradleplugins.toolkit.testkit.ChildProjectOf;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectStateInternal;
 import org.gradle.testfixtures.ProjectBuilder;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 
+@Internal
 public class ProjectsContainer extends AbstractExtensionContextContainer<Project> {
 
     public static ProjectsContainer getProjectsContainer(ExtensionStore extensionStore, ExtensionContext context) {
@@ -27,6 +31,9 @@ public class ProjectsContainer extends AbstractExtensionContextContainer<Project
         return extensionStore.setCurrentStoreValue(context, new ProjectsContainer(extensionStore, context));
     }
 
+
+    private final Map<Parameter, Long> invocationNumbers = new LinkedHashMap<>();
+    private final Map<Long, Map<AnnotatedParam, Project>> invocationParameterProjects = new LinkedHashMap<>();
 
     public ProjectsContainer(ExtensionStore extensionStore, ExtensionContext context) {
         super(extensionStore, context);
@@ -40,6 +47,11 @@ public class ProjectsContainer extends AbstractExtensionContextContainer<Project
         }
     }
 
+    @Override
+    protected void additionalCleanup(boolean isExceptionThrown) {
+        invocationNumbers.clear();
+        invocationParameterProjects.clear();
+    }
 
     public Project newProject(@Nullable Project parentProject) {
         val dirPrefix = getDirPrefix();
@@ -71,16 +83,29 @@ public class ProjectsContainer extends AbstractExtensionContextContainer<Project
     }
 
 
-    public Project resolveParameterProject(ParameterContext parameterContext, ExtensionContext extensionContext) {
-        val annotatedParam = new AnnotatedParam(parameterContext.getParameter());
-        return resolveParameterProject(annotatedParam, extensionContext);
+    public synchronized Project resolveParameterProject(ParameterContext parameterContext) {
+        val parameter = parameterContext.getParameter();
+        val annotatedParam = new AnnotatedParam(parameter);
+
+        final long invocationNumber;
+        if (invocationNumbers.containsKey(parameter)) {
+            invocationNumber = invocationNumbers.get(parameter) + 1;
+        } else {
+            invocationNumber = 1L;
+        }
+        invocationNumbers.put(parameter, invocationNumber);
+
+        val parameterProjects = invocationParameterProjects.computeIfAbsent(
+            invocationNumber,
+            __ -> new LinkedHashMap<>()
+        );
+
+        return resolveParameterProject(annotatedParam, parameterProjects);
     }
 
-    private final Map<AnnotatedParam, Project> parameterProjects = new LinkedHashMap<>();
-
-    public synchronized Project resolveParameterProject(
+    private Project resolveParameterProject(
         AnnotatedParam annotatedParam,
-        ExtensionContext extensionContext
+        Map<AnnotatedParam, Project> parameterProjects
     ) {
         Project paramProject = parameterProjects.get(annotatedParam);
         if (paramProject != null) {
@@ -102,9 +127,12 @@ public class ProjectsContainer extends AbstractExtensionContextContainer<Project
                 ));
             }
             for (val otherParam : annotatedParam.getDeclaringExecutable().getParameters()) {
+                if (otherParam.isSynthetic()) {
+                    continue;
+                }
                 val otherAnnotatedParam = new AnnotatedParam(otherParam);
                 if (otherParam.getName().equals(parentProjectParamName)) {
-                    val parentProject = resolveParameterProject(otherAnnotatedParam, extensionContext);
+                    val parentProject = resolveParameterProject(otherAnnotatedParam, parameterProjects);
                     paramProject = newProject(parentProject, dirPrefix);
                     break;
                 }
@@ -120,6 +148,16 @@ public class ProjectsContainer extends AbstractExtensionContextContainer<Project
 
         } else {
             paramProject = newProject(null, dirPrefix);
+        }
+
+        val applyPlugin = annotatedParam.findAnnotation(ApplyPlugin.class);
+        if (applyPlugin != null) {
+            for (val id : applyPlugin.id()) {
+                paramProject.getPluginManager().apply(id);
+            }
+            for (val type : applyPlugin.type()) {
+                paramProject.getPluginManager().apply(type);
+            }
         }
 
         parameterProjects.put(annotatedParam, paramProject);

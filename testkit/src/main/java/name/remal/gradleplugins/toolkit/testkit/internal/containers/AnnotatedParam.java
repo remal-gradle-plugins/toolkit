@@ -10,12 +10,16 @@ import java.lang.reflect.Executable;
 import java.lang.reflect.Parameter;
 import java.util.List;
 import javax.annotation.Nullable;
+import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.Value;
 import lombok.val;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.junit.platform.commons.util.AnnotationUtils;
 
 @Value
+@EqualsAndHashCode(of = "parameter")
+@Internal
 class AnnotatedParam {
 
     @NonNull

@@ -18,7 +18,7 @@ class MaxSupportedGradleVersionTest extends AbstractSupportedGradleVersionExtens
 
     @ExtendWith(CurrentGradleVersion6.class)
     @MaxSupportedGradleVersion("5.0")
-    @ExtendWith(DisabledIfNotExecutedFromTestKit.class)
+    @ExampleTests
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class ClassExample5 {
         @Test
@@ -34,7 +34,7 @@ class MaxSupportedGradleVersionTest extends AbstractSupportedGradleVersionExtens
 
     @ExtendWith(CurrentGradleVersion6.class)
     @MaxSupportedGradleVersion("6.0")
-    @ExtendWith(DisabledIfNotExecutedFromTestKit.class)
+    @ExampleTests
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class ClassExample6 {
         @Test
@@ -51,7 +51,7 @@ class MaxSupportedGradleVersionTest extends AbstractSupportedGradleVersionExtens
 
     @ExtendWith(CurrentGradleVersion6.class)
     @MaxSupportedGradleVersion("7.0")
-    @ExtendWith(DisabledIfNotExecutedFromTestKit.class)
+    @ExampleTests
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class ClassExample7 {
         @Test
@@ -67,7 +67,7 @@ class MaxSupportedGradleVersionTest extends AbstractSupportedGradleVersionExtens
 
 
     @ExtendWith(CurrentGradleVersion6.class)
-    @ExtendWith(DisabledIfNotExecutedFromTestKit.class)
+    @ExampleTests
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class MethodExample5 {
         @Test
@@ -88,7 +88,7 @@ class MaxSupportedGradleVersionTest extends AbstractSupportedGradleVersionExtens
 
 
     @ExtendWith(CurrentGradleVersion6.class)
-    @ExtendWith(DisabledIfNotExecutedFromTestKit.class)
+    @ExampleTests
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class MethodExample6 {
         @Test
@@ -109,7 +109,7 @@ class MaxSupportedGradleVersionTest extends AbstractSupportedGradleVersionExtens
 
 
     @ExtendWith(CurrentGradleVersion6.class)
-    @ExtendWith(DisabledIfNotExecutedFromTestKit.class)
+    @ExampleTests
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class MethodExample7 {
         @Test

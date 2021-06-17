@@ -29,7 +29,7 @@ public class GradleProjectExtension extends AbstractProjectDirPrefixExtension im
         ExtensionContext extensionContext
     ) throws ParameterResolutionException {
         val projects = ProjectsContainer.getProjectsContainer(extensionStore, extensionContext);
-        return projects.resolveParameterProject(parameterContext, extensionContext);
+        return projects.resolveParameterProject(parameterContext);
     }
 
 }

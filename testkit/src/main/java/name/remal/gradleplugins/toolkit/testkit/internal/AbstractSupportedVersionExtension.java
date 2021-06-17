@@ -4,11 +4,13 @@ import static java.lang.String.format;
 
 import lombok.val;
 import name.remal.gradleplugins.toolkit.Version;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
 
+@Internal
 abstract class AbstractSupportedVersionExtension implements ExecutionCondition {
 
     @VisibleForTesting

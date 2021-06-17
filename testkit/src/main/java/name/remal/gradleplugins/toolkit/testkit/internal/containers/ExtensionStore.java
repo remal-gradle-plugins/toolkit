@@ -3,12 +3,14 @@ package name.remal.gradleplugins.toolkit.testkit.internal.containers;
 import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import lombok.val;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
 import org.junit.jupiter.api.extension.ExtensionContext.Store;
 import org.junit.jupiter.api.extension.ExtensionContext.Store.CloseableResource;
 
+@Internal
 public class ExtensionStore {
 
     private final Namespace namespace;

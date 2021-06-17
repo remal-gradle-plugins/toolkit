@@ -10,21 +10,23 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.gradle.api.Plugin;
 
 /**
+ * <p>Applies Gradle plugins for projects injected by {@link GradleProjectExtension}.</p>
+ * <p>&nbsp;</p>
  * <p><small>This annotation is supposed to be used only on parameters. {@link ElementType#FIELD} target is added to
  * simplify Lombok's @{@link RequiredArgsConstructor} and @{@link AllArgsConstructor} annotations usage if
- * <code>lombok.copyableAnnotations += {@link name.remal.gradleplugins.toolkit.testkit.ChildProjectOf}</code></small>
+ * <code>lombok.copyableAnnotations += {@link name.remal.gradleplugins.toolkit.testkit.ApplyPlugin}</code></small>
  * is set in <code>lombokj.config</code> file.</p>
  */
 @Target({PARAMETER, FIELD})
 @Retention(RUNTIME)
 @Documented
-public @interface ChildProjectOf {
+public @interface ApplyPlugin {
 
-    /**
-     * Parameter name with parent Gradle project
-     */
-    String value();
+    String[] id() default {};
+
+    Class<? extends Plugin<?>>[] type() default {};
 
 }

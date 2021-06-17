@@ -3,13 +3,16 @@ package name.remal.gradleplugins.toolkit.testkit.functional;
 import static java.lang.String.format;
 import static java.lang.management.ManagementFactory.getRuntimeMXBean;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.synchronizedMap;
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
+import static lombok.AccessLevel.NONE;
 import static name.remal.gradleplugins.toolkit.StringEscapeUtils.escapeGroovy;
 
 import java.io.File;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -18,11 +21,8 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-import javax.annotation.Nullable;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.Value;
 import lombok.val;
 import org.gradle.initialization.StartParameterBuildOptions.WatchFileSystemOption;
 import org.gradle.testkit.runner.BuildResult;
@@ -69,43 +69,132 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
     private static final Pattern TRIM_RIGHT = Pattern.compile("\\s+$");
     private static final Pattern STACK_TRACE_LINE = Pattern.compile("^\\s+at ");
 
-    private static final List<String> DEPRECATION_MESSAGES = unmodifiableList(asList(
+    private static final List<String> DEFAULT_DEPRECATION_MESSAGES = unmodifiableList(asList(
         "has been deprecated and is scheduled to be removed in Gradle",
         "Deprecated Gradle features were used in this build",
         "is scheduled to be removed in Gradle",
         "will fail with an error in Gradle"
     ));
 
-    private static final List<SuppressedDeprecation> SUPPRESSED_DEPRECATIONS = unmodifiableList(asList(
-        new SuppressedDeprecation(
+    @Getter(NONE)
+    private final List<String> deprecationMessages = new ArrayList<>(DEFAULT_DEPRECATION_MESSAGES);
+
+    private static final List<SuppressedMessage> DEFAULT_SUPPRESSED_DEPRECATIONS_MESSAGES = unmodifiableList(asList(
+        new SuppressedMessage(
             "The DefaultSourceDirectorySet constructor has been deprecated",
             "org.jetbrains.kotlin.gradle.plugin."
         ),
-        new SuppressedDeprecation(
+        new SuppressedMessage(
             "Classpath configuration has been deprecated for dependency declaration",
             "org.jetbrains.kotlin.gradle.plugin.mpp.AbstractKotlinCompilation."
         ),
-        new SuppressedDeprecation(
+        new SuppressedMessage(
             "Internal API constructor TaskReportContainer(Class<T>, Task) has been deprecated",
             "com.github.spotbugs."
         )
     ));
 
-    private static final List<String> MUTABLE_PROJECT_STATE_WARNING_MESSAGES = unmodifiableList(asList(
+    @Getter(NONE)
+    private final List<SuppressedMessage> suppressedDeprecationMessages =
+        new ArrayList<>(DEFAULT_SUPPRESSED_DEPRECATIONS_MESSAGES);
+
+
+    private static final List<String> DEFAULT_MUTABLE_PROJECT_STATE_WARNINGS = unmodifiableList(asList(
         "was resolved without accessing the project in a safe manner",
         "configuration is resolved from a thread not managed by Gradle"
     ));
 
-    private static final List<String> OPTIMIZATIONS_DISABLED_WARNING_MESSAGES = unmodifiableList(asList(
+    @Getter(NONE)
+    private final List<String> mutableProjectStateWarnings =
+        new ArrayList<>(DEFAULT_MUTABLE_PROJECT_STATE_WARNINGS);
+
+    private static final List<SuppressedMessage> DEFAULT_SUPPRESSED_MUTABLE_PROJECT_STATE_WARNINGS =
+        emptyList();
+
+    @Getter(NONE)
+    private final List<SuppressedMessage> suppressedMutableProjectStateWarnings =
+        new ArrayList<>(DEFAULT_SUPPRESSED_MUTABLE_PROJECT_STATE_WARNINGS);
+
+
+    private static final List<String> DEFAULT_OPTIMIZATIONS_DISABLED_WARNINGS = unmodifiableList(asList(
         "Execution optimizations have been disabled for task",
         "This can lead to incorrect results being produced, depending on what order the tasks are executed"
     ));
+
+    @Getter(NONE)
+    private final List<String> optimizationsDisabledWarnings =
+        new ArrayList<>(DEFAULT_OPTIMIZATIONS_DISABLED_WARNINGS);
+
+    private static final List<SuppressedMessage> DEFAULT_SUPPRESSED_OPTIMIZATIONS_DISABLED_WARNINGS =
+        emptyList();
+
+    @Getter(NONE)
+    private final List<SuppressedMessage> suppressedOptimizationsDisabledWarnings =
+        new ArrayList<>(DEFAULT_SUPPRESSED_OPTIMIZATIONS_DISABLED_WARNINGS);
+
+
+    @Contract("_ -> this")
+    public final synchronized GradleProject addDeprecationMessage(String message) {
+        assertIsNotBuilt();
+        deprecationMessages.add(message);
+        return this;
+    }
+
+    @Contract("_ -> this")
+    public final synchronized GradleProject addSuppressedDeprecationMessage(SuppressedMessage suppressedMessage) {
+        assertIsNotBuilt();
+        suppressedDeprecationMessages.add(suppressedMessage);
+        return this;
+    }
+
+    @Contract("_ -> this")
+    public final synchronized GradleProject addMutableProjectStateWarning(String message) {
+        assertIsNotBuilt();
+        mutableProjectStateWarnings.add(message);
+        return this;
+    }
+
+    @Contract("_ -> this")
+    public final synchronized GradleProject addSuppressedMutableProjectStateWarning(
+        SuppressedMessage suppressedMessage
+    ) {
+        assertIsNotBuilt();
+        suppressedMutableProjectStateWarnings.add(suppressedMessage);
+        return this;
+    }
+
+    @Contract("_ -> this")
+    public final synchronized GradleProject addOptimizationsDisabledWarning(String message) {
+        assertIsNotBuilt();
+        optimizationsDisabledWarnings.add(message);
+        return this;
+    }
+
+    @Contract("_ -> this")
+    public final synchronized GradleProject addSuppressedOptimizationsDisabledWarning(
+        SuppressedMessage suppressedMessage
+    ) {
+        assertIsNotBuilt();
+        suppressedOptimizationsDisabledWarnings.add(suppressedMessage);
+        return this;
+    }
+
+
+    private boolean withPluginClasspath = true;
+
+    @Contract("-> this")
+    public final synchronized GradleProject withoutPluginClasspath() {
+        assertIsNotBuilt();
+        this.withPluginClasspath = false;
+        return this;
+    }
+
 
     private BuildResult buildResult;
     private Throwable buildException;
 
     @SneakyThrows
-    public synchronized BuildResult build() {
+    public final synchronized BuildResult build() {
         if (buildException != null) {
             throw buildException;
         }
@@ -139,16 +228,14 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
         return buildResult;
     }
 
-    public void assertBuildSuccessfully() {
+    public final synchronized void assertBuildSuccessfully() {
         build();
     }
 
-    private boolean withPluginClasspath = true;
-
-    @Contract("-> this")
-    public GradleProject withoutPluginClasspath() {
-        this.withPluginClasspath = false;
-        return this;
+    private void assertIsNotBuilt() {
+        if (buildException != null || buildResult != null) {
+            throw new IllegalStateException("The project has already been built");
+        }
     }
 
     @SneakyThrows
@@ -193,28 +280,74 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
         return runner;
     }
 
-    @SuppressWarnings("java:S3776")
     private void assertNoDeprecationMessages(List<String> outputLines) {
-        Collection<String> deprecations = new LinkedHashSet<>();
+        val errors = parseErrors(
+            outputLines,
+            deprecationMessages,
+            suppressedDeprecationMessages
+        );
+        if (!errors.isEmpty()) {
+            val sb = new StringBuilder();
+            sb.append("Deprecation warnings were found:");
+            errors.forEach(it -> sb.append("\n  * ").append(it));
+            throw new AssertionError(sb.toString());
+        }
+    }
+
+    private void assertNoMutableProjectStateWarnings(List<String> outputLines) {
+        val errors = parseErrors(
+            outputLines,
+            mutableProjectStateWarnings,
+            suppressedMutableProjectStateWarnings
+        );
+        if (!errors.isEmpty()) {
+            val sb = new StringBuilder();
+            sb.append("Mutable Project State warnings were found:");
+            errors.forEach(it -> sb.append("\n  * ").append(it));
+            throw new AssertionError(sb.toString());
+        }
+    }
+
+    private void assertNoOptimizationsDisabledWarnings(List<String> outputLines) {
+        val errors = parseErrors(
+            outputLines,
+            optimizationsDisabledWarnings,
+            suppressedOptimizationsDisabledWarnings
+        );
+        if (!errors.isEmpty()) {
+            val sb = new StringBuilder();
+            sb.append("Optimizations disabled warnings were found:");
+            errors.forEach(it -> sb.append("\n  * ").append(it));
+            throw new AssertionError(sb.toString());
+        }
+    }
+
+    @SuppressWarnings("java:S3776")
+    private Collection<String> parseErrors(
+        List<String> outputLines,
+        List<String> messages,
+        List<SuppressedMessage> suppressedMessages
+    ) {
+        Collection<String> errors = new LinkedHashSet<>();
         forEachLine:
         for (int lineIndex = 0; lineIndex < outputLines.size(); ++lineIndex) {
             val line = outputLines.get(lineIndex);
-            val hasWarning = DEPRECATION_MESSAGES.stream().anyMatch(line::contains);
-            if (!hasWarning) {
+            val hasError = messages.stream().anyMatch(line::contains);
+            if (!hasError) {
                 continue;
             }
 
-            for (val suppressedDeprecation : SUPPRESSED_DEPRECATIONS) {
-                if (line.contains(suppressedDeprecation.getMessage())) {
+            for (val suppressedMessage : suppressedMessages) {
+                if (line.contains(suppressedMessage.getMessage())) {
                     for (int i = lineIndex + 1; i < outputLines.size(); ++i) {
                         val stackTraceLine = outputLines.get(i);
                         if (!STACK_TRACE_LINE.matcher(stackTraceLine).find()) {
                             break;
                         }
-                        val stackTracePackagePrefix = suppressedDeprecation.getStackTracePackagePrefix();
+                        val stackTracePackagePrefix = suppressedMessage.getStackTracePackagePrefix();
                         if (stackTracePackagePrefix != null
                             && !stackTracePackagePrefix.isEmpty()
-                            && stackTraceLine.contains(stackTracePackagePrefix)
+                            && stackTraceLine.contains("at " + stackTracePackagePrefix)
                         ) {
                             continue forEachLine;
                         }
@@ -222,54 +355,10 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
                 }
             }
 
-            deprecations.add(line);
+            errors.add(line);
         }
-        if (!deprecations.isEmpty()) {
-            val sb = new StringBuilder();
-            sb.append("Deprecation warnings were found:");
-            deprecations.forEach(it -> sb.append("\n  * ").append(it));
-            throw new AssertionError(sb.toString());
-        }
-    }
 
-    private void assertNoMutableProjectStateWarnings(List<String> outputLines) {
-        Collection<String> mutableProjectStateWarnings = new LinkedHashSet<>();
-        for (final String line : outputLines) {
-            val hasWarning = MUTABLE_PROJECT_STATE_WARNING_MESSAGES.stream().anyMatch(line::contains);
-            if (hasWarning) {
-                mutableProjectStateWarnings.add(line);
-            }
-        }
-        if (!mutableProjectStateWarnings.isEmpty()) {
-            val sb = new StringBuilder();
-            sb.append("Mutable Project State warnings were found:");
-            mutableProjectStateWarnings.forEach(it -> sb.append("\n  * ").append(it));
-            throw new AssertionError(sb.toString());
-        }
-    }
-
-    private void assertNoOptimizationsDisabledWarnings(List<String> outputLines) {
-        Collection<String> optimizationsDisabledWarnings = new LinkedHashSet<>();
-        for (final String line : outputLines) {
-            val hasWarning = OPTIMIZATIONS_DISABLED_WARNING_MESSAGES.stream().anyMatch(line::contains);
-            if (hasWarning) {
-                optimizationsDisabledWarnings.add(line);
-            }
-        }
-        if (!optimizationsDisabledWarnings.isEmpty()) {
-            val sb = new StringBuilder();
-            sb.append("Optimizations disabled warnings were found:");
-            optimizationsDisabledWarnings.forEach(it -> sb.append("\n  * ").append(it));
-            throw new AssertionError(sb.toString());
-        }
-    }
-
-    @Value
-    @RequiredArgsConstructor
-    private static class SuppressedDeprecation {
-        String message;
-        @Nullable
-        String stackTracePackagePrefix;
+        return errors;
     }
 
 }

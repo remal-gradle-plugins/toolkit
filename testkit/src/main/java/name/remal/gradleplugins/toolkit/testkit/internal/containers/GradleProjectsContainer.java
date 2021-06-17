@@ -5,9 +5,11 @@ import static java.nio.file.Files.createTempDirectory;
 import lombok.SneakyThrows;
 import lombok.val;
 import name.remal.gradleplugins.toolkit.testkit.functional.GradleProject;
+import org.jetbrains.annotations.ApiStatus.Internal;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 
+@Internal
 public class GradleProjectsContainer extends AbstractExtensionContextContainer<GradleProject> {
 
     public static GradleProjectsContainer getGradleProjectsContainer(
