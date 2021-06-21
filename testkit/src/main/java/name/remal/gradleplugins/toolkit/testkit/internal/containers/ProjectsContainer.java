@@ -75,7 +75,10 @@ public class ProjectsContainer extends AbstractExtensionContextContainer<Project
         }
 
         val stateInternal = (ProjectStateInternal) project.getState();
-        stateInternal.toBeforeEvaluate();
+        if (stateInternal.isUnconfigured()) {
+            stateInternal.toBeforeEvaluate();
+            stateInternal.toEvaluate();
+        }
 
         registerResource(project);
 
@@ -103,6 +106,7 @@ public class ProjectsContainer extends AbstractExtensionContextContainer<Project
         return resolveParameterProject(annotatedParam, parameterProjects);
     }
 
+    @SuppressWarnings("java:S3776")
     private Project resolveParameterProject(
         AnnotatedParam annotatedParam,
         Map<AnnotatedParam, Project> parameterProjects
@@ -150,15 +154,18 @@ public class ProjectsContainer extends AbstractExtensionContextContainer<Project
             paramProject = newProject(null, dirPrefix);
         }
 
-        val applyPlugin = annotatedParam.findAnnotation(ApplyPlugin.class);
-        if (applyPlugin != null) {
-            for (val id : applyPlugin.id()) {
-                paramProject.getPluginManager().apply(id);
+        val pluginManager = paramProject.getPluginManager();
+        annotatedParam.findRepeatableAnnotations(ApplyPlugin.class).forEach(applyPlugin -> {
+            val id = applyPlugin.value();
+            if (!id.isEmpty()) {
+                pluginManager.apply(id);
             }
-            for (val type : applyPlugin.type()) {
-                paramProject.getPluginManager().apply(type);
+
+            val type = applyPlugin.type();
+            if (type != ApplyPlugin.NotSetPluginType.class) {
+                pluginManager.apply(type);
             }
-        }
+        });
 
         parameterProjects.put(annotatedParam, paramProject);
         return paramProject;

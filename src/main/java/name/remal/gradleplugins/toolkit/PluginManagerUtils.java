@@ -4,6 +4,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.codehaus.groovy.runtime.DefaultGroovyMethods.toUnique;
 
+import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.val;
 import org.gradle.api.Action;
@@ -97,13 +98,14 @@ public interface PluginManagerUtils {
         );
     }
 
+
     static void withAllPlugins(
         PluginManager pluginManager,
         Iterable<String> pluginIds,
         Action<AppliedPlugin> action
     ) {
         val pluginIdsToApply = toUnique(pluginIds);
-        pluginIdsToApply.forEach(pluginId ->
+        new ArrayList<>(pluginIdsToApply).forEach(pluginId ->
             pluginManager.withPlugin(pluginId, appliedPlugin -> {
                 synchronized (pluginIdsToApply) {
                     pluginIdsToApply.remove(pluginId);
