@@ -9,7 +9,7 @@ import java.util.Collection;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-class MembersFinderTest {
+class MembersFinderHelpersTest {
 
     private static class StaticAndInstanceMethodWithoutParamsExample {
         public static void staticMethod() {
