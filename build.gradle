@@ -308,3 +308,39 @@ tasks.named('generateJava') {
         }
     }
 }
+
+tasks.named('generateResources') {
+    textFile('META-INF/groovy/org.codehaus.groovy.runtime.ExtensionModule') { writer ->
+        def printKeyValue = { String key, Object value ->
+            String stringValue = value.toString()
+            if (value instanceof Iterable) {
+                stringValue = value.join(',')
+            }
+            Properties properties = new Properties()
+            properties.setProperty(key, stringValue)
+            StringWriter stringWriter = new StringWriter()
+            properties.store(stringWriter, '')
+            String content = stringWriter.toString()
+                .split(/[\n\r]/)
+                .collect { it.replaceFirst(/#.*/, '') }
+                .collect { it.trim() }
+                .findAll { !it.isEmpty() }
+                .join('\n')
+            writer.writeln(content)
+        }
+
+        printKeyValue('moduleName', "${project.group}:${project.name}")
+        printKeyValue('moduleVersion', project.version)
+        printKeyValue(
+            'extensionClasses',
+            [
+                'name.remal.gradleplugins.toolkit.ExtensionContainerUtils',
+                'name.remal.gradleplugins.toolkit.PluginManagerUtils',
+                'name.remal.gradleplugins.toolkit.StringEscapeUtils',
+                'name.remal.gradleplugins.toolkit.reflection.MembersFinder',
+                'name.remal.gradleplugins.toolkit.reflection.PrimitiveTypeUtils',
+            ]
+        )
+    }
+}
+
