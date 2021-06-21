@@ -6,10 +6,12 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import name.remal.gradleplugins.toolkit.testkit.ApplyPlugin.ApplyPlugins;
 import org.gradle.api.Plugin;
 
 /**
@@ -23,10 +25,21 @@ import org.gradle.api.Plugin;
 @Target({PARAMETER, FIELD})
 @Retention(RUNTIME)
 @Documented
+@Repeatable(ApplyPlugins.class)
 public @interface ApplyPlugin {
 
-    String[] id() default {};
+    String value() default "";
 
-    Class<? extends Plugin<?>>[] type() default {};
+    Class<? extends Plugin<?>> type() default NotSetPluginType.class;
+
+    interface NotSetPluginType extends Plugin<Object> { }
+
+
+    @Target({PARAMETER, FIELD})
+    @Retention(RUNTIME)
+    @Documented
+    @interface ApplyPlugins {
+        ApplyPlugin[] value();
+    }
 
 }

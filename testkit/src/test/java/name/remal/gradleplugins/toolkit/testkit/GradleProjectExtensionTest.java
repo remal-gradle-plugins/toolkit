@@ -155,7 +155,7 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
     static class ApplyPluginExample {
 
         @Test
-        void apply_plugin(@ApplyPlugin(id = "java", type = JavaLibraryPlugin.class) Project project) {
+        void apply_plugin(@ApplyPlugin(value = "java", type = JavaLibraryPlugin.class) Project project) {
             assertTrue(project.getPlugins().hasPlugin("java"));
             assertTrue(project.getPlugins().hasPlugin(JavaLibraryPlugin.class));
         }

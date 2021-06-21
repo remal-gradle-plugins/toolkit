@@ -4,7 +4,8 @@ buildscript {
     dependencies {
         classpath "com.gradle.publish:plugin-publish-plugin:0.15.0"
         classpath 'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0'
-        classpath 'name.remal:gradle-plugins:1.3.3'
+        //classpath 'name.remal:gradle-plugins:1.3.3'
+        classpath 'name.remal:gradle-plugins:1.3.4-develop-SNAPSHOT'
         classpath 'io.github.gradle-nexus:publish-plugin:1.1.0'
     }
     repositories {
@@ -45,6 +46,25 @@ allprojects {
         dependencies {
             annotationProcessorAll 'com.google.auto.service:auto-service'
             compileOnlyAll 'com.google.auto.service:auto-service-annotations'
+
+            relocateClasses 'org.apache.commons:commons-lang3'
+            relocateClasses 'org.apache.commons:commons-text'
+            relocateClasses 'com.google.guava:guava'
+
+
+            testImplementation 'org.apache.commons:commons-lang3'
+            testImplementation 'com.google.guava:guava'
+        }
+
+        configurations.all {
+            dependencies.all {
+                if (group == 'com.google.guava' && name == 'guava') {
+                    exclude(group: 'com.google.code.findbugs')
+                    exclude(group: 'org.checkerframework')
+                    exclude(group: 'com.google.errorprone')
+                    exclude(group: 'com.google.j2objc')
+                }
+            }
         }
     }
 }
@@ -54,9 +74,238 @@ allprojects {
 apply plugin: 'java-library'
 apply plugin: 'maven-publish'
 apply plugin: 'name.remal.classes-relocation'
+apply plugin: 'name.remal.generate-sources'
 
 dependencies {
-    relocateClasses 'org.apache.commons:commons-text'
-
     optional 'name.remal.gradle-api:gradle-api'
+
+    testImplementation project(':testkit')
+}
+
+tasks.named('generateJava') {
+    int maxParamsCount = 10
+    classFile('name.remal.gradleplugins.toolkit.reflection', 'MembersFinder') {
+        it.writePackage()
+        it.println("")
+        it.writeImport('java.util.Optional')
+        it.writeImport('javax.annotation.CheckForNull')
+        it.writeImport('javax.annotation.Nullable')
+        it.writeImport('lombok.val')
+        it.println("")
+        it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone")
+        it.writeBlock("public interface ${it.simpleName}") {
+            // get*() methods:
+            (0..maxParamsCount).forEach { paramsCount ->
+                it.println("")
+                it.writeBlock("static <T, R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> TypedMethod${paramsCount}<T, R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> getMethod(Class<T> type, Class<R> returnType, String name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<P$it> paramType$it" }.join("")})") {
+                    it.println("val method = MembersFinderHelpers.getMethod(type, false, returnType, name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")});")
+                    it.println("return new TypedMethod${paramsCount}<>(method);")
+                }
+            }
+
+            it.println("")
+            (0..maxParamsCount).forEach { paramsCount ->
+                it.println("")
+                it.writeBlock("static <T${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> TypedVoidMethod${paramsCount}<T${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> getMethod(Class<T> type, String name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<P$it> paramType$it" }.join("")})") {
+                    it.println("val method = MembersFinderHelpers.getMethod(type, false, null, name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")});")
+                    it.println("return new TypedVoidMethod${paramsCount}<>(method);")
+                }
+            }
+
+            it.println("")
+            (0..maxParamsCount).forEach { paramsCount ->
+                it.println("")
+                it.writeBlock("static <R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> TypedStaticMethod${paramsCount}<R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> getStaticMethod(Class<?> type, Class<R> returnType, String name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<P$it> paramType$it" }.join("")})") {
+                    it.println("val method = MembersFinderHelpers.getMethod(type, true, returnType, name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")});")
+                    it.println("return new TypedStaticMethod${paramsCount}<>(method);")
+                }
+            }
+
+            it.println("")
+            (0..maxParamsCount).forEach { paramsCount ->
+                it.println("")
+                it.writeBlock("static ${paramsCount == 0 ? '' : '<' + (1..paramsCount).collect { "P$it" }.join(", ") + '>'} TypedStaticVoidMethod${paramsCount}${paramsCount == 0 ? '' : '<' + (1..paramsCount).collect { "P$it" }.join(", ") + '>'} getStaticMethod(Class<?> type, String name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<P$it> paramType$it" }.join("")})") {
+                    it.println("val method = MembersFinderHelpers.getMethod(type, true, null, name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")});")
+                    it.println("return new TypedStaticVoidMethod${paramsCount}${paramsCount == 0 ? '' : '<>'}(method);")
+                }
+            }
+
+            // find*() methods:
+            it.println("")
+            (0..maxParamsCount).forEach { paramsCount ->
+                it.println("")
+                it.println("@Nullable")
+                it.writeBlock("static <T, R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> TypedMethod${paramsCount}<T, R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> findMethod(Class<T> type, Class<R> returnType, String name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<P$it> paramType$it" }.join("")})") {
+                    it.println("val method = MembersFinderHelpers.findMethod(type, false, returnType, name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")});")
+                    it.println("return method != null ? new TypedMethod${paramsCount}<>(method) : null;")
+                }
+            }
+
+            it.println("")
+            (0..maxParamsCount).forEach { paramsCount ->
+                it.println("")
+                it.println("@Nullable")
+                it.writeBlock("static <T${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> TypedVoidMethod${paramsCount}<T${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> findMethod(Class<T> type, String name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<P$it> paramType$it" }.join("")})") {
+                    it.println("val method = MembersFinderHelpers.findMethod(type, false, null, name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")});")
+                    it.println("return method != null ? new TypedVoidMethod${paramsCount}<>(method) : null;")
+                }
+            }
+
+            it.println("")
+            (0..maxParamsCount).forEach { paramsCount ->
+                it.println("")
+                it.println("@Nullable")
+                it.writeBlock("static <R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> TypedStaticMethod${paramsCount}<R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> findStaticMethod(Class<?> type, Class<R> returnType, String name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<P$it> paramType$it" }.join("")})") {
+                    it.println("val method = MembersFinderHelpers.findMethod(type, true, returnType, name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")});")
+                    it.println("return method != null ? new TypedStaticMethod${paramsCount}<>(method) : null;")
+                }
+            }
+
+            it.println("")
+            (0..maxParamsCount).forEach { paramsCount ->
+                it.println("")
+                it.println("@Nullable")
+                it.writeBlock("static ${paramsCount == 0 ? '' : '<' + (1..paramsCount).collect { "P$it" }.join(", ") + '>'} TypedStaticVoidMethod${paramsCount}${paramsCount == 0 ? '' : '<' + (1..paramsCount).collect { "P$it" }.join(", ") + '>'} findStaticMethod(Class<?> type, String name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<P$it> paramType$it" }.join("")})") {
+                    it.println("val method = MembersFinderHelpers.findMethod(type, true, null, name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")});")
+                    it.println("return method != null ? new TypedStaticVoidMethod${paramsCount}${paramsCount == 0 ? '' : '<>'}(method) : null;")
+                }
+            }
+
+            // getOptional*() methods:
+            it.println("")
+            (0..maxParamsCount).forEach { paramsCount ->
+                it.println("")
+                it.writeBlock("static <T, R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> Optional<TypedMethod${paramsCount}<T, R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}>> getOptionalMethod(Class<T> type, Class<R> returnType, String name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<P$it> paramType$it" }.join("")})") {
+                    it.println("return Optional.ofNullable(findMethod(type, returnType, name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")}));")
+                }
+            }
+
+            it.println("")
+            (0..maxParamsCount).forEach { paramsCount ->
+                it.println("")
+                it.writeBlock("static <T${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> Optional<TypedVoidMethod${paramsCount}<T${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}>> getOptionalMethod(Class<T> type, String name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<P$it> paramType$it" }.join("")})") {
+                    it.println("return Optional.ofNullable(findMethod(type, name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")}));")
+                }
+            }
+
+            it.println("")
+            (0..maxParamsCount).forEach { paramsCount ->
+                it.println("")
+                it.writeBlock("static <R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> Optional<TypedStaticMethod${paramsCount}<R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}>> getOptionalStaticMethod(Class<?> type, Class<R> returnType, String name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<P$it> paramType$it" }.join("")})") {
+                    it.println("return Optional.ofNullable(findStaticMethod(type, returnType, name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")}));")
+                }
+            }
+
+            it.println("")
+            (0..maxParamsCount).forEach { paramsCount ->
+                it.println("")
+                it.writeBlock("static ${paramsCount == 0 ? '' : '<' + (1..paramsCount).collect { "P$it" }.join(", ") + '>'} Optional<TypedStaticVoidMethod${paramsCount}${paramsCount == 0 ? '' : '<' + (1..paramsCount).collect { "P$it" }.join(", ") + '>'}> getOptionalStaticMethod(Class<?> type, String name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<P$it> paramType$it" }.join("")})") {
+                    it.println("return Optional.ofNullable(findStaticMethod(type, name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")}));")
+                }
+            }
+        }
+    }
+
+    (0..maxParamsCount).forEach { paramsCount ->
+        classFile('name.remal.gradleplugins.toolkit.reflection', "TypedMethod${paramsCount}") {
+            it.writePackage()
+            it.println("")
+            it.writeImport('java.lang.reflect.Method')
+            it.writeImport('javax.annotation.CheckForNull')
+            it.writeImport('lombok.SneakyThrows')
+            it.println("")
+            it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone")
+            it.writeBlock("public final class ${it.simpleName}<T, R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> extends AbstractTypedMethod") {
+                it.writeBlock("${it.simpleName}(Method method)") {
+                    it.println("super(method);")
+                    it.writeBlock("if (isStatic(method))") {
+                        it.println("throw new IllegalArgumentException(\"Static method: \" + method);")
+                    }
+                }
+
+                it.println("")
+                it.println("@CheckForNull")
+                it.println("@SneakyThrows")
+                it.writeSuppressWarnings("unchecked")
+                it.writeBlock("public final R invoke(T target${paramsCount == 0 ? '' : (1..paramsCount).collect { ", @CheckForNull P$it param$it" }.join("")})") {
+                    it.println("return (R) method.invoke(target${paramsCount == 0 ? '' : (1..paramsCount).collect { ", param$it" }.join("")});")
+                }
+            }
+        }
+
+        classFile('name.remal.gradleplugins.toolkit.reflection', "TypedVoidMethod${paramsCount}") {
+            it.writePackage()
+            it.println("")
+            it.writeImport('java.lang.reflect.Method')
+            it.writeImport('javax.annotation.CheckForNull')
+            it.writeImport('lombok.SneakyThrows')
+            it.println("")
+            it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone")
+            it.writeBlock("public final class ${it.simpleName}<T${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> extends AbstractTypedMethod") {
+                it.writeBlock("${it.simpleName}(Method method)") {
+                    it.println("super(method);")
+                    it.writeBlock("if (isStatic(method))") {
+                        it.println("throw new IllegalArgumentException(\"Static method: \" + method);")
+                    }
+                }
+
+                it.println("")
+                it.println("@SneakyThrows")
+                it.writeBlock("public final void invoke(T target${paramsCount == 0 ? '' : (1..paramsCount).collect { ", @CheckForNull P$it param$it" }.join("")})") {
+                    it.println("method.invoke(target${paramsCount == 0 ? '' : (1..paramsCount).collect { ", param$it" }.join("")});")
+                }
+            }
+        }
+
+        classFile('name.remal.gradleplugins.toolkit.reflection', "TypedStaticMethod${paramsCount}") {
+            it.writePackage()
+            it.println("")
+            it.writeImport('java.lang.reflect.Method')
+            it.writeImport('javax.annotation.CheckForNull')
+            it.writeImport('lombok.SneakyThrows')
+            it.println("")
+            it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone")
+            it.writeBlock("public final class ${it.simpleName}<R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> extends AbstractTypedMethod") {
+                it.writeBlock("${it.simpleName}(Method method)") {
+                    it.println("super(method);")
+                    it.writeBlock("if (isNotStatic(method))") {
+                        it.println("throw new IllegalArgumentException(\"Not a static method: \" + method);")
+                    }
+                }
+
+                it.println("")
+                it.println("@CheckForNull")
+                it.println("@SneakyThrows")
+                it.writeSuppressWarnings("unchecked")
+                it.writeBlock("public final R invoke(${paramsCount == 0 ? '' : (1..paramsCount).collect { "@CheckForNull P$it param$it" }.join(", ")})") {
+                    it.println("return (R) method.invoke(null${paramsCount == 0 ? '' : (1..paramsCount).collect { ", param$it" }.join("")});")
+                }
+            }
+        }
+
+        classFile('name.remal.gradleplugins.toolkit.reflection', "TypedStaticVoidMethod${paramsCount}") {
+            it.writePackage()
+            it.println("")
+            it.writeImport('java.lang.reflect.Method')
+            it.writeImport('javax.annotation.CheckForNull')
+            it.writeImport('lombok.SneakyThrows')
+            it.println("")
+            it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone")
+            it.writeBlock("public final class ${it.simpleName}${paramsCount == 0 ? '' : '<' + (1..paramsCount).collect { "P$it" }.join(", ") + '>'} extends AbstractTypedMethod") {
+                it.writeBlock("${it.simpleName}(Method method)") {
+                    it.println("super(method);")
+                    it.writeBlock("if (isNotStatic(method))") {
+                        it.println("throw new IllegalArgumentException(\"Not a static method: \" + method);")
+                    }
+                }
+
+                it.println("")
+                it.println("@CheckForNull")
+                it.println("@SneakyThrows")
+                it.writeBlock("public final void invoke(${paramsCount == 0 ? '' : (1..paramsCount).collect { "@CheckForNull P$it param$it" }.join(", ")})") {
+                    it.println("method.invoke(null${paramsCount == 0 ? '' : (1..paramsCount).collect { ", param$it" }.join("")});")
+                }
+            }
+        }
+    }
 }
