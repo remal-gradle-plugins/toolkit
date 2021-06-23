@@ -19,6 +19,51 @@ public abstract class ExtensionContainerUtils {
     }
 
 
+    public static <T> T createExtension(
+        Object object,
+        Class<T> publicType,
+        String name,
+        Class<? extends T> instanceType,
+        Object... constructionArguments
+    ) {
+        val extensions = getExtensions(object);
+        return extensions.create(publicType, name, instanceType, constructionArguments);
+    }
+
+    public static <T> T createExtension(
+        Object object,
+        Class<T> publicType,
+        Class<? extends T> instanceType,
+        Object... constructionArguments
+    ) {
+        val name = typeToExtensionName(publicType);
+        return createExtension(object, publicType, name, instanceType, constructionArguments);
+    }
+
+    public static <T> T createExtension(
+        Object object,
+        String name,
+        Class<T> type,
+        Object... constructionArguments
+    ) {
+        return createExtension(object, type, name, type, constructionArguments);
+    }
+
+    public static <T> T createExtension(
+        Object object,
+        Class<T> type,
+        Object... constructionArguments
+    ) {
+        val name = typeToExtensionName(type);
+        return createExtension(object, name, type, constructionArguments);
+    }
+
+    private static String typeToExtensionName(Class<?> type) {
+        val simpleName = type.getSimpleName();
+        return simpleName.substring(0, 1).toLowerCase() + simpleName.substring(1);
+    }
+
+
     public static boolean hasExtension(Object object, Class<?> type) {
         return findExtension(object, type) != null;
     }
