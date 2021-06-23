@@ -64,19 +64,6 @@ class ExtensionContainerUtilsTest {
     }
 
     @Test
-    void createExtension_publicType() {
-        ExtensionContainerUtils.createExtension(
-            project,
-            TestExtension.class,
-            TestExtensionImpl.class,
-            "value"
-        );
-        val extension = project.getExtensions().getByName("testExtension");
-        assertTrue(extension instanceof TestExtensionImpl);
-        assertEquals("value", ((TestExtension) extension).getValue());
-    }
-
-    @Test
     void createExtension_name() {
         ExtensionContainerUtils.createExtension(
             project,
@@ -85,6 +72,19 @@ class ExtensionContainerUtilsTest {
             "value"
         );
         val extension = project.getExtensions().getByName("testExt");
+        assertTrue(extension instanceof TestExtensionImpl);
+        assertEquals("value", ((TestExtension) extension).getValue());
+    }
+
+    @Test
+    void createExtension_publicType() {
+        ExtensionContainerUtils.createExtension(
+            project,
+            TestExtension.class,
+            TestExtensionImpl.class,
+            "value"
+        );
+        val extension = project.getExtensions().getByName("testExtension");
         assertTrue(extension instanceof TestExtensionImpl);
         assertEquals("value", ((TestExtension) extension).getValue());
     }
@@ -99,6 +99,35 @@ class ExtensionContainerUtilsTest {
         val extension = project.getExtensions().getByName("testExtensionImpl");
         assertTrue(extension instanceof TestExtensionImpl);
         assertEquals("value", ((TestExtension) extension).getValue());
+    }
+
+
+    @Test
+    void addExtension_publicType_name() {
+        val extension = new TestExtensionImpl("");
+        ExtensionContainerUtils.addExtension(project, TestExtension.class, "testExt", extension);
+        assertTrue(project.getExtensions().getByName("testExt") instanceof TestExtensionImpl);
+    }
+
+    @Test
+    void addExtension_name() {
+        val extension = new TestExtensionImpl("");
+        ExtensionContainerUtils.addExtension(project, "testExt", extension);
+        assertTrue(project.getExtensions().getByName("testExt") instanceof TestExtensionImpl);
+    }
+
+    @Test
+    void addExtension_publicType() {
+        val extension = new TestExtensionImpl("");
+        ExtensionContainerUtils.addExtension(project, TestExtension.class, extension);
+        assertTrue(project.getExtensions().getByName("testExtension") instanceof TestExtensionImpl);
+    }
+
+    @Test
+    void addExtension() {
+        val extension = new TestExtensionImpl("");
+        ExtensionContainerUtils.addExtension(project, extension);
+        assertTrue(project.getExtensions().getByName("testExtensionImpl") instanceof TestExtensionImpl);
     }
 
 

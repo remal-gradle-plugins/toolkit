@@ -4,6 +4,7 @@ import static name.remal.gradleplugins.toolkit.reflection.WhoCalled.getCallingCl
 
 import javax.annotation.Nullable;
 import lombok.val;
+import org.gradle.api.internal.GeneratedSubclass;
 
 public interface ClassUtils {
 
@@ -32,6 +33,15 @@ public interface ClassUtils {
     static boolean isClassPresent(String name) {
         val callingClass = getCallingClass(2);
         return isClassPresent(name, callingClass.getClassLoader());
+    }
+
+
+    @SuppressWarnings("unchecked")
+    static <T> Class<T> unwrapGeneratedSubclass(Class<T> type) {
+        while (GeneratedSubclass.class.isAssignableFrom(type)) {
+            type = (Class<T>) type.getSuperclass();
+        }
+        return type;
     }
 
 }

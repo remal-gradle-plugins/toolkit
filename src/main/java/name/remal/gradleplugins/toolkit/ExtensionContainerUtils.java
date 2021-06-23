@@ -1,6 +1,7 @@
 package name.remal.gradleplugins.toolkit;
 
 import static name.remal.gradleplugins.toolkit.reflection.ClassUtils.tryLoadClass;
+import static name.remal.gradleplugins.toolkit.reflection.ClassUtils.unwrapGeneratedSubclass;
 import static name.remal.gradleplugins.toolkit.reflection.MembersFinder.findMethod;
 
 import java.util.Map;
@@ -56,6 +57,46 @@ public abstract class ExtensionContainerUtils {
     ) {
         val name = typeToExtensionName(type);
         return createExtension(object, name, type, constructionArguments);
+    }
+
+
+    public static <T, I extends T> T addExtension(
+        Object object,
+        Class<T> publicType,
+        String name,
+        I instance
+    ) {
+        val extensions = getExtensions(object);
+        extensions.add(publicType, name, instance);
+        return instance;
+    }
+
+    public static <T> T addExtension(
+        Object object,
+        String name,
+        T instance
+    ) {
+        val extensions = getExtensions(object);
+        extensions.add(name, instance);
+        return instance;
+    }
+
+    public static <T, I extends T> T addExtension(
+        Object object,
+        Class<T> publicType,
+        I instance
+    ) {
+        val name = typeToExtensionName(publicType);
+        return addExtension(object, publicType, name, instance);
+    }
+
+    public static <T> T addExtension(
+        Object object,
+        T instance
+    ) {
+        val type = unwrapGeneratedSubclass(instance.getClass());
+        val name = typeToExtensionName(type);
+        return addExtension(object, name, instance);
     }
 
     private static String typeToExtensionName(Class<?> type) {
