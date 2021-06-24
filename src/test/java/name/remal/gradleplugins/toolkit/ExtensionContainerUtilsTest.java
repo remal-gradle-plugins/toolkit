@@ -29,6 +29,7 @@ class ExtensionContainerUtilsTest {
     @RequiredArgsConstructor
     @Getter
     @ToString
+    @SuppressWarnings("MissingOverride")
     public static class TestExtensionImpl implements TestExtension {
         private final String value;
     }
