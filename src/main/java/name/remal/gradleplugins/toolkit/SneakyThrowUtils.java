@@ -8,7 +8,7 @@ public abstract class SneakyThrowUtils {
         return sneakyThrow0(exception);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "TypeParameterUnusedInFormals"})
     private static <T extends Throwable> T sneakyThrow0(Throwable exception) throws T {
         throw (T) exception;
     }
