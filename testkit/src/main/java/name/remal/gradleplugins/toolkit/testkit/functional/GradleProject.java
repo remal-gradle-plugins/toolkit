@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -190,7 +191,9 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
     }
 
 
+    @Nullable
     private BuildResult buildResult;
+    @Nullable
     private Throwable buildException;
 
     @SneakyThrows
