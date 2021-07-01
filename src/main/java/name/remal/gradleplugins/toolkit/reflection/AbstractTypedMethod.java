@@ -1,9 +1,11 @@
 package name.remal.gradleplugins.toolkit.reflection;
 
+import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.makeAccessible;
+
 import java.lang.reflect.Method;
 import javax.annotation.Nullable;
 
-abstract class AbstractTypedMethod extends AbstractMember {
+abstract class AbstractTypedMethod {
 
     protected final Method method;
 

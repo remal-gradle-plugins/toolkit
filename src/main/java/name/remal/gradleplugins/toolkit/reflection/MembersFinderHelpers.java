@@ -1,7 +1,7 @@
 package name.remal.gradleplugins.toolkit.reflection;
 
-import static name.remal.gradleplugins.toolkit.reflection.AbstractMember.isStatic;
-import static name.remal.gradleplugins.toolkit.reflection.PrimitiveTypeUtils.wrapPrimitiveType;
+import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.isStatic;
+import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.wrapPrimitiveType;
 
 import java.lang.reflect.Method;
 import java.util.stream.Stream;

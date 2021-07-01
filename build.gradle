@@ -208,6 +208,8 @@ tasks.named('generateJava') {
         classFile('name.remal.gradleplugins.toolkit.reflection', "TypedMethod${paramsCount}") {
             it.writePackage()
             it.println("")
+            it.writeStaticImport('name.remal.gradleplugins.toolkit.reflection.ReflectionUtils', 'isStatic')
+            it.println("")
             it.writeImport('java.lang.reflect.Method')
             it.writeImport('javax.annotation.CheckForNull')
             it.writeImport('lombok.SneakyThrows')
@@ -234,6 +236,8 @@ tasks.named('generateJava') {
         classFile('name.remal.gradleplugins.toolkit.reflection', "TypedVoidMethod${paramsCount}") {
             it.writePackage()
             it.println("")
+            it.writeStaticImport('name.remal.gradleplugins.toolkit.reflection.ReflectionUtils', 'isStatic')
+            it.println("")
             it.writeImport('java.lang.reflect.Method')
             it.writeImport('javax.annotation.CheckForNull')
             it.writeImport('lombok.SneakyThrows')
@@ -257,6 +261,8 @@ tasks.named('generateJava') {
 
         classFile('name.remal.gradleplugins.toolkit.reflection', "TypedStaticMethod${paramsCount}") {
             it.writePackage()
+            it.println("")
+            it.writeStaticImport('name.remal.gradleplugins.toolkit.reflection.ReflectionUtils', 'isNotStatic')
             it.println("")
             it.writeImport('java.lang.reflect.Method')
             it.writeImport('javax.annotation.CheckForNull')
@@ -283,6 +289,8 @@ tasks.named('generateJava') {
 
         classFile('name.remal.gradleplugins.toolkit.reflection', "TypedStaticVoidMethod${paramsCount}") {
             it.writePackage()
+            it.println("")
+            it.writeStaticImport('name.remal.gradleplugins.toolkit.reflection.ReflectionUtils', 'isNotStatic')
             it.println("")
             it.writeImport('java.lang.reflect.Method')
             it.writeImport('javax.annotation.CheckForNull')

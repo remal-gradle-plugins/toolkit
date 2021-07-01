@@ -1,8 +1,8 @@
 package name.remal.gradleplugins.toolkit;
 
-import static name.remal.gradleplugins.toolkit.reflection.ClassUtils.tryLoadClass;
-import static name.remal.gradleplugins.toolkit.reflection.ClassUtils.unwrapGeneratedSubclass;
 import static name.remal.gradleplugins.toolkit.reflection.MembersFinder.findMethod;
+import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.tryLoadClass;
+import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.unwrapGeneratedSubclass;
 
 import java.util.Map;
 import java.util.Optional;
