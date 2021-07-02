@@ -2,18 +2,15 @@ package name.remal.gradleplugins.toolkit;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.RETURNS_DEFAULTS;
+import static org.mockito.Mockito.mock;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BooleanSupplier;
 import lombok.val;
 import org.gradle.api.Project;
 import org.gradle.api.internal.TaskInputsInternal;
-import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
-import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
-import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 class TaskUtilsTest {
@@ -25,21 +22,13 @@ class TaskUtilsTest {
 
         BooleanSupplier hasFileProperties = () -> {
             val result = new AtomicBoolean(false);
-            taskInputs.visitRegisteredProperties(new PropertyVisitor.Adapter() {
-                @Override
-                public void visitInputFileProperty(
-                    String propertyName,
-                    boolean optional,
-                    boolean skipWhenEmpty,
-                    DirectorySensitivity directorySensitivity,
-                    boolean incremental,
-                    @Nullable Class<? extends FileNormalizer> fileNormalizer,
-                    PropertyValue value,
-                    InputFilePropertyType filePropertyType
-                ) {
+            val visitor = mock(PropertyVisitor.class, invocation -> {
+                if (invocation.getMethod().getName().equals("visitInputFileProperty")) {
                     result.set(true);
                 }
+                return RETURNS_DEFAULTS.answer(invocation);
             });
+            taskInputs.visitRegisteredProperties(visitor);
             return result.get();
         };
 
