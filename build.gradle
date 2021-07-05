@@ -44,6 +44,9 @@ allprojects {
         dependencies {
             annotationProcessorAll 'com.google.auto.service:auto-service'
             compileOnlyAll 'com.google.auto.service:auto-service-annotations'
+            annotationProcessorAll 'org.immutables:value'
+            compileOnlyAll 'org.immutables:value-annotations'
+            compileOnlyAll 'org.immutables:builder'
 
             relocateClasses 'org.apache.commons:commons-lang3'
             relocateClasses 'org.apache.commons:commons-text'
@@ -75,7 +78,11 @@ apply plugin: 'name.remal.classes-relocation'
 apply plugin: 'name.remal.generate-sources'
 
 dependencies {
+    optional 'com.puppycrawl.tools:checkstyle'
     optional 'name.remal.gradle-api:gradle-api'
+
+    relocateClasses 'org.jdom:jdom'
+    relocateClasses 'net.htmlparser.jericho:jericho-html'
 
     testImplementation project(':testkit')
 }
@@ -313,5 +320,16 @@ tasks.named('generateJava') {
                 }
             }
         }
+    }
+}
+
+tasks.named('generateResources') {
+    binaryFile('name/remal/gradleplugins/toolkit/issues/checkstyle.xsl') { outputStream ->
+        String resourceName = 'checkstyle-noframes-sorted.xsl'
+        InputStream inputStream = Checkstyle.getClassLoader().getResourceAsStream(resourceName)
+        if (inputStream == null) {
+            throw new IllegalStateException("Resource can't be found: " + resourceName)
+        }
+        inputStream.withCloseable { outputStream << it }
     }
 }

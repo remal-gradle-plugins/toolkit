@@ -8,7 +8,7 @@ import static java.util.Collections.synchronizedMap;
 import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.NONE;
-import static name.remal.gradleplugins.toolkit.StringEscapeUtils.escapeGroovy;
+import static name.remal.gradleplugins.toolkit.StringUtils.escapeGroovy;
 
 import java.io.File;
 import java.net.URI;

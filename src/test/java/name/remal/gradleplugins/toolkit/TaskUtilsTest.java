@@ -23,6 +23,8 @@ class TaskUtilsTest {
         BooleanSupplier hasFileProperties = () -> {
             val result = new AtomicBoolean(false);
             val visitor = mock(PropertyVisitor.class, invocation -> {
+                // visitInputFileProperty method has different signatures in different Gradle versions, so let's just
+                // check the invocation's method name
                 if (invocation.getMethod().getName().equals("visitInputFileProperty")) {
                     result.set(true);
                 }

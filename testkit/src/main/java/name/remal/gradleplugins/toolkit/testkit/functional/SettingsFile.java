@@ -1,6 +1,6 @@
 package name.remal.gradleplugins.toolkit.testkit.functional;
 
-import static name.remal.gradleplugins.toolkit.StringEscapeUtils.escapeGroovy;
+import static name.remal.gradleplugins.toolkit.StringUtils.escapeGroovy;
 
 import java.io.File;
 
