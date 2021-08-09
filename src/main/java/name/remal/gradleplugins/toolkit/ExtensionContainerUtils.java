@@ -1,15 +1,10 @@
 package name.remal.gradleplugins.toolkit;
 
-import static name.remal.gradleplugins.toolkit.reflection.MembersFinder.findMethod;
-import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.tryLoadClass;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.unwrapGeneratedSubclass;
 
-import java.util.Map;
-import java.util.Optional;
 import javax.annotation.Nullable;
 import lombok.val;
-import name.remal.gradleplugins.toolkit.reflection.TypedMethod0;
-import name.remal.gradleplugins.toolkit.reflection.TypedMethod1;
+import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 
@@ -94,12 +89,12 @@ public abstract class ExtensionContainerUtils {
         Object object,
         T instance
     ) {
-        val type = unwrapGeneratedSubclass(instance.getClass());
-        val name = typeToExtensionName(type);
+        val name = typeToExtensionName(instance.getClass());
         return addExtension(object, name, instance);
     }
 
     private static String typeToExtensionName(Class<?> type) {
+        type = unwrapGeneratedSubclass(type);
         val simpleName = type.getSimpleName();
         return simpleName.substring(0, 1).toLowerCase() + simpleName.substring(1);
     }
@@ -125,14 +120,15 @@ public abstract class ExtensionContainerUtils {
     }
 
     @Nullable
-    public static Object findExtension(Object object, String name) {
+    @SuppressWarnings("unchecked")
+    public static <T> T findExtension(Object object, String name) {
         val extensions = getExtensions(object);
         val conventionPlugin = findConventionPlugin(extensions, name);
         if (conventionPlugin != null) {
-            return conventionPlugin;
+            return (T) conventionPlugin;
         }
 
-        return extensions.findByName(name);
+        return (T) extensions.findByName(name);
     }
 
     public static <T> T getExtension(Object object, Class<T> type) {
@@ -145,65 +141,30 @@ public abstract class ExtensionContainerUtils {
         return extensions.getByType(type);
     }
 
-    public static Object getExtension(Object object, String name) {
+    @SuppressWarnings("unchecked")
+    public static <T> T getExtension(Object object, String name) {
         val extensions = getExtensions(object);
         val conventionPlugin = findConventionPlugin(extensions, name);
         if (conventionPlugin != null) {
-            return conventionPlugin;
+            return (T) conventionPlugin;
         }
 
-        return extensions.getByName(name);
+        return (T) extensions.getByName(name);
     }
 
-    @Nullable
-    @SuppressWarnings("unchecked")
-    private static final Class<Object> CONVENTION_CLASS = (Class<Object>) tryLoadClass(
-        "org.gradle.api.plugins.Convention"
-    );
 
     @Nullable
-    @SuppressWarnings("rawtypes")
-    private static final TypedMethod1<Object, Object, Class> CONVENTION_FIND_PLUGIN_METHOD =
-        Optional.ofNullable(CONVENTION_CLASS)
-            .map(conventionClass ->
-                findMethod(conventionClass, Object.class, "findPlugin", Class.class)
-            )
-            .orElse(null);
-
-    @Nullable
-    @SuppressWarnings("unchecked")
     private static <T> T findConventionPlugin(ExtensionContainer extensions, Class<T> type) {
-        if (CONVENTION_CLASS != null
-            && CONVENTION_FIND_PLUGIN_METHOD != null
-            && CONVENTION_CLASS.isInstance(extensions)
-        ) {
-            val plugin = CONVENTION_FIND_PLUGIN_METHOD.invoke(extensions, type);
-            if (plugin != null) {
-                return (T) plugin;
-            }
+        if (extensions instanceof Convention) {
+            return ((Convention) extensions).findPlugin(type);
         }
         return null;
     }
 
     @Nullable
-    @SuppressWarnings("rawtypes")
-    private static final TypedMethod0<Object, Map> CONVENTION_GET_PLUGINS_METHOD =
-        Optional.ofNullable(CONVENTION_CLASS)
-            .map(conventionClass ->
-                findMethod(conventionClass, Map.class, "getPlugins")
-            )
-            .orElse(null);
-
-    @Nullable
     private static Object findConventionPlugin(ExtensionContainer extensions, String name) {
-        if (CONVENTION_CLASS != null
-            && CONVENTION_GET_PLUGINS_METHOD != null
-            && CONVENTION_CLASS.isInstance(extensions)
-        ) {
-            val plugins = CONVENTION_GET_PLUGINS_METHOD.invoke(extensions);
-            if (plugins != null) {
-                return plugins.get(name);
-            }
+        if (extensions instanceof Convention) {
+            return ((Convention) extensions).getPlugins().get(name);
         }
         return null;
     }
