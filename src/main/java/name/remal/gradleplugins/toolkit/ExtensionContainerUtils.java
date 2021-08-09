@@ -120,15 +120,14 @@ public abstract class ExtensionContainerUtils {
     }
 
     @Nullable
-    @SuppressWarnings("unchecked")
-    public static <T> T findExtension(Object object, String name) {
+    public static Object findExtension(Object object, String name) {
         val extensions = getExtensions(object);
         val conventionPlugin = findConventionPlugin(extensions, name);
         if (conventionPlugin != null) {
-            return (T) conventionPlugin;
+            return conventionPlugin;
         }
 
-        return (T) extensions.findByName(name);
+        return extensions.findByName(name);
     }
 
     public static <T> T getExtension(Object object, Class<T> type) {
@@ -141,15 +140,14 @@ public abstract class ExtensionContainerUtils {
         return extensions.getByType(type);
     }
 
-    @SuppressWarnings("unchecked")
-    public static <T> T getExtension(Object object, String name) {
+    public static Object getExtension(Object object, String name) {
         val extensions = getExtensions(object);
         val conventionPlugin = findConventionPlugin(extensions, name);
         if (conventionPlugin != null) {
-            return (T) conventionPlugin;
+            return conventionPlugin;
         }
 
-        return (T) extensions.getByName(name);
+        return extensions.getByName(name);
     }
 
 
