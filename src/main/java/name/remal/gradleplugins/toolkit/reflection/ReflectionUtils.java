@@ -48,6 +48,11 @@ public interface ReflectionUtils {
         return type;
     }
 
+    @SuppressWarnings("unchecked")
+    static <T> Class<T> classOf(T object) {
+        return (Class<T>) unwrapGeneratedSubclass(object.getClass());
+    }
+
 
     static Class<?> wrapPrimitiveType(Class<?> type) {
         if (boolean.class == type) {
