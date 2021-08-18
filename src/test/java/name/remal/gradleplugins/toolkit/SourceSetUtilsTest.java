@@ -1,13 +1,22 @@
 package name.remal.gradleplugins.toolkit;
 
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.createDirectories;
+import static java.nio.file.Files.createTempFile;
 import static java.nio.file.Files.write;
 import static org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME;
 import static org.gradle.api.tasks.SourceSet.TEST_SOURCE_SET_NAME;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.gradle.api.Project;
@@ -15,6 +24,7 @@ import org.gradle.api.tasks.AbstractCopyTask;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.compile.JavaCompile;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 class SourceSetUtilsTest {
@@ -22,6 +32,7 @@ class SourceSetUtilsTest {
     private final Project project;
     private final SourceSet mainSourceSet;
     private final SourceSet testSourceSet;
+    private final File tempFile;
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     @SneakyThrows
@@ -46,6 +57,14 @@ class SourceSetUtilsTest {
         val testResourcesDir = testSourceSet.getResources().getSourceDirectories().getFiles().stream().findAny().get();
         createDirectories(testResourcesDir.toPath());
         write(testResourcesDir.toPath().resolve("main-resource.txt"), "test resource".getBytes(UTF_8));
+
+        this.tempFile = createTempFile("file-", ".temp").toFile();
+    }
+
+    @AfterEach
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    void afterEach() {
+        tempFile.delete();
     }
 
 
@@ -73,6 +92,36 @@ class SourceSetUtilsTest {
             .getByName(testSourceSet.getProcessResourcesTaskName());
         assertFalse(SourceSetUtils.isProcessedBy(mainSourceSet, testProcessResources));
         assertTrue(SourceSetUtils.isProcessedBy(testSourceSet, testProcessResources));
+    }
+
+    @Test
+    void abstract_archive_file_tree_classes() {
+        assertFalse(SourceSetUtils.ABSTRACT_ARCHIVE_FILE_TREE_CLASSES.isEmpty());
+    }
+
+    @Test
+    void isNotArchive_file() {
+        val fileTree = project.files(tempFile).getAsFileTree();
+        val isNotArchiveEntry = new AtomicReference<Boolean>();
+        fileTree.visit(details -> {
+            isNotArchiveEntry.set(SourceSetUtils.isNotArchiveEntry(details));
+        });
+        assertEquals(TRUE, isNotArchiveEntry.get());
+    }
+
+    @Test
+    void isNotArchive_zip() throws Throwable {
+        try (val outputStream = new ZipOutputStream(new FileOutputStream(tempFile))) {
+            outputStream.putNextEntry(new ZipEntry("entry"));
+            outputStream.write(new byte[]{1, 2, 3});
+        }
+
+        val fileTree = project.zipTree(tempFile);
+        val isNotArchiveEntry = new AtomicReference<Boolean>();
+        fileTree.visit(details -> {
+            isNotArchiveEntry.set(SourceSetUtils.isNotArchiveEntry(details));
+        });
+        assertEquals(FALSE, isNotArchiveEntry.get());
     }
 
     @Test
