@@ -96,7 +96,10 @@ class SourceSetUtilsTest {
 
     @Test
     void abstract_archive_file_tree_classes() {
-        assertFalse(SourceSetUtils.ABSTRACT_ARCHIVE_FILE_TREE_CLASSES.isEmpty());
+        assertFalse(
+            SourceSetUtils.ABSTRACT_ARCHIVE_FILE_TREE_CLASSES.isEmpty(),
+            "ABSTRACT_ARCHIVE_FILE_TREE_CLASSES is empty"
+        );
     }
 
     @Test

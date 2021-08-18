@@ -96,7 +96,8 @@ public abstract class SourceSetUtils {
 
     @VisibleForTesting
     static final Set<Class<?>> ABSTRACT_ARCHIVE_FILE_TREE_CLASSES = Stream.of(
-            tryLoadClass("org.gradle.api.internal.file.archive.AbstractArchiveFileTree")
+            tryLoadClass("org.gradle.api.internal.file.archive.AbstractArchiveFileTree"),
+            tryLoadClass("org.gradle.api.internal.file.collections.FileSystemMirroringFileTree")
         )
         .filter(Objects::nonNull)
         .collect(toCollection(LinkedHashSet::new));
