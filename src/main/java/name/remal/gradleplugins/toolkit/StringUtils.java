@@ -65,6 +65,7 @@ public abstract class StringUtils {
     public static String escapeRegex(String string) {
         return escapeJavaScript(string)
             .replace(".", "\\.")
+            .replace("|", "\\|")
             .replace("[", "\\[")
             .replace("]", "\\]")
             .replace("(", "\\(")
