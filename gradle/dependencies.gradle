@@ -18,7 +18,7 @@ allprojects {
                 'com.google.errorprone:error_prone_core:2.9.0',
 
                 // Annotation processing
-                'org.projectlombok:lombok:1.18.20',
+                'org.projectlombok:lombok:1.18.22',
                 'com.google.auto.service:auto-service:1.0',
                 'com.google.auto.service:auto-service-annotations:1.0',
 
