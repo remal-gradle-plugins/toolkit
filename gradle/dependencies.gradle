@@ -19,8 +19,8 @@ allprojects {
 
                 // Annotation processing
                 'org.projectlombok:lombok:1.18.22',
-                'com.google.auto.service:auto-service:1.0',
-                'com.google.auto.service:auto-service-annotations:1.0',
+                'com.google.auto.service:auto-service:1.0.1',
+                'com.google.auto.service:auto-service-annotations:1.0.1',
 
                 // Compile-only
                 'name.remal:gradle-plugins-api:1.5.1',
