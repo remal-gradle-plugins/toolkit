@@ -1,12 +1,17 @@
 package name.remal.gradleplugins.toolkit.reflection;
 
-public interface WhoCalled {
+import static lombok.AccessLevel.PRIVATE;
 
-    static Class<?> getCallingClass(int depth) {
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = PRIVATE)
+public abstract class WhoCalled {
+
+    public static Class<?> getCallingClass(int depth) {
         return WhoCalledSecurityManager.INSTANCE.getCallingClass(depth);
     }
 
-    static boolean isCalledBy(Class<?> type) {
+    public static boolean isCalledBy(Class<?> type) {
         return WhoCalledSecurityManager.INSTANCE.isCalledBy(type);
     }
 
