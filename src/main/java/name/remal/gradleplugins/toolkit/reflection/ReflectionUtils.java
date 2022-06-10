@@ -1,19 +1,22 @@
 package name.remal.gradleplugins.toolkit.reflection;
 
+import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradleplugins.toolkit.reflection.WhoCalled.getCallingClass;
 
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
 import javax.annotation.Nullable;
+import lombok.NoArgsConstructor;
 import lombok.val;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.jetbrains.annotations.Contract;
 
-public interface ReflectionUtils {
+@NoArgsConstructor(access = PRIVATE)
+public abstract class ReflectionUtils {
 
     @Nullable
-    static Class<?> tryLoadClass(String name, @Nullable ClassLoader classLoader) {
+    public static Class<?> tryLoadClass(String name, @Nullable ClassLoader classLoader) {
         try {
             return Class.forName(name, false, classLoader);
         } catch (ClassNotFoundException e) {
@@ -23,25 +26,25 @@ public interface ReflectionUtils {
 
     @Nullable
     @SuppressWarnings("java:S109")
-    static Class<?> tryLoadClass(String name) {
+    public static Class<?> tryLoadClass(String name) {
         val callingClass = getCallingClass(2);
         return tryLoadClass(name, callingClass.getClassLoader());
     }
 
 
-    static boolean isClassPresent(String name, @Nullable ClassLoader classLoader) {
+    public static boolean isClassPresent(String name, @Nullable ClassLoader classLoader) {
         return tryLoadClass(name, classLoader) != null;
     }
 
     @SuppressWarnings("java:S109")
-    static boolean isClassPresent(String name) {
+    public static boolean isClassPresent(String name) {
         val callingClass = getCallingClass(2);
         return isClassPresent(name, callingClass.getClassLoader());
     }
 
 
     @SuppressWarnings("unchecked")
-    static <T> Class<T> unwrapGeneratedSubclass(Class<T> type) {
+    public static <T> Class<T> unwrapGeneratedSubclass(Class<T> type) {
         while (GeneratedSubclass.class.isAssignableFrom(type)) {
             type = (Class<T>) type.getSuperclass();
         }
@@ -49,12 +52,12 @@ public interface ReflectionUtils {
     }
 
     @SuppressWarnings("unchecked")
-    static <T> Class<T> classOf(T object) {
+    public static <T> Class<T> classOf(T object) {
         return (Class<T>) unwrapGeneratedSubclass(object.getClass());
     }
 
 
-    static Class<?> wrapPrimitiveType(Class<?> type) {
+    public static Class<?> wrapPrimitiveType(Class<?> type) {
         if (boolean.class == type) {
             return Boolean.class;
         } else if (char.class == type) {
@@ -77,7 +80,7 @@ public interface ReflectionUtils {
         return type;
     }
 
-    static Class<?> unwrapPrimitiveType(Class<?> type) {
+    public static Class<?> unwrapPrimitiveType(Class<?> type) {
         if (Boolean.class == type) {
             return boolean.class;
         } else if (Character.class == type) {
@@ -101,34 +104,34 @@ public interface ReflectionUtils {
     }
 
 
-    static boolean isPublic(Class<?> type) {
+    public static boolean isPublic(Class<?> type) {
         return Modifier.isPublic(type.getModifiers());
     }
 
-    static boolean isPublic(Member member) {
+    public static boolean isPublic(Member member) {
         return Modifier.isPublic(member.getModifiers());
     }
 
-    static boolean isNotPublic(Class<?> type) {
+    public static boolean isNotPublic(Class<?> type) {
         return !isPublic(type);
     }
 
-    static boolean isNotPublic(Member member) {
+    public static boolean isNotPublic(Member member) {
         return !isPublic(member);
     }
 
-    static boolean isStatic(Member member) {
+    public static boolean isStatic(Member member) {
         return Modifier.isStatic(member.getModifiers());
     }
 
-    static boolean isNotStatic(Member member) {
+    public static boolean isNotStatic(Member member) {
         return !isStatic(member);
     }
 
 
     @Contract("_ -> param1")
-    @SuppressWarnings("deprecation")
-    static <T extends AccessibleObject & Member> T makeAccessible(T member) {
+    @SuppressWarnings({"deprecation", "java:S3011"})
+    public static <T extends AccessibleObject & Member> T makeAccessible(T member) {
         if (!member.isAccessible()) {
             if (!isNotPublic(member)
                 || !isNotPublic(member.getDeclaringClass())

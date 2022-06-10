@@ -1,13 +1,16 @@
 package name.remal.gradleplugins.toolkit;
 
+import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.unwrapGeneratedSubclass;
 
 import javax.annotation.Nullable;
+import lombok.NoArgsConstructor;
 import lombok.val;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 
+@NoArgsConstructor(access = PRIVATE)
 public abstract class ExtensionContainerUtils {
 
     public static ExtensionContainer getExtensions(Object object) {
@@ -165,10 +168,6 @@ public abstract class ExtensionContainerUtils {
             return ((Convention) extensions).getPlugins().get(name);
         }
         return null;
-    }
-
-
-    private ExtensionContainerUtils() {
     }
 
 }

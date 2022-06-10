@@ -1,14 +1,17 @@
 package name.remal.gradleplugins.toolkit;
 
 import static java.util.Objects.requireNonNull;
+import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradleplugins.toolkit.reflection.MembersFinder.findMethod;
 
 import java.io.File;
 import javax.annotation.Nullable;
+import lombok.NoArgsConstructor;
 import name.remal.gradleplugins.toolkit.reflection.TypedMethod0;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.tasks.compile.AbstractCompile;
 
+@NoArgsConstructor(access = PRIVATE)
 public abstract class AbstractCompileUtils {
 
     @Nullable
@@ -34,10 +37,6 @@ public abstract class AbstractCompileUtils {
                 "Both 'getDestinationDirectory' and 'getDestinationDir' methods can't be found for task: " + task
             );
         }
-    }
-
-
-    private AbstractCompileUtils() {
     }
 
 }

@@ -1,7 +1,11 @@
 package name.remal.gradleplugins.toolkit;
 
-import javax.annotation.CheckForNull;
+import static lombok.AccessLevel.PRIVATE;
 
+import javax.annotation.CheckForNull;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = PRIVATE)
 public abstract class SneakyThrowUtils {
 
     public static RuntimeException sneakyThrow(Throwable exception) {
@@ -41,10 +45,6 @@ public abstract class SneakyThrowUtils {
         } catch (Throwable exception) {
             throw sneakyThrow(exception);
         }
-    }
-
-
-    private SneakyThrowUtils() {
     }
 
 }

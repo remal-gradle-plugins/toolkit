@@ -1,17 +1,20 @@
 package name.remal.gradleplugins.toolkit;
 
+import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradleplugins.toolkit.StringUtils.escapeHtml;
 import static name.remal.gradleplugins.toolkit.StringUtils.normalizeString;
 
+import lombok.NoArgsConstructor;
 import lombok.val;
 import net.htmlparser.jericho.Source;
 import org.intellij.lang.annotations.Language;
 
-public interface HtmlToTextUtils {
+@NoArgsConstructor(access = PRIVATE)
+public abstract class HtmlToTextUtils {
 
     @Language("TEXT")
     @SuppressWarnings("java:S109")
-    static String convertHtmlToText(@Language("HTML") String html) {
+    public static String convertHtmlToText(@Language("HTML") String html) {
         val text = new Source(html).getRenderer()
             .setMaxLineLength(Integer.MAX_VALUE)
             .setHRLineLength(20)
@@ -28,7 +31,7 @@ public interface HtmlToTextUtils {
     }
 
     @Language("HTML")
-    static String convertTextToHtml(@Language("TEXT") String text) {
+    public static String convertTextToHtml(@Language("TEXT") String text) {
         text = normalizeString(text);
         return escapeHtml(text)
             .replace("\n", "<br>")

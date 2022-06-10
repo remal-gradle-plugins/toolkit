@@ -1,7 +1,11 @@
 package name.remal.gradleplugins.toolkit;
 
-import java.util.regex.Pattern;
+import static lombok.AccessLevel.PRIVATE;
 
+import java.util.regex.Pattern;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = PRIVATE)
 public abstract class StringUtils {
 
     private static final Pattern TRIM_LINE_END = Pattern.compile("[ \\t]+(\\n|$)");
@@ -94,10 +98,6 @@ public abstract class StringUtils {
 
     public static String escapeCsv(String string) {
         return org.apache.commons.text.StringEscapeUtils.escapeCsv(string);
-    }
-
-
-    private StringUtils() {
     }
 
 }

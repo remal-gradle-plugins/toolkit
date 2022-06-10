@@ -2,15 +2,18 @@ package name.remal.gradleplugins.toolkit;
 
 import static java.lang.reflect.Modifier.isStatic;
 import static java.util.Collections.emptyList;
+import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.makeAccessible;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.unwrapGeneratedSubclass;
 
+import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskInputs;
 import org.jetbrains.annotations.VisibleForTesting;
 
+@NoArgsConstructor(access = PRIVATE)
 public abstract class TaskUtils {
 
     public static boolean isInTaskGraph(Task task) {
@@ -57,9 +60,6 @@ public abstract class TaskUtils {
             }
             taskInputsType = taskInputsType.getSuperclass();
         }
-    }
-
-    private TaskUtils() {
     }
 
 }

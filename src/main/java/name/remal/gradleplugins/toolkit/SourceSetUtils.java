@@ -5,6 +5,7 @@ import static java.util.Collections.unmodifiableSet;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
+import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradleplugins.toolkit.AbstractCompileUtils.getDestinationDir;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.tryLoadClass;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.unwrapGeneratedSubclass;
@@ -17,6 +18,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.gradle.api.Task;
@@ -28,6 +30,7 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.jetbrains.annotations.VisibleForTesting;
 
+@NoArgsConstructor(access = PRIVATE)
 public abstract class SourceSetUtils {
 
     private static final Pattern GET_CONFIGURATION_NAME_METHOD_NAME = Pattern.compile(
@@ -170,10 +173,6 @@ public abstract class SourceSetUtils {
         }
 
         return false;
-    }
-
-
-    private SourceSetUtils() {
     }
 
 }

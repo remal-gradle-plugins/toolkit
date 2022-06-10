@@ -1,14 +1,17 @@
 package name.remal.gradleplugins.toolkit.reflection;
 
+import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.isStatic;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.wrapPrimitiveType;
 
 import java.lang.reflect.Method;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
+import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
 
+@NoArgsConstructor(access = PRIVATE)
 abstract class MembersFinderHelpers {
 
     @SneakyThrows
@@ -128,10 +131,6 @@ abstract class MembersFinderHelpers {
         fromType = wrapPrimitiveType(fromType);
         toType = wrapPrimitiveType(toType);
         return toType.isAssignableFrom(fromType);
-    }
-
-
-    private MembersFinderHelpers() {
     }
 
 }
