@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 class MembersFinderHelpersTest {
 
+    @SuppressWarnings("UnusedMethod")
     private static class StaticAndInstanceMethodWithoutParamsExample {
         public static void staticMethod() {
         }
@@ -38,6 +39,7 @@ class MembersFinderHelpersTest {
         );
     }
 
+    @SuppressWarnings("UnusedMethod")
     private static class StaticAndInstanceMethodWithParamsExample {
         public static void staticMethod(int param) {
         }
