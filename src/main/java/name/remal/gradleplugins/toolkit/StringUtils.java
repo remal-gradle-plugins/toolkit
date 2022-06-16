@@ -8,7 +8,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = PRIVATE)
 public abstract class StringUtils {
 
-    private static final Pattern TRIM_LINE_END = Pattern.compile("[ \\t]+(\\n|$)");
+    private static final Pattern NEW_LINE = Pattern.compile("\\r\\n|\\n\\r|\\r|\\n");
+    private static final Pattern TRIM_LINE_END = Pattern.compile("[ \\t]+(?:\\n|$)");
     private static final Pattern TOO_MANY_NEW_LINES = Pattern.compile("\\n{3,}");
 
     public static String normalizeString(String string) {
@@ -16,9 +17,7 @@ public abstract class StringUtils {
             return "";
         }
 
-        string = string.replace("\r\n", "\n")
-            .replace("\n\r", "\n")
-            .replace("\r", "\n");
+        string = NEW_LINE.matcher(string).replaceAll("\n");
 
         string = TRIM_LINE_END.matcher(string).replaceAll("\n");
         string = TOO_MANY_NEW_LINES.matcher(string).replaceAll("\n\n");

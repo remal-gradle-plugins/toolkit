@@ -15,22 +15,22 @@ import org.gradle.api.tasks.compile.AbstractCompile;
 public abstract class AbstractCompileUtils {
 
     @Nullable
-    private static final TypedMethod0<AbstractCompile, DirectoryProperty> abstractCompileGetDestinationDirectory =
+    private static final TypedMethod0<AbstractCompile, DirectoryProperty> getDestinationDirectoryMethod =
         findMethod(AbstractCompile.class, DirectoryProperty.class, "getDestinationDirectory");
 
     @Nullable
-    private static final TypedMethod0<AbstractCompile, File> abstractCompileGetDestinationDir =
+    private static final TypedMethod0<AbstractCompile, File> compileGetDestinationDirMethod =
         findMethod(AbstractCompile.class, File.class, "getDestinationDir");
 
     @Nullable
     public static File getDestinationDir(AbstractCompile task) {
-        if (abstractCompileGetDestinationDirectory != null) {
-            return requireNonNull(abstractCompileGetDestinationDirectory.invoke(task))
+        if (getDestinationDirectoryMethod != null) {
+            return requireNonNull(getDestinationDirectoryMethod.invoke(task))
                 .getAsFile()
                 .getOrNull();
 
-        } else if (abstractCompileGetDestinationDir != null) {
-            return abstractCompileGetDestinationDir.invoke(task);
+        } else if (compileGetDestinationDirMethod != null) {
+            return compileGetDestinationDirMethod.invoke(task);
 
         } else {
             throw new IllegalStateException(

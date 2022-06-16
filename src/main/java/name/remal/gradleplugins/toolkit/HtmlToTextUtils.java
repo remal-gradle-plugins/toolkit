@@ -34,8 +34,7 @@ public abstract class HtmlToTextUtils {
     public static String convertTextToHtml(@Language("TEXT") String text) {
         text = normalizeString(text);
         return escapeHtml(text)
-            .replace("\n", "<br>")
-            ;
+            .replace("\n", "<br/>");
     }
 
 }

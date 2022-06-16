@@ -5,6 +5,7 @@ import static java.lang.Boolean.TRUE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.createTempFile;
+import static java.nio.file.Files.newOutputStream;
 import static java.nio.file.Files.write;
 import static org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME;
 import static org.gradle.api.tasks.SourceSet.TEST_SOURCE_SET_NAME;
@@ -13,7 +14,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -114,7 +114,7 @@ class SourceSetUtilsTest {
 
     @Test
     void isNotArchive_zip() throws Throwable {
-        try (val outputStream = new ZipOutputStream(new FileOutputStream(tempFile))) {
+        try (val outputStream = new ZipOutputStream(newOutputStream(tempFile.toPath()))) {
             outputStream.putNextEntry(new ZipEntry("entry"));
             outputStream.write(new byte[]{1, 2, 3});
         }
