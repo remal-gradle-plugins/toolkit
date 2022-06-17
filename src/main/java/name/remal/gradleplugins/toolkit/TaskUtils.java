@@ -4,6 +4,7 @@ import static java.lang.reflect.Modifier.isStatic;
 import static java.util.Collections.emptyList;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradleplugins.toolkit.ExtensionContainerUtils.findExtension;
+import static name.remal.gradleplugins.toolkit.PathUtils.normalizedPath;
 import static name.remal.gradleplugins.toolkit.ReportUtils.setReportDestination;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.makeAccessible;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.unwrapGeneratedSubclass;
@@ -11,6 +12,7 @@ import static org.gradle.api.reporting.Report.OutputType.DIRECTORY;
 import static org.gradle.api.reporting.ReportingExtension.DEFAULT_REPORTS_DIR_NAME;
 
 import java.io.File;
+import java.util.Optional;
 import java.util.function.Function;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
@@ -37,11 +39,21 @@ public abstract class TaskUtils {
     }
 
     public static boolean isRequested(Task task) {
-        return task.getProject()
-            .getGradle()
-            .getStartParameter()
-            .getTaskNames()
-            .stream()
+        val project = task.getProject();
+
+        val startParameter = project.getGradle().getStartParameter();
+        val requestedProjectPath = Optional.ofNullable(startParameter.getProjectDir())
+            .map(File::toPath)
+            .map(PathUtils::normalizedPath)
+            .orElse(null);
+        if (requestedProjectPath != null) {
+            val projectPath = normalizedPath(project.getProjectDir().toPath());
+            if (!projectPath.startsWith(requestedProjectPath)) {
+                return false;
+            }
+        }
+
+        return startParameter.getTaskNames().stream()
             .anyMatch(task.getName()::equals);
     }
 
