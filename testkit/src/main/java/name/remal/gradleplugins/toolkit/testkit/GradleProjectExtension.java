@@ -5,6 +5,7 @@ import lombok.val;
 import name.remal.gradleplugins.toolkit.testkit.internal.AbstractProjectDirPrefixExtension;
 import name.remal.gradleplugins.toolkit.testkit.internal.containers.ProjectsContainer;
 import org.gradle.api.Project;
+import org.gradle.api.invocation.Gradle;
 import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
@@ -20,7 +21,8 @@ public class GradleProjectExtension extends AbstractProjectDirPrefixExtension im
         ExtensionContext extensionContext
     ) throws ParameterResolutionException {
         val paramType = parameterContext.getParameter().getType();
-        return paramType == Project.class;
+        return paramType == Project.class
+            || paramType == Gradle.class;
     }
 
     @Override
@@ -29,7 +31,14 @@ public class GradleProjectExtension extends AbstractProjectDirPrefixExtension im
         ExtensionContext extensionContext
     ) throws ParameterResolutionException {
         val projects = ProjectsContainer.getProjectsContainer(extensionStore, extensionContext);
-        return projects.resolveParameterProject(parameterContext);
+        val project = projects.resolveParameterProject(parameterContext);
+
+        val paramType = parameterContext.getParameter().getType();
+        if (paramType == Gradle.class) {
+            return project.getGradle();
+        }
+
+        return project;
     }
 
 }
