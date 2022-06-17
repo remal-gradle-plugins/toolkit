@@ -24,7 +24,7 @@ abstract class GradleUtilsBuildFinishedService implements BuildService<Params>, 
         String.valueOf(identityHashCode(GradleUtilsBuildFinishedService.class))
     );
 
-    public static void registerAndGet(Gradle gradle, Action<? super Gradle> action) {
+    public static void registerAction(Gradle gradle, Action<? super Gradle> action) {
         val buildFinishedService = gradle.getSharedServices().registerIfAbsent(
             SERVICE_NAME,
             GradleUtilsBuildFinishedService.class,

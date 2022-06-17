@@ -16,7 +16,7 @@ public abstract class GradleUtils {
 
     public static void onGradleBuildFinished(Gradle gradle, Action<? super Gradle> action) {
         if (ARE_SHARED_SERVICES_ENABLED) {
-            GradleUtilsBuildFinishedService.registerAndGet(gradle, action);
+            GradleUtilsBuildFinishedService.registerAction(gradle, action);
 
         } else {
             val buildFinishedMethod = getMethod(Gradle.class, "buildFinished", Action.class);
