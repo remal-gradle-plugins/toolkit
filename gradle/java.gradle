@@ -1,6 +1,5 @@
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
-import java.util.concurrent.atomic.AtomicBoolean
 import org.gradle.api.internal.tasks.compile.HasCompileOptions
 
 allprojects {
@@ -88,6 +87,7 @@ allprojects {
             testImplementation 'org.junit.jupiter:junit-jupiter-params'
             testImplementation 'org.mockito:mockito-junit-jupiter'
             testImplementation 'org.mockito:mockito-inline'
+            testImplementation 'org.assertj:assertj-core'
 
             testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
         }
@@ -127,13 +127,28 @@ allprojects {
 
         tasks.matching { it instanceof JavaForkOptions }.all {
             List<String> jvmArgs = it.jvmArgs
-            jvmArgs += '--illegal-access=deny'
+            if (JavaVersion.current() < JavaVersion.VERSION_17) {
+                jvmArgs += '--illegal-access=deny'
+            }
             it.jvmArgs = jvmArgs
         }
 
         tasks.withType(Jar).named(sourceSets.main.jarTaskName).configure {
             manifest {
                 attributes('Automatic-Module-Name': project.property('javaModuleName'))
+            }
+        }
+
+        testSourceSets.configureEach { SourceSet testSourceSet ->
+            Set<String> testCompileTaskNames = [
+                'java',
+                'kotlin',
+                'groovy',
+                'scala',
+            ].collect { testSourceSet.getCompileTaskName(it) }.toSet()
+            tasks.withType(AbstractCompile).matching { testCompileTaskNames.contains(it.name) }.configureEach { AbstractCompile task ->
+                task.sourceCompatibility = JavaVersion.VERSION_17.toString()
+                task.targetCompatibility = sourceCompatibility.toString()
             }
         }
 

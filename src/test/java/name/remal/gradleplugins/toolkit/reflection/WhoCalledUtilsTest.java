@@ -5,16 +5,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
-class WhoCalledTest {
+class WhoCalledUtilsTest {
 
     @Test
     void getCallingClass() {
-        assertEquals(WhoCalledTest.class, WhoCalled.getCallingClass(1));
+        assertEquals(WhoCalledUtilsTest.class, WhoCalledUtils.getCallingClass(1));
     }
 
     @Test
     void isCalledBy() {
-        assertTrue(WhoCalled.isCalledBy(WhoCalledTest.class));
+        assertTrue(WhoCalledUtils.isCalledBy(WhoCalledUtilsTest.class));
     }
 
 }

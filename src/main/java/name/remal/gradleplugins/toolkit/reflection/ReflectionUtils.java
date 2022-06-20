@@ -1,16 +1,23 @@
 package name.remal.gradleplugins.toolkit.reflection;
 
 import static lombok.AccessLevel.PRIVATE;
-import static name.remal.gradleplugins.toolkit.reflection.WhoCalled.getCallingClass;
+import static name.remal.gradleplugins.toolkit.reflection.WhoCalledUtils.getCallingClass;
 
+import com.google.common.collect.ImmutableList;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.val;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Unmodifiable;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ReflectionUtils {
@@ -19,7 +26,7 @@ public abstract class ReflectionUtils {
     public static Class<?> tryLoadClass(String name, @Nullable ClassLoader classLoader) {
         try {
             return Class.forName(name, false, classLoader);
-        } catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException expected) {
             return null;
         }
     }
@@ -40,6 +47,37 @@ public abstract class ReflectionUtils {
     public static boolean isClassPresent(String name) {
         val callingClass = getCallingClass(2);
         return isClassPresent(name, callingClass.getClassLoader());
+    }
+
+
+    @Unmodifiable
+    public static List<Class<?>> getClassHierarchy(Class<?> rootClass) {
+        Set<Class<?>> result = new LinkedHashSet<>();
+        result.add(rootClass);
+
+        Deque<Class<?>> queue = new ArrayDeque<>();
+        queue.addLast(rootClass);
+        while (true) {
+            val clazz = queue.pollFirst();
+            if (clazz == null) {
+                break;
+            }
+
+            val superClass = clazz.getSuperclass();
+            if (superClass != null) {
+                if (result.add(superClass)) {
+                    queue.addLast(superClass);
+                }
+            }
+
+            for (val interfaceClass : clazz.getInterfaces()) {
+                if (result.add(interfaceClass)) {
+                    queue.addLast(interfaceClass);
+                }
+            }
+        }
+
+        return ImmutableList.copyOf(result);
     }
 
 
@@ -112,16 +150,16 @@ public abstract class ReflectionUtils {
         return Modifier.isPublic(member.getModifiers());
     }
 
+    public static boolean isStatic(Member member) {
+        return Modifier.isStatic(member.getModifiers());
+    }
+
     public static boolean isNotPublic(Class<?> type) {
         return !isPublic(type);
     }
 
     public static boolean isNotPublic(Member member) {
         return !isPublic(member);
-    }
-
-    public static boolean isStatic(Member member) {
-        return Modifier.isStatic(member.getModifiers());
     }
 
     public static boolean isNotStatic(Member member) {

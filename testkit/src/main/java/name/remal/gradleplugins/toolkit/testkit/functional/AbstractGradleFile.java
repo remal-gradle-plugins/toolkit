@@ -5,6 +5,7 @@ import static java.nio.file.Files.createDirectories;
 import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
+import static name.remal.gradleplugins.toolkit.ObjectUtils.isNotEmpty;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -103,7 +104,7 @@ abstract class AbstractGradleFile<Child extends AbstractGradleFile<Child>> {
             sb.append("plugins {");
             pluginToVersion.forEach((pluginId, pluginVersion) -> {
                 sb.append("\n    id '").append(pluginId).append("'");
-                if (pluginVersion != null && !pluginVersion.isEmpty()) {
+                if (isNotEmpty(pluginVersion)) {
                     sb.append(" version '").append(pluginVersion).append("'");
                 }
             });

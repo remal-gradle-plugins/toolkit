@@ -5,6 +5,8 @@ dependencies {
     optional 'name.remal.gradle-api:gradle-test-kit'
     optional 'org.junit.jupiter:junit-jupiter-api'
 
+    relocateClasses 'com.google.guava:guava'
+
     api project(':')
 
     testImplementation 'org.junit.jupiter:junit-jupiter-engine'

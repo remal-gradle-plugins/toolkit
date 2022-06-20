@@ -19,14 +19,14 @@ import lombok.val;
 @NoArgsConstructor(access = PRIVATE)
 public abstract class PathUtils {
 
-    public static Path normalizedPath(Path path) {
+    public static Path normalizePath(Path path) {
         return path.toAbsolutePath().normalize();
     }
 
     @SneakyThrows
     public static Path deleteRecursively(Path path) {
         try {
-            walkFileTree(normalizedPath(path), new SimpleFileVisitor<Path>() {
+            walkFileTree(normalizePath(path), new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                     deleteIfExists(file);
@@ -48,7 +48,7 @@ public abstract class PathUtils {
 
     @SneakyThrows
     public static Path createParentDirectories(Path path) {
-        val parentPath = normalizedPath(path).getParent();
+        val parentPath = normalizePath(path).getParent();
         if (parentPath != null) {
             createDirectories(parentPath);
         }

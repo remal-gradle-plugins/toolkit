@@ -4,7 +4,7 @@ import static java.lang.reflect.Modifier.isStatic;
 import static java.util.Collections.emptyList;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradleplugins.toolkit.ExtensionContainerUtils.findExtension;
-import static name.remal.gradleplugins.toolkit.PathUtils.normalizedPath;
+import static name.remal.gradleplugins.toolkit.PathUtils.normalizePath;
 import static name.remal.gradleplugins.toolkit.ReportUtils.setReportDestination;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.makeAccessible;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.unwrapGeneratedSubclass;
@@ -44,10 +44,10 @@ public abstract class TaskUtils {
         val startParameter = project.getGradle().getStartParameter();
         val requestedProjectPath = Optional.ofNullable(startParameter.getProjectDir())
             .map(File::toPath)
-            .map(PathUtils::normalizedPath)
+            .map(PathUtils::normalizePath)
             .orElse(null);
         if (requestedProjectPath != null) {
-            val projectPath = normalizedPath(project.getProjectDir().toPath());
+            val projectPath = normalizePath(project.getProjectDir().toPath());
             if (!projectPath.startsWith(requestedProjectPath)) {
                 return false;
             }

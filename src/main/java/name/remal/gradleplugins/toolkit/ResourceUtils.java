@@ -2,7 +2,7 @@ package name.remal.gradleplugins.toolkit;
 
 import static java.lang.String.format;
 import static lombok.AccessLevel.PRIVATE;
-import static name.remal.gradleplugins.toolkit.reflection.WhoCalled.getCallingClass;
+import static name.remal.gradleplugins.toolkit.reflection.WhoCalledUtils.getCallingClass;
 
 import java.io.InputStream;
 import java.net.URL;

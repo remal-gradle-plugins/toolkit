@@ -2,14 +2,13 @@ package name.remal.gradleplugins.toolkit.testkit.functional;
 
 import static java.lang.String.format;
 import static java.lang.management.ManagementFactory.getRuntimeMXBean;
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.synchronizedMap;
-import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.NONE;
 import static name.remal.gradleplugins.toolkit.StringUtils.escapeGroovy;
 
+import com.google.common.collect.ImmutableList;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
@@ -70,17 +69,17 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
     private static final Pattern TRIM_RIGHT = Pattern.compile("\\s+$");
     private static final Pattern STACK_TRACE_LINE = Pattern.compile("^\\s+at ");
 
-    private static final List<String> DEFAULT_DEPRECATION_MESSAGES = unmodifiableList(asList(
+    private static final List<String> DEFAULT_DEPRECATION_MESSAGES = ImmutableList.of(
         "has been deprecated and is scheduled to be removed in Gradle",
         "Deprecated Gradle features were used in this build",
         "is scheduled to be removed in Gradle",
         "will fail with an error in Gradle"
-    ));
+    );
 
     @Getter(NONE)
     private final List<String> deprecationMessages = new ArrayList<>(DEFAULT_DEPRECATION_MESSAGES);
 
-    private static final List<SuppressedMessage> DEFAULT_SUPPRESSED_DEPRECATIONS_MESSAGES = unmodifiableList(asList(
+    private static final List<SuppressedMessage> DEFAULT_SUPPRESSED_DEPRECATIONS_MESSAGES = ImmutableList.of(
         new SuppressedMessage(
             "The DefaultSourceDirectorySet constructor has been deprecated",
             "org.jetbrains.kotlin.gradle.plugin."
@@ -93,17 +92,17 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
             "Internal API constructor TaskReportContainer(Class<T>, Task) has been deprecated",
             "com.github.spotbugs."
         )
-    ));
+    );
 
     @Getter(NONE)
     private final List<SuppressedMessage> suppressedDeprecationMessages =
         new ArrayList<>(DEFAULT_SUPPRESSED_DEPRECATIONS_MESSAGES);
 
 
-    private static final List<String> DEFAULT_MUTABLE_PROJECT_STATE_WARNINGS = unmodifiableList(asList(
+    private static final List<String> DEFAULT_MUTABLE_PROJECT_STATE_WARNINGS = ImmutableList.of(
         "was resolved without accessing the project in a safe manner",
         "configuration is resolved from a thread not managed by Gradle"
-    ));
+    );
 
     @Getter(NONE)
     private final List<String> mutableProjectStateWarnings =
@@ -117,10 +116,10 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
         new ArrayList<>(DEFAULT_SUPPRESSED_MUTABLE_PROJECT_STATE_WARNINGS);
 
 
-    private static final List<String> DEFAULT_OPTIMIZATIONS_DISABLED_WARNINGS = unmodifiableList(asList(
+    private static final List<String> DEFAULT_OPTIMIZATIONS_DISABLED_WARNINGS = ImmutableList.of(
         "Execution optimizations have been disabled for task",
         "This can lead to incorrect results being produced, depending on what order the tasks are executed"
-    ));
+    );
 
     @Getter(NONE)
     private final List<String> optimizationsDisabledWarnings =

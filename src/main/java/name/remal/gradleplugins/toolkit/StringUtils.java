@@ -12,12 +12,16 @@ public abstract class StringUtils {
     private static final Pattern TRIM_LINE_END = Pattern.compile("[ \\t]+(?:\\n|$)");
     private static final Pattern TOO_MANY_NEW_LINES = Pattern.compile("\\n{3,}");
 
+    public static String normalizeNewLines(String string) {
+        return NEW_LINE.matcher(string).replaceAll("\n");
+    }
+
     public static String normalizeString(String string) {
         if (string.isEmpty() || string.trim().isEmpty()) {
             return "";
         }
 
-        string = NEW_LINE.matcher(string).replaceAll("\n");
+        string = normalizeNewLines(string);
 
         string = TRIM_LINE_END.matcher(string).replaceAll("\n");
         string = TOO_MANY_NEW_LINES.matcher(string).replaceAll("\n\n");

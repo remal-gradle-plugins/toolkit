@@ -1,6 +1,7 @@
 package name.remal.gradleplugins.toolkit.reflection;
 
 import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -149,6 +150,54 @@ class ReflectionUtilsTest {
 
         assertEquals(String.class, ReflectionUtils.unwrapPrimitiveType(String.class));
         assertEquals(Collection.class, ReflectionUtils.unwrapPrimitiveType(Collection.class));
+    }
+
+
+    @Test
+    void hierarchyContainsSelf() {
+        assertTrue(ReflectionUtils.getClassHierarchy(ChildClass.class).contains(ChildClass.class));
+        assertTrue(ReflectionUtils.getClassHierarchy(ChildInterface.class).contains(ChildInterface.class));
+    }
+
+    @Test
+    void hierarchyContainsAllSuperclasses() {
+        assertThat(ReflectionUtils.getClassHierarchy(int.class)).containsSubsequence(int.class);
+        assertThat(ReflectionUtils.getClassHierarchy(Object.class)).containsSubsequence(Object.class);
+        assertThat(ReflectionUtils.getClassHierarchy(ChildClass.class)).containsSubsequence(
+            ChildClass.class,
+            ParentClass.class,
+            Object.class
+        );
+    }
+
+    @Test
+    void hierarchyContainsAllInterfaces() {
+        assertThat(ReflectionUtils.getClassHierarchy(ChildClass.class)).containsSubsequence(
+            ChildInterface.class,
+            ParentInterface.class
+        );
+        assertThat(ReflectionUtils.getClassHierarchy(ChildClass.class)).containsSubsequence(
+            TestInterface2.class,
+            TestInterface1.class
+        );
+    }
+
+    private interface TestInterface1 {
+    }
+
+    private interface TestInterface2 extends TestInterface1 {
+    }
+
+    private interface ParentInterface {
+    }
+
+    private interface ChildInterface extends ParentInterface {
+    }
+
+    private static class ParentClass implements ParentInterface {
+    }
+
+    private static class ChildClass extends ParentClass implements ChildInterface, TestInterface2 {
     }
 
 }

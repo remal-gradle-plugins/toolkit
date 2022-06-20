@@ -42,5 +42,7 @@ gradle.beforeProject { Project project ->
 rootProject.name = 'toolkit'
 
 include(
+    ':toolkit--java-common',
+    ':toolkit--java-9',
     ':testkit',
 )
