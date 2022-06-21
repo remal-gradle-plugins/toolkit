@@ -46,6 +46,8 @@ apply from: 'gradle/ide.gradle'
 allprojects {
     pluginManager.withPlugin('java') {
         dependencies {
+            optional 'name.remal.gradle-api:gradle-api'
+
             annotationProcessorAll 'com.google.auto.service:auto-service'
             compileOnlyAll 'com.google.auto.service:auto-service-annotations'
             annotationProcessorAll 'org.immutables:value'
@@ -73,7 +75,6 @@ apply plugin: 'name.remal.generate-sources'
 
 dependencies {
     optional 'com.puppycrawl.tools:checkstyle'
-    optional 'name.remal.gradle-api:gradle-api'
 
     relocateClasses 'org.jdom:jdom'
     relocateClasses 'net.htmlparser.jericho:jericho-html'
