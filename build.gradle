@@ -61,17 +61,6 @@ allprojects {
             testImplementation 'org.apache.commons:commons-lang3'
             testImplementation 'com.google.guava:guava'
         }
-
-        configurations.all {
-            dependencies.all {
-                if (group == 'com.google.guava' && name == 'guava') {
-                    exclude(group: 'com.google.code.findbugs')
-                    exclude(group: 'org.checkerframework')
-                    exclude(group: 'com.google.errorprone')
-                    exclude(group: 'com.google.j2objc')
-                }
-            }
-        }
     }
 }
 
