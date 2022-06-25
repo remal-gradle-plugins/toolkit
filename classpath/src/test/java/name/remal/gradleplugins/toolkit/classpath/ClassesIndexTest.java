@@ -1,6 +1,6 @@
 package name.remal.gradleplugins.toolkit.classpath;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Map;
@@ -18,14 +18,12 @@ class ClassesIndexTest {
             "4", Set.of("5")
         ));
 
-        assertEquals(
-            Map.of(
+        assertThat(classesIndex.parentClassNames)
+            .containsExactlyInAnyOrderEntriesOf(Map.of(
                 "1", Set.of("2", "3", "4", "5"),
                 "2", Set.of("4", "5"),
                 "4", Set.of("5")
-            ),
-            classesIndex.getParentClasses()
-        );
+            ));
     }
 
     @Test
@@ -34,12 +32,10 @@ class ClassesIndexTest {
             "1", Set.of("java.util.Collection")
         ));
 
-        assertEquals(
-            Map.of(
+        assertThat(classesIndex.parentClassNames)
+            .containsExactlyInAnyOrderEntriesOf(Map.of(
                 "1", Set.of("java.util.Collection", "java.lang.Iterable")
-            ),
-            classesIndex.getParentClasses()
-        );
+            ));
     }
 
     @Test
@@ -56,14 +52,12 @@ class ClassesIndexTest {
             classesIndex2
         ));
 
-        assertEquals(
-            Map.of(
+        assertThat(classesIndex.parentClassNames)
+            .containsExactlyInAnyOrderEntriesOf(Map.of(
                 "1", Set.of("2", "3", "4", "java.util.Collection", "java.lang.Iterable"),
                 "3", Set.of("4"),
                 "2", Set.of("java.util.Collection", "java.lang.Iterable")
-            ),
-            classesIndex.getParentClasses()
-        );
+            ));
     }
 
 }

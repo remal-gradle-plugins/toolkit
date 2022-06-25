@@ -3,9 +3,10 @@ package name.remal.gradleplugins.toolkit.classpath;
 import static java.lang.Integer.parseInt;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
-import static name.remal.gradleplugins.toolkit.classpath.Utils.toDeepImmutableCollectionMap;
+import static name.remal.gradleplugins.toolkit.classpath.Utils.toDeepImmutableSetMap;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.errorprone.annotations.MustBeClosed;
 import java.io.File;
 import java.io.InputStream;
@@ -28,7 +29,7 @@ import org.jetbrains.annotations.Unmodifiable;
 
 public final class ClasspathFiles implements ClasspathFileMethods {
 
-    private final List<ClasspathFileMethods> files;
+    private final List<ClasspathFileBase> files;
 
     public ClasspathFiles() {
         this.files = emptyList();
@@ -47,7 +48,7 @@ public final class ClasspathFiles implements ClasspathFileMethods {
         JavaVersion compatibilityVersion
     ) {
         val jvmMajorCompatibilityVersion = parseInt(compatibilityVersion.getMajorVersion());
-        val filesBuilder = ImmutableList.<ClasspathFileMethods>builder();
+        val filesBuilder = ImmutableList.<ClasspathFileBase>builder();
         StreamSupport.stream(files.spliterator(), false)
             .filter(Objects::nonNull)
             .distinct()
@@ -57,7 +58,7 @@ public final class ClasspathFiles implements ClasspathFileMethods {
     }
 
 
-    private ClasspathFiles(List<ClasspathFileMethods> files) {
+    private ClasspathFiles(List<ClasspathFileBase> files) {
         this.files = ImmutableList.copyOf(files);
     }
 
@@ -76,8 +77,8 @@ public final class ClasspathFiles implements ClasspathFileMethods {
 
     @Override
     @Unmodifiable
-    public Collection<String> getResourceNames() {
-        val builder = ImmutableList.<String>builder();
+    public Set<String> getResourceNames() {
+        val builder = ImmutableSet.<String>builder();
         files.stream()
             .map(ClasspathFileMethods::getResourceNames)
             .flatMap(Collection::stream)
@@ -103,16 +104,14 @@ public final class ClasspathFiles implements ClasspathFileMethods {
 
     @Override
     public void forEachResource(ResourceProcessor processor) {
-        Set<String> processedClassResourceNames = new LinkedHashSet<>();
         for (val file : files) {
-            file.forEachResource((resourceName, inputStreamOpener) -> {
-                val isClassResource = resourceName.endsWith(".class")
-                    && !resourceName.equals("module-info.class");
-                if (!isClassResource || processedClassResourceNames.add(resourceName)) {
-                    processor.process(resourceName, inputStreamOpener);
-                }
-            });
+            file.forEachResource(processor);
         }
+    }
+
+    @Override
+    public ClassesIndex getClassesIndex() {
+        return classesIndex.get();
     }
 
     private final LazyInitializer<ClassesIndex> classesIndex = new LazyInitializer<ClassesIndex>() {
@@ -126,26 +125,21 @@ public final class ClasspathFiles implements ClasspathFileMethods {
     };
 
     @Override
-    public ClassesIndex getClassesIndex() {
-        return classesIndex.get();
-    }
-
-    @Override
     @Unmodifiable
-    public Map<String, Collection<String>> getAllServices() {
+    public Map<String, Set<String>> getAllServices() {
         return getAllServicesImpl(ClasspathFileMethods::getAllServices);
     }
 
     @Override
     @Unmodifiable
-    public Map<String, Collection<String>> getAllSpringFactories() {
+    public Map<String, Set<String>> getAllSpringFactories() {
         return getAllServicesImpl(ClasspathFileMethods::getAllSpringFactories);
     }
 
-    private Map<String, Collection<String>> getAllServicesImpl(
-        Function<ClasspathFileMethods, Map<String, Collection<String>>> getter
+    private Map<String, Set<String>> getAllServicesImpl(
+        Function<ClasspathFileMethods, Map<String, Set<String>>> getter
     ) {
-        Map<String, Collection<String>> allServices = new LinkedHashMap<>();
+        Map<String, Set<String>> allServices = new LinkedHashMap<>();
         for (val file : files) {
             val allFileServices = getter.apply(file);
             allFileServices.forEach((serviceClassName, implClassNames) -> {
@@ -153,7 +147,7 @@ public final class ClasspathFiles implements ClasspathFileMethods {
                 allImplClassNames.addAll(implClassNames);
             });
         }
-        return toDeepImmutableCollectionMap(allServices);
+        return toDeepImmutableSetMap(allServices);
     }
 
 }

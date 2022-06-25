@@ -31,7 +31,7 @@ class ClasspathFilesTest {
     }
 
     @AfterEach
-    void afterEach() {
+    void testIfFileIsNotLocked() {
         deleteRecursively(tempDir.toPath());
     }
 

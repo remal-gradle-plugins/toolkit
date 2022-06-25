@@ -1,82 +1,128 @@
 package name.remal.gradleplugins.toolkit.classpath;
 
 import static com.google.common.io.ByteStreams.toByteArray;
+import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Arrays.stream;
 import static java.util.Collections.emptyMap;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static name.remal.gradleplugins.toolkit.PredicateUtils.containsString;
 import static name.remal.gradleplugins.toolkit.PredicateUtils.not;
 import static name.remal.gradleplugins.toolkit.PredicateUtils.startsWithString;
-import static name.remal.gradleplugins.toolkit.classpath.Utils.toDeepImmutableCollectionMap;
-import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.makeAccessible;
-import static org.objectweb.asm.ClassReader.SKIP_CODE;
+import static name.remal.gradleplugins.toolkit.classpath.Utils.toDeepImmutableSetMap;
+import static name.remal.gradleplugins.toolkit.classpath.Utils.toImmutableSet;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.MustBeClosed;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.SoftReference;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import javax.annotation.Nullable;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.ToString;
+import lombok.Value;
 import lombok.val;
 import name.remal.gradleplugins.toolkit.LazyInitializer;
 import name.remal.gradleplugins.toolkit.ObjectUtils;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.Unmodifiable;
 import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
 
 @RequiredArgsConstructor
 @EqualsAndHashCode(of = "file")
 abstract class ClasspathFileBase implements ClasspathFileMethods {
 
-    public static ClasspathFileMethods of(File file, int jvmMajorCompatibilityVersion) {
+    public static ClasspathFileBase of(File file, int jvmMajorCompatibilityVersion) {
         file = normalizeFile(file);
         if (file.isDirectory()) {
             return new ClasspathFileDir(file, jvmMajorCompatibilityVersion);
         } else if (file.isFile()) {
-            return new ClasspathFileJar(file, jvmMajorCompatibilityVersion);
+            return newCachedClasspathFileJar(file, jvmMajorCompatibilityVersion);
         } else {
             return new ClasspathFileNotExist(file, jvmMajorCompatibilityVersion);
         }
     }
 
+    //#region newCachedClasspathFileJar()
+
+    private static synchronized ClasspathFileJar newCachedClasspathFileJar(
+        File file,
+        int jvmMajorCompatibilityVersion
+    ) {
+        val lastModified = file.lastModified();
+        if (lastModified <= 0) {
+            return new ClasspathFileJar(file, jvmMajorCompatibilityVersion);
+        }
+
+        CLASSPATH_FILE_JARS_CACHE.values().removeIf(ref -> ref.get() == null);
+
+        val cacheItemReference = CLASSPATH_FILE_JARS_CACHE.get(file);
+        if (cacheItemReference != null) {
+            val cacheItem = cacheItemReference.get();
+            if (cacheItem != null && cacheItem.lastModified == lastModified) {
+                return cacheItem.getClasspathFile();
+            }
+        }
+
+        val classpathFileJar = new ClasspathFileJar(file, jvmMajorCompatibilityVersion);
+        val newCacheItem = new ClasspathFileJarCacheItem(classpathFileJar, lastModified);
+        val newCacheItemReference = new SoftReference<>(newCacheItem);
+        CLASSPATH_FILE_JARS_CACHE.put(file, newCacheItemReference);
+
+        return classpathFileJar;
+    }
+
+    private static final ConcurrentMap<File, SoftReference<ClasspathFileJarCacheItem>> CLASSPATH_FILE_JARS_CACHE =
+        new ConcurrentHashMap<>();
+
+    @Value
+    private static class ClasspathFileJarCacheItem {
+        ClasspathFileJar classpathFile;
+        long lastModified;
+    }
+
+    //#endregion
+
 
     protected final File file;
     protected final int jvmMajorCompatibilityVersion;
 
+    File getFile() {
+        return file;
+    }
+
 
     //#region getResourceNames()
 
-    private final LazyInitializer<Collection<String>> resourceNames = new LazyInitializer<Collection<String>>() {
-        @Override
-        protected Collection<String> create() {
-            return ImmutableList.copyOf(getResourceNamesImpl());
-        }
-    };
-
     @Override
     @Unmodifiable
-    public final Collection<String> getResourceNames() {
+    public final Set<String> getResourceNames() {
         return resourceNames.get();
     }
 
-    protected abstract Collection<String> getResourceNamesImpl();
+    private final LazyInitializer<Set<String>> resourceNames = new LazyInitializer<Set<String>>() {
+        @Override
+        protected Set<String> create() {
+            return toImmutableSet(new TreeSet<>(getResourceNamesImpl()));
+        }
+    };
+
+    protected abstract Set<String> getResourceNamesImpl();
 
     //#endregion
 
@@ -110,7 +156,7 @@ abstract class ClasspathFileBase implements ClasspathFileMethods {
     @SneakyThrows
     public void forEachResource(ResourceProcessor processor) {
         for (String resourceName : getResourceNames()) {
-            ResourceInputStreamOpenerImpl inputStreamSupplier = new ResourceInputStreamOpenerImpl() {
+            ResourceInputStreamOpenerImpl inputStreamSupplier = new ResourceInputStreamOpenerImpl(file, resourceName) {
                 @Override
                 @SuppressWarnings("MustBeClosedChecker")
                 protected InputStream openStreamImpl() {
@@ -118,7 +164,7 @@ abstract class ClasspathFileBase implements ClasspathFileMethods {
                 }
             };
             try {
-                processor.process(resourceName, inputStreamSupplier);
+                processor.process(file, resourceName, inputStreamSupplier);
 
             } finally {
                 inputStreamSupplier.disable();
@@ -132,79 +178,69 @@ abstract class ClasspathFileBase implements ClasspathFileMethods {
     //#region getClassesIndex()
 
 
-    private final LazyInitializer<ClassesIndex> classesIndex = new LazyInitializer<ClassesIndex>() {
-        @Override
-        protected ClassesIndex create() {
-            Map<String, Set<String>> parentClasses = new LinkedHashMap<>();
-
-            forEachClassResource((className, inputStreamOpener) -> {
-                try (val inputStream = inputStreamOpener.openStream()) {
-                    val classVisitor = new ClassVisitor(getAsmApi()) {
-                        @Override
-                        public void visit(
-                            int version,
-                            int access,
-                            String name,
-                            String signature,
-                            @Nullable String superInternalName,
-                            @Nullable String[] interfaceInternalNames
-                        ) {
-                            if (superInternalName != null) {
-                                val superName = superInternalName.replace('/', '.');
-                                parentClasses.computeIfAbsent(className, __ -> new LinkedHashSet<>())
-                                    .add(superName);
-                            }
-
-                            if (interfaceInternalNames != null) {
-                                stream(interfaceInternalNames)
-                                    .filter(Objects::nonNull)
-                                    .map(interfaceInternalName -> interfaceInternalName.replace('/', '.'))
-                                    .forEach(interfaceInternalName ->
-                                        parentClasses.computeIfAbsent(className, __ -> new LinkedHashSet<>())
-                                            .add(interfaceInternalName)
-                                    );
-                            }
-
-                            super.visit(version, access, name, signature, superInternalName, interfaceInternalNames);
-                        }
-                    };
-                    val classReader = new ClassReader(inputStream);
-                    classReader.accept(classVisitor, SKIP_CODE);
-                }
-            });
-
-            return new ClassesIndex(
-                parentClasses
-            );
-        }
-    };
-
     @Override
     public final ClassesIndex getClassesIndex() {
         return classesIndex.get();
     }
+
+    private final LazyInitializer<ClassesIndex> classesIndex = new LazyInitializer<ClassesIndex>() {
+        @Override
+        protected ClassesIndex create() {
+            val classesIndex = new ClassesIndex();
+
+            forEachClassResource((file, className, inputStreamOpener) -> {
+                try (val inputStream = inputStreamOpener.openStream()) {
+                    val classReader = new ClassReader(inputStream);
+
+                    val superInternalName = classReader.getSuperName();
+                    if (superInternalName != null) {
+                        val superName = superInternalName.replace('/', '.');
+                        classesIndex.registerParentClass(className, superName);
+                    }
+
+                    val interfaceInternalNames = classReader.getInterfaces();
+                    if (interfaceInternalNames != null) {
+                        List<String> interfaceNames = new ArrayList<>();
+                        for (val interfaceInternalName : interfaceInternalNames) {
+                            val interfaceName = interfaceInternalName.replace('/', '.');
+                            interfaceNames.add(interfaceName);
+                        }
+                        classesIndex.registerParentClasses(className, interfaceNames);
+                    }
+                }
+            });
+
+            return classesIndex;
+        }
+    };
 
     //#endregion
 
 
     //#region getAllServices()
 
-    private final LazyInitializer<Map<String, Collection<String>>> allServices =
-        new LazyInitializer<Map<String, Collection<String>>>() {
+    @Override
+    @Unmodifiable
+    public final Map<String, Set<String>> getAllServices() {
+        return allServices.get();
+    }
+
+    private final LazyInitializer<Map<String, Set<String>>> allServices =
+        new LazyInitializer<Map<String, Set<String>>>() {
             @SuppressWarnings("InjectedReferences")
             private static final String SERVICES_PREFIX = "META-INF/services/";
 
             @Override
             @SneakyThrows
             @SuppressWarnings("UnstableApiUsage")
-            protected Map<String, Collection<String>> create() {
+            protected Map<String, Set<String>> create() {
                 List<String> serviceNames = getResourceNames().stream()
                     .filter(startsWithString(SERVICES_PREFIX))
                     .map(resourceName -> resourceName.substring(SERVICES_PREFIX.length()))
                     .filter(not(containsString("/")))
                     .collect(toList());
 
-                Map<String, Collection<String>> allServices = new LinkedHashMap<>();
+                Map<String, Set<String>> allServices = new LinkedHashMap<>();
                 for (String serviceName : serviceNames) {
                     final String content;
                     try (val inputStream = openStream(SERVICES_PREFIX + serviceName)) {
@@ -233,26 +269,26 @@ abstract class ClasspathFileBase implements ClasspathFileMethods {
                         });
                 }
 
-                return toDeepImmutableCollectionMap(allServices);
+                return toDeepImmutableSetMap(allServices);
             }
         };
-
-    @Override
-    @Unmodifiable
-    public final Map<String, Collection<String>> getAllServices() {
-        return allServices.get();
-    }
 
     //#endregion
 
 
     //#region getAllServices()
 
-    private final LazyInitializer<Map<String, Collection<String>>> allSpringFactories =
-        new LazyInitializer<Map<String, Collection<String>>>() {
+    @Override
+    @Unmodifiable
+    public final Map<String, Set<String>> getAllSpringFactories() {
+        return allSpringFactories.get();
+    }
+
+    private final LazyInitializer<Map<String, Set<String>>> allSpringFactories =
+        new LazyInitializer<Map<String, Set<String>>>() {
             @Override
             @SuppressWarnings({"UnstableApiUsage", "InjectedReferences"})
-            protected Map<String, Collection<String>> create() throws Throwable {
+            protected Map<String, Set<String>> create() throws Throwable {
                 try (InputStream inputStream = openStream("META-INF/spring.factories")) {
                     if (inputStream == null) {
                         return emptyMap();
@@ -261,7 +297,7 @@ abstract class ClasspathFileBase implements ClasspathFileMethods {
                     Properties properties = new Properties();
                     properties.load(inputStream);
 
-                    Map<String, Collection<String>> allFactories = new LinkedHashMap<>();
+                    Map<String, Set<String>> allFactories = new LinkedHashMap<>();
                     properties.stringPropertyNames().forEach(factoryName -> {
                         String implNamesString = properties.getProperty(factoryName, "");
                         Splitter.on(',').splitToStream(implNamesString)
@@ -275,16 +311,10 @@ abstract class ClasspathFileBase implements ClasspathFileMethods {
                                 implNames.add(implName);
                             });
                     });
-                    return toDeepImmutableCollectionMap(allFactories);
+                    return toDeepImmutableSetMap(allFactories);
                 }
             }
         };
-
-    @Override
-    @Unmodifiable
-    public final Map<String, Collection<String>> getAllSpringFactories() {
-        return allSpringFactories.get();
-    }
 
     //#endregion
 
@@ -304,19 +334,12 @@ abstract class ClasspathFileBase implements ClasspathFileMethods {
             .toFile();
     }
 
-    protected static String normalizePath(String path) {
+    protected static String normalizePathSeparator(String path) {
         if (File.separatorChar != '/') {
             return path.replace(File.separatorChar, '/');
         } else {
             return path;
         }
-    }
-
-    @SneakyThrows
-    protected static int getAsmApi() {
-        val classWriter = new ClassWriter(0);
-        val apiField = makeAccessible(ClassVisitor.class.getDeclaredField("api"));
-        return apiField.getInt(classWriter);
     }
 
     @RequiredArgsConstructor
@@ -384,18 +407,23 @@ abstract class ClasspathFileBase implements ClasspathFileMethods {
 
     }
 
+    @RequiredArgsConstructor
+    @ToString
     protected abstract static class ResourceInputStreamOpenerImpl implements ResourceInputStreamOpener {
 
         protected abstract InputStream openStreamImpl();
 
+
+        private final File file;
+        private final String resourceName;
+
+        private Status status = Status.NOT_OPENED;
 
         private enum Status {
             NOT_OPENED,
             OPENED,
             DISABLED,
         }
-
-        private Status status = Status.NOT_OPENED;
 
         @Override
         @MustBeClosed
@@ -405,10 +433,16 @@ abstract class ClasspathFileBase implements ClasspathFileMethods {
                 return openStreamImpl();
 
             } else if (status == Status.OPENED) {
-                throw new IllegalStateException("InputStream has already been opened for this resource");
+                throw new IllegalStateException(format(
+                    "%s can't open InputStream multiple times",
+                    ResourceInputStreamOpener.class.getSimpleName()
+                ));
 
             } else if (status == Status.DISABLED) {
-                throw new IllegalStateException("InputStream can't be opened here");
+                throw new IllegalStateException(format(
+                    "%s can't be used here",
+                    ResourceInputStreamOpener.class.getSimpleName()
+                ));
 
             } else {
                 throw new UnsupportedOperationException("Unsupported status: " + status);

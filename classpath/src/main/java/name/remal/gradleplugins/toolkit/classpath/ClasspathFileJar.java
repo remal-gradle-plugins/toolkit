@@ -8,7 +8,6 @@ import static java.nio.file.Files.newInputStream;
 
 import java.io.File;
 import java.io.InputStream;
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.jar.Attributes.Name;
@@ -20,6 +19,7 @@ import lombok.SneakyThrows;
 import lombok.val;
 import name.remal.gradleplugins.toolkit.LazyInitializer;
 
+@SuppressWarnings("java:S2160")
 final class ClasspathFileJar extends ClasspathFileBase {
 
     private static final String MANIFEST_RESOURCE_NAME = "META-INF/MANIFEST.MF";
@@ -34,7 +34,7 @@ final class ClasspathFileJar extends ClasspathFileBase {
 
     @Override
     @SneakyThrows
-    protected Collection<String> getResourceNamesImpl() {
+    protected Set<String> getResourceNamesImpl() {
         try (val zipFile = new ZipFile(file)) {
             Set<String> resourceNames = new LinkedHashSet<>();
             val entries = zipFile.entries();
@@ -157,14 +157,14 @@ final class ClasspathFileJar extends ClasspathFileBase {
                         }
                     };
 
-                    val inputStreamSupplier = new ResourceInputStreamOpenerImpl() {
+                    val inputStreamSupplier = new ResourceInputStreamOpenerImpl(file, resourceName) {
                         @Override
                         protected InputStream openStreamImpl() {
                             return resourceStream;
                         }
                     };
                     try {
-                        processor.process(resourceName, inputStreamSupplier);
+                        processor.process(file, resourceName, inputStreamSupplier);
 
                     } finally {
                         inputStreamSupplier.disable();
@@ -176,6 +176,11 @@ final class ClasspathFileJar extends ClasspathFileBase {
 
 
     //#region Utilities
+
+    @SneakyThrows
+    private boolean isMultiRelease() {
+        return TRUE.equals(isMultiRelease.get());
+    }
 
     private final LazyInitializer<Boolean> isMultiRelease = new LazyInitializer<Boolean>() {
         @Override
@@ -194,11 +199,6 @@ final class ClasspathFileJar extends ClasspathFileBase {
             return false;
         }
     };
-
-    @SneakyThrows
-    private boolean isMultiRelease() {
-        return TRUE.equals(isMultiRelease.get());
-    }
 
     //#endregion
 

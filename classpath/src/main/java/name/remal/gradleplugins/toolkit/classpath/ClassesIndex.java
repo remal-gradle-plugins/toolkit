@@ -1,97 +1,57 @@
 package name.remal.gradleplugins.toolkit.classpath;
 
 import static java.lang.ClassLoader.getSystemClassLoader;
-import static java.util.Arrays.stream;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
-import static name.remal.gradleplugins.toolkit.classpath.Utils.toDeepImmutableSetMap;
-import static name.remal.gradleplugins.toolkit.classpath.Utils.toDeepMutableSetMap;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toCollection;
+import static name.remal.gradleplugins.toolkit.PredicateUtils.not;
+import static name.remal.gradleplugins.toolkit.classpath.Utils.toImmutableSet;
+import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.getClassHierarchy;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Stream;
-import javax.annotation.Nullable;
 import lombok.val;
 import org.jetbrains.annotations.Unmodifiable;
 import org.jetbrains.annotations.VisibleForTesting;
 
 public final class ClassesIndex {
 
-    @Unmodifiable
-    private final Map<String, Set<String>> parentClasses;
-
-    ClassesIndex(Map<String, Set<String>> parentClasses) {
-        parentClasses = toDeepMutableSetMap(parentClasses);
-        expandAssignableTo(parentClasses);
-        this.parentClasses = toDeepImmutableSetMap(parentClasses);
-    }
-
-    ClassesIndex(List<ClassesIndex> classesIndices) {
-        if (classesIndices.isEmpty()) {
-            parentClasses = emptyMap();
-
-        } else {
-            val newParentClasses = toDeepMutableSetMap(classesIndices.get(0).parentClasses);
-            for (int i = 1; i < classesIndices.size(); ++i) {
-                classesIndices.get(i).parentClasses.forEach((key, values) ->
-                    newParentClasses.computeIfAbsent(key, __ -> new LinkedHashSet<>())
-                        .addAll(values)
-                );
-            }
-            expandAssignableTo(newParentClasses);
-            this.parentClasses = toDeepImmutableSetMap(newParentClasses);
-        }
-    }
-
-    @SuppressWarnings("java:S3776")
-    private static void expandAssignableTo(Map<String, Set<String>> assignableTo) {
-        while (true) {
-            boolean isChanged = false;
-            val classNames = ImmutableList.copyOf(assignableTo.keySet());
-            for (val className : classNames) {
-                val parentClassNames = assignableTo.get(className);
-                for (val parentClassName : ImmutableList.copyOf(parentClassNames)) {
-                    val parentParentClassnames = assignableTo.get(parentClassName);
-                    if (parentParentClassnames != null) {
-                        isChanged |= parentClassNames.addAll(parentParentClassnames);
-                        continue;
-                    }
-
-                    val systemParentClasses = getSystemParentClasses(parentClassName);
-                    if (systemParentClasses != null) {
-                        isChanged |= parentClassNames.addAll(systemParentClasses);
-                    }
-                }
-            }
-
-            if (!isChanged) {
-                break;
-            }
-        }
-    }
-
-    @Unmodifiable
     @VisibleForTesting
-    Map<String, Set<String>> getParentClasses() {
-        return parentClasses;
+    @SuppressWarnings({"ProtectedMemberInFinalClass", "ProtectedMembersInFinalClass"})
+    protected final Map<String, Set<String>> parentClassNames = new LinkedHashMap<>();
+
+    ClassesIndex() {
+    }
+
+    ClassesIndex(Map<String, ? extends Collection<String>> parentClassNames) {
+        parentClassNames.forEach(this::registerParentClasses);
+    }
+
+    ClassesIndex(Collection<ClassesIndex> classesIndices) {
+        classesIndices.forEach(classesIndex -> {
+            classesIndex.parentClassNames.forEach(this::registerParentClasses);
+        });
     }
 
 
     @Unmodifiable
-    public Collection<String> getClassNamesAssignableTo(Class<?> clazz) {
+    public Set<String> getClassNamesAssignableTo(Class<?> clazz) {
         return getClassNamesAssignableTo(clazz.getName());
     }
 
     @Unmodifiable
-    public Collection<String> getClassNamesAssignableTo(String className) {
-        val builder = ImmutableList.<String>builder();
-        parentClasses.forEach((currentClassName, parentClassNames) -> {
-            if (parentClassNames.contains(className)) {
+    public Set<String> getClassNamesAssignableTo(String className) {
+        val builder = ImmutableSet.<String>builder();
+        parentClassNames.forEach((currentClassName, currentParentClassNames) -> {
+            if (currentParentClassNames.contains(className)) {
                 builder.add(currentClassName);
             }
         });
@@ -99,41 +59,80 @@ public final class ClassesIndex {
     }
 
     @Unmodifiable
-    public Collection<String> getClassNamesAssignableFrom(Class<?> clazz) {
+    public Set<String> getClassNamesAssignableFrom(Class<?> clazz) {
         return getClassNamesAssignableFrom(clazz.getName());
     }
 
     @Unmodifiable
-    public Collection<String> getClassNamesAssignableFrom(String className) {
-        val result = parentClasses.get(className);
-        if (result != null) {
-            return ImmutableList.copyOf(result);
-        } else {
-            return emptyList();
-        }
+    public Set<String> getClassNamesAssignableFrom(String className) {
+        return toImmutableSet(parentClassNames.get(className));
     }
+
+
+    //#region registerParentClasses()
+
+    void registerParentClass(String className, String parentClassName) {
+        registerParentClasses(className, singletonList(parentClassName));
+    }
+
+    void registerParentClasses(String className, Collection<String> parentClassNames) {
+        if (parentClassNames.isEmpty()) {
+            return;
+        }
+
+        Set<String> processedParentClassNames = parentClassNames.stream()
+            .filter(Objects::nonNull)
+            .flatMap(parentClassName -> Stream.concat(
+                Stream.of(parentClassName),
+                streamParentClassNamesOf(parentClassName)
+            ))
+            .flatMap(parentClassName -> Stream.concat(
+                Stream.of(parentClassName),
+                getSystemParentClasses(parentClassName).stream()
+            ))
+            .filter(not(className::equals))
+            .collect(toCollection(LinkedHashSet::new));
+
+        this.parentClassNames.values().forEach(currentParentClassNames -> {
+            if (currentParentClassNames.contains(className)) {
+                currentParentClassNames.addAll(processedParentClassNames);
+            }
+        });
+
+        this.parentClassNames.put(className, processedParentClassNames);
+    }
+
+    private Stream<String> streamParentClassNamesOf(String className) {
+        val classParentClassNames = parentClassNames.get(className);
+        return classParentClassNames == null ? Stream.empty() : classParentClassNames.stream();
+    }
+
+    //#endregion
 
 
     //#region System classes
 
-    @Nullable
-    private static LinkedHashSet<String> getSystemParentClasses(String className) {
+    private static final ConcurrentMap<String, Set<String>> SYSTEM_PARENT_CLASSES_CACHE = new ConcurrentHashMap<>();
+
+    private static final Set<String> NOT_A_SYSTEM_CLASS = new HashSet<>(0);
+
+    private static Set<String> getSystemParentClasses(String className) {
+        return SYSTEM_PARENT_CLASSES_CACHE.computeIfAbsent(className, ClassesIndex::getSystemParentClassesImpl);
+    }
+
+    private static Set<String> getSystemParentClassesImpl(String className) {
         final Class<?> clazz;
         try {
             clazz = Class.forName(className, false, getSystemClassLoader());
         } catch (ClassNotFoundException expected) {
-            return null;
+            return NOT_A_SYSTEM_CLASS;
         }
 
-        LinkedHashSet<String> result = new LinkedHashSet<>();
-        Stream.concat(
-                Stream.of(clazz.getSuperclass()),
-                stream(clazz.getInterfaces())
-            )
-            .filter(Objects::nonNull)
+        val hierarchy = getClassHierarchy(clazz).stream()
             .map(Class::getName)
-            .forEach(result::add);
-        return result;
+            .filter(not(className::equals))
+            .collect(toCollection(LinkedHashSet::new));
+        return toImmutableSet(hierarchy);
     }
 
     //#endregion

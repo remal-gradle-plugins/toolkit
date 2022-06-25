@@ -1,10 +1,10 @@
 package name.remal.gradleplugins.toolkit.classpath;
 
-import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 
 import java.io.File;
 import java.io.InputStream;
-import java.util.Collection;
+import java.util.Set;
 import javax.annotation.Nullable;
 
 final class ClasspathFileNotExist extends ClasspathFileBase {
@@ -14,8 +14,8 @@ final class ClasspathFileNotExist extends ClasspathFileBase {
     }
 
     @Override
-    protected Collection<String> getResourceNamesImpl() {
-        return emptyList();
+    protected Set<String> getResourceNamesImpl() {
+        return emptySet();
     }
 
     @Nullable

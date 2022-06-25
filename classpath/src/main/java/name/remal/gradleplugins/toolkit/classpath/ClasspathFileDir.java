@@ -2,17 +2,19 @@ package name.remal.gradleplugins.toolkit.classpath;
 
 import static java.nio.file.Files.newInputStream;
 import static java.nio.file.Files.walk;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toCollection;
 
 import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import lombok.val;
 
+@SuppressWarnings("java:S2160")
 final class ClasspathFileDir extends ClasspathFileBase {
 
     ClasspathFileDir(File file, int jvmMajorCompatibilityVersion) {
@@ -21,15 +23,16 @@ final class ClasspathFileDir extends ClasspathFileBase {
 
     @Override
     @SneakyThrows
-    protected Collection<String> getResourceNamesImpl() {
+    protected Set<String> getResourceNamesImpl() {
         val filePath = file.toPath();
         try (val walker = walk(filePath)) {
-            return walker.filter(Files::isRegularFile)
+            return walker
                 .filter(path -> !path.equals(filePath))
+                .filter(Files::isRegularFile)
                 .map(filePath::relativize)
                 .map(Path::toString)
-                .map(ClasspathFileBase::normalizePath)
-                .collect(toList());
+                .map(ClasspathFileBase::normalizePathSeparator)
+                .collect(toCollection(LinkedHashSet::new));
         }
     }
 
