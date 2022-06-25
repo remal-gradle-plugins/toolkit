@@ -186,23 +186,23 @@ abstract class ClasspathFileBase implements ClasspathFileMethods {
     private final LazyInitializer<ClassesIndex> classesIndex = new LazyInitializer<ClassesIndex>() {
         @Override
         protected ClassesIndex create() {
-            val classesIndex = new ClassesIndex();
+            ClassesIndex classesIndex = new ClassesIndex();
 
             forEachClassResource((file, className, inputStreamOpener) -> {
-                try (val inputStream = inputStreamOpener.openStream()) {
-                    val classReader = new ClassReader(inputStream);
+                try (InputStream inputStream = inputStreamOpener.openStream()) {
+                    ClassReader classReader = new ClassReader(inputStream);
 
-                    val superInternalName = classReader.getSuperName();
+                    String superInternalName = classReader.getSuperName();
                     if (superInternalName != null) {
-                        val superName = superInternalName.replace('/', '.');
+                        String superName = superInternalName.replace('/', '.');
                         classesIndex.registerParentClass(className, superName);
                     }
 
-                    val interfaceInternalNames = classReader.getInterfaces();
+                    String[] interfaceInternalNames = classReader.getInterfaces();
                     if (interfaceInternalNames != null) {
                         List<String> interfaceNames = new ArrayList<>();
-                        for (val interfaceInternalName : interfaceInternalNames) {
-                            val interfaceName = interfaceInternalName.replace('/', '.');
+                        for (String interfaceInternalName : interfaceInternalNames) {
+                            String interfaceName = interfaceInternalName.replace('/', '.');
                             interfaceNames.add(interfaceName);
                         }
                         classesIndex.registerParentClasses(className, interfaceNames);

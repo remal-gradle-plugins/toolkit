@@ -3,6 +3,7 @@ package name.remal.gradleplugins.toolkit.classpath;
 import static java.lang.Integer.parseInt;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
+import static name.remal.gradleplugins.toolkit.PredicateUtils.not;
 import static name.remal.gradleplugins.toolkit.classpath.Utils.toDeepImmutableSetMap;
 
 import com.google.common.collect.ImmutableList;
@@ -70,6 +71,14 @@ public final class ClasspathFiles implements ClasspathFileMethods {
                 )
                 .flatMap(Collection::stream)
                 .distinct()
+                .collect(toList())
+        );
+    }
+
+    public ClasspathFiles minus(ClasspathFiles other) {
+        return new ClasspathFiles(
+            this.files.stream()
+                .filter(not(other.files::contains))
                 .collect(toList())
         );
     }
