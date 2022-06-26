@@ -6,7 +6,9 @@ import static java.nio.file.Files.deleteIfExists;
 import static java.nio.file.Files.walkFileTree;
 import static lombok.AccessLevel.PRIVATE;
 
+import com.google.errorprone.annotations.CheckReturnValue;
 import java.io.IOException;
+import java.nio.file.FileSystemException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -23,27 +25,55 @@ public abstract class PathUtils {
         return path.toAbsolutePath().normalize();
     }
 
-    @SneakyThrows
-    public static Path deleteRecursively(Path path) {
-        try {
-            walkFileTree(normalizePath(path), new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    deleteIfExists(file);
-                    return CONTINUE;
-                }
+    private static final int DELETE_ATTEMPTS = 3;
 
-                @Override
-                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                    deleteIfExists(dir);
-                    return CONTINUE;
+    @SneakyThrows
+    @SuppressWarnings("BusyWait")
+    public static Path deleteRecursively(Path path) {
+        for (int attempt = 1; ; ++attempt) {
+            try {
+                walkFileTree(normalizePath(path), new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        deleteIfExists(file);
+                        return CONTINUE;
+                    }
+
+                    @Override
+                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                        deleteIfExists(dir);
+                        return CONTINUE;
+                    }
+                });
+                break;
+            } catch (NoSuchFileException ignored) {
+                break;
+            } catch (FileSystemException e) {
+                if (attempt >= DELETE_ATTEMPTS) {
+                    throw e;
+                } else {
+                    Thread.sleep(100L * attempt);
                 }
-            });
-        } catch (NoSuchFileException ignored) {
-            // do nothing
+            }
         }
 
         return path;
+    }
+
+    @CheckReturnValue
+    @SneakyThrows
+    @SuppressWarnings({"java:S1193", "ConstantConditions"})
+    public static boolean tryToDeleteRecursively(Path path) {
+        try {
+            deleteRecursively(path);
+            return true;
+        } catch (Throwable e) {
+            if (e instanceof FileSystemException) {
+                return false;
+            } else {
+                throw e;
+            }
+        }
     }
 
     @SneakyThrows
