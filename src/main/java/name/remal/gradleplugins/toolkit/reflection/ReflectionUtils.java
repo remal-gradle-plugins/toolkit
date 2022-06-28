@@ -1,17 +1,23 @@
 package name.remal.gradleplugins.toolkit.reflection;
 
+import static javax.annotation.meta.When.UNKNOWN;
 import static lombok.AccessLevel.PRIVATE;
+import static name.remal.gradleplugins.toolkit.SneakyThrowUtils.sneakyThrow;
 import static name.remal.gradleplugins.toolkit.reflection.WhoCalledUtils.getCallingClass;
 
 import com.google.common.collect.ImmutableList;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Member;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.val;
@@ -92,6 +98,12 @@ public abstract class ReflectionUtils {
     @SuppressWarnings("unchecked")
     public static <T> Class<T> classOf(T object) {
         return (Class<T>) unwrapGeneratedSubclass(object.getClass());
+    }
+
+    public static String packageNameOf(Class<?> clazz) {
+        val className = clazz.getName();
+        int lastDelimPos = className.lastIndexOf('.');
+        return lastDelimPos >= 0 ? className.substring(0, lastDelimPos) : "";
     }
 
 
@@ -178,6 +190,54 @@ public abstract class ReflectionUtils {
             }
         }
         return member;
+    }
+
+
+    private static final DefaultMethodInvoker DEFAULT_METHOD_INVOKER;
+
+    static {
+        boolean hasPrivateLookupInMethod;
+        try {
+            MethodHandles.class.getMethod("privateLookupIn", Class.class, Lookup.class);
+            hasPrivateLookupInMethod = true;
+        } catch (NoSuchMethodException excepted) {
+            hasPrivateLookupInMethod = false;
+        }
+
+        try {
+            if (hasPrivateLookupInMethod) {
+                DEFAULT_METHOD_INVOKER = (DefaultMethodInvoker) Class.forName(
+                        "name.remal.gradleplugins.toolkit.reflection.DefaultMethodInvokerPrivateLookup",
+                        true,
+                        DefaultMethodInvoker.class.getClassLoader()
+                    )
+                    .getConstructor()
+                    .newInstance();
+            } else {
+                DEFAULT_METHOD_INVOKER = (DefaultMethodInvoker) Class.forName(
+                        "name.remal.gradleplugins.toolkit.reflection.DefaultMethodInvokerFallback",
+                        true,
+                        DefaultMethodInvoker.class.getClassLoader()
+                    )
+                    .getConstructor()
+                    .newInstance();
+            }
+
+        } catch (Exception e) {
+            throw sneakyThrow(e);
+        }
+    }
+
+    @Nonnull(when = UNKNOWN)
+    public static Object invokeDefaultMethod(Method method, Object target, @Nullable Object... args) {
+        if (!method.isDefault()) {
+            throw new IllegalArgumentException("Not a default method: " + method);
+        }
+        if (args == null) {
+            return DEFAULT_METHOD_INVOKER.invoke(method, target);
+        } else {
+            return DEFAULT_METHOD_INVOKER.invoke(method, target, args);
+        }
     }
 
 }

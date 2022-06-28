@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.val;
 
 @NoArgsConstructor(access = PUBLIC)
-@SuppressWarnings({"removal", "java:S5738", "RedundantSuppression"})
+@SuppressWarnings({"unused", "removal", "java:S5738", "RedundantSuppression"})
 final class WhoCalledSecurityManager extends SecurityManager implements WhoCalled {
 
     private static final int OFFSET = 1;

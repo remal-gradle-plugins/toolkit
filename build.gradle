@@ -90,6 +90,7 @@ apply plugin: 'name.remal.classes-relocation'
 apply plugin: 'name.remal.generate-sources'
 
 dependencies {
+    optional 'org.ow2.asm:asm'
     optional 'com.puppycrawl.tools:checkstyle'
 
     relocateClasses 'org.jdom:jdom'
@@ -149,6 +150,25 @@ sourceSets.main.output.generatedSourcesDirs.from(
                 includeClassesDependencies.collect { it.dependencyProject.tasks.matching { it.name == taskName } }
             }
         )
+    }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+tasks.named('generateJava') {
+    classFile('name.remal.gradleplugins.toolkit', 'ToolkitBuildInfo') {
+        it.writePackage()
+        it.println("")
+        it.writeStaticImport("lombok.AccessLevel", "PRIVATE")
+        it.println("")
+        it.writeImport("lombok.NoArgsConstructor")
+        it.println("")
+        it.println("@NoArgsConstructor(access = PRIVATE)")
+        it.writeBlock("abstract class ToolkitBuildInfo") {
+            it.println("public static final String TOOLKIT_GROUP_ID = \"${it.escapeJava(project.group)}\";")
+            it.println("public static final String TOOLKIT_ARTIFACT_IT = \"${it.escapeJava(project.name)}\";")
+            it.println("public static final String TOOLKIT_VERSION = \"${it.escapeJava(project.version)}\";")
+        }
     }
 }
 

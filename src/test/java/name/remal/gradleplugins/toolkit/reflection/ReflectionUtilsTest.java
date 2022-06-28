@@ -200,4 +200,19 @@ class ReflectionUtilsTest {
     private static class ChildClass extends ParentClass implements ChildInterface, TestInterface2 {
     }
 
+
+    @Test
+    void invokeDefaultMethod() throws Throwable {
+        val method = DefaultMethodContainer.class.getMethod("getValue");
+        val target = new DefaultMethodContainer() { };
+        assertEquals("default", ReflectionUtils.invokeDefaultMethod(method, target));
+    }
+
+    private interface DefaultMethodContainer {
+        @SuppressWarnings("UnusedMethod")
+        default String getValue() {
+            return "default";
+        }
+    }
+
 }

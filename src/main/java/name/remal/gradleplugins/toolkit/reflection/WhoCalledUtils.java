@@ -15,15 +15,20 @@ public abstract class WhoCalledUtils {
         try {
             if (isClassPresent("java.lang.StackWalker", WhoCalledUtils.class.getClassLoader())) {
                 WHO_CALLED = (WhoCalled) Class.forName(
-                        WhoCalled.class.getName() + "StackWalker",
+                        "name.remal.gradleplugins.toolkit.reflection.WhoCalledStackWalker",
                         true,
                         WhoCalledUtils.class.getClassLoader()
                     )
                     .getConstructor()
                     .newInstance();
-
             } else {
-                WHO_CALLED = new WhoCalledSecurityManager();
+                WHO_CALLED = (WhoCalled) Class.forName(
+                        "name.remal.gradleplugins.toolkit.reflection.WhoCalledSecurityManager",
+                        true,
+                        WhoCalledUtils.class.getClassLoader()
+                    )
+                    .getConstructor()
+                    .newInstance();
             }
 
         } catch (Exception e) {

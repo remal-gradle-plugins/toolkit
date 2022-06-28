@@ -2,11 +2,15 @@ package name.remal.gradleplugins.toolkit.reflection;
 
 import static java.lang.StackWalker.Option.RETAIN_CLASS_REFERENCE;
 import static java.lang.String.format;
+import static lombok.AccessLevel.PUBLIC;
 
 import java.lang.StackWalker.StackFrame;
+import lombok.NoArgsConstructor;
 import lombok.val;
 
-public class WhoCalledStackWalker implements WhoCalled {
+@NoArgsConstructor(access = PUBLIC)
+@SuppressWarnings("unused")
+final class WhoCalledStackWalker implements WhoCalled {
 
     private static final long OFFSET = 1;
 

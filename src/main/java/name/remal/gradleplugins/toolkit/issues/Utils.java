@@ -1,11 +1,15 @@
 package name.remal.gradleplugins.toolkit.issues;
 
+import static lombok.AccessLevel.PRIVATE;
+
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import javax.annotation.Nullable;
+import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.Contract;
 
+@NoArgsConstructor(access = PRIVATE)
 abstract class Utils {
 
     @Contract("null -> true")
@@ -56,10 +60,6 @@ abstract class Utils {
     public static StringBuilder appendDelimiter(StringBuilder sb) {
         appendDelimiter(sb, " ");
         return sb;
-    }
-
-
-    private Utils() {
     }
 
 }

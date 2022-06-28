@@ -188,7 +188,14 @@ abstract class ClasspathFileBase implements ClasspathFileMethods {
         protected ClassesIndex create() {
             ClassesIndex classesIndex = new ClassesIndex();
 
-            forEachClassResource((file, className, inputStreamOpener) -> {
+            forEachClassResource((classpathFile, className, inputStreamOpener) -> {
+                if (className.equals("module-info")
+                    || className.equals("package-info")
+                    || className.endsWith(".package-info")
+                ) {
+                    return;
+                }
+
                 try (InputStream inputStream = inputStreamOpener.openStream()) {
                     ClassReader classReader = new ClassReader(inputStream);
 
