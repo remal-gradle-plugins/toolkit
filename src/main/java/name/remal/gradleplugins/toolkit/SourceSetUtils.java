@@ -10,6 +10,7 @@ import static name.remal.gradleplugins.toolkit.AbstractCompileUtils.getDestinati
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.tryLoadClass;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.unwrapGeneratedSubclass;
 
+import com.google.common.collect.ImmutableList;
 import java.lang.reflect.Method;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -37,10 +38,12 @@ public abstract class SourceSetUtils {
         "^get[A-Z].*[a-z]ConfigurationName$"
     );
 
-    private static final List<Method> GET_CONFIGURATION_NAME_METHODS = Stream.of(SourceSet.class.getMethods())
-        .filter(it -> GET_CONFIGURATION_NAME_METHOD_NAME.matcher(it.getName()).matches())
-        .sorted(comparing(Method::getName))
-        .collect(toList());
+    private static final List<Method> GET_CONFIGURATION_NAME_METHODS = ImmutableList.copyOf(
+        Stream.of(SourceSet.class.getMethods())
+            .filter(it -> GET_CONFIGURATION_NAME_METHOD_NAME.matcher(it.getName()).matches())
+            .sorted(comparing(Method::getName))
+            .collect(toList())
+    );
 
     @SneakyThrows
     public static Set<String> getSourceSetConfigurationNames(SourceSet sourceSet) {
