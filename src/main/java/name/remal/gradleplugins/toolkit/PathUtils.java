@@ -25,10 +25,10 @@ public abstract class PathUtils {
         return path.toAbsolutePath().normalize();
     }
 
-    private static final int DELETE_ATTEMPTS = 3;
+    private static final int DELETE_ATTEMPTS = 5;
 
     @SneakyThrows
-    @SuppressWarnings("BusyWait")
+    @SuppressWarnings({"BusyWait", "java:S1215"})
     public static Path deleteRecursively(Path path) {
         for (int attempt = 1; ; ++attempt) {
             try {
@@ -52,6 +52,9 @@ public abstract class PathUtils {
                 if (attempt >= DELETE_ATTEMPTS) {
                     throw e;
                 } else {
+                    // If we have some file descriptor leak, calling GC can help us, as it can execute finalizers
+                    // which close file descriptors.
+                    System.gc();
                     Thread.sleep(100L * attempt);
                 }
             }

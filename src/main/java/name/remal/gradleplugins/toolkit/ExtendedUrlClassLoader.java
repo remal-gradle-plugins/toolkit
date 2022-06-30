@@ -87,12 +87,6 @@ public class ExtendedUrlClassLoader extends URLClassLoader {
 
 
     @Override
-    public final Class<?> loadClass(String name) throws ClassNotFoundException {
-        return loadClass(name, false);
-    }
-
-
-    @Override
     @SuppressWarnings("java:S3776")
     protected Class<?> loadClass(String className, boolean resolve) throws ClassNotFoundException {
         synchronized (getClassLoadingLock(className)) {
