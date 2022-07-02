@@ -12,6 +12,12 @@ import org.jetbrains.annotations.Contract;
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ObjectUtils {
 
+    @Contract("_->param1")
+    public static <T> T doNotInline(T object) {
+        return object;
+    }
+
+
     @Contract("null -> true")
     public static boolean isEmpty(@Nullable CharSequence value) {
         return value == null || value.length() == 0;
