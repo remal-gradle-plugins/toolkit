@@ -1,0 +1,45 @@
+configurations.create('includeClasses') { Configuration conf ->
+    conf.description("Classes of these dependencies will be directly included to result JAR")
+    conf.allDependencies.all { Dependency dep ->
+        if (!dep instanceof ProjectDependency) {
+            throw new GradleException("${conf} can contain NOT project depndency: ${dep}")
+        }
+    }
+}
+
+DomainObjectSet<ProjectDependency> includeClassesDependencies = configurations.includeClasses.allDependencies.withType(ProjectDependency)
+
+sourceSets.main.allSource.srcDirs(
+    project.provider {
+        includeClassesDependencies.collect { it.dependencyProject.sourceSets.main.allSource.srcDirs }
+    }
+)
+sourceSets.main.output.classesDirs.from(
+    project.provider {
+        includeClassesDependencies.collect { it.dependencyProject.sourceSets.main.output.classesDirs }
+    }
+)
+sourceSets.main.output.generatedSourcesDirs.from(
+    project.provider {
+        includeClassesDependencies.collect { it.dependencyProject.sourceSets.main.output.resourcesDir }
+    }
+)
+sourceSets.main.output.generatedSourcesDirs.from(
+    project.provider {
+        includeClassesDependencies.collect { it.dependencyProject.sourceSets.main.output.generatedSourcesDirs }
+    }
+)
+
+[
+    'classes',
+    'javadocJar',
+    'sourcesJar',
+].forEach { String taskName ->
+    tasks.matching { it.name == taskName }.all {
+        dependsOn(
+            project.provider {
+                includeClassesDependencies.collect { it.dependencyProject.tasks.matching { it.name == taskName } }
+            }
+        )
+    }
+}

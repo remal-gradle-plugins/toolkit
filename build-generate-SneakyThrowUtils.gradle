@@ -1,0 +1,146 @@
+import static java.lang.reflect.Modifier.isAbstract
+
+import com.google.common.reflect.Invokable
+import com.google.common.reflect.TypeToken
+import java.lang.reflect.Method
+import java.lang.reflect.Type
+import java.lang.reflect.TypeVariable
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+buildscript {
+    dependencies {
+        classpath('com.google.guava:guava:31.1-jre') {
+            exclude(group: 'com.google.code.findbugs')
+            exclude(group: 'org.checkerframework')
+            exclude(group: 'com.google.errorprone')
+            exclude(group: 'com.google.j2objc')
+        }
+    }
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+tasks.named('generateJava') {
+    List<Class<?>> lambdaClasses = [
+        Class.forName('org.gradle.api.Action'),
+        Class.forName('java.lang.Runnable'),
+        Class.forName('java.util.concurrent.Callable'),
+        Class.forName('java.util.function.BiConsumer'),
+        Class.forName('java.util.function.BiFunction'),
+        Class.forName('java.util.function.BinaryOperator'),
+        Class.forName('java.util.function.BiPredicate'),
+        Class.forName('java.util.function.BooleanSupplier'),
+        Class.forName('java.util.function.Consumer'),
+        Class.forName('java.util.function.DoubleBinaryOperator'),
+        Class.forName('java.util.function.DoubleConsumer'),
+        Class.forName('java.util.function.DoubleFunction'),
+        Class.forName('java.util.function.DoublePredicate'),
+        Class.forName('java.util.function.DoubleSupplier'),
+        Class.forName('java.util.function.DoubleToIntFunction'),
+        Class.forName('java.util.function.DoubleToLongFunction'),
+        Class.forName('java.util.function.DoubleUnaryOperator'),
+        Class.forName('java.util.function.Function'),
+        Class.forName('java.util.function.IntBinaryOperator'),
+        Class.forName('java.util.function.IntConsumer'),
+        Class.forName('java.util.function.IntFunction'),
+        Class.forName('java.util.function.IntPredicate'),
+        Class.forName('java.util.function.IntSupplier'),
+        Class.forName('java.util.function.IntToDoubleFunction'),
+        Class.forName('java.util.function.IntToLongFunction'),
+        Class.forName('java.util.function.IntUnaryOperator'),
+        Class.forName('java.util.function.LongBinaryOperator'),
+        Class.forName('java.util.function.LongConsumer'),
+        Class.forName('java.util.function.LongFunction'),
+        Class.forName('java.util.function.LongPredicate'),
+        Class.forName('java.util.function.LongSupplier'),
+        Class.forName('java.util.function.LongToDoubleFunction'),
+        Class.forName('java.util.function.LongToIntFunction'),
+        Class.forName('java.util.function.LongUnaryOperator'),
+        Class.forName('java.util.function.ObjDoubleConsumer'),
+        Class.forName('java.util.function.ObjIntConsumer'),
+        Class.forName('java.util.function.ObjLongConsumer'),
+        Class.forName('java.util.function.Predicate'),
+        Class.forName('java.util.function.Supplier'),
+        Class.forName('java.util.function.ToDoubleBiFunction'),
+        Class.forName('java.util.function.ToDoubleFunction'),
+        Class.forName('java.util.function.ToIntBiFunction'),
+        Class.forName('java.util.function.ToIntFunction'),
+        Class.forName('java.util.function.ToLongBiFunction'),
+        Class.forName('java.util.function.ToLongFunction'),
+        Class.forName('java.util.function.UnaryOperator'),
+    ].sort { it.name }
+    classFile('name.remal.gradleplugins.toolkit', 'SneakyThrowUtils') {
+        it.writePackage()
+        it.println("")
+        it.writeStaticImport('javax.annotation.meta.When', 'UNKNOWN')
+        it.writeStaticImport('lombok.AccessLevel', 'PRIVATE')
+        it.println("")
+        (lambdaClasses.collect { it.name } + [
+            'lombok.Lombok',
+            'lombok.NoArgsConstructor',
+            'javax.annotation.Nonnull',
+        ]).sort().findAll { !it.matches(/^java\.lang\.[^.]+$/) }.forEach { name -> it.writeImport(name) }
+        it.println("")
+        it.println("@NoArgsConstructor(access = PRIVATE)")
+        it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "overloads")
+        it.writeBlock("public abstract class ${it.simpleName}") {
+            it.println("")
+            it.println("/**")
+            it.println(" * See {@link Lombok#sneakyThrow(Throwable)}.")
+            it.println(" */")
+            it.writeBlock("public static RuntimeException sneakyThrow(Throwable exception)") {
+                it.println("return sneakyThrow0(exception);")
+            }
+            it.println("")
+            it.writeSuppressWarnings("unchecked", "TypeParameterUnusedInFormals")
+            it.writeBlock("private static <T extends Throwable> T sneakyThrow0(Throwable exception) throws T") {
+                it.println("throw (T) exception;")
+            }
+
+            lambdaClasses.forEach { lambdaClass ->
+                Method method = lambdaClass.methods.find { isAbstract(it.modifiers) }
+                if (method == null) throw new GradleException("Abstract method can't be found for $lambdaClass")
+
+                List<TypeVariable> typeParams = lambdaClass.typeParameters.collect()
+                String typeParamsString = typeParams.isEmpty() ? '' : '<' + typeParams.join(', ') + '>'
+
+                Invokable resolvedMethod = TypeToken.of(lambdaClass)
+                    .getSupertype(method.declaringClass)
+                    .method(method)
+
+                String paramsString = method.parameters.collect().withIndex().collect { param, index ->
+                    Type type = resolvedMethod.genericParameterTypes[index]
+                    boolean primitive = TypeToken.of(type).rawType.primitive
+                    String annotations = primitive ? '' : '@Nonnull(when = UNKNOWN) '
+                    return "${annotations}${type} ${param.name}"
+                }.join(', ')
+                String paramNamesString = method.parameters.collect { it.name }.join(', ')
+
+                it.println("")
+                it.println("")
+                it.println("@FunctionalInterface")
+                it.writeBlock("public interface SneakyThrows${lambdaClass.simpleName}${typeParamsString}") {
+                    if (!resolvedMethod.returnType.primitive) {
+                        it.println("@Nonnull(when = UNKNOWN)")
+                    }
+                    it.println("${resolvedMethod.genericReturnType} ${method.name}($paramsString) throws Throwable;")
+                }
+                it.println("")
+                it.writeBlock("public static${!typeParamsString.isEmpty() ? ' ' + typeParamsString : ''} ${lambdaClass.simpleName}${typeParamsString} sneakyThrows(SneakyThrows${lambdaClass.simpleName}${typeParamsString} ${lambdaClass.simpleName.uncapitalize()})") {
+                    it.println("return ($paramNamesString) -> {")
+                    it.println("    try {")
+                    it.println("        ${resolvedMethod.genericReturnType != void.class ? 'return ' : ''}${lambdaClass.simpleName.uncapitalize()}.${method.name}($paramNamesString);")
+                    it.println("    } catch (Throwable exception) {")
+                    it.println("        throw sneakyThrow(exception);")
+                    it.println("    }")
+                    it.println("};")
+                }
+            }
+        }
+    }
+}

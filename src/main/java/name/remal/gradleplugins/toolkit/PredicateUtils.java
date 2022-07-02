@@ -2,6 +2,7 @@ package name.remal.gradleplugins.toolkit;
 
 import static lombok.AccessLevel.PRIVATE;
 
+import java.nio.file.Path;
 import java.util.Objects;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
@@ -21,10 +22,6 @@ public abstract class PredicateUtils {
         return object -> Objects.equals(object, value);
     }
 
-    public static <T> Predicate<T> notEqualsTo(@Nullable T value) {
-        return not(equalsTo(value));
-    }
-
 
     public static <T extends CharSequence> Predicate<T> startsWithString(CharSequence value) {
         return charSequence -> {
@@ -37,11 +34,6 @@ public abstract class PredicateUtils {
         };
     }
 
-    public static <T extends CharSequence> Predicate<T> notStartsWithString(CharSequence value) {
-        return not(startsWithString(value));
-    }
-
-
     public static <T extends CharSequence> Predicate<T> endsWithString(CharSequence value) {
         return charSequence -> {
             if (charSequence == null) {
@@ -52,11 +44,6 @@ public abstract class PredicateUtils {
             return string.endsWith(value.toString());
         };
     }
-
-    public static <T extends CharSequence> Predicate<T> notEndsWithString(CharSequence value) {
-        return not(endsWithString(value));
-    }
-
 
     public static <T extends CharSequence> Predicate<T> containsString(CharSequence value) {
         return charSequence -> {
@@ -69,8 +56,25 @@ public abstract class PredicateUtils {
         };
     }
 
-    public static <T extends CharSequence> Predicate<T> notContainsString(CharSequence value) {
-        return not(containsString(value));
+
+    public static Predicate<Path> startsWithPath(Path value) {
+        return path -> {
+            if (path == null) {
+                return false;
+            }
+
+            return path.startsWith(value);
+        };
+    }
+
+    public static Predicate<Path> endsWithPath(Path value) {
+        return path -> {
+            if (path == null) {
+                return false;
+            }
+
+            return path.endsWith(value);
+        };
     }
 
 }

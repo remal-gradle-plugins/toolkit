@@ -4,7 +4,8 @@ import static java.lang.String.format;
 import static java.lang.reflect.Proxy.newProxyInstance;
 import static lombok.AccessLevel.PUBLIC;
 import static name.remal.gradleplugins.toolkit.ObjectUtils.isNotEmpty;
-import static name.remal.gradleplugins.toolkit.PredicateUtils.notEqualsTo;
+import static name.remal.gradleplugins.toolkit.PredicateUtils.equalsTo;
+import static name.remal.gradleplugins.toolkit.PredicateUtils.not;
 import static name.remal.gradleplugins.toolkit.ProxyUtils.toDynamicInterface;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -177,14 +178,14 @@ class OrderedActionsTaskExtensionImpl implements OrderedActionsTaskExtension {
             val actionId = action.getId();
             action.getShouldBeExecutedAfter().stream()
                 .filter(Objects::nonNull)
-                .filter(notEqualsTo(actionId))
+                .filter(not(equalsTo(actionId)))
                 .forEach(dependency -> {
                     dependenciesMap.computeIfAbsent(actionId, __ -> new LinkedHashSet<>())
                         .add(dependency);
                 });
             action.getShouldBeExecutedBefore().stream()
                 .filter(Objects::nonNull)
-                .filter(notEqualsTo(actionId))
+                .filter(not(equalsTo(actionId)))
                 .forEach(dependency -> {
                     dependenciesMap.computeIfAbsent(dependency, __ -> new LinkedHashSet<>())
                         .add(actionId);
