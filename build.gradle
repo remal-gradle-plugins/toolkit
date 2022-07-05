@@ -89,6 +89,7 @@ dependencies {
     optional 'org.ow2.asm:asm'
     optional 'com.puppycrawl.tools:checkstyle'
 
+    relocateClasses 'io.github.classgraph:classgraph'
     relocateClasses 'org.ec4j.core:ec4j-core'
     relocateClasses 'org.jdom:jdom'
     relocateClasses 'net.htmlparser.jericho:jericho-html'
