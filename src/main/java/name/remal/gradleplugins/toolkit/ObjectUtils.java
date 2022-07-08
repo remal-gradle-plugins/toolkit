@@ -12,60 +12,60 @@ import org.jetbrains.annotations.Contract;
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ObjectUtils {
 
-    @Contract("_->param1")
+    @Contract(value = "_->param1", pure = true)
     public static <T> T doNotInline(T object) {
         return object;
     }
 
 
-    @Contract("null -> true")
+    @Contract(value = "null->true", pure = true)
     public static boolean isEmpty(@Nullable CharSequence value) {
         return value == null || value.length() == 0;
     }
 
-    @Contract("null -> true")
+    @Contract(value = "null->true", pure = true)
     public static boolean isEmpty(@Nullable Iterable<?> value) {
         return value == null || value.iterator().hasNext();
     }
 
-    @Contract("null -> true")
+    @Contract(value = "null->true", pure = true)
     public static boolean isEmpty(@Nullable Collection<?> value) {
         return value == null || value.isEmpty();
     }
 
-    @Contract("null -> true")
+    @Contract(value = "null->true", pure = true)
     public static boolean isEmpty(@Nullable Map<?, ?> value) {
         return value == null || value.isEmpty();
     }
 
-    @Contract("null -> true")
+    @Contract(value = "null->true", pure = true)
     @SuppressWarnings({"OptionalUsedAsFieldOrParameterType", "java:S2789"})
     public static boolean isEmpty(@Nullable Optional<?> value) {
         return value == null || !value.isPresent();
     }
 
 
-    @Contract("null -> false")
+    @Contract(value = "null->false", pure = true)
     public static boolean isNotEmpty(@Nullable CharSequence value) {
         return !isEmpty(value);
     }
 
-    @Contract("null -> false")
+    @Contract(value = "null->false", pure = true)
     public static boolean isNotEmpty(@Nullable Iterable<?> value) {
         return !isEmpty(value);
     }
 
-    @Contract("null -> false")
+    @Contract(value = "null->false", pure = true)
     public static boolean isNotEmpty(@Nullable Collection<?> value) {
         return !isEmpty(value);
     }
 
-    @Contract("null -> false")
+    @Contract(value = "null->false", pure = true)
     public static boolean isNotEmpty(@Nullable Map<?, ?> value) {
         return !isEmpty(value);
     }
 
-    @Contract("null -> false")
+    @Contract(value = "null->false", pure = true)
     @SuppressWarnings({"OptionalUsedAsFieldOrParameterType", "java:S2789"})
     public static boolean isNotEmpty(@Nullable Optional<?> value) {
         return !isEmpty(value);
