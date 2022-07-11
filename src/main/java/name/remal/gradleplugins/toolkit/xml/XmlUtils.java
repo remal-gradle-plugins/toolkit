@@ -3,6 +3,8 @@ package name.remal.gradleplugins.toolkit.xml;
 import static java.nio.file.Files.newInputStream;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradleplugins.toolkit.PathUtils.normalizePath;
+import static name.remal.gradleplugins.toolkit.xml.GroovyXmlUtils.compactGroovyXmlString;
+import static name.remal.gradleplugins.toolkit.xml.GroovyXmlUtils.prettyGroovyXmlString;
 import static name.remal.gradleplugins.toolkit.xml.XmlFormat.DEFAULT_XML_FORMAT;
 import static org.apache.commons.lang3.ObjectUtils.isNotEmpty;
 import static org.jdom2.input.sax.XMLReaders.NONVALIDATING;
@@ -16,12 +18,14 @@ import java.io.Writer;
 import java.nio.file.Path;
 import java.util.function.BiFunction;
 import javax.annotation.Nullable;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
+import org.intellij.lang.annotations.Language;
 import org.jdom2.input.DOMBuilder;
 import org.jdom2.input.SAXBuilder;
-import org.jdom2.output.DOMOutputter;
 import org.jdom2.output.XMLOutputter;
 import org.jdom2.output.support.AbstractXMLOutputProcessor;
 import org.jdom2.output.support.FormatStack;
@@ -43,51 +47,33 @@ public abstract class XmlUtils {
 
     //#region parseXml()
 
-    /**
-     * <p>Xerces parser sorts DOM attributes by name (see
-     * <a href="https://github.com/apache/xerces2-j/blob/cf0c517a41b31b0242b96ab1af9627a3ab07fcd2/src/org/apache/xerces/dom/NamedNodeMapImpl.java#L447"><code>NamedNodeMapImpl.findNamePoint()</code></a>).
-     * That's not a behaviour we'd like to have.</p>
-     * <p>This method parses XML content with JDOM library and convert it to DOM.</p>
-     */
-    @SneakyThrows
-    public static Document parseXml(File file) {
-        file = normalizePath(file.toPath()).toFile();
-        val document = NON_VALIDATING_SAX_BUILDER.build(file);
-        return DOM_OUTPUTTER.output(document);
-    }
-
-    /**
-     * <p>Xerces parser sorts DOM attributes by name (see
-     * <a href="https://github.com/apache/xerces2-j/blob/cf0c517a41b31b0242b96ab1af9627a3ab07fcd2/src/org/apache/xerces/dom/NamedNodeMapImpl.java#L447"><code>NamedNodeMapImpl.findNamePoint()</code></a>).
-     * That's not a behaviour we'd like to have.</p>
-     * <p>This method parses XML content with JDOM library and convert it to DOM.</p>
-     */
     @SneakyThrows
     public static Document parseXml(Path path) {
         path = normalizePath(path);
         try (val inputStream = newInputStream(path)) {
-            val document = NON_VALIDATING_SAX_BUILDER.build(inputStream, path.toString());
-            return DOM_OUTPUTTER.output(document);
+            return newNonValidatingDocumentBuilder().parse(inputStream, path.toString());
         }
     }
 
     /**
-     * <p>Xerces parser sorts DOM attributes by name (see
-     * <a href="https://github.com/apache/xerces2-j/blob/cf0c517a41b31b0242b96ab1af9627a3ab07fcd2/src/org/apache/xerces/dom/NamedNodeMapImpl.java#L447"><code>NamedNodeMapImpl.findNamePoint()</code></a>).
-     * That's not a behaviour we'd like to have.</p>
-     * <p>This method parses XML content with JDOM library and convert it to DOM.</p>
+     * See {@link #parseXml(Path)}.
      */
     @SneakyThrows
-    public static Document parseXml(String content, @Nullable String systemId) {
-        val document = NON_VALIDATING_SAX_BUILDER.build(new StringReader(content), systemId);
-        return DOM_OUTPUTTER.output(document);
+    public static Document parseXml(File file) {
+        return parseXml(file.toPath());
+    }
+
+    @SneakyThrows
+    public static Document parseXml(@Language("XML") String content, @Nullable String systemId) {
+        val inputSource = new InputSource(new StringReader(content));
+        inputSource.setSystemId(systemId);
+        return newNonValidatingDocumentBuilder().parse(inputSource);
     }
 
     /**
      * See {@link #parseXml(String, String)}.
      */
-    @SneakyThrows
-    public static Document parseXml(String content) {
+    public static Document parseXml(@Language("XML") String content) {
         return parseXml(content, null);
     }
 
@@ -96,21 +82,36 @@ public abstract class XmlUtils {
 
     //#region prettyXmlString()
 
-    public static String prettyXmlString(String xmlString) {
+    @Language("XML")
+    public static String prettyXmlString(@Language("XML") String xmlString) {
         return prettyXmlString(xmlString, DEFAULT_XML_FORMAT);
     }
 
+    @Language("XML")
     @SneakyThrows
-    public static String prettyXmlString(String xmlString, XmlFormat format) {
-        val document = NON_VALIDATING_SAX_BUILDER.build(new StringReader(xmlString));
+    public static String prettyXmlString(@Language("XML") String xmlString, XmlFormat format) {
+        val document = newNonValidatingSaxBuilder().build(new StringReader(xmlString));
         return prettyXmlString(document, XMLOutputter::outputString, format);
     }
 
 
+    @Language("XML")
+    public static String prettyXmlString(groovy.util.Node groovyNode) {
+        return prettyXmlString(groovyNode, DEFAULT_XML_FORMAT);
+    }
+
+    @Language("XML")
+    public static String prettyXmlString(groovy.util.Node groovyNode, XmlFormat format) {
+        return prettyGroovyXmlString(groovyNode, format);
+    }
+
+
+    @Language("XML")
     public static String prettyXmlString(Node node) {
         return prettyXmlString(node, DEFAULT_XML_FORMAT);
     }
 
+    @Language("XML")
     public static String prettyXmlString(Node node, XmlFormat format) {
         if (node instanceof Document) {
             return prettyXmlString((Document) node, format);
@@ -135,74 +136,92 @@ public abstract class XmlUtils {
         }
     }
 
+    @Language("XML")
     public static String prettyXmlString(Document document) {
         return prettyXmlString(document, DEFAULT_XML_FORMAT);
     }
 
+    @Language("XML")
     public static String prettyXmlString(Document document, XmlFormat format) {
         return prettyXmlString(document, DOMBuilder::build, XMLOutputter::outputString, format);
     }
 
+    @Language("XML")
     public static String prettyXmlString(Element element) {
         return prettyXmlString(element, DEFAULT_XML_FORMAT);
     }
 
+    @Language("XML")
     public static String prettyXmlString(Element element, XmlFormat format) {
         return prettyXmlString(element, DOMBuilder::build, XMLOutputter::outputString, format);
     }
 
+    @Language("XML")
     public static String prettyXmlString(CDATASection cdata) {
         return prettyXmlString(cdata, DEFAULT_XML_FORMAT);
     }
 
+    @Language("XML")
     public static String prettyXmlString(CDATASection cdata, XmlFormat format) {
         return prettyXmlString(cdata, DOMBuilder::build, XMLOutputter::outputString, format);
     }
 
+    @Language("XML")
     public static String prettyXmlString(Text text) {
         return prettyXmlString(text, DEFAULT_XML_FORMAT);
     }
 
+    @Language("XML")
     public static String prettyXmlString(Text text, XmlFormat format) {
         return prettyXmlString(text, DOMBuilder::build, XMLOutputter::outputString, format);
     }
 
+    @Language("XML")
     public static String prettyXmlString(Comment comment) {
         return prettyXmlString(comment, DEFAULT_XML_FORMAT);
     }
 
+    @Language("XML")
     public static String prettyXmlString(Comment comment, XmlFormat format) {
         return prettyXmlString(comment, DOMBuilder::build, XMLOutputter::outputString, format);
     }
 
+    @Language("XML")
     public static String prettyXmlString(ProcessingInstruction pi) {
         return prettyXmlString(pi, DEFAULT_XML_FORMAT);
     }
 
+    @Language("XML")
     public static String prettyXmlString(ProcessingInstruction pi, XmlFormat format) {
         return prettyXmlString(pi, DOMBuilder::build, XMLOutputter::outputString, format);
     }
 
+    @Language("XML")
     public static String prettyXmlString(EntityReference er) {
         return prettyXmlString(er, DEFAULT_XML_FORMAT);
     }
 
+    @Language("XML")
     public static String prettyXmlString(EntityReference er, XmlFormat format) {
         return prettyXmlString(er, DOMBuilder::build, XMLOutputter::outputString, format);
     }
 
+    @Language("XML")
     public static String prettyXmlString(DocumentType doctype) {
         return prettyXmlString(doctype, DEFAULT_XML_FORMAT);
     }
 
+    @Language("XML")
     public static String prettyXmlString(DocumentType doctype, XmlFormat format) {
         return prettyXmlString(doctype, DOMBuilder::build, XMLOutputter::outputString, format);
     }
 
+    @Language("XML")
     public static String prettyXmlString(DocumentFragment documentFragment) {
         return prettyXmlString(documentFragment, DEFAULT_XML_FORMAT);
     }
 
+    @Language("XML")
     public static String prettyXmlString(DocumentFragment documentFragment, XmlFormat format) {
         val insertFinalNewline = format.isInsertFinalNewline();
         format = format.toBuilder()
@@ -268,12 +287,21 @@ public abstract class XmlUtils {
 
     //#region compactXmlString()
 
+    @Language("XML")
     @SneakyThrows
-    public static String compactXmlString(String xmlString) {
-        val document = NON_VALIDATING_SAX_BUILDER.build(new StringReader(xmlString));
+    public static String compactXmlString(@Language("XML") String xmlString) {
+        val document = newNonValidatingSaxBuilder().build(new StringReader(xmlString));
         return compactXmlString(document, XMLOutputter::outputString);
     }
 
+
+    @Language("XML")
+    public static String compactXmlString(groovy.util.Node groovyNode) {
+        return compactGroovyXmlString(groovyNode);
+    }
+
+
+    @Language("XML")
     public static String compactXmlString(Node node) {
         if (node instanceof Document) {
             return compactXmlString((Document) node);
@@ -298,38 +326,47 @@ public abstract class XmlUtils {
         }
     }
 
+    @Language("XML")
     public static String compactXmlString(Document document) {
         return compactXmlString(document, DOMBuilder::build, XMLOutputter::outputString);
     }
 
+    @Language("XML")
     public static String compactXmlString(Element element) {
         return compactXmlString(element, DOMBuilder::build, XMLOutputter::outputString);
     }
 
+    @Language("XML")
     public static String compactXmlString(CDATASection cdata) {
         return compactXmlString(cdata, DOMBuilder::build, XMLOutputter::outputString);
     }
 
+    @Language("XML")
     public static String compactXmlString(Text text) {
         return compactXmlString(text, DOMBuilder::build, XMLOutputter::outputString);
     }
 
+    @Language("XML")
     public static String compactXmlString(Comment comment) {
         return compactXmlString(comment, DOMBuilder::build, XMLOutputter::outputString);
     }
 
+    @Language("XML")
     public static String compactXmlString(ProcessingInstruction pi) {
         return compactXmlString(pi, DOMBuilder::build, XMLOutputter::outputString);
     }
 
+    @Language("XML")
     public static String compactXmlString(EntityReference er) {
         return compactXmlString(er, DOMBuilder::build, XMLOutputter::outputString);
     }
 
+    @Language("XML")
     public static String compactXmlString(DocumentType doctype) {
         return compactXmlString(doctype, DOMBuilder::build, XMLOutputter::outputString);
     }
 
+    @Language("XML")
     public static String compactXmlString(DocumentFragment documentFragment) {
         val result = new StringBuilder();
         val children = documentFragment.getChildNodes();
@@ -372,18 +409,23 @@ public abstract class XmlUtils {
 
     //#region utilities
 
-    private static final DOMOutputter DOM_OUTPUTTER = new DOMOutputter();
-
     private static final DOMBuilder DOM_BUILDER = new DOMBuilder();
 
-    private static final SAXBuilder NON_VALIDATING_SAX_BUILDER;
+    @SneakyThrows
+    private static DocumentBuilder newNonValidatingDocumentBuilder() {
+        val documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        documentBuilderFactory.setValidating(false);
+        val documentBuilder = documentBuilderFactory.newDocumentBuilder();
+        documentBuilder.setEntityResolver((publicId, systemId) -> new InputSource(new StringReader("")));
+        return documentBuilder;
+    }
 
-    static {
+    private static SAXBuilder newNonValidatingSaxBuilder() {
         val saxBuilder = new SAXBuilder();
         saxBuilder.setXMLReaderFactory(NONVALIDATING);
         saxBuilder.setEntityResolver((publicId, systemId) -> new InputSource(new StringReader("")));
-        saxBuilder.setReuseParser(true);
-        NON_VALIDATING_SAX_BUILDER = saxBuilder;
+        saxBuilder.setReuseParser(false);
+        return saxBuilder;
     }
 
     private static class ExtendedXmlOutputProcessor
