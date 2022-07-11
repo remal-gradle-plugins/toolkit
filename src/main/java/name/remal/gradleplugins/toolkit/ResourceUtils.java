@@ -1,5 +1,7 @@
 package name.remal.gradleplugins.toolkit;
 
+import static com.google.common.io.ByteStreams.toByteArray;
+import static java.lang.ClassLoader.getSystemClassLoader;
 import static java.lang.String.format;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradleplugins.toolkit.reflection.WhoCalledUtils.getCallingClass;
@@ -22,7 +24,7 @@ public abstract class ResourceUtils {
 
     @Nullable
     public static URL findResourceUrl(@Language("file-reference") String name, @Nullable ClassLoader classLoader) {
-        val trueClassLoader = classLoader != null ? classLoader : ClassLoader.getSystemClassLoader();
+        val trueClassLoader = classLoader != null ? classLoader : getSystemClassLoader();
         return trueClassLoader.getResource(name);
     }
 
@@ -38,7 +40,7 @@ public abstract class ResourceUtils {
         val url = findResourceUrl(name, loadingClass);
         if (url == null) {
             throw new IllegalStateException(format(
-                "Resource can't be found for %s: %s",
+                "Classpath resource can't be found for %s: %s",
                 loadingClass,
                 name
             ));
@@ -50,7 +52,7 @@ public abstract class ResourceUtils {
         val url = findResourceUrl(name, classLoader);
         if (url == null) {
             throw new IllegalStateException(format(
-                "Resource can't be found: %s",
+                "Classpath resource can't be found: %s",
                 name
             ));
         }
@@ -78,6 +80,29 @@ public abstract class ResourceUtils {
     public static InputStream openResource(@Language("file-reference") String name) {
         val callingClass = getCallingClass(2);
         return openResource(name, callingClass.getClassLoader());
+    }
+
+
+    @SneakyThrows
+    public static byte[] readResource(@Language("file-reference") String name, Class<?> loadingClass) {
+        try (val inputStream = openResource(name, loadingClass)) {
+            return toByteArray(inputStream);
+        }
+    }
+
+    @SneakyThrows
+    public static byte[] readResource(@Language("file-reference") String name, @Nullable ClassLoader classLoader) {
+        try (val inputStream = openResource(name, classLoader)) {
+            return toByteArray(inputStream);
+        }
+    }
+
+    @SneakyThrows
+    public static byte[] readResource(@Language("file-reference") String name) {
+        val callingClass = getCallingClass(2);
+        try (val inputStream = openResource(name, callingClass.getClassLoader())) {
+            return toByteArray(inputStream);
+        }
     }
 
 }
