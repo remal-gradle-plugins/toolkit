@@ -1,8 +1,8 @@
-package name.remal.gradleplugins.toolkit;
+package name.remal.gradleplugins.toolkit.xml;
 
 import static lombok.AccessLevel.PRIVATE;
-import static name.remal.gradleplugins.toolkit.XmlFormat.DEFAULT_XML_FORMAT;
-import static name.remal.gradleplugins.toolkit.XmlUtils.prettyXmlString;
+import static name.remal.gradleplugins.toolkit.xml.XmlFormat.DEFAULT_XML_FORMAT;
+import static name.remal.gradleplugins.toolkit.xml.XmlUtils.prettyXmlString;
 
 import lombok.NoArgsConstructor;
 import lombok.val;

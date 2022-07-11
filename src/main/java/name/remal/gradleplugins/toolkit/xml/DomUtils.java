@@ -1,4 +1,4 @@
-package name.remal.gradleplugins.toolkit;
+package name.remal.gradleplugins.toolkit.xml;
 
 import static java.lang.String.format;
 import static lombok.AccessLevel.PRIVATE;

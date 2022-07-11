@@ -1,4 +1,4 @@
-package name.remal.gradleplugins.toolkit;
+package name.remal.gradleplugins.toolkit.xml;
 
 import static java.lang.System.lineSeparator;
 import static java.nio.charset.StandardCharsets.UTF_8;

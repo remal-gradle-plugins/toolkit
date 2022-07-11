@@ -1,9 +1,9 @@
-package name.remal.gradleplugins.toolkit;
+package name.remal.gradleplugins.toolkit.xml;
 
 import static java.lang.String.join;
 import static java.lang.System.lineSeparator;
 import static java.util.stream.Collectors.joining;
-import static name.remal.gradleplugins.toolkit.XmlFormat.DEFAULT_XML_FORMAT;
+import static name.remal.gradleplugins.toolkit.xml.XmlFormat.DEFAULT_XML_FORMAT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.stream.IntStream;
