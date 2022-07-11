@@ -1,15 +1,19 @@
 package name.remal.gradleplugins.toolkit.xml;
 
+import static java.nio.file.Files.newInputStream;
 import static lombok.AccessLevel.PRIVATE;
+import static name.remal.gradleplugins.toolkit.PathUtils.normalizePath;
 import static name.remal.gradleplugins.toolkit.xml.XmlFormat.DEFAULT_XML_FORMAT;
 import static org.apache.commons.lang3.ObjectUtils.isNotEmpty;
 import static org.jdom2.input.sax.XMLReaders.NONVALIDATING;
 import static org.jdom2.output.Format.getCompactFormat;
 import static org.jdom2.output.Format.getPrettyFormat;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.Writer;
+import java.nio.file.Path;
 import java.util.function.BiFunction;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
@@ -36,6 +40,59 @@ import org.xml.sax.InputSource;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class XmlUtils {
+
+    //#region parseXml()
+
+    /**
+     * <p>Xerces parser sorts DOM attributes by name (see
+     * <a href="https://github.com/apache/xerces2-j/blob/cf0c517a41b31b0242b96ab1af9627a3ab07fcd2/src/org/apache/xerces/dom/NamedNodeMapImpl.java#L447"><code>NamedNodeMapImpl.findNamePoint()</code></a>).
+     * That's not a behaviour we'd like to have.</p>
+     * <p>This method parses XML content with JDOM library and convert it to DOM.</p>
+     */
+    @SneakyThrows
+    public static Document parseXml(File file) {
+        file = normalizePath(file.toPath()).toFile();
+        val document = NON_VALIDATING_SAX_BUILDER.build(file);
+        return DOM_OUTPUTTER.output(document);
+    }
+
+    /**
+     * <p>Xerces parser sorts DOM attributes by name (see
+     * <a href="https://github.com/apache/xerces2-j/blob/cf0c517a41b31b0242b96ab1af9627a3ab07fcd2/src/org/apache/xerces/dom/NamedNodeMapImpl.java#L447"><code>NamedNodeMapImpl.findNamePoint()</code></a>).
+     * That's not a behaviour we'd like to have.</p>
+     * <p>This method parses XML content with JDOM library and convert it to DOM.</p>
+     */
+    @SneakyThrows
+    public static Document parseXml(Path path) {
+        path = normalizePath(path);
+        try (val inputStream = newInputStream(path)) {
+            val document = NON_VALIDATING_SAX_BUILDER.build(inputStream, path.toString());
+            return DOM_OUTPUTTER.output(document);
+        }
+    }
+
+    /**
+     * <p>Xerces parser sorts DOM attributes by name (see
+     * <a href="https://github.com/apache/xerces2-j/blob/cf0c517a41b31b0242b96ab1af9627a3ab07fcd2/src/org/apache/xerces/dom/NamedNodeMapImpl.java#L447"><code>NamedNodeMapImpl.findNamePoint()</code></a>).
+     * That's not a behaviour we'd like to have.</p>
+     * <p>This method parses XML content with JDOM library and convert it to DOM.</p>
+     */
+    @SneakyThrows
+    public static Document parseXml(String content, @Nullable String systemId) {
+        val document = NON_VALIDATING_SAX_BUILDER.build(new StringReader(content), systemId);
+        return DOM_OUTPUTTER.output(document);
+    }
+
+    /**
+     * See {@link #parseXml(String, String)}.
+     */
+    @SneakyThrows
+    public static Document parseXml(String content) {
+        return parseXml(content, null);
+    }
+
+    //#endregion
+
 
     //#region prettyXmlString()
 
