@@ -92,6 +92,7 @@ dependencies {
     relocateClasses 'io.github.classgraph:classgraph'
     relocateClasses 'org.ec4j.core:ec4j-core'
     relocateClasses 'org.jdom:jdom'
+    relocateClasses('net.sf.saxon:Saxon-HE') { transitive = false }
     relocateClasses 'net.htmlparser.jericho:jericho-html'
     relocateClasses('org.eclipse.jgit:org.eclipse.jgit') {
         exclude group: 'org.slf4j'
