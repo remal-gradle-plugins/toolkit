@@ -28,7 +28,7 @@ allprojects {
                 'org.apache.commons:commons-lang3:3.12.0',
                 'org.apache.commons:commons-text:1.9',
                 'com.google.guava:guava:31.1-jre',
-                'io.github.classgraph:classgraph:4.8.148',
+                'io.github.classgraph:classgraph:4.8.149',
                 'org.jdom:jdom:2.0.2',
                 'net.sf.saxon:Saxon-HE:11.3',
                 'net.htmlparser.jericho:jericho-html:3.4',
