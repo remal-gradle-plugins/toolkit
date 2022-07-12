@@ -11,6 +11,7 @@ import static org.jdom2.input.sax.XMLReaders.NONVALIDATING;
 import static org.jdom2.output.Format.getCompactFormat;
 import static org.jdom2.output.Format.getPrettyFormat;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
@@ -74,6 +75,20 @@ public abstract class XmlUtils {
      * See {@link #parseXml(String, String)}.
      */
     public static Document parseXml(@Language("XML") String content) {
+        return parseXml(content, null);
+    }
+
+    @SneakyThrows
+    public static Document parseXml(byte[] content, @Nullable String systemId) {
+        val inputSource = new InputSource(new ByteArrayInputStream(content));
+        inputSource.setSystemId(systemId);
+        return newNonValidatingDocumentBuilder().parse(inputSource);
+    }
+
+    /**
+     * See {@link #parseXml(String, String)}.
+     */
+    public static Document parseXml(byte[] content) {
         return parseXml(content, null);
     }
 
