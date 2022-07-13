@@ -6,6 +6,7 @@ import static java.lang.String.format;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradleplugins.toolkit.reflection.WhoCalledUtils.getCallingClass;
 
+import com.google.errorprone.annotations.MustBeClosed;
 import java.io.InputStream;
 import java.net.URL;
 import javax.annotation.Nullable;
@@ -19,7 +20,11 @@ public abstract class ResourceUtils {
 
     @Nullable
     public static URL findResourceUrl(@Language("file-reference") String name, Class<?> loadingClass) {
-        return loadingClass.getResource(name);
+        URL url = loadingClass.getResource(name);
+        if (url == null) {
+            url = findResourceUrl(name, loadingClass.getClassLoader());
+        }
+        return url;
     }
 
     @Nullable
@@ -29,10 +34,9 @@ public abstract class ResourceUtils {
     }
 
     @Nullable
-    @SuppressWarnings("java:S109")
     public static URL findResourceUrl(@Language("file-reference") String name) {
         val callingClass = getCallingClass(2);
-        return findResourceUrl(name, callingClass.getClassLoader());
+        return findResourceUrl(name, callingClass);
     }
 
 
@@ -59,27 +63,37 @@ public abstract class ResourceUtils {
         return url;
     }
 
-    @SuppressWarnings("java:S109")
     public static URL getResourceUrl(@Language("file-reference") String name) {
         val callingClass = getCallingClass(2);
-        return getResourceUrl(name, callingClass.getClassLoader());
+        return getResourceUrl(name, callingClass);
     }
 
-
+    @MustBeClosed
     @SneakyThrows
     public static InputStream openResource(@Language("file-reference") String name, Class<?> loadingClass) {
-        return getResourceUrl(name, loadingClass).openStream();
+        val url = getResourceUrl(name, loadingClass);
+        val connection = url.openConnection();
+        connection.setUseCaches(false);
+        return connection.getInputStream();
     }
 
+    @MustBeClosed
     @SneakyThrows
     public static InputStream openResource(@Language("file-reference") String name, @Nullable ClassLoader classLoader) {
-        return getResourceUrl(name, classLoader).openStream();
+        val url = getResourceUrl(name, classLoader);
+        val connection = url.openConnection();
+        connection.setUseCaches(false);
+        return connection.getInputStream();
     }
 
-    @SuppressWarnings("java:S109")
+    @MustBeClosed
+    @SneakyThrows
     public static InputStream openResource(@Language("file-reference") String name) {
         val callingClass = getCallingClass(2);
-        return openResource(name, callingClass.getClassLoader());
+        val url = getResourceUrl(name, callingClass);
+        val connection = url.openConnection();
+        connection.setUseCaches(false);
+        return connection.getInputStream();
     }
 
 
@@ -100,7 +114,7 @@ public abstract class ResourceUtils {
     @SneakyThrows
     public static byte[] readResource(@Language("file-reference") String name) {
         val callingClass = getCallingClass(2);
-        try (val inputStream = openResource(name, callingClass.getClassLoader())) {
+        try (val inputStream = openResource(name, callingClass)) {
             return toByteArray(inputStream);
         }
     }
