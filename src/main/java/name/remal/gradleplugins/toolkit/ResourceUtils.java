@@ -31,7 +31,7 @@ public abstract class ResourceUtils {
     @Nullable
     @SuppressWarnings("java:S109")
     public static URL findResourceUrl(@Language("file-reference") String name) {
-        val callingClass = getCallingClass(1);
+        val callingClass = getCallingClass(2);
         return findResourceUrl(name, callingClass.getClassLoader());
     }
 
@@ -61,7 +61,7 @@ public abstract class ResourceUtils {
 
     @SuppressWarnings("java:S109")
     public static URL getResourceUrl(@Language("file-reference") String name) {
-        val callingClass = getCallingClass(1);
+        val callingClass = getCallingClass(2);
         return getResourceUrl(name, callingClass.getClassLoader());
     }
 
@@ -78,7 +78,7 @@ public abstract class ResourceUtils {
 
     @SuppressWarnings("java:S109")
     public static InputStream openResource(@Language("file-reference") String name) {
-        val callingClass = getCallingClass(1);
+        val callingClass = getCallingClass(2);
         return openResource(name, callingClass.getClassLoader());
     }
 
@@ -99,7 +99,7 @@ public abstract class ResourceUtils {
 
     @SneakyThrows
     public static byte[] readResource(@Language("file-reference") String name) {
-        val callingClass = getCallingClass(1);
+        val callingClass = getCallingClass(2);
         try (val inputStream = openResource(name, callingClass.getClassLoader())) {
             return toByteArray(inputStream);
         }
