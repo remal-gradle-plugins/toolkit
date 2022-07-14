@@ -1,6 +1,9 @@
 package name.remal.gradleplugins.toolkit.xml;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.Files.readAllBytes;
 import static java.util.Objects.requireNonNull;
+import static name.remal.gradleplugins.toolkit.PathUtils.normalizePath;
 import static name.remal.gradleplugins.toolkit.xml.DomUtils.getNodeOwnerDocument;
 import static name.remal.gradleplugins.toolkit.xml.GroovyXmlUtils.parseXmlToGroovyNode;
 import static name.remal.gradleplugins.toolkit.xml.XmlFormat.DEFAULT_XML_FORMAT;
@@ -8,9 +11,13 @@ import static name.remal.gradleplugins.toolkit.xml.XmlUtils.parseXml;
 import static name.remal.gradleplugins.toolkit.xml.XmlUtils.prettyXmlString;
 
 import groovy.util.Node;
+import java.io.File;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import lombok.SneakyThrows;
@@ -22,6 +29,22 @@ import org.w3c.dom.Element;
 
 @NotThreadSafe
 public class XmlProviderImpl implements XmlProvider {
+
+    @SneakyThrows
+    public static XmlProvider newXmlProviderForFile(Path path) {
+        path = normalizePath(path);
+        val contentBytes = readAllBytes(path);
+        val charset = Optional.ofNullable(parseXml(contentBytes).getXmlEncoding())
+            .map(Charset::forName)
+            .orElse(UTF_8);
+        val contentString = new String(contentBytes, charset);
+        return new XmlProviderImpl(contentString);
+    }
+
+    public static XmlProvider newXmlProviderForFile(File file) {
+        return newXmlProviderForFile(file.toPath());
+    }
+
 
     private static final XmlFormat NO_DECLARATION_XML_FORMAT = DEFAULT_XML_FORMAT
         .withOmitDeclaration(true)
