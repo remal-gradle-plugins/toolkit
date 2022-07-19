@@ -84,6 +84,7 @@ tasks.named('generateJava') {
             'lombok.Lombok',
             'lombok.NoArgsConstructor',
             'javax.annotation.Nonnull',
+            'com.google.errorprone.annotations.CheckReturnValue',
         ]).sort().findAll { !it.matches(/^java\.lang\.[^.]+$/) }.forEach { name -> it.writeImport(name) }
         it.println("")
         it.println("@NoArgsConstructor(access = PRIVATE)")
@@ -93,6 +94,7 @@ tasks.named('generateJava') {
             it.println("/**")
             it.println(" * See {@link Lombok#sneakyThrow(Throwable)}.")
             it.println(" */")
+            it.println("@CheckReturnValue")
             it.writeBlock("public static RuntimeException sneakyThrow(Throwable exception)") {
                 it.println("return sneakyThrow0(exception);")
             }
@@ -131,6 +133,7 @@ tasks.named('generateJava') {
                     it.println("${resolvedMethod.genericReturnType} ${method.name}($paramsString) throws Throwable;")
                 }
                 it.println("")
+                it.println("@CheckReturnValue")
                 it.writeBlock("public static${!typeParamsString.isEmpty() ? ' ' + typeParamsString : ''} ${lambdaClass.simpleName}${typeParamsString} sneakyThrows(SneakyThrows${lambdaClass.simpleName}${typeParamsString} ${lambdaClass.simpleName.uncapitalize()})") {
                     it.println("return ($paramNamesString) -> {")
                     it.println("    try {")
