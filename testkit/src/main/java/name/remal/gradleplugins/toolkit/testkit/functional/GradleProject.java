@@ -91,6 +91,10 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
         new SuppressedMessage(
             "Internal API constructor TaskReportContainer(Class<T>, Task) has been deprecated",
             "com.github.spotbugs."
+        ),
+        new SuppressedMessage(
+            "BuildListener#buildStarted(Gradle) has been deprecated",
+            "org.jetbrains.gradle.ext."
         )
     );
 
