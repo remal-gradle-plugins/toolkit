@@ -6,7 +6,7 @@ allprojects {
             [
                 'org.immutables:bom:2.9.0',
                 'org.ow2.asm:asm-bom:9.3',
-                'org.junit:junit-bom:5.8.2',
+                'org.junit:junit-bom:5.9.0',
             ].collect { project.dependencies.platform(it) }
         )
 
