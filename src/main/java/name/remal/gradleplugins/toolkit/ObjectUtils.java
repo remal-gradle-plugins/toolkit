@@ -1,10 +1,15 @@
 package name.remal.gradleplugins.toolkit;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
 import static lombok.AccessLevel.PRIVATE;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.Contract;
@@ -69,6 +74,38 @@ public abstract class ObjectUtils {
     @SuppressWarnings({"OptionalUsedAsFieldOrParameterType", "java:S2789"})
     public static boolean isNotEmpty(@Nullable Optional<?> value) {
         return !isEmpty(value);
+    }
+
+
+    @Contract(value = "!null,_->param1; null,_->param2", pure = true)
+    public static <T> T defaultValue(@Nullable T value, T defaultValue) {
+        return value != null ? value : defaultValue;
+    }
+
+    @Contract(pure = true)
+    public static String defaultValue(@Nullable String value) {
+        return defaultValue(value, "");
+    }
+
+    @Contract(pure = true)
+    public static <T> List<T> defaultValue(@Nullable List<T> value) {
+        return defaultValue(value, emptyList());
+    }
+
+    @Contract(pure = true)
+    public static <T> Set<T> defaultValue(@Nullable Set<T> value) {
+        return defaultValue(value, emptySet());
+    }
+
+    @Contract(pure = true)
+    public static <K, V> Map<K, V> defaultValue(@Nullable Map<K, V> value) {
+        return defaultValue(value, emptyMap());
+    }
+
+    @Contract(pure = true)
+    @SuppressWarnings({"OptionalUsedAsFieldOrParameterType", "java:S2789"})
+    public static <T> Optional<T> defaultValue(@Nullable Optional<T> value) {
+        return defaultValue(value, Optional.empty());
     }
 
 }
