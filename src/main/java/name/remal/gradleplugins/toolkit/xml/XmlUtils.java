@@ -46,6 +46,11 @@ import org.xml.sax.InputSource;
 @NoArgsConstructor(access = PRIVATE)
 public abstract class XmlUtils {
 
+    public static Document newDocument() {
+        return newNonValidatingDocumentBuilder().newDocument();
+    }
+
+
     //#region parseXml()
 
     @SneakyThrows
