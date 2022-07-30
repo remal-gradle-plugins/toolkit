@@ -47,7 +47,7 @@ public abstract class DomUtils {
     }
 
     /**
-     * @return crated child element
+     * @return parent node
      */
     @Contract("_,_,_->param1")
     public static <T extends Node> T appendElement(
@@ -57,12 +57,21 @@ public abstract class DomUtils {
     ) {
         val childElement = getNodeOwnerDocument(parentNode).createElement(childElementName);
         childElementConfigurer.accept(childElement);
+
+        if (parentNode instanceof Document) {
+            removeAllChildNodes(parentNode);
+        }
+
         parentNode.appendChild(childElement);
         return parentNode;
     }
 
     @Contract("_,_->param1")
     public static <T extends Node> T setNodeText(T parentNode, String text) {
+        if (parentNode instanceof Document) {
+            throw new IllegalArgumentException("Document can't contain text node as a document element: " + parentNode);
+        }
+
         removeAllChildNodes(parentNode);
         val textNode = getNodeOwnerDocument(parentNode).createTextNode(text);
         parentNode.appendChild(textNode);
