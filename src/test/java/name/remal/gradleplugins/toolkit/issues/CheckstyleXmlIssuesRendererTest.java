@@ -1,5 +1,6 @@
 package name.remal.gradleplugins.toolkit.issues;
 
+import static java.lang.String.join;
 import static java.util.Collections.singletonList;
 import static name.remal.gradleplugins.toolkit.StringUtils.escapeXml;
 import static name.remal.gradleplugins.toolkit.issues.Issue.newIssueBuilder;
@@ -22,11 +23,15 @@ class CheckstyleXmlIssuesRendererTest {
             .message(textMessageOf("message"))
             .build();
         assertEquals(
-            "<checkstyle>\n"
-                + "  <file name=\"" + escapeXml(issue.getSourceFile().getPath()) + "\">\n"
-                + "    <error message=\"message\" />\n"
-                + "  </file>\n"
-                + "</checkstyle>\n",
+            join(
+                "\n",
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+                "<checkstyle>",
+                "  <file name=\"" + escapeXml(issue.getSourceFile().getPath()) + "\">",
+                "    <error message=\"message\" />",
+                "  </file>",
+                "</checkstyle>"
+            ),
             renderer.renderIssues(singletonList(issue))
         );
 
@@ -47,11 +52,15 @@ class CheckstyleXmlIssuesRendererTest {
             .description(textMessageOf("description"))
             .build();
         assertEquals(
-            "<checkstyle>\n"
-                + "  <file name=\"" + escapeXml(issue.getSourceFile().getPath()) + "\">\n"
-                + "    <error severity=\"warning\" line=\"12\" column=\"23\" message=\"message\" source=\"rule\" />\n"
-                + "  </file>\n"
-                + "</checkstyle>\n",
+            join(
+                "\n",
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>",
+                "<checkstyle>",
+                "  <file name=\"" + escapeXml(issue.getSourceFile().getPath()) + "\">",
+                "    <error severity=\"warning\" line=\"12\" column=\"23\" message=\"message\" source=\"rule\" />",
+                "  </file>",
+                "</checkstyle>"
+            ),
             renderer.renderIssues(singletonList(issue))
         );
     }
