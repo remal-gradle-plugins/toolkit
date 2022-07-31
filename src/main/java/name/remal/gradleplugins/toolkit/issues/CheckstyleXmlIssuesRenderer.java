@@ -17,8 +17,8 @@ public class CheckstyleXmlIssuesRenderer implements IssuesRenderer {
         getPrettyFormat()
             .setIndent("  ")
             .setEncoding("UTF-8")
-            .setOmitDeclaration(true)
-            .setOmitEncoding(true)
+            .setOmitDeclaration(false)
+            .setOmitEncoding(false)
             .setLineSeparator(UNIX)
     );
 
