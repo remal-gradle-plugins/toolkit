@@ -30,7 +30,8 @@ class CheckstyleXmlIssuesRendererTest {
                 "  <file name=\"" + escapeXml(issue.getSourceFile().getPath()) + "\">",
                 "    <error message=\"message\" />",
                 "  </file>",
-                "</checkstyle>"
+                "</checkstyle>",
+                ""
             ),
             renderer.renderIssues(singletonList(issue))
         );
@@ -59,7 +60,8 @@ class CheckstyleXmlIssuesRendererTest {
                 "  <file name=\"" + escapeXml(issue.getSourceFile().getPath()) + "\">",
                 "    <error severity=\"warning\" line=\"12\" column=\"23\" message=\"message\" source=\"rule\" />",
                 "  </file>",
-                "</checkstyle>"
+                "</checkstyle>",
+                ""
             ),
             renderer.renderIssues(singletonList(issue))
         );
