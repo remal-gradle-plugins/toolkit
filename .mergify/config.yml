@@ -1,7 +1,7 @@
 # Configuration file for Mergify GitHub App: https://github.com/marketplace/mergify
 
 # All Status Checks should be listed explicitly (see https://docs.mergify.io/conditions/#about-status-checks):
-#   `build` - .github/workflows/build.yml
+#   `cross-versions-tests-success` - .github/workflows/build.yml
 #   `WIP` - https://github.com/marketplace/wip
 
 pull_request_rules:
