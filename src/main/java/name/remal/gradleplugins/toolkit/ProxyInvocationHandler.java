@@ -8,6 +8,7 @@ import static name.remal.gradleplugins.toolkit.ProxyUtils.isHashCodeMethod;
 import static name.remal.gradleplugins.toolkit.ProxyUtils.isToStringMethod;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.invokeDefaultMethod;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -60,12 +61,14 @@ public final class ProxyInvocationHandler implements InvocationHandler {
 
 
     @Contract("_,_->this")
+    @CanIgnoreReturnValue
     public ProxyInvocationHandler addFirst(Predicate<Method> predicate, MethodInvocationHandler handler) {
         handlers.add(0, new Handler(predicate, handler));
         return this;
     }
 
     @Contract("_,_->this")
+    @CanIgnoreReturnValue
     public ProxyInvocationHandler add(Predicate<Method> predicate, MethodInvocationHandler handler) {
         handlers.add(new Handler(predicate, handler));
         return this;
