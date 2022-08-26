@@ -1,5 +1,6 @@
 package name.remal.gradleplugins.toolkit.testkit.internal.containers;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.regex.Pattern;
@@ -47,6 +48,7 @@ public class ProjectDirPrefix {
     }
 
     @Contract("_ -> this")
+    @CanIgnoreReturnValue
     public ProjectDirPrefix push(@Nullable String dirPrefix) {
         if (dirPrefix != null && !dirPrefix.isEmpty()) {
             dirPrefix = normalizeDirPrefix(dirPrefix);
