@@ -9,6 +9,7 @@ import static lombok.AccessLevel.NONE;
 import static name.remal.gradleplugins.toolkit.StringUtils.escapeGroovy;
 
 import com.google.common.collect.ImmutableList;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
@@ -43,6 +44,7 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
     }
 
     @Contract("_ -> this")
+    @CanIgnoreReturnValue
     public final GradleProject forSettingsFile(Consumer<SettingsFile> settingsFileConsumer) {
         settingsFileConsumer.accept(this.settingsFile);
         return this;
@@ -58,6 +60,7 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
     }
 
     @Contract("_,_ -> this")
+    @CanIgnoreReturnValue
     public final GradleProject newChildProject(String name, Consumer<GradleChildProject> childProjectConsumer) {
         val child = newChildProject(name);
         childProjectConsumer.accept(child);
@@ -138,6 +141,7 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
 
 
     @Contract("_ -> this")
+    @CanIgnoreReturnValue
     public final synchronized GradleProject addDeprecationMessage(String message) {
         assertIsNotBuilt();
         deprecationMessages.add(message);
@@ -145,6 +149,7 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
     }
 
     @Contract("_ -> this")
+    @CanIgnoreReturnValue
     public final synchronized GradleProject addSuppressedDeprecationMessage(SuppressedMessage suppressedMessage) {
         assertIsNotBuilt();
         suppressedDeprecationMessages.add(suppressedMessage);
@@ -152,6 +157,7 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
     }
 
     @Contract("_ -> this")
+    @CanIgnoreReturnValue
     public final synchronized GradleProject addMutableProjectStateWarning(String message) {
         assertIsNotBuilt();
         mutableProjectStateWarnings.add(message);
@@ -159,6 +165,7 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
     }
 
     @Contract("_ -> this")
+    @CanIgnoreReturnValue
     public final synchronized GradleProject addSuppressedMutableProjectStateWarning(
         SuppressedMessage suppressedMessage
     ) {
@@ -168,6 +175,7 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
     }
 
     @Contract("_ -> this")
+    @CanIgnoreReturnValue
     public final synchronized GradleProject addOptimizationsDisabledWarning(String message) {
         assertIsNotBuilt();
         optimizationsDisabledWarnings.add(message);
@@ -175,6 +183,7 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
     }
 
     @Contract("_ -> this")
+    @CanIgnoreReturnValue
     public final synchronized GradleProject addSuppressedOptimizationsDisabledWarning(
         SuppressedMessage suppressedMessage
     ) {
@@ -187,6 +196,7 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
     private boolean withPluginClasspath = true;
 
     @Contract("-> this")
+    @CanIgnoreReturnValue
     public final synchronized GradleProject withoutPluginClasspath() {
         assertIsNotBuilt();
         this.withPluginClasspath = false;

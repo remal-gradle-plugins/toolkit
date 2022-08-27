@@ -1,5 +1,6 @@
 package name.remal.gradleplugins.toolkit.testkit.functional;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.io.File;
 import java.util.function.Consumer;
 import lombok.Getter;
@@ -26,6 +27,7 @@ abstract class BaseGradleProject<Child extends BaseGradleProject<Child>> {
     }
 
     @Contract("_ -> this")
+    @CanIgnoreReturnValue
     @SuppressWarnings("unchecked")
     public final Child forBuildFile(Consumer<BuildFile> buildFileConsumer) {
         buildFileConsumer.accept(this.buildFile);

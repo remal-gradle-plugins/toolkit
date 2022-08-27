@@ -7,6 +7,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 import static name.remal.gradleplugins.toolkit.ObjectUtils.isNotEmpty;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.io.File;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ abstract class AbstractGradleFile<Child extends AbstractGradleFile<Child>> {
 
 
     @Contract("_ -> this")
+    @CanIgnoreReturnValue
     @SuppressWarnings("unchecked")
     public final Child append(CharSequence... contentParts) {
         chunks.addAll(asList(contentParts));
@@ -37,6 +39,7 @@ abstract class AbstractGradleFile<Child extends AbstractGradleFile<Child>> {
 
 
     @Contract("_ -> this")
+    @CanIgnoreReturnValue
     @SuppressWarnings("unchecked")
     public final Child applyPlugin(String pluginId) {
         getAppliedPlugins().add(pluginId);
@@ -44,6 +47,7 @@ abstract class AbstractGradleFile<Child extends AbstractGradleFile<Child>> {
     }
 
     @Contract("_,_ -> this")
+    @CanIgnoreReturnValue
     @SuppressWarnings("unchecked")
     public final Child applyPlugin(String pluginId, String version) {
         getAppliedPlugins().add(pluginId, version);
