@@ -4,7 +4,9 @@ allprojects {
     pluginManager.withPlugin('maven-publish') {
         rootProject.apply plugin: 'io.github.gradle-nexus.publish-plugin'
 
-        project.file("${rootProject.buildDir}/publish-maven-central.flag").text = ''
+        File flagFile = project.file("${rootProject.buildDir}/publish-maven-central.flag")
+        flagFile.parentFile.mkdirs()
+        flagFile.text = ''
     }
 
     pluginManager.withPlugin('io.github.gradle-nexus.publish-plugin') {
