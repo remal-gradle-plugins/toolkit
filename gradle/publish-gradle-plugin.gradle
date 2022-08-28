@@ -41,4 +41,8 @@ allprojects {
             }
         }
     }
+
+    pluginManager.withPlugin('com.gradle.plugin-publish') {
+        project.file("${rootProject.buildDir}/publish-gradle-plugin.flag").text = ''
+    }
 }

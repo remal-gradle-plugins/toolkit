@@ -55,6 +55,7 @@ jobs:
       run: |
         ./gradlew downloadDependencies
 
+
   build:
     needs:
     - populate-cache
@@ -62,6 +63,8 @@ jobs:
     timeout-minutes: 30
     outputs:
       repository-isTemplate: ${{fromJSON(steps.repository-info.outputs.result).isTemplate}}
+      publish-gradlePlugin: ${{steps.publish-flags.outputs.isGradlePlugin}}
+      publish-mavenCentral: ${{steps.publish-flags.outputs.isMavenCentral}}
       gradle-versions: ${{steps.gradle-versions.outputs.unstableMinors}}
     steps:
     - name: Checkout repository
@@ -111,6 +114,23 @@ jobs:
     - name: Build
       run: |
         ./gradlew build publishToMavenLocal -Pdisable-tests=true
+    - name: Read publish flags
+      id: publish-flags
+      run: |
+        if [ -f "build/publish-gradle-plugin.flag" ]; then
+          echo "isGradlePlugin = true"
+          echo '::set-output name=isGradlePlugin::true'
+        else
+          echo "isGradlePlugin = false"
+          echo '::set-output name=isGradlePlugin::false'
+        fi
+        if [ -f "build/publish-maven-central.flag" ]; then
+          echo "isMavenCentral = true"
+          echo '::set-output name=isMavenCentral::true'
+        else
+          echo "isMavenCentral = false"
+          echo '::set-output name=isMavenCentral::false'
+        fi
     - name: Archive workspace
       run: |
         tar -cz -f "/tmp/workspace-${{github.run_id}}.tar.gz" `git ls-files -m -o`
@@ -136,6 +156,7 @@ jobs:
         user: ${{github.actor}}
         password: ${{github.token}}
         min: ${{steps.min-gradle-version.outputs.value}}
+
 
   cross-versions-tests:
     needs:
@@ -192,6 +213,7 @@ jobs:
       run: |
         echo "All cross versions tests executed successfully"
 
+
   push-back:
     if: ${{github.event_name == 'push' && github.ref == 'refs/heads/main'}}
     needs:
@@ -245,6 +267,7 @@ jobs:
         githubToken: ${{env.PUSH_BACK_TOKEN}}
         message: '[push-back] Push-back updated files during build'
 
+
   parse-git-tag:
     if: ${{github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')}}
     needs:
@@ -267,11 +290,13 @@ jobs:
           core.info(JSON.stringify(result, null, '  '))
           return result
 
-  evaluate-publish-conditions:
+
+  evaluate-gradle-plugin-publish-conditions:
     if: >-
       ${{
         github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
         && fromJSON(needs.build.outputs.repository-isTemplate) != true
+        && fromJSON(needs.build.outputs.publish-isGradlePlugin) == true
         && fromJSON(needs.parse-git-tag.outputs.isVersion) == true
       }}
     needs:
@@ -283,7 +308,65 @@ jobs:
     steps:
     - name: Display success message
       run: |
-        echo "All publish conditions evaluated successfully"
+        echo "All Gradle Plugin publish conditions evaluated successfully"
+
+  publish-to-gradle-plugins-portal:
+    needs:
+    - evaluate-publish-conditions
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DISABLE_COMPILATION: 'true'
+      DISABLE_VERIFICATION: 'true'
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+        fetch-depth: 1
+    - name: Cache
+      uses: actions/cache@v3
+      with:
+        key: ${{runner.os}}-gradle-${{hashFiles('gradle/**', '**/*.gradle')}}
+        path: |
+          ~/.gradle
+    - name: Setup Java 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: 11
+        distribution: zulu
+    - name: Download workspace archive
+      id: download-workspace
+      uses: actions/download-artifact@v3
+      with:
+        name: workspace
+        path: /tmp
+    - name: Unarchive workspace
+      run: |
+        tar -xz -f "${{steps.download-workspace.outputs.download-path}}/workspace-${{github.run_id}}.tar.gz"
+    - name: Publish to Gradle Plugin Portal
+      run: |
+        ./gradlew publishPlugins "-Pgradle.publish.key=${{secrets.GRADLE_PLUGINS_PORTAL_KEY}}" "-Pgradle.publish.secret=${{secrets.GRADLE_PLUGINS_PORTAL_SECRET}}"
+
+
+  evaluate-maven-central-publish-conditions:
+    if: >-
+      ${{
+        github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        && fromJSON(needs.build.outputs.repository-isTemplate) != true
+        && fromJSON(needs.build.outputs.publish-isMavenCentral) == true
+        && fromJSON(needs.parse-git-tag.outputs.isVersion) == true
+      }}
+    needs:
+    - build
+    - cross-versions-tests
+    - parse-git-tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+    - name: Display success message
+      run: |
+        echo "All Maven Central publish conditions evaluated successfully"
 
   publish-to-maven-central:
     needs:
