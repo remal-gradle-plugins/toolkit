@@ -65,8 +65,13 @@ allprojects {
     project.ext['rootProjectDir'] = rootProjectDir
 
     String currentVersion = project.version.toString()
-    if (currentVersion.matches(/^(0|[1-9]\d*)(\D.*)?$/)) {
+    if (currentVersion === 'unspecified') {
+        project.version = '0-SNAPSHOT'
+        project.ext['majorVersion'] = '0'
+    } else if (currentVersion.matches(/^(0|[1-9]\d*)(\D.*)?$/)) {
         project.ext['majorVersion'] = currentVersion.replaceFirst(/^(\d+).*/, '$1')
+    } else {
+        throw new GradleException("Can't extract major version for version '$currentVersion'")
     }
 
     String rootPackage = rootProject.group

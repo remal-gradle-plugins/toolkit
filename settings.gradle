@@ -5,4 +5,5 @@ include(
     ':toolkit--java-9',
     ':classpath',
     ':testkit',
+    ':build-logic',
 )

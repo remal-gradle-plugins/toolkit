@@ -1,15 +1,18 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 buildscript {
+    configurations.create('classpathPlugins') { configurations.classpath.extendsFrom(it) }
+    configurations.create('classpathLibs') { configurations.classpath.extendsFrom(it) }
     dependencies {
-        classpath 'name.remal.gradle-plugins.test-source-sets:test-source-sets:2.2.3'
-        classpath 'com.gradle.publish:plugin-publish-plugin:1.0.0'
-        classpath 'name.remal.gradle-plugins.idea-settings:idea-settings:2.0.0-rc-9'
-        classpath 'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.1.6'
-        classpath 'name.remal:gradle-plugins:1.7.0'
-        classpath 'io.github.gradle-nexus:publish-plugin:1.1.0'
-        classpath 'net.ltgt.gradle:gradle-errorprone-plugin:2.0.2'
-        classpath('com.google.guava:guava:31.1-jre') {
+        classpathPlugins 'name.remal.gradle-plugins.test-source-sets:test-source-sets:2.2.3'
+        classpathPlugins 'com.gradle.publish:plugin-publish-plugin:1.0.0'
+        classpathPlugins 'name.remal.gradle-plugins.idea-settings:idea-settings:2.0.0-rc-9'
+        classpathPlugins 'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.1.6'
+        classpathPlugins 'name.remal:gradle-plugins:1.7.0'
+        classpathPlugins 'io.github.gradle-nexus:publish-plugin:1.1.0'
+        classpathPlugins 'net.ltgt.gradle:gradle-errorprone-plugin:2.0.2'
+
+        classpathLibs('com.google.guava:guava:31.1-jre') {
             exclude(group: 'com.google.code.findbugs')
             exclude(group: 'org.checkerframework')
             exclude(group: 'com.google.errorprone')
@@ -25,27 +28,31 @@ buildscript {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 allprojects {
-    group = "name.remal.gradle-plugins.${rootProject.name}"
+    group = 'name.remal.gradle-plugins.toolkit'
     version = '0-SNAPSHOT'
 }
 
-apply from: 'gradle/properties.gradle'
-apply from: 'gradle/ci.gradle'
-apply from: 'gradle/dependencies.gradle'
-apply from: 'gradle/java.gradle'
-apply from: 'gradle/classes-relocation.gradle'
-apply from: 'gradle/groovy.gradle'
-apply from: 'gradle/checkstyle.gradle'
-apply from: 'gradle/errorprone.gradle'
-apply from: 'gradle/gradle-plugin.gradle'
-apply from: 'gradle/base-package.gradle'
-apply from: 'gradle/publish-gradle-plugin.gradle'
-apply from: 'gradle/publish-maven.gradle'
-apply from: 'gradle/publish-maven-bom.gradle'
-apply from: 'gradle/publish-maven-central.gradle'
-apply from: 'gradle/signing.gradle'
-apply from: 'gradle/process-readme.gradle'
-apply from: 'gradle/ide.gradle'
+List<String> includedBuildScripts = [
+    'gradle/properties.gradle',
+    'gradle/ci.gradle',
+    'gradle/dependencies.gradle',
+    'gradle/java.gradle',
+    'gradle/classes-relocation.gradle',
+    'gradle/groovy.gradle',
+    'gradle/checkstyle.gradle',
+    'gradle/errorprone.gradle',
+    'gradle/gradle-plugin.gradle',
+    'gradle/base-package.gradle',
+    'gradle/publish-gradle-plugin.gradle',
+    'gradle/publish-maven.gradle',
+    'gradle/publish-maven-bom.gradle',
+    'gradle/publish-maven-central.gradle',
+    'gradle/signing.gradle',
+    'gradle/process-readme.gradle',
+    'gradle/ide.gradle',
+].toUnique()
+project.ext['includedBuildScripts'] = includedBuildScripts
+includedBuildScripts.forEach { apply from: it }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

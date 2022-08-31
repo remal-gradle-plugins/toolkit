@@ -68,13 +68,6 @@ allprojects {
             }
         }
 
-        configurations.create('indirectApi') { Configuration conf ->
-            conf.description(
-                "Indirect API dependencies (form example: default dependencies for configurations that" +
-                    " are created by the plugin)"
-            )
-        }
-
         dependencies {
             compileOnlyAll 'com.google.code.findbugs:jsr305'
             compileOnlyAll 'org.jetbrains:annotations'
@@ -90,6 +83,13 @@ allprojects {
             testImplementation 'org.assertj:assertj-core'
 
             testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+        }
+
+        if (!rootProject.allprojects.any { it.group == 'name.remal.gradle-plugins.toolkit' }) {
+            dependencies {
+                relocateClasses 'name.remal.gradle-plugins.toolkit:toolkit'
+                testImplementation 'name.remal.gradle-plugins.toolkit:testkit'
+            }
         }
 
         sourceSets.all { SourceSet sourceSet ->

@@ -1,5 +1,11 @@
 allprojects {
     pluginManager.withPlugin('java-gradle-plugin') {
+        if (project.findProperty('javaGradlePluginWithoutPublish')) {
+            gradlePlugin.automatedPublishing = false
+            return
+        }
+
+
         apply plugin: 'com.gradle.plugin-publish'
 
         pluginBundle.with {
@@ -41,9 +47,13 @@ allprojects {
             }
         }
     }
+}
 
+
+File flagFile = project.file("${rootProject.buildDir}/publish-gradle-plugin.flag")
+flagFile.delete()
+allprojects {
     pluginManager.withPlugin('com.gradle.plugin-publish') {
-        File flagFile = project.file("${rootProject.buildDir}/publish-gradle-plugin.flag")
         flagFile.parentFile.mkdirs()
         flagFile.text = ''
     }

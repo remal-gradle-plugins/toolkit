@@ -3,7 +3,7 @@ allprojects {
         afterEvaluate {
             configurations.all { Configuration conf ->
                 conf.dependencies.removeIf {
-                    it instanceof SelfResolvingDependency && it.files.toString() != 'file collection'
+                    it instanceof FileCollectionDependency && it.files.toString() != 'file collection'
                 }
             }
         }

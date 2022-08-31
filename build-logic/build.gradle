@@ -1,0 +1,105 @@
+import org.gradle.util.GradleVersion
+
+project.ext['javaGradlePluginWithoutPublish'] = true
+
+apply plugin: 'java-gradle-plugin'
+apply plugin: 'maven-publish'
+apply plugin: 'name.remal.generate-sources'
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+dependencies {
+    api project(':')
+
+    testImplementation project(':testkit')
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+configurations.all { attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.LIBRARY)) }
+
+rootProject.buildscript.configurations.classpathPlugins.allDependencies.forEach { Dependency dep ->
+    project.configurations.api.dependencies.add(dep)
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+Map<File, String> scriptsToInclude = [:]
+rootProject.ext['includedBuildScripts'].forEach { String includedBuildScript ->
+    File includedBuildScriptFile = rootProject.file(includedBuildScript)
+    String includedBuildScriptResource = includedBuildScript.replaceFirst(/^gradle\//, '')
+    scriptsToInclude[includedBuildScriptFile] = "name/remal/gradleplugins/toolkit/buildlogic/${includedBuildScriptResource}"
+}
+
+tasks.named('generateResources') {
+    scriptsToInclude.forEach { includedBuildScriptFile, resource ->
+        inputs.file(includedBuildScriptFile)
+        binaryFile(resource) { OutputStream outputStream ->
+            includedBuildScriptFile.newInputStream().withCloseable { outputStream << it }
+        }
+    }
+}
+
+tasks.named('generateJava') {
+    inputs.property('projectVersion', project.version)
+    classFile('name.remal.gradleplugins.toolkit.buildlogic', 'BuildLogicPlugin') {
+        it.writePackage()
+        it.println("")
+        it.writeStaticImport("name.remal.gradleplugins.toolkit.ResourceUtils", "getResourceUrl")
+        it.println("")
+        it.writeImport("org.gradle.api.Plugin")
+        it.writeImport("org.gradle.api.Project")
+        it.println("")
+        it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "InjectedReferences")
+        it.writeBlock("public class ${it.simpleName} implements Plugin<Project>") {
+            it.writeBlock("public void apply(Project project)") {
+                scriptsToInclude.values().forEach { resource ->
+                    it.writeln("project.apply(it -> it.from(getResourceUrl(\"/${it.escapeJava(resource)}\", ${it.simpleName}.class)));")
+                }
+
+                it.println("")
+
+                it.println("project.allprojects(proj -> ")
+                it.println("    proj.getConfigurations()")
+                it.println("        .getByName(\"projectDependencyConstraints\")")
+                it.println("        .getDependencies()")
+                it.println("        .add(")
+                it.println("            proj.getDependencies().platform(\"name.remal.gradle-plugins.toolkit:toolkit-bom:${project.version}\")")
+                it.println("        )")
+                it.println(");")
+            }
+        }
+    }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+tasks.named('generateFunctionalJava') {
+    inputs.property('gradleVersion', GradleVersion.current().version)
+    classFile('name.remal.gradleplugins.toolkit.buildlogic', 'BuildLogicPluginSimpleFunctionalTest') {
+        it.writePackage()
+        it.println("")
+        it.writeImport("lombok.RequiredArgsConstructor")
+        it.writeImport("name.remal.gradleplugins.toolkit.testkit.MinSupportedGradleVersion")
+        it.writeImport("name.remal.gradleplugins.toolkit.testkit.functional.GradleProject")
+        it.writeImport("org.junit.jupiter.api.Test")
+        it.println("")
+        it.println("@RequiredArgsConstructor")
+        it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone")
+        it.writeBlock("class ${it.simpleName}") {
+            it.println("")
+            it.println("private final GradleProject project;")
+
+            it.println("")
+            it.println("@Test")
+            it.println("@MinSupportedGradleVersion(\"${it.escapeJava(GradleVersion.current().version)}\")")
+            it.writeBlock("void applyPlugin()") {
+                it.println("project.forBuildFile(build -> {")
+                it.println("    build.applyPlugin(\"name.remal.toolkit.build-logic\");")
+                it.println("    build.registerDefaultTask(\"allClasses\");")
+                it.println("});")
+                it.println("project.assertBuildSuccessfully();")
+            }
+        }
+    }
+}
