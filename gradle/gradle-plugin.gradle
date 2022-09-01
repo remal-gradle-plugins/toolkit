@@ -134,7 +134,8 @@ tasks.create('collectAllGradlePluginApiDependencies') {
                 .findAll { !it.isEmpty() }
                 .forEach { dependencies.add(it) }
         }
-        outputFile.setText([
+        outputFile.setText(
+            [
                 "# This file is generated automatically by '${it.name}' Gradle task.",
                 '# Do not modify it yourself unless you know what you are doing.',
                 '',
