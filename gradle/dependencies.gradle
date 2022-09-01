@@ -74,13 +74,13 @@ allprojects {
         configurations.matching { it != conf }.configureEach { extendsFrom(conf) }
     }
 
-    configurations.all {
-        dependencies.all {
-            if (group == 'com.google.guava' && name == 'guava') {
-                exclude(group: 'com.google.code.findbugs')
-                exclude(group: 'org.checkerframework')
-                exclude(group: 'com.google.errorprone')
-                exclude(group: 'com.google.j2objc')
+    configurations.all { Configuration conf ->
+        conf.dependencies.all { Dependency dep ->
+            if ("${dep.group}:${dep.name}" === 'com.google.guava:guava') {
+                exclude group: 'com.google.code.findbugs'
+                exclude group: 'org.checkerframework'
+                exclude group: 'com.google.errorprone'
+                exclude group: 'com.google.j2objc', module: 'j2objc-annotations'
             }
         }
     }
