@@ -140,7 +140,7 @@ tasks.create('collectAllGradlePluginApiDependencies') {
                 '',
                 dependencies.join('\n'),
                 '',
-            ],join('\n'),
+            ].join('\n'),
             'UTF-8'
         )
     }
