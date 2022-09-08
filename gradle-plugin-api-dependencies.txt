@@ -21,7 +21,7 @@ name.remal:gradle-plugins:1.7.0
 net.ltgt.gradle:gradle-errorprone-plugin:2.0.2
 org.apache.maven:maven-model:3.6.3
 org.eclipse.jgit:org.eclipse.jgit.ssh.jsch:5.13.1.202206130422-r
-org.eclipse.jgit:org.eclipse.jgit:6.2.0.202206071550-r
+org.eclipse.jgit:org.eclipse.jgit:6.3.0.202209071007-r
 org.jdom:jdom2:2.0.6.1
 org.ow2.asm:asm-analysis:9.3
 org.ow2.asm:asm-commons:9.3
