@@ -2,18 +2,17 @@ allprojects {
     configurations.create('projectDependencyConstraints') { Configuration conf ->
         conf.dependencies.whenObjectAdded { Dependency dep ->
             conf.dependencies.removeIf { Dependency otherDep ->
-                if (otherDep == dep) return false
+                if (otherDep === dep) return false
                 return "${otherDep.group}:${otherDep.name}" == "${dep.group}:${dep.name}"
             }
         }
 
         conf.dependencyConstraints.whenObjectAdded { DependencyConstraint constraint ->
             conf.dependencyConstraints.removeIf { DependencyConstraint otherConstraint ->
-                if (otherConstraint == constraint) return false
+                if (otherConstraint === constraint) return false
                 return "${otherConstraint.group}:${otherConstraint.name}" == "${constraint.group}:${constraint.name}"
             }
         }
-
 
         conf.dependencies.addAll(
             [
@@ -27,7 +26,7 @@ allprojects {
         conf.dependencyConstraints.addAll(
             [
                 // Static analysis
-                'com.google.code.findbugs:jsr305:3.0.2',
+                'com.google.code.findbugs:jsr305:3.0.1',
                 'org.jetbrains:annotations:23.0.0',
                 'com.google.errorprone:error_prone_annotations:2.15.0',
                 'com.google.errorprone:error_prone_core:2.15.0',
@@ -65,18 +64,19 @@ allprojects {
             }
         )
 
-        conf.extendsFrom = []
         conf.visible = false
         conf.canBeConsumed = false
         conf.canBeResolved = false
         conf.description('Dependency constraints')
 
-        configurations.matching { it != conf }.configureEach { extendsFrom(conf) }
+        configurations
+            .matching { it !== conf }
+            .configureEach { extendsFrom(conf) }
     }
 
     configurations.all { Configuration conf ->
         conf.dependencies.all { Dependency dep ->
-            if ("${dep.group}:${dep.name}" === 'com.google.guava:guava') {
+            if ("${dep.group}:${dep.name}" == 'com.google.guava:guava') {
                 exclude group: 'com.google.code.findbugs'
                 exclude group: 'org.checkerframework'
                 exclude group: 'com.google.errorprone'

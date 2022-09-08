@@ -26,7 +26,7 @@ allprojects {
                         .findAll { it.pluginManager.hasPlugin('maven-publish') }
                         .collect { it.publishing.publications.withType(MavenPublication).collect() }
                         .flatten()
-                        .findAll { it != publication }
+                        .findAll { it !== publication }
                     for (MavenPublication otherPublication : otherPublications) {
                         Node dependency = dependencies.appendChild(document.createElement("dependency"))
                         dependency.appendChild(document.createElement("groupId"))

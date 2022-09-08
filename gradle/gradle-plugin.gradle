@@ -63,16 +63,17 @@ allprojects {
         }
 
 
+        Configuration gradlePluginApiDependenciesConf = configurations.create('gradlePluginApiDependencies') { Configuration conf ->
+            conf.extendsFrom(configurations.api)
+            conf.extendsFrom(configurations.indirectApi)
+        }
+
         tasks.register('collectGradlePluginApiDependencies') {
-            List<Configuration> configurations = ['api', 'indirectApi'].collect { project.configurations.getByName(it) }
-            configurations.forEach { it.canBeResolved = true }
-            configurations.forEach { conf ->
-                inputs.files(conf)
-                    .optional()
-                    .withNormalizer(ClasspathNormalizer)
-                    .withPathSensitivity(PathSensitivity.RELATIVE)
-                    .withPropertyName("${conf.name}Configuration")
-            }
+            inputs.files(gradlePluginApiDependenciesConf)
+                .optional()
+                .withNormalizer(ClasspathNormalizer)
+                .withPathSensitivity(PathSensitivity.RELATIVE)
+                .withPropertyName(gradlePluginApiDependenciesConf.name)
 
             File outputFile = project.file("${project.buildDir}/gradle-plugin-api-dependencies.txt")
             outputs.file(outputFile).withPropertyName('outputFile')
@@ -82,17 +83,51 @@ allprojects {
                 outputFile.parentFile.mkdirs()
 
                 Collection<String> dependencies = new TreeSet<String>()
-                configurations.forEach { conf ->
-                    conf.resolvedConfiguration.resolvedArtifacts.forEach { artifact ->
-                        ComponentIdentifier untypedComponentIdentifier = artifact.id.componentIdentifier
-                        if (!(untypedComponentIdentifier instanceof ModuleComponentIdentifier)) return
-                        ModuleComponentIdentifier componentIdentifier = (ModuleComponentIdentifier) untypedComponentIdentifier
-                        if (artifact.type !== 'jar') return
-                        String notation = "${componentIdentifier.group}:${componentIdentifier.module}:${componentIdentifier.version}:${artifact.classifier ?: ''}@${artifact.extension}"
+
+                Collection<ResolvedArtifact> resolvedArtifacts = gradlePluginApiDependenciesConf.resolvedConfiguration.resolvedArtifacts
+
+                Closure<Boolean> isExcludedCategory = { ResolvedDependencyResult resolvedDependency ->
+                    String category = resolvedDependency.resolvedVariant.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE)?.name
+                    if (category == null) {
+                        return false
+                    }
+                    for (String excludedCategory : [Category.REGULAR_PLATFORM, Category.ENFORCED_PLATFORM, Category.DOCUMENTATION, Category.VERIFICATION]) {
+                        if (category == excludedCategory || category.startsWith(excludedCategory + '-')) {
+                            return true
+                        }
+                    }
+                    return false
+                }
+
+                Closure processResolvedDependency = { ResolvedDependencyResult resolvedDependency ->
+                    ComponentIdentifier componentIdentifierUntyped = resolvedDependency.selected.id
+                    if (!(componentIdentifierUntyped instanceof ModuleComponentIdentifier)) {
+                        return
+                    }
+                    ModuleComponentIdentifier componentIdentifier = (ModuleComponentIdentifier) componentIdentifierUntyped
+                    Collection<ResolvedArtifact> dependencyArtifacts = resolvedArtifacts.findAll { it.id.componentIdentifier == componentIdentifier }
+                    dependencyArtifacts.forEach { dependencyArtifact ->
+                        String notation = "${componentIdentifier.group}:${componentIdentifier.module}:${componentIdentifier.version}:${dependencyArtifact.classifier ?: ''}@${dependencyArtifact.extension}"
                         notation = notation.replaceFirst(/:?@(jar)?$/, '')
                         dependencies.add(notation)
                     }
                 }
+
+                gradlePluginApiDependenciesConf.incoming.resolutionResult
+                    .root
+                    .dependencies
+                    .findAll { it instanceof ResolvedDependencyResult }
+                    .collect { (ResolvedDependencyResult) it }
+                    .findAll { !isExcludedCategory(it) }
+                    .forEach { processResolvedDependency(it) }
+
+                gradlePluginApiDependenciesConf.incoming.resolutionResult
+                    .allDependencies
+                    .findAll { it instanceof ResolvedDependencyResult }
+                    .collect { (ResolvedDependencyResult) it }
+                    .findAll { !isExcludedCategory(it) }
+                    .findAll { !it.selected.selectionReason.expected }
+                    .forEach { processResolvedDependency(it) }
 
                 outputFile.setText(dependencies.join('\n') + '\n', 'UTF-8')
             }
@@ -136,7 +171,7 @@ tasks.create('collectAllGradlePluginApiDependencies') {
         }
         outputFile.setText(
             [
-                "# This file is generated automatically by '${it.name}' Gradle task.",
+                "# This file is generated automatically by `${it.name}` Gradle task.",
                 '# Do not modify it yourself unless you know what you are doing.',
                 '',
                 dependencies.join('\n'),
