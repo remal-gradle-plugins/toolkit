@@ -6,7 +6,7 @@ buildscript {
     dependencies {
         classpathPlugins 'name.remal.gradle-plugins.test-source-sets:test-source-sets:2.2.3'
         classpathPlugins 'com.gradle.publish:plugin-publish-plugin:1.0.0'
-        classpathPlugins 'name.remal.gradle-plugins.idea-settings:idea-settings:2.0.0'
+        classpathPlugins 'name.remal.gradle-plugins.idea-settings:idea-settings:2.0.1'
         classpathPlugins 'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.1.6'
         classpathPlugins 'name.remal:gradle-plugins:1.7.0'
         classpathPlugins 'io.github.gradle-nexus:publish-plugin:1.1.0'
