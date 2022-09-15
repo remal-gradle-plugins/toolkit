@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.val;
 import org.gradle.api.internal.IConventionAware;
 
+@ReliesOnInternalGradleApi
 @NoArgsConstructor(access = PRIVATE)
 public abstract class PropertiesConventionUtils {
 

@@ -21,6 +21,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.val;
+import name.remal.gradleplugins.toolkit.ReliesOnInternalGradleApi;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Unmodifiable;
@@ -87,6 +88,7 @@ public abstract class ReflectionUtils {
     }
 
 
+    @ReliesOnInternalGradleApi
     @SuppressWarnings("unchecked")
     public static <T> Class<T> unwrapGeneratedSubclass(Class<T> type) {
         while (GeneratedSubclass.class.isAssignableFrom(type)) {

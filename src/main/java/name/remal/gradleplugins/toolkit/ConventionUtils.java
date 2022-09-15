@@ -8,6 +8,7 @@ import lombok.val;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.plugins.Convention;
 
+@ReliesOnInternalGradleApi
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ConventionUtils {
 

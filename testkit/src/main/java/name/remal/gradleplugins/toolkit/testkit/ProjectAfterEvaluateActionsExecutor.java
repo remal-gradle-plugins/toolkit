@@ -4,6 +4,7 @@ import static lombok.AccessLevel.PRIVATE;
 
 import lombok.NoArgsConstructor;
 import lombok.val;
+import name.remal.gradleplugins.toolkit.ReliesOnInternalGradleApi;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
@@ -11,6 +12,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateInternal;
 import org.gradle.configuration.project.LifecycleProjectEvaluator;
 
+@ReliesOnInternalGradleApi
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ProjectAfterEvaluateActionsExecutor {
 

@@ -4,12 +4,14 @@ import static lombok.AccessLevel.PRIVATE;
 
 import lombok.NoArgsConstructor;
 import lombok.val;
+import name.remal.gradleplugins.toolkit.ReliesOnInternalGradleApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class TaskActionsExecutor {
 
+    @ReliesOnInternalGradleApi
     public static boolean executeOnlyIfSpecs(Task task) {
         val taskInternal = (TaskInternal) task;
         return taskInternal.getOnlyIf().isSatisfiedBy(taskInternal);

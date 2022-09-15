@@ -100,6 +100,7 @@ public abstract class SourceSetUtils {
         return result.get();
     }
 
+    @ReliesOnInternalGradleApi
     @VisibleForTesting
     static final Set<Class<?>> ABSTRACT_ARCHIVE_FILE_TREE_CLASSES = Stream.of(
             tryLoadClass("org.gradle.api.internal.file.archive.AbstractArchiveFileTree"),
