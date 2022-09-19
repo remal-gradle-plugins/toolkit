@@ -2,12 +2,10 @@ package name.remal.gradleplugins.toolkit.reflection;
 
 import static javax.annotation.meta.When.UNKNOWN;
 import static lombok.AccessLevel.PRIVATE;
-import static name.remal.gradleplugins.toolkit.SneakyThrowUtils.sneakyThrow;
+import static name.remal.gradleplugins.toolkit.CrossCompileServices.loadCrossCompileService;
 import static name.remal.gradleplugins.toolkit.reflection.WhoCalledUtils.getCallingClass;
 
 import com.google.common.collect.ImmutableList;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
@@ -20,6 +18,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.val;
 import name.remal.gradleplugins.toolkit.ReliesOnInternalGradleApi;
 import org.gradle.api.internal.GeneratedSubclass;
@@ -54,6 +53,19 @@ public abstract class ReflectionUtils {
     public static boolean isClassPresent(String name) {
         val callingClass = getCallingClass(2);
         return isClassPresent(name, callingClass.getClassLoader());
+    }
+
+    @SneakyThrows
+    public static Class<?> defineClass(ClassLoader classLoader, byte[] bytecode) {
+        val defineClassMethod = ClassLoader.class.getDeclaredMethod(
+            "defineClass",
+            String.class,
+            byte[].class,
+            int.class,
+            int.class
+        );
+        makeAccessible(defineClassMethod);
+        return (Class<?>) defineClassMethod.invoke(classLoader, null, bytecode, 0, bytecode.length);
     }
 
 
@@ -185,9 +197,7 @@ public abstract class ReflectionUtils {
     @SuppressWarnings({"deprecation", "java:S3011"})
     public static <T extends AccessibleObject & Member> T makeAccessible(T member) {
         if (!member.isAccessible()) {
-            if (!isNotPublic(member)
-                || !isNotPublic(member.getDeclaringClass())
-            ) {
+            if (isNotPublic(member) || isNotPublic(member.getDeclaringClass())) {
                 member.setAccessible(true);
             }
         }
@@ -195,40 +205,8 @@ public abstract class ReflectionUtils {
     }
 
 
-    private static final DefaultMethodInvoker DEFAULT_METHOD_INVOKER;
-
-    static {
-        boolean hasPrivateLookupInMethod;
-        try {
-            MethodHandles.class.getMethod("privateLookupIn", Class.class, Lookup.class);
-            hasPrivateLookupInMethod = true;
-        } catch (NoSuchMethodException excepted) {
-            hasPrivateLookupInMethod = false;
-        }
-
-        try {
-            if (hasPrivateLookupInMethod) {
-                DEFAULT_METHOD_INVOKER = (DefaultMethodInvoker) Class.forName(
-                        "name.remal.gradleplugins.toolkit.reflection.DefaultMethodInvokerPrivateLookup",
-                        true,
-                        DefaultMethodInvoker.class.getClassLoader()
-                    )
-                    .getConstructor()
-                    .newInstance();
-            } else {
-                DEFAULT_METHOD_INVOKER = (DefaultMethodInvoker) Class.forName(
-                        "name.remal.gradleplugins.toolkit.reflection.DefaultMethodInvokerFallback",
-                        true,
-                        DefaultMethodInvoker.class.getClassLoader()
-                    )
-                    .getConstructor()
-                    .newInstance();
-            }
-
-        } catch (Exception e) {
-            throw sneakyThrow(e);
-        }
-    }
+    private static final DefaultMethodInvoker DEFAULT_METHOD_INVOKER
+        = loadCrossCompileService(DefaultMethodInvoker.class);
 
     @Nonnull(when = UNKNOWN)
     public static Object invokeDefaultMethod(Method method, Object target, @Nullable Object... args) {
