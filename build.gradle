@@ -30,8 +30,8 @@ buildscript {
         }
     }
     repositories {
-        gradlePluginPortal()
         mavenCentral()
+        gradlePluginPortal()
     }
 
     project.ext.rootBuildscriptClasspathVersionOf = { String notation ->
@@ -118,7 +118,6 @@ apply plugin: 'java-library'
 apply plugin: 'maven-publish'
 apply plugin: 'name.remal.classes-relocation'
 apply plugin: 'name.remal.generate-sources'
-apply from: 'build-include-classes.gradle'
 apply from: 'build-generate-MembersFinder.gradle'
 apply from: 'build-generate-SneakyThrowUtils.gradle'
 apply from: 'build-generate-checkstyle.xsl.gradle'

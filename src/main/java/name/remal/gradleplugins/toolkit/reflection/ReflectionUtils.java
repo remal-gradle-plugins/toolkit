@@ -41,9 +41,8 @@ public abstract class ReflectionUtils {
 
         } catch (ClassNotFoundException expected) {
             // do nothing
-        } catch (LinkageError e) {
-            logger.debug(e.toString(), e);
         }
+
         return null;
     }
 
@@ -196,6 +195,10 @@ public abstract class ReflectionUtils {
         return Modifier.isStatic(member.getModifiers());
     }
 
+    public static boolean isAbstract(Method method) {
+        return Modifier.isAbstract(method.getModifiers());
+    }
+
     public static boolean isNotPublic(Class<?> type) {
         return !isPublic(type);
     }
@@ -206,6 +209,10 @@ public abstract class ReflectionUtils {
 
     public static boolean isNotStatic(Member member) {
         return !isStatic(member);
+    }
+
+    public static boolean isNotAbstract(Method method) {
+        return !isAbstract(method);
     }
 
 
