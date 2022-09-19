@@ -2,7 +2,6 @@ package name.remal.gradleplugins.toolkit;
 
 import static com.google.common.io.ByteStreams.toByteArray;
 import static java.lang.ClassLoader.getSystemClassLoader;
-import static java.lang.String.format;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradleplugins.toolkit.reflection.WhoCalledUtils.getCallingClass;
 
@@ -43,11 +42,10 @@ public abstract class ResourceUtils {
     public static URL getResourceUrl(@Language("file-reference") String name, Class<?> loadingClass) {
         val url = findResourceUrl(name, loadingClass);
         if (url == null) {
-            throw new IllegalStateException(format(
-                "Classpath resource can't be found for %s: %s",
+            throw new ResourceNotFoundException(
                 loadingClass,
                 name
-            ));
+            );
         }
         return url;
     }
@@ -55,10 +53,7 @@ public abstract class ResourceUtils {
     public static URL getResourceUrl(@Language("file-reference") String name, @Nullable ClassLoader classLoader) {
         val url = findResourceUrl(name, classLoader);
         if (url == null) {
-            throw new IllegalStateException(format(
-                "Classpath resource can't be found: %s",
-                name
-            ));
+            throw new ResourceNotFoundException(name);
         }
         return url;
     }

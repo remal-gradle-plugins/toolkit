@@ -1,0 +1,119 @@
+import java.lang.reflect.Method
+import java.lang.reflect.Modifier
+import org.gradle.util.GradleVersion
+import org.json.JSONArray
+import org.json.JSONObject
+import org.json.JSONTokener
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+buildscript {
+    dependencies {
+        classpath "org.json:json:${rootBuildscriptClasspathVersionOf('org.json:json')}"
+    }
+    repositories {
+        mavenCentral()
+    }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+Object MUTEX = new Object[0]
+
+allprojects {
+    project.ext.disableTask = { Task task ->
+        task.enabled = false
+        task.onlyIf { false }
+        task.dependsOn = []
+        Iterator registeredFileProperties = task.inputs.registeredFileProperties.iterator()
+        while (registeredFileProperties.hasNext()) {
+            registeredFileProperties.next()
+            registeredFileProperties.remove()
+        }
+    }
+
+    project.ext.isVerificationTask = { Task task ->
+        if (task instanceof AbstractTestTask) {
+            return true
+        }
+        if (task instanceof VerificationTask) {
+            return true
+        }
+        if (task instanceof ValidatePlugins) {
+            return true
+        }
+        return false
+    }
+
+
+    List<Method> sourceSetGetConfigurationNameMethods = SourceSet.getMethods().findAll {
+        it.name.startsWith('get')
+            && it.name.endsWith('ConfigurationName')
+            && it.returnType == String
+            && it.parameterCount == 0
+            && !Modifier.isStatic(it.modifiers)
+    }
+    project.ext.getSourceSetConfigurationNames = { SourceSet sourceSet ->
+        return sourceSetGetConfigurationNameMethods.collect { it.invoke(sourceSet) }
+            .findAll { it != null }
+            .toSet()
+    }
+
+    project.ext.allSourceSetConfigurations = { SourceSet sourceSet, Closure action ->
+        Collection<String> sourceSetConfigurationNames = project.getSourceSetConfigurationNames(sourceSet)
+        project.configurations.matching { sourceSetConfigurationNames.contains(it.name) }.all { action(it) }
+    }
+
+
+    project.ext.getAllGradleVersions = {
+        synchronized (MUTEX) {
+            File cacheFile = rootProject.file("${rootProject.buildDir}/gradle-versions.list")
+            if (cacheFile.exists()) {
+                return cacheFile.getText('UTF-8')
+                    .split('\n')
+                    .collect { it.trim() }
+                    .findAll { !it.isEmpty() }
+                    .collect { GradleVersion.version(it) }
+            }
+
+            List<GradleVersion> result = []
+
+            URL versionsUrl = new URL('https://services.gradle.org/versions/all')
+            HttpURLConnection connection = (HttpURLConnection) versionsUrl.openConnection()
+            connection.connectTimeout = 5000
+            connection.readTimeout = 15000
+            connection.useCaches = false
+            try {
+                String content = connection.inputStream.getText('UTF-8')
+                JSONArray versionObjects = new JSONTokener(content).nextValue()
+                for (JSONObject versionObject : versionObjects) {
+                    if (versionObject.optBoolean('snapshot')) continue
+                    if (versionObject.optBoolean('nightly')) continue
+                    if (versionObject.optBoolean('releaseNightly')) continue
+                    if (versionObject.optBoolean('broken')) continue
+                    if (!versionObject.optString('milestoneFor').isEmpty()) continue
+                    if (!versionObject.optBoolean('activeRc') && !versionObject.optString('rcFor').isEmpty()) continue
+
+                    String version = versionObject.getString('version')
+                    if (version.containsIgnoreCase('milestone')) continue
+                    if (version.startsWith('0.')) continue
+
+                    GradleVersion gradleVersion = GradleVersion.version(version)
+                    result.add(gradleVersion)
+                }
+            } finally {
+                connection.disconnect()
+            }
+
+            result.sort(Comparator.reverseOrder())
+
+            cacheFile.parentFile.mkdirs()
+            cacheFile.setText(
+                result.collect { it.version }.join('\n'),
+                'UTF-8'
+            )
+
+            return result
+        }
+    }.memoize()
+}

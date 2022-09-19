@@ -18,7 +18,7 @@ dependencies {
 
 configurations.all { attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.LIBRARY)) }
 
-rootProject.buildscript.configurations.classpathPlugins.allDependencies.forEach { Dependency dep ->
+rootProject.buildscript.configurations.classpathApi.allDependencies.forEach { Dependency dep ->
     project.configurations.api.dependencies.add(dep)
 }
 
@@ -35,7 +35,13 @@ tasks.named('generateResources') {
     scriptsToInclude.forEach { includedBuildScriptFile, resource ->
         inputs.file(includedBuildScriptFile)
         binaryFile(resource) { OutputStream outputStream ->
-            includedBuildScriptFile.newInputStream().withCloseable { outputStream << it }
+            String content = includedBuildScriptFile.getText('UTF-8')
+
+            content = content.replaceAll(/\$\{\s*(rootBuildscriptClasspathVersionOf)\s*\(\s*('|")(.+?)\2\s*\)\s*\}/) { matcher ->
+                project.property(matcher[1])(matcher[3])
+            }
+
+            outputStream.write(content.getBytes('UTF-8'))
         }
     }
 }

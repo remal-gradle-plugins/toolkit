@@ -1,12 +1,11 @@
 package name.remal.gradleplugins.toolkit.reflection;
 
 import static java.lang.String.format;
-import static lombok.AccessLevel.PUBLIC;
 
-import lombok.NoArgsConstructor;
+import com.google.auto.service.AutoService;
 import lombok.val;
 
-@NoArgsConstructor(access = PUBLIC)
+@AutoService(WhoCalled.class)
 @SuppressWarnings({"unused", "removal", "java:S5738", "RedundantSuppression"})
 final class WhoCalledSecurityManager extends SecurityManager implements WhoCalled {
 

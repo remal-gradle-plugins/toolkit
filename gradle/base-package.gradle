@@ -1,10 +1,4 @@
 allprojects {
-    if (project.parent != null
-        && project.name.startsWith("${project.parent.name}--java-")
-    ) {
-        return
-    }
-
     tasks.withType(AbstractCompile) {
         doLast {
             String baseJavaPackage = project.property('baseJavaPackage').toString()

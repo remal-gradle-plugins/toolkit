@@ -1,8 +1,10 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 buildscript {
-    configurations.create('classpathPlugins') { configurations.classpath.extendsFrom(it) }
-    configurations.create('classpathLibs') { configurations.classpath.extendsFrom(it) }
+    configurations.create('classpathApi') { configurations.classpath.extendsFrom(it) }
+    configurations.create('classpathPlugins') { configurations.classpathApi.extendsFrom(it) }
+    configurations.create('classpathLibs') { configurations.classpathApi.extendsFrom(it) }
+    configurations.create('toolkitBuildLibs') { configurations.classpath.extendsFrom(it) }
     dependencies {
         classpathPlugins 'name.remal.gradle-plugins.test-source-sets:test-source-sets:2.2.3'
         classpathPlugins 'com.gradle.publish:plugin-publish-plugin:1.0.0'
@@ -12,7 +14,15 @@ buildscript {
         classpathPlugins 'io.github.gradle-nexus:publish-plugin:1.1.0'
         classpathPlugins 'net.ltgt.gradle:gradle-errorprone-plugin:2.0.2'
 
-        classpathLibs('com.google.guava:guava:31.1-jre') {
+        classpathLibs platform('org.ow2.asm:asm-bom:9.3')
+        classpathLibs 'org.ow2.asm:asm'
+        classpathLibs 'org.ow2.asm:asm-tree'
+        classpathLibs 'org.ow2.asm:asm-analysis'
+        classpathLibs 'org.ow2.asm:asm-util'
+        classpathLibs 'org.ow2.asm:asm-commons'
+
+        toolkitBuildLibs('org.json:json:20220320')
+        toolkitBuildLibs('com.google.guava:guava:31.1-jre') {
             exclude(group: 'com.google.code.findbugs')
             exclude(group: 'org.checkerframework')
             exclude(group: 'com.google.errorprone')
@@ -22,6 +32,19 @@ buildscript {
     repositories {
         gradlePluginPortal()
         mavenCentral()
+    }
+
+    project.ext.rootBuildscriptClasspathVersionOf = { String notation ->
+        String version = project.buildscript.configurations.classpath
+            .resolvedConfiguration
+            .lenientConfiguration
+            .allModuleDependencies
+            .find { "${it.moduleGroup}:${it.moduleName}" == notation }
+            ?.moduleVersion
+        if (version == null) {
+            throw new GradleException("Classpath dependency version can't be found for '${notation}'")
+        }
+        return version
     }
 }
 
@@ -33,11 +56,14 @@ allprojects {
 }
 
 List<String> includedBuildScripts = [
+    'gradle/helpers.gradle',
     'gradle/properties.gradle',
     'gradle/ci.gradle',
+    'gradle/common.gradle',
     'gradle/dependencies.gradle',
     'gradle/java.gradle',
     'gradle/classes-relocation.gradle',
+    'gradle/cross-compile.gradle',
     'gradle/groovy.gradle',
     'gradle/checkstyle.gradle',
     'gradle/errorprone.gradle',
@@ -71,6 +97,11 @@ allprojects {
             relocateClasses 'org.apache.commons:commons-text'
             relocateClasses 'com.google.guava:guava'
             relocateClasses 'org.ow2.asm:asm'
+            relocateClasses 'org.ow2.asm:asm-analysis'
+            relocateClasses 'org.ow2.asm:asm-commons'
+            relocateClasses 'org.ow2.asm:asm-tree'
+            relocateClasses 'org.ow2.asm:asm-util'
+            relocateClasses 'org.json:json:20220320'
 
 
             testImplementation 'org.apache.commons:commons-lang3'
@@ -93,7 +124,6 @@ apply from: 'build-generate-SneakyThrowUtils.gradle'
 apply from: 'build-generate-checkstyle.xsl.gradle'
 
 dependencies {
-    optional 'org.ow2.asm:asm'
     optional 'com.puppycrawl.tools:checkstyle'
 
     relocateClasses 'io.github.classgraph:classgraph'
@@ -104,17 +134,16 @@ dependencies {
         exclude group: 'org.slf4j'
     }
 
-    compileOnly project(':toolkit--java-common')
-    includeClasses project(':toolkit--java-common')
-    includeClasses project(':toolkit--java-9')
-
 
     testImplementation project(':testkit')
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-tasks.named('generateJava') {
+tasks.named('generateJava') { Task it ->
+    inputs.property('project.group', project.group)
+    inputs.property('project.name', project.name)
+    inputs.property('project.version', project.version)
     classFile('name.remal.gradleplugins.toolkit', 'ToolkitBuildInfo') {
         it.writePackage()
         it.println("")

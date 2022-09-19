@@ -21,11 +21,9 @@ public final class Version implements Comparable<Version> {
 
 
     private final org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version versionImpl;
-    private final String source;
 
     private Version(org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version versionImpl) {
         this.versionImpl = versionImpl;
-        this.source = versionImpl.getSource();
     }
 
 
@@ -44,16 +42,24 @@ public final class Version implements Comparable<Version> {
         if (number == null) {
             throw new IllegalArgumentException(format(
                 "Version '%s' doesn't have numeric part with index %d",
-                this.source,
+                versionImpl.getSource(),
                 numberIndex
             ));
         }
         return number;
     }
 
+    public int getNumbersCount() {
+        return versionImpl.getNumericParts().length;
+    }
+
+
+    public boolean hasSuffix() {
+        return versionImpl.isQualified();
+    }
 
     public Version withoutSuffix() {
-        return new Version(this.versionImpl.getBaseVersion());
+        return versionImpl.isQualified() ? new Version(versionImpl.getBaseVersion()) : this;
     }
 
 
@@ -104,7 +110,7 @@ public final class Version implements Comparable<Version> {
 
     @Override
     public String toString() {
-        return source;
+        return versionImpl.getSource();
     }
 
     @Override
@@ -116,12 +122,12 @@ public final class Version implements Comparable<Version> {
         }
 
         Version version = (Version) other;
-        return source.equals(version.source);
+        return versionImpl.getSource().equals(version.versionImpl.getSource());
     }
 
     @Override
     public int hashCode() {
-        return source.hashCode();
+        return versionImpl.getSource().hashCode();
     }
 
 }

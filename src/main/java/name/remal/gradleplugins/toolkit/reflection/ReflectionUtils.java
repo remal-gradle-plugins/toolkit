@@ -1,8 +1,11 @@
 package name.remal.gradleplugins.toolkit.reflection;
 
+import static java.nio.file.Files.createTempFile;
+import static java.nio.file.Files.write;
 import static javax.annotation.meta.When.UNKNOWN;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradleplugins.toolkit.CrossCompileServices.loadCrossCompileService;
+import static name.remal.gradleplugins.toolkit.DebugUtils.ifDebugEnabled;
 import static name.remal.gradleplugins.toolkit.reflection.WhoCalledUtils.getCallingClass;
 
 import com.google.common.collect.ImmutableList;
@@ -17,6 +20,7 @@ import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import lombok.CustomLog;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -24,17 +28,23 @@ import name.remal.gradleplugins.toolkit.ReliesOnInternalGradleApi;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Unmodifiable;
+import org.objectweb.asm.ClassReader;
 
 @NoArgsConstructor(access = PRIVATE)
+@CustomLog
 public abstract class ReflectionUtils {
 
     @Nullable
     public static Class<?> tryLoadClass(String name, @Nullable ClassLoader classLoader) {
         try {
             return Class.forName(name, false, classLoader);
+
         } catch (ClassNotFoundException expected) {
-            return null;
+            // do nothing
+        } catch (LinkageError e) {
+            logger.debug(e.toString(), e);
         }
+        return null;
     }
 
     @Nullable
@@ -57,6 +67,12 @@ public abstract class ReflectionUtils {
 
     @SneakyThrows
     public static Class<?> defineClass(ClassLoader classLoader, byte[] bytecode) {
+        ifDebugEnabled(() -> {
+            val className = new ClassReader(bytecode).getClassName().replace('/', '.');
+            val tempFile = createTempFile(className + '-', ".class");
+            write(tempFile, bytecode);
+        });
+
         val defineClassMethod = ClassLoader.class.getDeclaredMethod(
             "defineClass",
             String.class,

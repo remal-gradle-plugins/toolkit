@@ -1,17 +1,16 @@
 package name.remal.gradleplugins.toolkit.reflection;
 
 import static javax.annotation.meta.When.UNKNOWN;
-import static lombok.AccessLevel.PUBLIC;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.makeAccessible;
 
+import com.google.auto.service.AutoService;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.reflect.Method;
 import javax.annotation.Nonnull;
-import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
 
-@NoArgsConstructor(access = PUBLIC)
+@AutoService(DefaultMethodInvoker.class)
 @SuppressWarnings("unused")
 final class DefaultMethodInvokerFallback implements DefaultMethodInvoker {
 

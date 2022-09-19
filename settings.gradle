@@ -1,8 +1,8 @@
 rootProject.name = 'toolkit'
 
 include(
-    ':toolkit--java-common',
-    ':toolkit--java-9',
+    ':cross-compile--java-common',
+    ':cross-compile--java-9-gte',
     ':classpath',
     ':testkit',
     ':build-logic',

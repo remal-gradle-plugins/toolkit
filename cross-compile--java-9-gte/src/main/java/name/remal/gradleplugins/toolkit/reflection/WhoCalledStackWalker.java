@@ -2,13 +2,12 @@ package name.remal.gradleplugins.toolkit.reflection;
 
 import static java.lang.StackWalker.Option.RETAIN_CLASS_REFERENCE;
 import static java.lang.String.format;
-import static lombok.AccessLevel.PUBLIC;
 
+import com.google.auto.service.AutoService;
 import java.lang.StackWalker.StackFrame;
-import lombok.NoArgsConstructor;
 import lombok.val;
 
-@NoArgsConstructor(access = PUBLIC)
+@AutoService(WhoCalled.class)
 @SuppressWarnings("unused")
 final class WhoCalledStackWalker implements WhoCalled {
 

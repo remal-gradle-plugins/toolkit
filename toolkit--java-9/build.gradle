@@ -1,8 +1,0 @@
-apply plugin: 'java-library'
-
-dependencies {
-    implementation project(':toolkit--java-common')
-}
-
-sourceCompatibility = JavaVersion.VERSION_1_9.toString()
-targetCompatibility = sourceCompatibility.toString()

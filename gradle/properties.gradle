@@ -91,6 +91,11 @@ allprojects {
             baseJavaPackageTokens[i] = current.substring(prefix.length())
         }
     }
+    Project currentProject = project
+    while (currentProject != null && currentProject.name.contains('--') && !baseJavaPackageTokens.isEmpty()) {
+        baseJavaPackageTokens.remove(baseJavaPackageTokens.size() - 1)
+        currentProject = currentProject.parent
+    }
     baseJavaPackage = baseJavaPackageTokens.join('.')
     project.ext['baseJavaPackage'] = baseJavaPackage
     project.ext['javaModuleName'] = baseJavaPackage

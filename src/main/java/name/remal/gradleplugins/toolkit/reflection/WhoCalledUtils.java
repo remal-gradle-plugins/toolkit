@@ -1,40 +1,14 @@
 package name.remal.gradleplugins.toolkit.reflection;
 
 import static lombok.AccessLevel.PRIVATE;
-import static name.remal.gradleplugins.toolkit.SneakyThrowUtils.sneakyThrow;
-import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.isClassPresent;
+import static name.remal.gradleplugins.toolkit.CrossCompileServices.loadCrossCompileService;
 
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class WhoCalledUtils {
 
-    private static final WhoCalled WHO_CALLED;
-
-    static {
-        try {
-            if (isClassPresent("java.lang.StackWalker", WhoCalledUtils.class.getClassLoader())) {
-                WHO_CALLED = (WhoCalled) Class.forName(
-                        "name.remal.gradleplugins.toolkit.reflection.WhoCalledStackWalker",
-                        true,
-                        WhoCalledUtils.class.getClassLoader()
-                    )
-                    .getConstructor()
-                    .newInstance();
-            } else {
-                WHO_CALLED = (WhoCalled) Class.forName(
-                        "name.remal.gradleplugins.toolkit.reflection.WhoCalledSecurityManager",
-                        true,
-                        WhoCalledUtils.class.getClassLoader()
-                    )
-                    .getConstructor()
-                    .newInstance();
-            }
-
-        } catch (Exception e) {
-            throw sneakyThrow(e);
-        }
-    }
+    private static final WhoCalled WHO_CALLED = loadCrossCompileService(WhoCalled.class);
 
     public static Class<?> getCallingClass(int depth) {
         return WHO_CALLED.getCallingClass(depth);

@@ -44,8 +44,10 @@ allprojects {
         }
     }
 
-    afterEvaluate {
-        tasks.maybeCreate('allTests')
+    if (project.parent == null) {
+        afterEvaluate {
+            tasks.maybeCreate('allTests')
+        }
     }
 
     tasks.create('buildWithAllTests') {
@@ -68,31 +70,6 @@ allprojects {
 
 
     afterEvaluate {
-        def disableTask = { Task task ->
-            task.enabled = false
-            task.onlyIf { false }
-            task.dependsOn = []
-            Iterator registeredFileProperties = task.inputs.registeredFileProperties.iterator()
-            while (registeredFileProperties.hasNext()) {
-                registeredFileProperties.next()
-                registeredFileProperties.remove()
-            }
-        }
-
-        def isVerificationTask = { Task task ->
-            if (task instanceof AbstractTestTask) {
-                return true
-            }
-            if (task instanceof VerificationTask) {
-                return true
-            }
-            if (task instanceof ValidatePlugins) {
-                return true
-            }
-            return false
-        }
-
-
         if (property('disable-compilation')?.toString()?.toBoolean()) {
             tasks.matching { it instanceof AbstractCompile }.all { disableTask(it) }
 

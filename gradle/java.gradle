@@ -57,6 +57,19 @@ allprojects {
             }
         }
 
+        configurations.create('compileOnlyHidden') { Configuration conf ->
+            conf.description("Compile-only dependencies hidden from IDE")
+            //configurations.compileOnly.extendsFrom(conf)
+            tasks.withType(AbstractCompile).configureEach {
+                onlyIf {
+                    if (!conf.allDependencies.isEmpty()) {
+                        classpath = conf + classpath
+                    }
+                    return true
+                }
+            }
+        }
+
         configurations.create('apt') { Configuration conf ->
             conf.description("Annotation processors and compile-only dependencies for all source-sets")
             sourceSets.all { SourceSet sourceSet ->
