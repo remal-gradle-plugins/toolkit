@@ -9,6 +9,18 @@ idea.project {
     jdkName = '11'
     targetBytecodeVersion = JavaVersion.VERSION_1_8
     languageLevel = new IdeaLanguageLevel(targetBytecodeVersion.majorVersion)
+
+    settings {
+        doNotDetectFrameworks(
+            'AngularCLI',
+            'android',
+            'hibernate',
+            'javaeeApplication',
+            'jpa',
+            'Spring',
+            'web',
+        )
+    }
 }
 
 ideaSettings {
