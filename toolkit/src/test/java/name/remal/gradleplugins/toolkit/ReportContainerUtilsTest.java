@@ -1,16 +1,25 @@
 package name.remal.gradleplugins.toolkit;
 
 import static name.remal.gradleplugins.toolkit.ReportContainerUtils.createReportContainerFor;
+import static name.remal.gradleplugins.toolkit.ReportUtils.getReportDestination;
+import static name.remal.gradleplugins.toolkit.ReportUtils.isReportEnabled;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import groovy.lang.Closure;
+import java.io.File;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
+import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.CustomizableHtmlReport;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.ReportContainer;
+import org.gradle.api.reporting.Reporting;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.junit.jupiter.api.Test;
@@ -23,16 +32,42 @@ class ReportContainerUtilsTest {
     @Test
     void test() {
         val task = project.getTasks().create(TestReportsTask.class.getSimpleName(), TestReportsTask.class);
-        assertNotNull(task.reports.getFile());
+
+        val baseReportsDir = project.file("build/reports/testReports/TestReportsTask");
+
+        assertNotNull(task.reports.getFileXml());
+        assertTrue(isReportEnabled(task.reports.getFileXml()));
+        assertEquals(
+            new File(baseReportsDir, "TestReportsTask.file.xml"),
+            getReportDestination(task.reports.getFileXml())
+        );
+
         assertNotNull(task.reports.getHtml());
+        assertTrue(isReportEnabled(task.reports.getHtml()));
+        assertEquals(
+            new File(baseReportsDir, "TestReportsTask.html"),
+            getReportDestination(task.reports.getHtml())
+        );
+
         assertNotNull(task.reports.getDirectory());
+        assertTrue(isReportEnabled(task.reports.getDirectory()));
+        assertEquals(
+            new File(baseReportsDir, "directory"),
+            getReportDestination(task.reports.getDirectory())
+        );
+
         assertNotNull(task.reports.getJunitXml());
+        assertTrue(isReportEnabled(task.reports.getJunitXml()));
+        assertEquals(
+            new File(baseReportsDir, "junitXml"),
+            getReportDestination(task.reports.getJunitXml())
+        );
     }
 
 
     interface TestReportsContainer extends ReportContainer<ConfigurableReport> {
 
-        SingleFileReport getFile();
+        SingleFileReport getFileXml();
 
         CustomizableHtmlReport getHtml();
 
@@ -42,9 +77,20 @@ class ReportContainerUtilsTest {
 
     }
 
-    public static class TestReportsTask extends DefaultTask {
+    public static class TestReportsTask extends DefaultTask implements Reporting<TestReportsContainer> {
 
-        private final TestReportsContainer reports = createReportContainerFor(this, TestReportsContainer.class);
+        @Getter
+        private final TestReportsContainer reports = createReportContainerFor(this);
+
+        @Override
+        public TestReportsContainer reports(Closure closure) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public TestReportsContainer reports(Action<? super TestReportsContainer> configureAction) {
+            throw new UnsupportedOperationException();
+        }
 
     }
 

@@ -2,6 +2,7 @@ package name.remal.gradleplugins.toolkit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -68,6 +69,8 @@ class ReportUtilsTest {
 
             @Test
             void singleFile() {
+                assertNull(ReportUtils.getReportDestination(singleFileReport));
+
                 ReportUtils.setReportDestination(singleFileReport, project.provider(() -> TEMP_FILE1));
                 assertEquals(TEMP_FILE1, ReportUtils.getReportDestination(singleFileReport));
 
@@ -80,6 +83,8 @@ class ReportUtilsTest {
 
             @Test
             void directory() {
+                assertNull(ReportUtils.getReportDestination(directoryReport));
+
                 ReportUtils.setReportDestination(directoryReport, project.provider(() -> TEMP_FILE1));
                 assertEquals(TEMP_FILE1, ReportUtils.getReportDestination(directoryReport));
 
@@ -98,6 +103,8 @@ class ReportUtilsTest {
 
             @Test
             void singleFile() {
+                assertNull(ReportUtils.getReportDestination(singleFileReport));
+
                 ReportUtils.setReportDestination(singleFileReport, TEMP_FILE1);
                 assertEquals(TEMP_FILE1, ReportUtils.getReportDestination(singleFileReport));
 
@@ -110,6 +117,8 @@ class ReportUtilsTest {
 
             @Test
             void directory() {
+                assertNull(ReportUtils.getReportDestination(directoryReport));
+
                 ReportUtils.setReportDestination(directoryReport, TEMP_FILE1);
                 assertEquals(TEMP_FILE1, ReportUtils.getReportDestination(directoryReport));
 

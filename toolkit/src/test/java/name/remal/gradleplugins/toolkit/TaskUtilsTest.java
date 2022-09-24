@@ -7,16 +7,20 @@ import static org.mockito.Mockito.mock;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BooleanSupplier;
+import lombok.RequiredArgsConstructor;
 import lombok.val;
 import org.gradle.api.Project;
 import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.junit.jupiter.api.Test;
 
+@RequiredArgsConstructor
 class TaskUtilsTest {
 
+    private final Project project;
+
     @Test
-    void clearRegisteredFileProperties(Project project) {
+    void clearRegisteredFileProperties() {
         val task = project.getTasks().create("testTask");
         val taskInputs = (TaskInputsInternal) task.getInputs();
 

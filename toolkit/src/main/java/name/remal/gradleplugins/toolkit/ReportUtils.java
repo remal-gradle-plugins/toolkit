@@ -94,7 +94,6 @@ public abstract class ReportUtils {
         }
     }
 
-
     @Nullable
     private static final TypedVoidMethod1<ConfigurableReport, File> setDestinationFileMethod =
         findMethod(ConfigurableReport.class, "setDestination", File.class);
