@@ -22,6 +22,10 @@ rootProject.buildscript.configurations.classpathApi.allDependencies.forEach { De
     project.configurations.api.dependencies.add(dep)
 }
 
+configurations.projectDependencyConstraints.allDependencies.matching { isPlatformDependency(it) }.all { Dependency dep ->
+    configurations.platformApi.dependencies.add(dep)
+}
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 Map<File, String> scriptsToInclude = [:]

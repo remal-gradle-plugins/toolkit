@@ -1,3 +1,9 @@
+import static org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE
+import static org.gradle.api.attributes.Category.DOCUMENTATION
+import static org.gradle.api.attributes.Category.ENFORCED_PLATFORM
+import static org.gradle.api.attributes.Category.REGULAR_PLATFORM
+import static org.gradle.api.attributes.Category.VERIFICATION
+
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import org.gradle.util.GradleVersion
@@ -62,6 +68,55 @@ allprojects {
     project.ext.allSourceSetConfigurations = { SourceSet sourceSet, Closure action ->
         Collection<String> sourceSetConfigurationNames = project.getSourceSetConfigurationNames(sourceSet)
         project.configurations.matching { sourceSetConfigurationNames.contains(it.name) }.all { action(it) }
+    }
+
+
+    project.ext.getDependencyCategory = { Object dep ->
+        AttributeContainer attributes = null
+        if (dep instanceof ModuleDependency) {
+            attributes = dep.attributes
+        } else if (dep instanceof ResolvedDependencyResult) {
+            attributes = dep.resolvedVariant.attributes
+        } else {
+            throw new GradleException("Unsupported dependency type: ${dep.class}")
+        }
+
+        Attribute categoryAttribute = attributes.keySet().find { attr ->
+            if (attr instanceof String) {
+                return attr == CATEGORY_ATTRIBUTE.name
+            } else {
+                return attr.name == CATEGORY_ATTRIBUTE.name
+            }
+        }
+        if (categoryAttribute == null) {
+            return null;
+        }
+
+        Object value = attributes.getAttribute(categoryAttribute)
+        if (value instanceof String) {
+            return value
+        }
+        return value.name
+    }
+
+    project.ext.isPlatformDependency = { Object dep ->
+        String category = getDependencyCategory(dep)
+        return [REGULAR_PLATFORM, ENFORCED_PLATFORM].contains(category)
+    }
+
+    project.ext.isEnforcedPlatformDependency = { Object dep ->
+        String category = getDependencyCategory(dep)
+        return [ENFORCED_PLATFORM].contains(category)
+    }
+
+    project.ext.isDocumentationDependency = { Object dep ->
+        String category = getDependencyCategory(dep)
+        return [DOCUMENTATION].contains(category)
+    }
+
+    project.ext.isVerificationDependency = { Object dep ->
+        String category = getDependencyCategory(dep)
+        return [VERIFICATION].contains(category)
     }
 
 
