@@ -10,8 +10,8 @@ allprojects {
             return
         }
 
-        publishing.publications.create('mavenBom', MavenPublication) { publication ->
-            publication.artifactId += '-bom'
+        publishing.publications.create('mavenBom', MavenPublication) { MavenPublication publication ->
+            publication.artifactId = publication.artifactId?.replaceFirst(/-root$/, '') + '-bom'
 
             publication.pom {
                 String prevName = name.get()

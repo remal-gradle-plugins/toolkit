@@ -7,7 +7,7 @@ dependencies {
 
     relocateClasses 'com.google.guava:guava'
 
-    api project(':')
+    api project(':toolkit')
 
     testImplementation 'org.junit.jupiter:junit-jupiter-engine'
     testImplementation 'org.junit.platform:junit-platform-testkit'

@@ -75,7 +75,7 @@ allprojects {
     }
 
     String rootPackage = rootProject.group
-    if (!rootPackage.endsWith(".${rootProject.name}")) {
+    if (!rootPackage.endsWith(".${rootProject.name}") && !"${rootPackage}-root".endsWith(".${rootProject.name}")) {
         rootPackage += ".${rootProject.name}"
     }
     String baseJavaPackage = "${rootPackage}${project.path}"
@@ -97,6 +97,8 @@ allprojects {
         currentProject = currentProject.parent
     }
     baseJavaPackage = baseJavaPackageTokens.join('.')
+        .replaceAll(/\.{2,}/, '.')
+        .replaceFirst(/\.+$/, '')
     project.ext['baseJavaPackage'] = baseJavaPackage
     project.ext['javaModuleName'] = baseJavaPackage
 }

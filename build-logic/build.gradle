@@ -9,7 +9,7 @@ apply plugin: 'name.remal.generate-sources'
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 dependencies {
-    api project(':')
+    api project(':toolkit')
 
     testImplementation project(':testkit')
 }

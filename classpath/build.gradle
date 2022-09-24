@@ -2,7 +2,7 @@ apply plugin: 'java-library'
 apply plugin: 'maven-publish'
 
 dependencies {
-    relocateClasses project(':')
+    relocateClasses project(':toolkit')
 
-    testImplementation project(':')
+    testImplementation project(':toolkit')
 }
