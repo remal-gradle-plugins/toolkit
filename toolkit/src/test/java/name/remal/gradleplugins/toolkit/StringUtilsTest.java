@@ -1,7 +1,10 @@
 package name.remal.gradleplugins.toolkit;
 
+import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.google.common.collect.ImmutableMap;
+import lombok.val;
 import org.junit.jupiter.api.Test;
 
 class StringUtilsTest {
@@ -36,6 +39,145 @@ class StringUtilsTest {
         assertEquals("  a", StringUtils.indentString("a \t\n"));
 
         assertEquals("  a\n\n  b", StringUtils.indentString("a\n\t\n \nb"));
+    }
+
+
+    @Test
+    void trimWith() {
+        val mapping = ImmutableMap.<String, String>builder()
+            .put("", "")
+            .put("1", "")
+            .put("12", "")
+            .put("21", "")
+            .put("1a", "a")
+            .put("122a", "a")
+            .put("211a", "a")
+            .put("a1", "a")
+            .put("a122", "a")
+            .put("a211", "a")
+            .put("1a2", "a")
+            .put("12a122", "a")
+            .put("21a211", "a")
+            .build();
+        for (val entry : mapping.entrySet()) {
+            assertEquals(
+                entry.getKey(),
+                StringUtils.trimWith(entry.getKey(), ""),
+                format("trimWith('%s', '%s')", entry.getKey(), "")
+            );
+            assertEquals(
+                entry.getValue(),
+                StringUtils.trimWith(entry.getKey(), "112"),
+                format("trimWith('%s', '%s')", entry.getKey(), "112")
+            );
+            assertEquals(
+                entry.getValue(),
+                StringUtils.trimWith(entry.getKey(), "211"),
+                format("trimWith('%s', '%s')", entry.getKey(), "211")
+            );
+            assertEquals(
+                entry.getValue(),
+                StringUtils.trimWith(entry.getKey(), '1', '1', '2'),
+                format("trimWith('%s', '%s')", entry.getKey(), "112")
+            );
+            assertEquals(
+                entry.getValue(),
+                StringUtils.trimWith(entry.getKey(), '1', '2', '1', '2'),
+                format("trimWith('%s', '%s')", entry.getKey(), "211")
+            );
+        }
+    }
+
+    @Test
+    void trimLeftWith() {
+        val mapping = ImmutableMap.<String, String>builder()
+            .put("", "")
+            .put("1", "")
+            .put("12", "")
+            .put("21", "")
+            .put("1a", "a")
+            .put("122a", "a")
+            .put("211a", "a")
+            .put("a1", "a1")
+            .put("a122", "a122")
+            .put("a211", "a211")
+            .put("1a2", "a2")
+            .put("12a122", "a122")
+            .put("21a211", "a211")
+            .build();
+        for (val entry : mapping.entrySet()) {
+            assertEquals(
+                entry.getKey(),
+                StringUtils.trimLeftWith(entry.getKey(), ""),
+                format("trimLeftWith('%s', '%s')", entry.getKey(), "")
+            );
+            assertEquals(
+                entry.getValue(),
+                StringUtils.trimLeftWith(entry.getKey(), "112"),
+                format("trimLeftWith('%s', '%s')", entry.getKey(), "112")
+            );
+            assertEquals(
+                entry.getValue(),
+                StringUtils.trimLeftWith(entry.getKey(), "211"),
+                format("trimLeftWith('%s', '%s')", entry.getKey(), "211")
+            );
+            assertEquals(
+                entry.getValue(),
+                StringUtils.trimLeftWith(entry.getKey(), '1', '1', '2'),
+                format("trimLeftWith('%s', '%s')", entry.getKey(), "112")
+            );
+            assertEquals(
+                entry.getValue(),
+                StringUtils.trimLeftWith(entry.getKey(), '1', '2', '1', '2'),
+                format("trimLeftWith('%s', '%s')", entry.getKey(), "211")
+            );
+        }
+    }
+
+    @Test
+    void trimRightWith() {
+        val mapping = ImmutableMap.<String, String>builder()
+            .put("", "")
+            .put("1", "")
+            .put("12", "")
+            .put("21", "")
+            .put("1a", "1a")
+            .put("122a", "122a")
+            .put("211a", "211a")
+            .put("a1", "a")
+            .put("a122", "a")
+            .put("a211", "a")
+            .put("1a2", "1a")
+            .put("12a122", "12a")
+            .put("21a211", "21a")
+            .build();
+        for (val entry : mapping.entrySet()) {
+            assertEquals(
+                entry.getKey(),
+                StringUtils.trimRightWith(entry.getKey(), ""),
+                format("trimRightWith('%s', '%s')", entry.getKey(), "")
+            );
+            assertEquals(
+                entry.getValue(),
+                StringUtils.trimRightWith(entry.getKey(), "112"),
+                format("trimRightWith('%s', '%s')", entry.getKey(), "112")
+            );
+            assertEquals(
+                entry.getValue(),
+                StringUtils.trimRightWith(entry.getKey(), "211"),
+                format("trimRightWith('%s', '%s')", entry.getKey(), "211")
+            );
+            assertEquals(
+                entry.getValue(),
+                StringUtils.trimRightWith(entry.getKey(), '1', '1', '2'),
+                format("trimRightWith('%s', '%s')", entry.getKey(), "112")
+            );
+            assertEquals(
+                entry.getValue(),
+                StringUtils.trimRightWith(entry.getKey(), '1', '2', '1', '2'),
+                format("trimRightWith('%s', '%s')", entry.getKey(), "211")
+            );
+        }
     }
 
 }

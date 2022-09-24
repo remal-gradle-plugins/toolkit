@@ -4,6 +4,8 @@ import static lombok.AccessLevel.PRIVATE;
 
 import java.util.regex.Pattern;
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.val;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class StringUtils {
@@ -49,6 +51,144 @@ public abstract class StringUtils {
 
         return string;
     }
+
+
+    public static String trimWith(String string, CharPredicate charPredicate) {
+        if (string.isEmpty()) {
+            return "";
+        } else if (charPredicate == ALWAYS_FALSE_CHAR_PREDICATE) {
+            return string;
+        }
+
+        val startPos = calculateTrimmedStartPos(string, charPredicate);
+        if (startPos >= string.length()) {
+            return "";
+        }
+
+        val endPos = calculateTrimmedEndPos(string, charPredicate);
+
+        return string.substring(startPos, endPos + 1);
+    }
+
+    public static String trimWith(String string, char... charsToRemove) {
+        return trimWith(string, charPredicateOf(charsToRemove));
+    }
+
+    public static String trimWith(String string, CharSequence charsToRemove) {
+        return trimWith(string, charPredicateOf(charsToRemove));
+    }
+
+    public static String trimLeftWith(String string, CharPredicate charPredicate) {
+        if (string.isEmpty()) {
+            return "";
+        } else if (charPredicate == ALWAYS_FALSE_CHAR_PREDICATE) {
+            return string;
+        }
+
+        val startPos = calculateTrimmedStartPos(string, charPredicate);
+        if (startPos >= string.length()) {
+            return "";
+        }
+
+        val endPos = string.length() - 1;
+
+        return string.substring(startPos, endPos + 1);
+    }
+
+    public static String trimLeftWith(String string, char... charsToRemove) {
+        return trimLeftWith(string, charPredicateOf(charsToRemove));
+    }
+
+    public static String trimLeftWith(String string, CharSequence charsToRemove) {
+        return trimLeftWith(string, charPredicateOf(charsToRemove));
+    }
+
+    public static String trimRightWith(String string, CharPredicate charPredicate) {
+        if (string.isEmpty()) {
+            return "";
+        } else if (charPredicate == ALWAYS_FALSE_CHAR_PREDICATE) {
+            return string;
+        }
+
+        val startPos = 0;
+
+        val endPos = calculateTrimmedEndPos(string, charPredicate);
+        if (endPos < 0) {
+            return "";
+        }
+
+        return string.substring(startPos, endPos + 1);
+    }
+
+    public static String trimRightWith(String string, char... charsToRemove) {
+        return trimRightWith(string, charPredicateOf(charsToRemove));
+    }
+
+    public static String trimRightWith(String string, CharSequence charsToRemove) {
+        return trimRightWith(string, charPredicateOf(charsToRemove));
+    }
+
+    @SneakyThrows
+    private static int calculateTrimmedStartPos(String string, CharPredicate charPredicate) {
+        int startPos = 0;
+        for (; startPos < string.length(); ++startPos) {
+            val ch = string.charAt(startPos);
+            if (!charPredicate.test(ch)) {
+                break;
+            }
+        }
+        return startPos;
+    }
+
+    @SneakyThrows
+    private static int calculateTrimmedEndPos(String string, CharPredicate charPredicate) {
+        int endPos = string.length() - 1;
+        for (; 0 <= endPos; --endPos) {
+            val ch = string.charAt(endPos);
+            if (!charPredicate.test(ch)) {
+                break;
+            }
+        }
+        return endPos;
+    }
+
+    private static CharPredicate charPredicateOf(char... charsToRemove) {
+        if (charsToRemove.length == 0) {
+            return ALWAYS_FALSE_CHAR_PREDICATE;
+        }
+
+        return ch -> {
+            for (val charToRemove : charsToRemove) {
+                if (ch == charToRemove) {
+                    return true;
+                }
+            }
+            return false;
+        };
+    }
+
+    private static CharPredicate charPredicateOf(CharSequence charsToRemove) {
+        if (charsToRemove.length() == 0) {
+            return ALWAYS_FALSE_CHAR_PREDICATE;
+        }
+
+        return ch -> {
+            for (int i = 0; i < charsToRemove.length(); ++i) {
+                val charToRemove = charsToRemove.charAt(i);
+                if (ch == charToRemove) {
+                    return true;
+                }
+            }
+            return false;
+        };
+    }
+
+    @FunctionalInterface
+    public interface CharPredicate {
+        boolean test(char ch) throws Throwable;
+    }
+
+    private static final CharPredicate ALWAYS_FALSE_CHAR_PREDICATE = __ -> false;
 
 
     public static String escapeJava(String string) {
