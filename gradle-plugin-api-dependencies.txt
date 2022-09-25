@@ -13,10 +13,7 @@ name.remal:gradle-plugins-api:1.7.0
 name.remal:gradle-plugins:1.7.0
 net.ltgt.gradle:gradle-errorprone-plugin:2.0.2
 org.eclipse.jgit:org.eclipse.jgit:6.3.0.202209071007-r
-org.immutables:bom:2.9.2
-org.junit:junit-bom:5.9.1
 org.ow2.asm:asm-analysis:9.3
-org.ow2.asm:asm-bom:9.3
 org.ow2.asm:asm-commons:9.3
 org.ow2.asm:asm-tree:9.3
 org.ow2.asm:asm-util:9.3

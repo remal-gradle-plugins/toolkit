@@ -67,20 +67,28 @@ allprojects {
             conf.extendsFrom(configurations.indirectApi)
         }
 
-        Configuration gradlePluginPlatformApiDependenciesConf = configurations.create('gradlePluginPlatformApiDependencies') { Configuration conf ->
-            conf.extendsFrom(configurations.platformApi)
-        }
-
         tasks.register('collectGradlePluginApiDependencies') {
-            [
+            List<Configuration> inputConfs = [
                 gradlePluginApiDependenciesConf,
-                gradlePluginPlatformApiDependenciesConf,
-            ].forEach { inputConf ->
+            ]
+
+            inputConfs.forEach { inputConf ->
                 inputs.files(inputConf)
                     .optional()
                     .withNormalizer(ClasspathNormalizer)
                     .withPathSensitivity(PathSensitivity.RELATIVE)
                     .withPropertyName(inputConf.name)
+            }
+
+            onlyIf {
+                Collection<String> platformDependencyNotations = new TreeSet<String>()
+                inputConfs.forEach { Configuration inputConf ->
+                    inputConf.allDependencies.forEach { Dependency dep ->
+                        platformDependencyNotations.add("${dep.group}:${dep.name}:${dep.version}")
+                    }
+                }
+                inputs.property('platformDependencyNotations', platformDependencyNotations)
+                return true
             }
 
             File outputFile = project.file("${project.buildDir}/gradle-plugin-api-dependencies.txt")
@@ -134,15 +142,6 @@ allprojects {
                     .findAll { !isExcludedCategory(it) }
                     .findAll { !it.selected.selectionReason.expected }
                     .forEach { processResolvedDependency(it) }
-
-
-                gradlePluginPlatformApiDependenciesConf.incoming.resolutionResult
-                    .allDependencies
-                    .findAll { it instanceof ResolvedDependencyResult }
-                    .collect { (ResolvedDependencyResult) it }
-                    .findAll { isPlatformDependency(it) }
-                    .forEach { processResolvedDependency(it) }
-
 
                 outputFile.setText(dependencies.join('\n') + '\n', 'UTF-8')
             }

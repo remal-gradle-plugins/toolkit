@@ -39,15 +39,6 @@ allprojects {
             conf.description("Indirect API dependencies (form example: default dependencies for configurations that are created by the plugin)")
         }
 
-        configurations.create('platformApi') { Configuration conf ->
-            conf.description("Platform API dependencies (form example: 'org.junit:junit-bom:5.9.1')")
-            conf.allDependencies.all { Dependency dep ->
-                if (!isPlatformDependency(dep)) {
-                    throw new GradleException("Not a platform dependency: ${dep}")
-                }
-            }
-        }
-
         configurations.create('compileOnlyAll') { Configuration conf ->
             conf.description("Compile-only dependencies for all source-sets")
             sourceSets.all { SourceSet sourceSet ->
