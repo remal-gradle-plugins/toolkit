@@ -6,9 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
+import lombok.val;
 import org.gradle.api.Project;
-import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.SingleFileReport;
+import org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -19,15 +20,12 @@ class ReportUtilsTest {
 
 
     private final Project project;
-    private final SingleFileReport singleFileReport;
-    private final DirectoryReport directoryReport;
+    private final SingleFileReport report;
 
     public ReportUtilsTest(Project project) {
+        val reportTask = project.task("conventionTest");
         this.project = project;
-        this.singleFileReport = project.getTasks().create("checkstyle", org.gradle.api.plugins.quality.Checkstyle.class)
-            .getReports().getXml();
-        this.directoryReport = project.getTasks().create("test", org.gradle.api.tasks.testing.Test.class)
-            .getReports().getHtml();
+        this.report = project.getObjects().newInstance(TaskGeneratedSingleFileReport.class, "test", reportTask);
     }
 
 
@@ -35,27 +33,14 @@ class ReportUtilsTest {
     class IsRequired {
 
         @Test
-        void singleFile() {
-            ReportUtils.setReportEnabled(singleFileReport, true);
-            assertTrue(ReportUtils.isReportEnabled(singleFileReport));
+        void getAndSet() {
+            assertFalse(ReportUtils.isReportEnabled(report));
 
-            ReportUtils.setReportEnabled(singleFileReport, false);
-            assertFalse(ReportUtils.isReportEnabled(singleFileReport));
+            ReportUtils.setReportEnabled(report, true);
+            assertTrue(ReportUtils.isReportEnabled(report));
 
-            ReportUtils.setReportEnabled(singleFileReport, true);
-            assertTrue(ReportUtils.isReportEnabled(singleFileReport));
-        }
-
-        @Test
-        void directory() {
-            ReportUtils.setReportEnabled(directoryReport, true);
-            assertTrue(ReportUtils.isReportEnabled(directoryReport));
-
-            ReportUtils.setReportEnabled(directoryReport, false);
-            assertFalse(ReportUtils.isReportEnabled(directoryReport));
-
-            ReportUtils.setReportEnabled(directoryReport, true);
-            assertTrue(ReportUtils.isReportEnabled(directoryReport));
+            ReportUtils.setReportEnabled(report, false);
+            assertFalse(ReportUtils.isReportEnabled(report));
         }
 
     }
@@ -64,71 +49,32 @@ class ReportUtilsTest {
     @Nested
     class Destination {
 
-        @Nested
-        class ByProvider {
+        @Test
+        void getAndSet() {
+            assertNull(ReportUtils.getReportDestination(report));
 
-            @Test
-            void singleFile() {
-                assertNull(ReportUtils.getReportDestination(singleFileReport));
+            ReportUtils.setReportDestination(report, TEMP_FILE1);
+            assertEquals(TEMP_FILE1, ReportUtils.getReportDestination(report));
 
-                ReportUtils.setReportDestination(singleFileReport, project.provider(() -> TEMP_FILE1));
-                assertEquals(TEMP_FILE1, ReportUtils.getReportDestination(singleFileReport));
+            ReportUtils.setReportDestination(report, TEMP_FILE2);
+            assertEquals(TEMP_FILE2, ReportUtils.getReportDestination(report));
 
-                ReportUtils.setReportDestination(singleFileReport, project.provider(() -> TEMP_FILE2));
-                assertEquals(TEMP_FILE2, ReportUtils.getReportDestination(singleFileReport));
-
-                ReportUtils.setReportDestination(singleFileReport, project.provider(() -> TEMP_FILE1));
-                assertEquals(TEMP_FILE1, ReportUtils.getReportDestination(singleFileReport));
-            }
-
-            @Test
-            void directory() {
-                assertNull(ReportUtils.getReportDestination(directoryReport));
-
-                ReportUtils.setReportDestination(directoryReport, project.provider(() -> TEMP_FILE1));
-                assertEquals(TEMP_FILE1, ReportUtils.getReportDestination(directoryReport));
-
-                ReportUtils.setReportDestination(directoryReport, project.provider(() -> TEMP_FILE2));
-                assertEquals(TEMP_FILE2, ReportUtils.getReportDestination(directoryReport));
-
-                ReportUtils.setReportDestination(directoryReport, project.provider(() -> TEMP_FILE1));
-                assertEquals(TEMP_FILE1, ReportUtils.getReportDestination(directoryReport));
-            }
-
+            ReportUtils.setReportDestination(report, TEMP_FILE1);
+            assertEquals(TEMP_FILE1, ReportUtils.getReportDestination(report));
         }
 
+        @Test
+        void getAndSetProvider() {
+            assertNull(ReportUtils.getReportDestination(report));
 
-        @Nested
-        class ByFile {
+            ReportUtils.setReportDestination(report, project.provider(() -> TEMP_FILE1));
+            assertEquals(TEMP_FILE1, ReportUtils.getReportDestination(report));
 
-            @Test
-            void singleFile() {
-                assertNull(ReportUtils.getReportDestination(singleFileReport));
+            ReportUtils.setReportDestination(report, project.provider(() -> TEMP_FILE2));
+            assertEquals(TEMP_FILE2, ReportUtils.getReportDestination(report));
 
-                ReportUtils.setReportDestination(singleFileReport, TEMP_FILE1);
-                assertEquals(TEMP_FILE1, ReportUtils.getReportDestination(singleFileReport));
-
-                ReportUtils.setReportDestination(singleFileReport, TEMP_FILE2);
-                assertEquals(TEMP_FILE2, ReportUtils.getReportDestination(singleFileReport));
-
-                ReportUtils.setReportDestination(singleFileReport, TEMP_FILE1);
-                assertEquals(TEMP_FILE1, ReportUtils.getReportDestination(singleFileReport));
-            }
-
-            @Test
-            void directory() {
-                assertNull(ReportUtils.getReportDestination(directoryReport));
-
-                ReportUtils.setReportDestination(directoryReport, TEMP_FILE1);
-                assertEquals(TEMP_FILE1, ReportUtils.getReportDestination(directoryReport));
-
-                ReportUtils.setReportDestination(directoryReport, TEMP_FILE2);
-                assertEquals(TEMP_FILE2, ReportUtils.getReportDestination(directoryReport));
-
-                ReportUtils.setReportDestination(directoryReport, TEMP_FILE1);
-                assertEquals(TEMP_FILE1, ReportUtils.getReportDestination(directoryReport));
-            }
-
+            ReportUtils.setReportDestination(report, project.provider(() -> TEMP_FILE1));
+            assertEquals(TEMP_FILE1, ReportUtils.getReportDestination(report));
         }
 
     }

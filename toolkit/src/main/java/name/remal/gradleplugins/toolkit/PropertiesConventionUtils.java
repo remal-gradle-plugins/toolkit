@@ -7,6 +7,7 @@ import java.util.function.Function;
 import lombok.NoArgsConstructor;
 import lombok.val;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.provider.Provider;
 
 @ReliesOnInternalGradleApi
 @NoArgsConstructor(access = PRIVATE)
@@ -23,6 +24,14 @@ public abstract class PropertiesConventionUtils {
         val conventionAware = (IConventionAware) object;
         val conventionMapping = conventionAware.getConventionMapping();
         conventionMapping.map(propertyName, valueSupplier);
+    }
+
+    /**
+     * Specifies the value to use as the convention for this property.
+     * The convention is used when no value has been set for this property.
+     */
+    public static void setPropertyConvention(Object object, String propertyName, Provider<?> valueSupplier) {
+        setPropertyConvention(object, propertyName, (Callable<?>) valueSupplier::getOrNull);
     }
 
     /**
