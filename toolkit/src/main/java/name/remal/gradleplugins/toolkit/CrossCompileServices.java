@@ -9,8 +9,8 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
-import static name.remal.gradleplugins.toolkit.InputOutputStreamUtils.withOnClose;
 import static name.remal.gradleplugins.toolkit.PredicateUtils.not;
+import static name.remal.gradleplugins.toolkit.UrlUtils.openInputStreamForUrl;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.makeAccessible;
 import static org.objectweb.asm.ClassReader.SKIP_CODE;
 import static org.objectweb.asm.ClassReader.SKIP_DEBUG;
@@ -19,8 +19,6 @@ import static org.objectweb.asm.ClassReader.SKIP_FRAMES;
 import com.google.common.base.Splitter;
 import com.google.errorprone.annotations.MustBeClosed;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -261,7 +259,7 @@ public abstract class CrossCompileServices {
         val resourceUrls = service.getClassLoader().getResources(resourceName);
         while (resourceUrls.hasMoreElements()) {
             val resourceUrl = resourceUrls.nextElement();
-            try (val inputStream = openResource(resourceUrl)) {
+            try (val inputStream = openInputStreamForUrl(resourceUrl)) {
                 val contentBytes = toByteArray(inputStream);
                 val content = new String(contentBytes, UTF_8);
                 Splitter.onPattern("[\\r\\n]+").splitToStream(content)
@@ -281,20 +279,6 @@ public abstract class CrossCompileServices {
 
     @MustBeClosed
     @SneakyThrows
-    private static InputStream openResource(URL resourceUrl) {
-        val connection = resourceUrl.openConnection();
-        connection.setUseCaches(false);
-        connection.setConnectTimeout(5000);
-        connection.setReadTimeout(15000);
-        return withOnClose(connection.getInputStream(), __ -> {
-            if (connection instanceof HttpURLConnection) {
-                ((HttpURLConnection) connection).disconnect();
-            }
-        });
-    }
-
-    @MustBeClosed
-    @SneakyThrows
     private static InputStream openResource(Class<?> loadingClass, String resourceName) {
         val resourceUrl = loadingClass.getClassLoader().getResource(resourceName);
         if (resourceUrl == null) {
@@ -303,7 +287,7 @@ public abstract class CrossCompileServices {
                 resourceName
             );
         }
-        return openResource(resourceUrl);
+        return openInputStreamForUrl(resourceUrl);
     }
 
 

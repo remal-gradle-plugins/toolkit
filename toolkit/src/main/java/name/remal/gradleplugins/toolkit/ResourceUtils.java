@@ -1,16 +1,18 @@
 package name.remal.gradleplugins.toolkit;
 
-import static com.google.common.io.ByteStreams.toByteArray;
 import static java.lang.ClassLoader.getSystemClassLoader;
 import static lombok.AccessLevel.PRIVATE;
+import static name.remal.gradleplugins.toolkit.UrlUtils.openInputStreamForUrl;
+import static name.remal.gradleplugins.toolkit.UrlUtils.readBytesFromUrl;
+import static name.remal.gradleplugins.toolkit.UrlUtils.readStringFromUrl;
 import static name.remal.gradleplugins.toolkit.reflection.WhoCalledUtils.getCallingClass;
 
 import com.google.errorprone.annotations.MustBeClosed;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.charset.Charset;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.val;
 import org.intellij.lang.annotations.Language;
 
@@ -63,55 +65,69 @@ public abstract class ResourceUtils {
         return getResourceUrl(name, callingClass);
     }
 
+
     @MustBeClosed
-    @SneakyThrows
     public static InputStream openResource(@Language("file-reference") String name, Class<?> loadingClass) {
         val url = getResourceUrl(name, loadingClass);
-        val connection = url.openConnection();
-        connection.setUseCaches(false);
-        return connection.getInputStream();
+        return openInputStreamForUrl(url);
     }
 
     @MustBeClosed
-    @SneakyThrows
     public static InputStream openResource(@Language("file-reference") String name, @Nullable ClassLoader classLoader) {
         val url = getResourceUrl(name, classLoader);
-        val connection = url.openConnection();
-        connection.setUseCaches(false);
-        return connection.getInputStream();
+        return openInputStreamForUrl(url);
     }
 
     @MustBeClosed
-    @SneakyThrows
     public static InputStream openResource(@Language("file-reference") String name) {
         val callingClass = getCallingClass(2);
         val url = getResourceUrl(name, callingClass);
-        val connection = url.openConnection();
-        connection.setUseCaches(false);
-        return connection.getInputStream();
+        return openInputStreamForUrl(url);
     }
 
 
-    @SneakyThrows
     public static byte[] readResource(@Language("file-reference") String name, Class<?> loadingClass) {
-        try (val inputStream = openResource(name, loadingClass)) {
-            return toByteArray(inputStream);
-        }
+        val url = getResourceUrl(name, loadingClass);
+        return readBytesFromUrl(url);
     }
 
-    @SneakyThrows
     public static byte[] readResource(@Language("file-reference") String name, @Nullable ClassLoader classLoader) {
-        try (val inputStream = openResource(name, classLoader)) {
-            return toByteArray(inputStream);
-        }
+        val url = getResourceUrl(name, classLoader);
+        return readBytesFromUrl(url);
     }
 
-    @SneakyThrows
     public static byte[] readResource(@Language("file-reference") String name) {
         val callingClass = getCallingClass(2);
-        try (val inputStream = openResource(name, callingClass)) {
-            return toByteArray(inputStream);
-        }
+        val url = getResourceUrl(name, callingClass);
+        return readBytesFromUrl(url);
+    }
+
+
+    public static String readTextResource(
+        @Language("file-reference") String name,
+        Charset charset,
+        Class<?> loadingClass
+    ) {
+        val url = getResourceUrl(name, loadingClass);
+        return readStringFromUrl(url, charset);
+    }
+
+    public static String readTextResource(
+        @Language("file-reference") String name,
+        Charset charset,
+        @Nullable ClassLoader classLoader
+    ) {
+        val url = getResourceUrl(name, classLoader);
+        return readStringFromUrl(url, charset);
+    }
+
+    public static String readTextResource(
+        @Language("file-reference") String name,
+        Charset charset
+    ) {
+        val callingClass = getCallingClass(2);
+        val url = getResourceUrl(name, callingClass);
+        return readStringFromUrl(url, charset);
     }
 
 }
