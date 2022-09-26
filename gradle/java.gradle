@@ -213,9 +213,13 @@ allprojects {
             }
         }
 
-        tasks.withType(Javadoc) {
+        tasks.withType(Javadoc) { Javadoc task ->
+            exclude('**/*') // FIXME: remove this line as soon as Delomok is used
+
             options.addBooleanOption('Xdoclint:none', true)
-            if (JavaVersion.current().isJava9Compatible()) {
+
+            int languageVersion = javadocTool.getOrNull()?.metadata?.languageVersion?.asInt() ?: Integer.parseInt(JavaVersion.current().majorVersion)
+            if (languageVersion >= 9) {
                 options.addBooleanOption('html5', true)
             }
         }
