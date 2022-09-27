@@ -4,17 +4,27 @@ import static name.remal.gradleplugins.toolkit.issues.Utils.compareOptionals;
 
 import java.io.File;
 import java.util.Objects;
+import java.util.function.Consumer;
 import javax.annotation.Nullable;
+import lombok.val;
 import name.remal.gradleplugins.toolkit.issues.ImmutableIssue.IssueBuilder;
+import org.immutables.gson.Gson;
 import org.immutables.value.Value;
 import org.immutables.value.Value.Check;
 import org.jetbrains.annotations.ApiStatus.OverrideOnly;
 
 @Value.Immutable
+@Gson.TypeAdapters
 public interface Issue extends Comparable<Issue> {
 
     static IssueBuilder newIssueBuilder() {
         return ImmutableIssue.builder();
+    }
+
+    static Issue newIssue(Consumer<IssueBuilder> configurer) {
+        val builder = newIssueBuilder();
+        configurer.accept(builder);
+        return builder.build();
     }
 
 
