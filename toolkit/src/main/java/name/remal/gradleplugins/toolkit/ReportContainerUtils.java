@@ -58,6 +58,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -80,6 +81,7 @@ import org.gradle.api.reporting.ReportContainer;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.reporting.internal.TaskReportContainer;
+import org.gradle.api.tasks.Internal;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
@@ -107,8 +109,7 @@ public abstract class ReportContainerUtils {
 
 
     public static <
-        R extends Report,
-        C extends ReportContainer<R>,
+        C extends ReportContainer<?>,
         T extends Task & Reporting<C>
         > C createReportContainerFor(
         T task
@@ -118,7 +119,7 @@ public abstract class ReportContainerUtils {
     }
 
     @SuppressWarnings("unchecked")
-    public static <R extends Report, C extends ReportContainer<R>> C createReportContainerFor(
+    public static <C extends ReportContainer<?>> C createReportContainerFor(
         Task task,
         Class<C> reportContainerType
     ) {
@@ -336,6 +337,8 @@ public abstract class ReportContainerUtils {
             methodNode.maxStack = 1;
             classNode.methods.add(methodNode);
 
+            methodNode.visibleAnnotations = singletonList(new AnnotationNode(getClassDescriptor(Internal.class)));
+
             val instructions = methodNode.instructions = new InsnList();
             instructions.add(new LabelNode());
 
@@ -492,8 +495,7 @@ public abstract class ReportContainerUtils {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static <
-        R extends Report,
-        C extends ReportContainer<R>,
+        C extends ReportContainer<?>,
         T extends Task & Reporting<C>
         > Class<C> getReportContainerType(
         T task
@@ -546,22 +548,41 @@ public abstract class ReportContainerUtils {
         setTaskReportDestinationsAutomatically(task, allReports);
     }
 
+    public static <T extends Task & Reporting<?>> void setTaskReportDestinationsAutomatically(
+        T task,
+        Callable<File> baseReportsDirProvider
+    ) {
+        @SuppressWarnings("unchecked") val allReports = (ReportContainer<Report>) task.getReports();
+        setTaskReportDestinationsAutomatically(task, allReports, baseReportsDirProvider);
+    }
+
     public static <RC extends ReportContainer<?>> RC setTaskReportDestinationsAutomatically(
         Task task,
         RC allReports
     ) {
-        val taskTypeReportsDirName = getTaskTypeReportsDirName(task);
+        return setTaskReportDestinationsAutomatically(
+            task,
+            allReports,
+            () -> null
+        );
+    }
+
+    public static <RC extends ReportContainer<?>> RC setTaskReportDestinationsAutomatically(
+        Task task,
+        RC allReports,
+        Callable<File> baseReportsDirProvider
+    ) {
         val project = task.getProject();
         @SuppressWarnings("unchecked") val allReportsTyped = (ReportContainer<Report>) allReports;
         val configurableReports = allReportsTyped.withType(ConfigurableReport.class);
         configurableReports.configureEach(report -> {
             setReportDestination(report, project.provider(() -> {
-                val reportingExtension = findExtension(project, ReportingExtension.class);
-                val allReportsDir = reportingExtension != null
-                    ? reportingExtension.getBaseDir()
-                    : new File(project.getBuildDir(), DEFAULT_REPORTS_DIR_NAME);
-                val taskTypeReportsDir = new File(allReportsDir, taskTypeReportsDirName);
-                val taskReportsDir = new File(taskTypeReportsDir, task.getName());
+                File baseReportsDir = baseReportsDirProvider.call();
+                if (baseReportsDir == null) {
+                    baseReportsDir = getDefaultBaseReportsDirFor(task);
+                }
+
+                val taskReportsDir = new File(baseReportsDir, task.getName());
 
                 if (report.getOutputType() == DIRECTORY) {
                     return new File(taskReportsDir, report.getName());
@@ -573,6 +594,20 @@ public abstract class ReportContainerUtils {
             }));
         });
         return allReports;
+    }
+
+    private static File getDefaultBaseReportsDirFor(Task task) {
+        val project = task.getProject();
+        val reportingExtension = findExtension(project, ReportingExtension.class);
+
+        val allReportsDir = reportingExtension != null
+            ? reportingExtension.getBaseDir()
+            : new File(project.getBuildDir(), DEFAULT_REPORTS_DIR_NAME);
+
+        val taskTypeReportsDirName = getTaskTypeReportsDirName(task);
+        val taskTypeReportsDir = new File(allReportsDir, taskTypeReportsDirName);
+
+        return taskTypeReportsDir;
     }
 
     private static final List<String> TASK_TYPE_REPORTS_DIR_NAME_SUFFIXES_TO_REMOVE = ImmutableList.of(

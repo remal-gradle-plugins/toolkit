@@ -183,6 +183,7 @@ tasks.named('generateJava') {
             it.writeStaticImport('javax.annotation.meta.When', 'UNKNOWN')
             it.writeStaticImport('name.remal.gradleplugins.toolkit.reflection.ReflectionUtils', 'isStatic')
             it.println("")
+            it.writeImport('java.lang.reflect.InvocationTargetException')
             it.writeImport('java.lang.reflect.Method')
             it.writeImport('javax.annotation.Nonnull')
             it.writeImport('javax.annotation.Nullable')
@@ -202,7 +203,11 @@ tasks.named('generateJava') {
                 it.println("@SneakyThrows")
                 it.writeSuppressWarnings("unchecked")
                 it.writeBlock("public R invoke(T target${paramsCount == 0 ? '' : (1..paramsCount).collect { ", @Nullable P$it param$it" }.join("")})") {
-                    it.println("return (R) method.invoke(target${paramsCount == 0 ? '' : (1..paramsCount).collect { ", param$it" }.join("")});")
+                    it.println("try {")
+                    it.println("    return (R) method.invoke(target${paramsCount == 0 ? '' : (1..paramsCount).collect { ", param$it" }.join("")});")
+                    it.println("} catch (InvocationTargetException e) {")
+                    it.println("    throw e.getCause();")
+                    it.println("}")
                 }
             }
         }
@@ -212,6 +217,7 @@ tasks.named('generateJava') {
             it.println("")
             it.writeStaticImport('name.remal.gradleplugins.toolkit.reflection.ReflectionUtils', 'isStatic')
             it.println("")
+            it.writeImport('java.lang.reflect.InvocationTargetException')
             it.writeImport('java.lang.reflect.Method')
             it.writeImport('javax.annotation.Nullable')
             it.writeImport('lombok.SneakyThrows')
@@ -228,7 +234,11 @@ tasks.named('generateJava') {
                 it.println("")
                 it.println("@SneakyThrows")
                 it.writeBlock("public void invoke(T target${paramsCount == 0 ? '' : (1..paramsCount).collect { ", @Nullable P$it param$it" }.join("")})") {
-                    it.println("method.invoke(target${paramsCount == 0 ? '' : (1..paramsCount).collect { ", param$it" }.join("")});")
+                    it.println("try {")
+                    it.println("    method.invoke(target${paramsCount == 0 ? '' : (1..paramsCount).collect { ", param$it" }.join("")});")
+                    it.println("} catch (InvocationTargetException e) {")
+                    it.println("    throw e.getCause();")
+                    it.println("}")
                 }
             }
         }
@@ -239,6 +249,7 @@ tasks.named('generateJava') {
             it.writeStaticImport('javax.annotation.meta.When', 'UNKNOWN')
             it.writeStaticImport('name.remal.gradleplugins.toolkit.reflection.ReflectionUtils', 'isNotStatic')
             it.println("")
+            it.writeImport('java.lang.reflect.InvocationTargetException')
             it.writeImport('java.lang.reflect.Method')
             it.writeImport('javax.annotation.Nonnull')
             it.writeImport('javax.annotation.Nullable')
@@ -258,7 +269,11 @@ tasks.named('generateJava') {
                 it.println("@SneakyThrows")
                 it.writeSuppressWarnings("unchecked")
                 it.writeBlock("public R invoke(${paramsCount == 0 ? '' : (1..paramsCount).collect { "@Nullable P$it param$it" }.join(", ")})") {
-                    it.println("return (R) method.invoke(null${paramsCount == 0 ? '' : (1..paramsCount).collect { ", param$it" }.join("")});")
+                    it.println("try {")
+                    it.println("    return (R) method.invoke(null${paramsCount == 0 ? '' : (1..paramsCount).collect { ", param$it" }.join("")});")
+                    it.println("} catch (InvocationTargetException e) {")
+                    it.println("    throw e.getCause();")
+                    it.println("}")
                 }
             }
         }
@@ -268,6 +283,7 @@ tasks.named('generateJava') {
             it.println("")
             it.writeStaticImport('name.remal.gradleplugins.toolkit.reflection.ReflectionUtils', 'isNotStatic')
             it.println("")
+            it.writeImport('java.lang.reflect.InvocationTargetException')
             it.writeImport('java.lang.reflect.Method')
             it.writeImport('javax.annotation.Nullable')
             it.writeImport('lombok.SneakyThrows')
@@ -284,7 +300,11 @@ tasks.named('generateJava') {
                 it.println("")
                 it.println("@SneakyThrows")
                 it.writeBlock("public void invoke(${paramsCount == 0 ? '' : (1..paramsCount).collect { "@Nullable P$it param$it" }.join(", ")})") {
-                    it.println("method.invoke(null${paramsCount == 0 ? '' : (1..paramsCount).collect { ", param$it" }.join("")});")
+                    it.println("try {")
+                    it.println("    method.invoke(null${paramsCount == 0 ? '' : (1..paramsCount).collect { ", param$it" }.join("")});")
+                    it.println("} catch (InvocationTargetException e) {")
+                    it.println("    throw e.getCause();")
+                    it.println("}")
                 }
             }
         }

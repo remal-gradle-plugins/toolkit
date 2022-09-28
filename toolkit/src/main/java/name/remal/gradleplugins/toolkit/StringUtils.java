@@ -38,16 +38,29 @@ public abstract class StringUtils {
         return string;
     }
 
-    private static final String INDENT = "  ";
     private static final Pattern INDENT_NEXT_LINE = Pattern.compile("\\n([^\\n])");
 
     public static String indentString(String string) {
+        return indentString(string, 2);
+    }
+
+    public static String indentString(String string, int indentSize) {
         string = normalizeString(string);
         if (string.isEmpty()) {
             return "";
         }
 
-        string = INDENT + INDENT_NEXT_LINE.matcher(string).replaceAll("\n" + INDENT + "$1");
+        if (indentSize <= 0) {
+            return string;
+        }
+
+        val indentBuilder = new StringBuilder(indentSize);
+        for (int n = 1; n <= indentSize; ++n) {
+            indentBuilder.append(' ');
+        }
+        val indent = indentBuilder.toString();
+
+        string = indent + INDENT_NEXT_LINE.matcher(string).replaceAll("\n" + indent + "$1");
 
         return string;
     }

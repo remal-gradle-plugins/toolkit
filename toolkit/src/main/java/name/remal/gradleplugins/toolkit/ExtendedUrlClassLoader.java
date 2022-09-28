@@ -17,7 +17,7 @@ import lombok.val;
 public class ExtendedUrlClassLoader extends URLClassLoader {
 
     public enum LoadingOrder {
-        PARENT_FIRST, THIS_FIRST, PARENT_ONLY, THIS_ONLY
+        PARENT_FIRST, SELF_FIRST, PARENT_ONLY, SELF_ONLY
     }
 
     @FunctionalInterface
@@ -106,7 +106,7 @@ public class ExtendedUrlClassLoader extends URLClassLoader {
                             loadedClass = findClassOrNull(className);
                         }
                         break;
-                    case THIS_FIRST:
+                    case SELF_FIRST:
                         loadedClass = findClassOrNull(className);
                         if (loadedClass == null) {
                             loadedClass = findParentClassOrNull(className);
@@ -115,7 +115,7 @@ public class ExtendedUrlClassLoader extends URLClassLoader {
                     case PARENT_ONLY:
                         loadedClass = findParentClassOrNull(className);
                         break;
-                    case THIS_ONLY:
+                    case SELF_ONLY:
                         loadedClass = findClassOrNull(className);
                         break;
                     default:
@@ -184,7 +184,7 @@ public class ExtendedUrlClassLoader extends URLClassLoader {
                     result = findResource(resourceName);
                 }
                 break;
-            case THIS_FIRST:
+            case SELF_FIRST:
                 result = findResource(resourceName);
                 if (result == null) {
                     result = getResourceFromParent(resourceName);
@@ -193,7 +193,7 @@ public class ExtendedUrlClassLoader extends URLClassLoader {
             case PARENT_ONLY:
                 result = getResourceFromParent(resourceName);
                 break;
-            case THIS_ONLY:
+            case SELF_ONLY:
                 result = findResource(resourceName);
                 break;
             default:
@@ -226,14 +226,14 @@ public class ExtendedUrlClassLoader extends URLClassLoader {
                     getResourcesFromParent(resourceName),
                     findResources(resourceName)
                 );
-            case THIS_FIRST:
+            case SELF_FIRST:
                 return compoundEnumeration(
                     findResources(resourceName),
                     getResourcesFromParent(resourceName)
                 );
             case PARENT_ONLY:
                 return getResourcesFromParent(resourceName);
-            case THIS_ONLY:
+            case SELF_ONLY:
                 return findResources(resourceName);
             default:
                 throw new IllegalStateException(format(

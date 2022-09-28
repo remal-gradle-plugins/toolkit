@@ -9,9 +9,10 @@ import static java.util.jar.JarFile.MANIFEST_NAME;
 import static java.util.stream.Collectors.toList;
 import static name.remal.gradleplugins.toolkit.ExtendedUrlClassLoader.LoadingOrder.PARENT_FIRST;
 import static name.remal.gradleplugins.toolkit.ExtendedUrlClassLoader.LoadingOrder.PARENT_ONLY;
-import static name.remal.gradleplugins.toolkit.ExtendedUrlClassLoader.LoadingOrder.THIS_FIRST;
-import static name.remal.gradleplugins.toolkit.ExtendedUrlClassLoader.LoadingOrder.THIS_ONLY;
+import static name.remal.gradleplugins.toolkit.ExtendedUrlClassLoader.LoadingOrder.SELF_FIRST;
+import static name.remal.gradleplugins.toolkit.ExtendedUrlClassLoader.LoadingOrder.SELF_ONLY;
 import static name.remal.gradleplugins.toolkit.PathUtils.tryToDeleteRecursively;
+import static name.remal.gradleplugins.toolkit.UrlUtils.openInputStreamForUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -73,9 +74,9 @@ class ExtendedUrlClassLoaderTest {
     }
 
     @Test
-    void testThisFirstLoadClass() throws Exception {
+    void testSelfFirstLoadClass() throws Exception {
         try (val parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
-            try (val classLoader = new ExtendedUrlClassLoader(THIS_FIRST, classLoaderFileUrls, parentClassLoader)) {
+            try (val classLoader = new ExtendedUrlClassLoader(SELF_FIRST, classLoaderFileUrls, parentClassLoader)) {
                 assertSame(
                     String.class.getClassLoader(),
                     classLoader.loadClass(String.class.getName()).getClassLoader()
@@ -111,9 +112,9 @@ class ExtendedUrlClassLoaderTest {
     }
 
     @Test
-    void testThisOnlyLoadClass() throws Exception {
+    void testSelfOnlyLoadClass() throws Exception {
         try (val parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
-            try (val classLoader = new ExtendedUrlClassLoader(THIS_ONLY, classLoaderFileUrls, parentClassLoader)) {
+            try (val classLoader = new ExtendedUrlClassLoader(SELF_ONLY, classLoaderFileUrls, parentClassLoader)) {
                 assertSame(
                     String.class.getClassLoader(),
                     classLoader.loadClass(String.class.getName()).getClassLoader()
@@ -155,9 +156,9 @@ class ExtendedUrlClassLoaderTest {
     }
 
     @Test
-    void testThisFirstGetResource() throws Exception {
+    void testSelfFirstGetResource() throws Exception {
         try (val parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
-            try (val classLoader = new ExtendedUrlClassLoader(THIS_FIRST, classLoaderFileUrls, parentClassLoader)) {
+            try (val classLoader = new ExtendedUrlClassLoader(SELF_FIRST, classLoaderFileUrls, parentClassLoader)) {
                 assertThat(classLoader.getResource(TEST_CLASS_RESOURCE_NAME))
                     .isNotNull()
                     .asString()
@@ -193,9 +194,9 @@ class ExtendedUrlClassLoaderTest {
     }
 
     @Test
-    void testThisOnlyGetResource() throws Exception {
+    void testSelfOnlyGetResource() throws Exception {
         try (val parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
-            try (val classLoader = new ExtendedUrlClassLoader(THIS_ONLY, classLoaderFileUrls, parentClassLoader)) {
+            try (val classLoader = new ExtendedUrlClassLoader(SELF_ONLY, classLoaderFileUrls, parentClassLoader)) {
                 assertThat(classLoader.getResource(TEST_CLASS_RESOURCE_NAME))
                     .isNotNull()
                     .asString()
@@ -241,9 +242,9 @@ class ExtendedUrlClassLoaderTest {
     }
 
     @Test
-    void testThisFirstGetResources() throws Exception {
+    void testSelfFirstGetResources() throws Exception {
         try (val parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
-            try (val classLoader = new ExtendedUrlClassLoader(THIS_FIRST, classLoaderFileUrls, parentClassLoader)) {
+            try (val classLoader = new ExtendedUrlClassLoader(SELF_FIRST, classLoaderFileUrls, parentClassLoader)) {
                 val manifests = list(classLoader.getResources(MANIFEST_NAME)).stream()
                     .map(ExtendedUrlClassLoaderTest::readManifest)
                     .collect(toList());
@@ -299,9 +300,9 @@ class ExtendedUrlClassLoaderTest {
     }
 
     @Test
-    void testThisOnlyGetResources() throws Exception {
+    void testSelfOnlyGetResources() throws Exception {
         try (val parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
-            try (val classLoader = new ExtendedUrlClassLoader(THIS_ONLY, classLoaderFileUrls, parentClassLoader)) {
+            try (val classLoader = new ExtendedUrlClassLoader(SELF_ONLY, classLoaderFileUrls, parentClassLoader)) {
                 val manifests = list(classLoader.getResources(MANIFEST_NAME)).stream()
                     .map(ExtendedUrlClassLoaderTest::readManifest)
                     .collect(toList());
@@ -383,7 +384,9 @@ class ExtendedUrlClassLoaderTest {
 
     @SneakyThrows
     private static Manifest readManifest(URL url) {
-        return new Manifest(url.openStream());
+        try (val inputStream = openInputStreamForUrl(url)) {
+            return new Manifest(inputStream);
+        }
     }
 
     private static <T> int indexOf(List<T> list, Predicate<T> predicate) {

@@ -87,12 +87,6 @@ allprojects {
         dependencies {
             optional 'name.remal.gradle-api:gradle-api'
 
-            annotationProcessorAll 'com.google.auto.service:auto-service'
-            compileOnlyAll 'com.google.auto.service:auto-service-annotations'
-            annotationProcessorAll 'org.immutables:value'
-            compileOnlyAll 'org.immutables:value-annotations'
-            compileOnlyAll 'org.immutables:builder'
-
             relocateClasses 'org.apache.commons:commons-lang3'
             relocateClasses 'org.apache.commons:commons-text'
             relocateClasses 'com.google.guava:guava'

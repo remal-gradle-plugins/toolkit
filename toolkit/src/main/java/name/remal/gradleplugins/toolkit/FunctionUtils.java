@@ -1,6 +1,7 @@
 package name.remal.gradleplugins.toolkit;
 
 import static lombok.AccessLevel.PRIVATE;
+import static name.remal.gradleplugins.toolkit.StringUtils.indentString;
 import static name.remal.gradleplugins.toolkit.StringUtils.trimLeftWith;
 import static name.remal.gradleplugins.toolkit.StringUtils.trimRightWith;
 import static name.remal.gradleplugins.toolkit.StringUtils.trimWith;
@@ -11,6 +12,11 @@ import name.remal.gradleplugins.toolkit.StringUtils.CharPredicate;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class FunctionUtils {
+
+    public static Function<String, String> toIndentedString(int indent) {
+        return string -> indentString(string, indent);
+    }
+
 
     public static Function<String, String> toTrimmedWith(CharPredicate charPredicate) {
         return string -> trimWith(string, charPredicate);

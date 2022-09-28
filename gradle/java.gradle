@@ -91,6 +91,12 @@ allprojects {
             compileOnlyAll 'name.remal:gradle-plugins-api'
 
             apt 'org.projectlombok:lombok'
+            annotationProcessorAll 'com.google.auto.service:auto-service'
+            compileOnlyAll 'com.google.auto.service:auto-service-annotations'
+            annotationProcessorAll 'org.immutables:value'
+            compileOnlyAll 'org.immutables:value-annotations'
+            compileOnlyAll 'org.immutables:builder'
+            compileOnlyAll 'org.immutables:gson'
 
 
             testImplementation 'org.junit.jupiter:junit-jupiter-api'
