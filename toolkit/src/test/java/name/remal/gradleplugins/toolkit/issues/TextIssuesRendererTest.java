@@ -22,7 +22,7 @@ class TextIssuesRendererTest {
             .message(textMessageOf("message"))
             .build();
         assertEquals(
-            format("%s\n  message", issue.getSourceFile().getAbsolutePath()),
+            format("%s: message", issue.getSourceFile().getAbsolutePath()),
             renderer.renderIssues(singletonList(issue))
         );
     }
@@ -43,7 +43,7 @@ class TextIssuesRendererTest {
             .build();
         assertEquals(
             format(
-                "WARNING: [category | rule] %s:12:23\n  message\n\n  description",
+                "WARNING: [category | rule] %s:12:23: message\n\n  description",
                 issue.getSourceFile().getAbsolutePath()
             ),
             renderer.renderIssues(singletonList(issue))

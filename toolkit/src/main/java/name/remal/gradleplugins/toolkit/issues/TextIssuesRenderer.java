@@ -2,6 +2,7 @@ package name.remal.gradleplugins.toolkit.issues;
 
 import static java.util.stream.Collectors.joining;
 import static name.remal.gradleplugins.toolkit.StringUtils.indentString;
+import static name.remal.gradleplugins.toolkit.StringUtils.normalizeString;
 import static name.remal.gradleplugins.toolkit.issues.Utils.appendDelimiter;
 import static name.remal.gradleplugins.toolkit.issues.Utils.ifPresent;
 import static name.remal.gradleplugins.toolkit.issues.Utils.streamIssues;
@@ -36,7 +37,11 @@ public class TextIssuesRenderer implements IssuesRenderer {
 
                 val messageText = messageToText(issue.getMessage());
                 if (!messageText.isEmpty()) {
-                    sb.append('\n').append(indentString(messageText));
+                    if (messageText.contains("\n")) {
+                        sb.append('\n').append(indentString(messageText));
+                    } else {
+                        sb.append(": ").append(messageText);
+                    }
                 }
 
                 val descriptionText = messageToText(issue.getDescription());
@@ -54,7 +59,7 @@ public class TextIssuesRenderer implements IssuesRenderer {
 
     @Language("TEXT")
     private static String messageToText(@Nullable Message message) {
-        return message != null ? message.renderAsText() : "";
+        return message != null ? normalizeString(message.renderAsText()) : "";
     }
 
 }
