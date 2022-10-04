@@ -48,7 +48,7 @@ allprojects {
         }
 
         afterEvaluate {
-            if (pluginManager.hasPlugin('java-library')
+            if (pluginManager.hasPlugin('java')
                 && !pluginManager.hasPlugin('com.gradle.plugin-publish')
             ) {
                 java {

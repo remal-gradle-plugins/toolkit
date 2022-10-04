@@ -133,6 +133,7 @@ allprojects {
         tasks.matching({ it instanceof HasCompileOptions }).configureEach { HasCompileOptions task ->
             task.options.with {
                 it.fork = false
+                it.incremental = false
                 it.encoding = 'UTF-8'
                 it.deprecation = true
                 it.compilerArgs.addAll(
