@@ -24,10 +24,14 @@ idea.project {
 }
 
 ideaSettings {
-  nullability {
-    defaultNotNullAnnotation = 'javax.annotation.Nonnull'
-    defaultNullableAnnotation = 'javax.annotation.Nullable'
-  }
+    nullability {
+        defaultNotNullAnnotation = 'javax.annotation.Nonnull'
+        defaultNullableAnnotation = 'javax.annotation.Nullable'
+    }
+    runOnSave {
+        reformatMode = 'WHOLE_FILE'
+        optimizeImports = true
+    }
 }
 
 allprojects {
