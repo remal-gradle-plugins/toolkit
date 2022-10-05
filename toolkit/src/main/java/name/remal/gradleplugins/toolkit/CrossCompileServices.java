@@ -1,6 +1,5 @@
 package name.remal.gradleplugins.toolkit;
 
-import static com.google.common.io.ByteStreams.toByteArray;
 import static java.lang.Math.toIntExact;
 import static java.lang.String.format;
 import static java.lang.String.join;
@@ -10,15 +9,14 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradleplugins.toolkit.PredicateUtils.not;
-import static name.remal.gradleplugins.toolkit.UrlUtils.openInputStreamForUrl;
+import static name.remal.gradleplugins.toolkit.ResourceUtils.readResource;
+import static name.remal.gradleplugins.toolkit.UrlUtils.readStringFromUrl;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.makeAccessible;
 import static org.objectweb.asm.ClassReader.SKIP_CODE;
 import static org.objectweb.asm.ClassReader.SKIP_DEBUG;
 import static org.objectweb.asm.ClassReader.SKIP_FRAMES;
 
 import com.google.common.base.Splitter;
-import com.google.errorprone.annotations.MustBeClosed;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -43,9 +41,16 @@ import org.objectweb.asm.tree.ClassNode;
 @CustomLog
 public abstract class CrossCompileServices {
 
+    public static synchronized <T> T loadCrossCompileService(Class<T> service) {
+        return loadCrossCompileService(service, null);
+    }
+
     @SneakyThrows
     @SuppressWarnings("java:S3776")
-    public static synchronized <T> T loadCrossCompileService(Class<T> service) {
+    public static synchronized <T> T loadCrossCompileService(
+        Class<T> service,
+        @Nullable CrossCompileVersionComparator dependencyVersionComparator
+    ) {
         val implClassNames = getImplClassNames(service);
         val dependencyVersions = parseDependencyVersions(service, implClassNames);
 
@@ -88,9 +93,20 @@ public abstract class CrossCompileServices {
             }
         }
 
+        if (dependencyVersionComparator == null) {
+            dependencyVersionComparator = DEFAULT_VERSION_COMPARATOR;
+        } else {
+            dependencyVersionComparator = dependencyVersionComparator.then(DEFAULT_VERSION_COMPARATOR);
+        }
+
         String implClassName = fallbackImplClassName;
         for (val dependencyVersionEntry : dependencyVersions.entrySet()) {
-            if (isActive(dependencyVersionEntry.getKey(), dependencyVersionEntry.getValue())) {
+            val isActive = isActive(
+                dependencyVersionEntry.getKey(),
+                dependencyVersionEntry.getValue(),
+                dependencyVersionComparator
+            );
+            if (isActive) {
                 implClassName = dependencyVersionEntry.getKey();
                 break;
             }
@@ -103,19 +119,13 @@ public abstract class CrossCompileServices {
         return service.cast(impl);
     }
 
-
     @SuppressWarnings("UnstableApiUsage")
-    private static boolean isActive(String className, CrossCompileServiceDependencyVersion dependencyVersion) {
-        val dependency = requireNonNull(dependencyVersion.getDependency());
-        val version = requireNonNull(dependencyVersion.getVersion()).withoutSuffix();
-        val earlierIncluded = dependencyVersion.isEarlierIncluded();
-        val selfIncluded = dependencyVersion.isSelfIncluded();
-        val laterIncluded = dependencyVersion.isLaterIncluded();
-        final int comparisonResult;
+    private static final CrossCompileVersionComparator DEFAULT_VERSION_COMPARATOR = (dependency, versionString) -> {
+        val version = Version.parse(versionString);
         if (dependency.equals("java")) {
             val requiredMajorVersion = toIntExact(version.getNumber(0));
             val currentMajorVersion = Integer.parseInt(JavaVersion.current().getMajorVersion());
-            comparisonResult = Integer.compare(requiredMajorVersion, currentMajorVersion);
+            return Integer.compare(requiredMajorVersion, currentMajorVersion);
 
         } else if (dependency.equals("gradle")) {
             val currentVersionString = GradleVersion.current().getBaseVersion().getVersion();
@@ -123,9 +133,26 @@ public abstract class CrossCompileServices {
                 .limit(version.getNumbersCount())
                 .collect(joining("."));
             val currentVersion = Version.parse(currentVersionStringNormalized);
-            comparisonResult = version.compareTo(currentVersion);
+            return version.compareTo(currentVersion);
 
         } else {
+            return null;
+        }
+    };
+
+    @SneakyThrows
+    private static boolean isActive(
+        String className,
+        CrossCompileServiceDependencyVersion dependencyVersion,
+        CrossCompileVersionComparator dependencyVersionComparator
+    ) {
+        val dependency = requireNonNull(dependencyVersion.getDependency());
+        val version = requireNonNull(dependencyVersion.getVersion()).withoutSuffix();
+        val earlierIncluded = dependencyVersion.isEarlierIncluded();
+        val selfIncluded = dependencyVersion.isSelfIncluded();
+        val laterIncluded = dependencyVersion.isLaterIncluded();
+        val comparisonResult = dependencyVersionComparator.compareVersion(dependency, version.toString());
+        if (comparisonResult == null) {
             logger.error("Unsupported cross-compile dependency for {}: {}", className, dependencyVersion);
             return false;
         }
@@ -153,9 +180,13 @@ public abstract class CrossCompileServices {
         Map<String, CrossCompileServiceDependencyVersion> versionInfos = new LinkedHashMap<>();
         for (val implClassName : implClassNames) {
             final byte[] implClassBytecode;
-            try (val inputStream = openResource(loadingClass, implClassName.replace('.', '/') + ".class")) {
-                implClassBytecode = toByteArray(inputStream);
-            } catch (ResourceNotFoundException e) {
+            try {
+                //noinspection InjectedReferences
+                implClassBytecode = readResource(
+                    implClassName.replace('.', '/') + ".class",
+                    loadingClass.getClassLoader()
+                );
+            } catch (ResourceNotFoundException ignored) {
                 logger.error("Cross-compile implementation not found: {}", implClassName);
                 continue;
             }
@@ -259,35 +290,18 @@ public abstract class CrossCompileServices {
         val resourceUrls = service.getClassLoader().getResources(resourceName);
         while (resourceUrls.hasMoreElements()) {
             val resourceUrl = resourceUrls.nextElement();
-            try (val inputStream = openInputStreamForUrl(resourceUrl)) {
-                val contentBytes = toByteArray(inputStream);
-                val content = new String(contentBytes, UTF_8);
-                Splitter.onPattern("[\\r\\n]+").splitToStream(content)
-                    .map(line -> {
-                        val commentPos = line.indexOf('#');
-                        return commentPos >= 0 ? line.substring(0, commentPos) : line;
-                    })
-                    .map(String::trim)
-                    .filter(not(String::isEmpty))
-                    .forEach(implClassNames::add);
-            }
+            val content = readStringFromUrl(resourceUrl, UTF_8);
+            Splitter.onPattern("[\\r\\n]+").splitToStream(content)
+                .map(line -> {
+                    val commentPos = line.indexOf('#');
+                    return commentPos >= 0 ? line.substring(0, commentPos) : line;
+                })
+                .map(String::trim)
+                .filter(not(String::isEmpty))
+                .forEach(implClassNames::add);
         }
 
         return implClassNames;
-    }
-
-
-    @MustBeClosed
-    @SneakyThrows
-    private static InputStream openResource(Class<?> loadingClass, String resourceName) {
-        val resourceUrl = loadingClass.getClassLoader().getResource(resourceName);
-        if (resourceUrl == null) {
-            throw new ResourceNotFoundException(
-                loadingClass,
-                resourceName
-            );
-        }
-        return openInputStreamForUrl(resourceUrl);
     }
 
 
@@ -296,7 +310,8 @@ public abstract class CrossCompileServices {
     @SneakyThrows
     private static int getAsmApi() {
         val field = ClassVisitor.class.getDeclaredField("api");
-        return makeAccessible(field).getInt(new ClassNode());
+        makeAccessible(field);
+        return field.getInt(new ClassNode());
     }
 
 }
