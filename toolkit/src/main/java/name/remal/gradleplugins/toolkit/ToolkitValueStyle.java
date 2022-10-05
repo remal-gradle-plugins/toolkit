@@ -2,7 +2,7 @@ package name.remal.gradleplugins.toolkit;
 
 import static java.lang.annotation.ElementType.PACKAGE;
 import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.SOURCE;
+import static java.lang.annotation.RetentionPolicy.CLASS;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
@@ -15,7 +15,7 @@ import org.immutables.value.Value.Style.BuilderVisibility;
 import org.immutables.value.Value.Style.ImplementationVisibility;
 
 @Target({TYPE, PACKAGE})
-@Retention(SOURCE)
+@Retention(CLASS)
 @Value.Style(
     defaults = @Value.Immutable(
         copy = false

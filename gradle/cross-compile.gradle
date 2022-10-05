@@ -57,8 +57,12 @@ allprojects {
             crossCompileProject.apply plugin: 'name.remal.test-source-sets'
 
             tasks.named('classes') { dependsOn(project.provider { crossCompileProject.tasks.classes }) }
-            sourceSets.main.allSource.srcDirs(project.provider { crossCompileProject.sourceSets.main.allSource.srcDirs })
-            sourceSets.main.output.dir(project.provider { crossCompileProject.sourceSets.main.output })
+            tasks.named('jar') { filesMatching('**/package-info.class') { duplicatesStrategy(DuplicatesStrategy.EXCLUDE) } }
+            tasks.matching { it.name == 'sourcesJar' }.configureEach { filesMatching('**/package-info.java') { duplicatesStrategy(DuplicatesStrategy.EXCLUDE) } }
+            afterEvaluate {
+                sourceSets.main.allSource.srcDirs(project.provider { crossCompileProject.sourceSets.main.allSource.srcDirs })
+                sourceSets.main.output.dir(project.provider { crossCompileProject.sourceSets.main.output })
+            }
 
             ; [
                 'classes',
@@ -79,15 +83,6 @@ allprojects {
                     if (![REGULAR_PLATFORM, ENFORCED_PLATFORM, DOCUMENTATION, VERIFICATION].contains(category)) {
                         throw new GradleException("Can't add ${dependency} dependcency to cross-compile project $crossCompileProject '$confName' configuration, as this configuration can't have dependencies")
                     }
-                }
-            }
-
-            crossCompileProject.tasks.matching { isVerificationTask(it) }.all { disableTask(it) }
-            crossCompileProject.testSourceSets.all { SourceSet sourceSet ->
-                crossCompileProject.allSourceSetConfigurations(sourceSet) { Configuration conf ->
-                    conf.extendsFrom = []
-                    conf.dependencies.all { conf.dependencies.remove(it) }
-                    conf.dependencyConstraints.all { conf.dependencyConstraints.remove(it) }
                 }
             }
 
@@ -126,14 +121,17 @@ allprojects {
                         }
                     }
 
-                    configurations.all { Configuration conf ->
-                        conf.dependencies.removeIf { Dependency dep ->
-                            dep.group?.startsWith('name.remal.gradle-api:')
+                    crossCompileProject.configurations.matching { it.name != 'optionalHidden' }.all { Configuration conf ->
+                        conf.dependencies.all { Dependency dep ->
+                            if (dep.group == 'name.remal.gradle-api') {
+                                conf.dependencies.remove(dep)
+                            }
                         }
                     }
 
                     crossCompileProject.dependencies {
-                        compileOnlyHidden 'name.remal.gradle-api:gradle-api'
+                        optionalHidden 'name.remal.gradle-api:gradle-api'
+                        optionalHidden 'name.remal.gradle-api:gradle-test-kit'
 
                         constraints {
                             projectDependencyConstraints "name.remal.gradle-api:local-groovy:${gradleVersion.version}"

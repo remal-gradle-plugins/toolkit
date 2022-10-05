@@ -57,10 +57,19 @@ allprojects {
             }
         }
 
-        configurations.create('compileOnlyHidden') { Configuration conf ->
-            conf.description("Compile-only dependencies hidden from IDE")
-            //configurations.compileOnly.extendsFrom(conf)
+        configurations.create('optionalHidden') { Configuration conf ->
+            conf.description("Optional dependencies hidden from IDE")
+
             tasks.withType(AbstractCompile).configureEach {
+                onlyIf {
+                    if (!conf.allDependencies.isEmpty()) {
+                        classpath = conf + classpath
+                    }
+                    return true
+                }
+            }
+
+            tasks.withType(Test).configureEach {
                 onlyIf {
                     if (!conf.allDependencies.isEmpty()) {
                         classpath = conf + classpath
