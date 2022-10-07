@@ -6,6 +6,8 @@ import static org.gradle.api.attributes.Category.VERIFICATION
 
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
 import org.gradle.util.GradleVersion
 import org.json.JSONArray
 import org.json.JSONObject
@@ -26,149 +28,176 @@ buildscript {
 
 Object MUTEX = new Object[0]
 
+project.ext.disableTask = { Task task ->
+    task.enabled = false
+    task.onlyIf { false }
+    task.dependsOn = []
+    Iterator registeredFileProperties = task.inputs.registeredFileProperties.iterator()
+    while (registeredFileProperties.hasNext()) {
+        registeredFileProperties.next()
+        registeredFileProperties.remove()
+    }
+}
+
+project.ext.isVerificationTask = { Task task ->
+    if (task instanceof AbstractTestTask) {
+        return true
+    }
+    if (task instanceof VerificationTask) {
+        return true
+    }
+    if (task instanceof ValidatePlugins) {
+        return true
+    }
+    return false
+}
+
+
+List<Method> sourceSetGetConfigurationNameMethods = SourceSet.getMethods().findAll {
+    it.name.startsWith('get')
+        && it.name.endsWith('ConfigurationName')
+        && it.returnType == String
+        && it.parameterCount == 0
+        && !Modifier.isStatic(it.modifiers)
+}
+project.ext.getSourceSetConfigurationNames = { SourceSet sourceSet ->
+    return sourceSetGetConfigurationNameMethods.collect { it.invoke(sourceSet) }
+        .findAll { it != null }
+        .toSet()
+}
+
 allprojects {
-    project.ext.disableTask = { Task task ->
-        task.enabled = false
-        task.onlyIf { false }
-        task.dependsOn = []
-        Iterator registeredFileProperties = task.inputs.registeredFileProperties.iterator()
-        while (registeredFileProperties.hasNext()) {
-            registeredFileProperties.next()
-            registeredFileProperties.remove()
-        }
-    }
-
-    project.ext.isVerificationTask = { Task task ->
-        if (task instanceof AbstractTestTask) {
-            return true
-        }
-        if (task instanceof VerificationTask) {
-            return true
-        }
-        if (task instanceof ValidatePlugins) {
-            return true
-        }
-        return false
-    }
-
-
-    List<Method> sourceSetGetConfigurationNameMethods = SourceSet.getMethods().findAll {
-        it.name.startsWith('get')
-            && it.name.endsWith('ConfigurationName')
-            && it.returnType == String
-            && it.parameterCount == 0
-            && !Modifier.isStatic(it.modifiers)
-    }
-    project.ext.getSourceSetConfigurationNames = { SourceSet sourceSet ->
-        return sourceSetGetConfigurationNameMethods.collect { it.invoke(sourceSet) }
-            .findAll { it != null }
-            .toSet()
-    }
-
     project.ext.allSourceSetConfigurations = { SourceSet sourceSet, Closure action ->
         Collection<String> sourceSetConfigurationNames = project.getSourceSetConfigurationNames(sourceSet)
         project.configurations.matching { sourceSetConfigurationNames.contains(it.name) }.all { action(it) }
     }
+}
 
 
-    project.ext.getDependencyCategory = { Object dep ->
-        AttributeContainer attributes = null
-        if (dep instanceof ModuleDependency) {
-            attributes = dep.attributes
-        } else if (dep instanceof ResolvedDependencyResult) {
-            attributes = dep.resolvedVariant.attributes
+project.ext.getDependencyCategory = { Object dep ->
+    AttributeContainer attributes = null
+    if (dep instanceof ModuleDependency) {
+        attributes = dep.attributes
+    } else if (dep instanceof ResolvedDependencyResult) {
+        attributes = dep.resolvedVariant.attributes
+    } else {
+        throw new GradleException("Unsupported dependency type: ${dep.class}")
+    }
+
+    Attribute categoryAttribute = attributes.keySet().find { attr ->
+        if (attr instanceof String) {
+            return attr == CATEGORY_ATTRIBUTE.name
         } else {
-            throw new GradleException("Unsupported dependency type: ${dep.class}")
+            return attr.name == CATEGORY_ATTRIBUTE.name
+        }
+    }
+    if (categoryAttribute == null) {
+        return null;
+    }
+
+    Object value = attributes.getAttribute(categoryAttribute)
+    if (value instanceof String) {
+        return value
+    }
+    return value.name
+}
+
+project.ext.isPlatformDependency = { Object dep ->
+    String category = getDependencyCategory(dep)
+    return [REGULAR_PLATFORM, ENFORCED_PLATFORM].contains(category)
+}
+
+project.ext.isEnforcedPlatformDependency = { Object dep ->
+    String category = getDependencyCategory(dep)
+    return [ENFORCED_PLATFORM].contains(category)
+}
+
+project.ext.isDocumentationDependency = { Object dep ->
+    String category = getDependencyCategory(dep)
+    return [DOCUMENTATION].contains(category)
+}
+
+project.ext.isVerificationDependency = { Object dep ->
+    String category = getDependencyCategory(dep)
+    return [VERIFICATION].contains(category)
+}
+
+
+project.ext.getAllGradleVersions = {
+    synchronized (MUTEX) {
+        File cacheFile = rootProject.file("${rootProject.buildDir}/gradle-versions.list")
+        if (cacheFile.exists()) {
+            return cacheFile.getText('UTF-8')
+                .split('\n')
+                .collect { it.trim() }
+                .findAll { !it.isEmpty() }
+                .collect { GradleVersion.version(it) }
         }
 
-        Attribute categoryAttribute = attributes.keySet().find { attr ->
-            if (attr instanceof String) {
-                return attr == CATEGORY_ATTRIBUTE.name
-            } else {
-                return attr.name == CATEGORY_ATTRIBUTE.name
+        List<GradleVersion> result = []
+
+        URL versionsUrl = new URL('https://services.gradle.org/versions/all')
+        HttpURLConnection connection = (HttpURLConnection) versionsUrl.openConnection()
+        connection.connectTimeout = 5000
+        connection.readTimeout = 15000
+        connection.useCaches = false
+        try {
+            String content = connection.inputStream.getText('UTF-8')
+            JSONArray versionObjects = new JSONTokener(content).nextValue()
+            for (JSONObject versionObject : versionObjects) {
+                if (versionObject.optBoolean('snapshot')) continue
+                if (versionObject.optBoolean('nightly')) continue
+                if (versionObject.optBoolean('releaseNightly')) continue
+                if (versionObject.optBoolean('broken')) continue
+                if (!versionObject.optString('milestoneFor').isEmpty()) continue
+                if (!versionObject.optBoolean('activeRc') && !versionObject.optString('rcFor').isEmpty()) continue
+
+                String version = versionObject.getString('version')
+                if (version.containsIgnoreCase('milestone')) continue
+                if (version.startsWith('0.')) continue
+
+                GradleVersion gradleVersion = GradleVersion.version(version)
+                result.add(gradleVersion)
             }
+        } finally {
+            connection.disconnect()
         }
-        if (categoryAttribute == null) {
-            return null;
-        }
 
-        Object value = attributes.getAttribute(categoryAttribute)
-        if (value instanceof String) {
-            return value
-        }
-        return value.name
+        result.sort(Comparator.reverseOrder())
+
+        cacheFile.parentFile.mkdirs()
+        cacheFile.setText(
+            result.collect { it.version }.join('\n'),
+            'UTF-8'
+        )
+
+        return result
     }
-
-    project.ext.isPlatformDependency = { Object dep ->
-        String category = getDependencyCategory(dep)
-        return [REGULAR_PLATFORM, ENFORCED_PLATFORM].contains(category)
-    }
-
-    project.ext.isEnforcedPlatformDependency = { Object dep ->
-        String category = getDependencyCategory(dep)
-        return [ENFORCED_PLATFORM].contains(category)
-    }
-
-    project.ext.isDocumentationDependency = { Object dep ->
-        String category = getDependencyCategory(dep)
-        return [DOCUMENTATION].contains(category)
-    }
-
-    project.ext.isVerificationDependency = { Object dep ->
-        String category = getDependencyCategory(dep)
-        return [VERIFICATION].contains(category)
-    }
+}.memoize()
 
 
-    project.ext.getAllGradleVersions = {
-        synchronized (MUTEX) {
-            File cacheFile = rootProject.file("${rootProject.buildDir}/gradle-versions.list")
-            if (cacheFile.exists()) {
-                return cacheFile.getText('UTF-8')
-                    .split('\n')
-                    .collect { it.trim() }
-                    .findAll { !it.isEmpty() }
-                    .collect { GradleVersion.version(it) }
-            }
+ConcurrentMap<String, String> getGradleApiDependencyVersionCache = new ConcurrentHashMap<>()
+allprojects {
+    project.ext.getGradleApiDependencyVersion = { String notation ->
+        return getGradleApiDependencyVersionCache.computeIfAbsent(notation) {
+            String gradleApiVersion = project.configurations.projectDependencyConstraints
+                .allDependencyConstraints
+                .find { "${it.group}:${it.name}" == 'name.remal.gradle-api:gradle-api' }
+                ?.version
+            if (gradleApiVersion == null) throw new GradleException('Unknown Gradle API version')
 
-            List<GradleVersion> result = []
-
-            URL versionsUrl = new URL('https://services.gradle.org/versions/all')
-            HttpURLConnection connection = (HttpURLConnection) versionsUrl.openConnection()
-            connection.connectTimeout = 5000
-            connection.readTimeout = 15000
-            connection.useCaches = false
-            try {
-                String content = connection.inputStream.getText('UTF-8')
-                JSONArray versionObjects = new JSONTokener(content).nextValue()
-                for (JSONObject versionObject : versionObjects) {
-                    if (versionObject.optBoolean('snapshot')) continue
-                    if (versionObject.optBoolean('nightly')) continue
-                    if (versionObject.optBoolean('releaseNightly')) continue
-                    if (versionObject.optBoolean('broken')) continue
-                    if (!versionObject.optString('milestoneFor').isEmpty()) continue
-                    if (!versionObject.optBoolean('activeRc') && !versionObject.optString('rcFor').isEmpty()) continue
-
-                    String version = versionObject.getString('version')
-                    if (version.containsIgnoreCase('milestone')) continue
-                    if (version.startsWith('0.')) continue
-
-                    GradleVersion gradleVersion = GradleVersion.version(version)
-                    result.add(gradleVersion)
-                }
-            } finally {
-                connection.disconnect()
-            }
-
-            result.sort(Comparator.reverseOrder())
-
-            cacheFile.parentFile.mkdirs()
-            cacheFile.setText(
-                result.collect { it.version }.join('\n'),
-                'UTF-8'
+            Configuration tempConf = project.configurations.detachedConfiguration(
+                project.dependencies.create("name.remal.gradle-api:gradle-api:$gradleApiVersion")
             )
 
-            return result
+            String version = tempConf.resolvedConfiguration
+                .resolvedArtifacts
+                .collect { it.moduleVersion }
+                .collect { it.id }
+                .find { "${it.group}:*" == notation || "${it.group}:${it.name}" == notation }
+                ?.version
+            if (version == null) throw new GradleException("Gradle API dependency not found: $notation")
+            return version
         }
-    }.memoize()
+    }
 }

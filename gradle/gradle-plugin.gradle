@@ -16,18 +16,7 @@ allprojects {
         }
 
 
-        ext['getCorrespondingKotlinVersion'] = rootProject.findProperty('getCorrespondingKotlinVersion') ?: {
-            Dependency apiDep = project.dependencies.create(
-                "name.remal.gradle-api:gradle-api:${property('gradle-api.version')}"
-            )
-            Configuration tempConf = configurations.detachedConfiguration(apiDep)
-            ResolvedDependency kotlinDep = tempConf.resolvedConfiguration
-                .lenientConfiguration
-                .allModuleDependencies
-                .find { it.moduleGroup == 'org.jetbrains.kotlin' }
-
-            return kotlinDep?.moduleVersion
-        }.memoize()
+        Closure<String> getCorrespondingKotlinVersion = { project.getGradleApiDependencyVersion('org.jetbrains.kotlin:kotlin-stdlib') }
 
         tasks.matching { it instanceof JavaForkOptions }.configureEach {
             String correspondingKotlinVersion = getCorrespondingKotlinVersion()
