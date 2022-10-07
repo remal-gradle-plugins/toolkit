@@ -1,4 +1,8 @@
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
+
 allprojects {
+    tasks.matching { project.isVerificationTask(it) }.configureEach { group = VERIFICATION_GROUP }
+
     tasks.withType(AbstractCopyTask).configureEach { AbstractCopyTask task ->
         task.duplicatesStrategy = DuplicatesStrategy.FAIL
         task.filteringCharset = 'UTF-8'
