@@ -6,6 +6,7 @@ import static java.util.Collections.emptySet;
 import static lombok.AccessLevel.PRIVATE;
 
 import groovy.lang.Closure;
+import groovy.lang.GString;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -58,6 +59,8 @@ public abstract class ObjectUtils {
             } else {
                 return object;
             }
+        } else if (object instanceof GString) {
+            return object.toString();
 
         } else if (object instanceof Optional) {
             return unwrapProviders(((Optional<?>) object).orElse(null));
