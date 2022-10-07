@@ -102,12 +102,17 @@ public final class ClasspathFiles implements ClasspathFileMethods {
     @MustBeClosed
     @SuppressWarnings("MustBeClosedChecker")
     public InputStream openStream(@Language("file-reference") String resourceName) {
+        while (resourceName.startsWith("/")) {
+            resourceName = resourceName.substring(1);
+        }
+
         for (val file : files) {
             val inputStream = file.openStream(resourceName);
             if (inputStream != null) {
                 return inputStream;
             }
         }
+
         return null;
     }
 
@@ -115,6 +120,17 @@ public final class ClasspathFiles implements ClasspathFileMethods {
     public void forEachResource(ResourceProcessor processor) {
         for (val file : files) {
             file.forEachResource(processor);
+        }
+    }
+
+    @Override
+    public void forEachResource(String resourceName, ResourceProcessor processor) {
+        while (resourceName.startsWith("/")) {
+            resourceName = resourceName.substring(1);
+        }
+
+        for (val file : files) {
+            file.forEachResource(resourceName, processor);
         }
     }
 

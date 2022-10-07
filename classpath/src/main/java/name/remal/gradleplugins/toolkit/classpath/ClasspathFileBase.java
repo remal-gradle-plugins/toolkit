@@ -172,6 +172,20 @@ abstract class ClasspathFileBase implements ClasspathFileMethods {
         }
     }
 
+    @Override
+    public void forEachResource(String resourceName, ResourceProcessor processor) {
+        while (resourceName.startsWith("/")) {
+            resourceName = resourceName.substring(1);
+        }
+
+        val normalizedResourceName = resourceName;
+        forEachResource((classpathFile, currentResourceName, inputStreamOpener) -> {
+            if (currentResourceName.equals(normalizedResourceName)) {
+                processor.process(classpathFile, currentResourceName, inputStreamOpener);
+            }
+        });
+    }
+
     //#endregion
 
 

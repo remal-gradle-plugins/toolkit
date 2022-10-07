@@ -39,6 +39,11 @@ interface ClasspathFileMethods {
      */
     void forEachResource(ResourceProcessor processor);
 
+    /**
+     * <p>Find all resource with specific resource name (handle duplicates) and process them.</p>
+     */
+    void forEachResource(@Language("file-reference") String resourceName, ResourceProcessor processor);
+
 
     @Unmodifiable
     default Set<String> getClassNames() {
