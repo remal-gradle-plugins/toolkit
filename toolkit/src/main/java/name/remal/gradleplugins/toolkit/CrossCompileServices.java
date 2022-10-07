@@ -193,14 +193,15 @@ public abstract class CrossCompileServices {
 
             val dependencyVersionInfoBuilder = CrossCompileServiceDependencyVersion.builder();
             val isProcessed = new AtomicBoolean();
-            val classVisitor = new ClassVisitor(ASM_API) {
+            val asmApi = getAsmApi();
+            val classVisitor = new ClassVisitor(asmApi) {
                 @Nullable
                 @Override
                 public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
                     if (descriptor.endsWith("/RemalGradlePluginsCrossCompilation;")
                         && isProcessed.compareAndSet(false, true)
                     ) {
-                        return new AnnotationVisitor(ASM_API) {
+                        return new AnnotationVisitor(asmApi) {
                             @Override
                             public void visit(String name, Object value) {
                                 switch (name) {
@@ -304,8 +305,6 @@ public abstract class CrossCompileServices {
         return implClassNames;
     }
 
-
-    private static final int ASM_API = getAsmApi();
 
     @SneakyThrows
     private static int getAsmApi() {
