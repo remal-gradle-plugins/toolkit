@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.val;
@@ -87,6 +89,15 @@ public abstract class DomUtils {
             }
         });
         return sb.toString();
+    }
+
+    public static Stream<Node> streamNodeList(@Nullable NodeList nodeList) {
+        if (nodeList == null) {
+            return Stream.empty();
+        }
+
+        return IntStream.range(0, nodeList.getLength())
+            .mapToObj(nodeList::item);
     }
 
     /**
