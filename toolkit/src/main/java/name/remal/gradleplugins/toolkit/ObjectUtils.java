@@ -3,7 +3,9 @@ package name.remal.gradleplugins.toolkit;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static lombok.AccessLevel.PRIVATE;
+import static name.remal.gradleplugins.toolkit.reflection.MethodsInvoker.invokeMethod;
 
 import groovy.lang.Closure;
 import groovy.lang.GString;
@@ -46,6 +48,7 @@ public abstract class ObjectUtils {
 
 
     @Nullable
+    @Contract("null->null")
     @SneakyThrows
     @SuppressWarnings("java:S3776")
     public static Object unwrapProviders(@Nullable Object object) {
@@ -88,9 +91,9 @@ public abstract class ObjectUtils {
             return ((DoubleSupplier) object).getAsDouble();
 
         } else if (object instanceof Future) {
-            return unwrapProviders(((Future<?>) object).get());
+            return unwrapProviders(((Future<?>) object).get(5, MINUTES));
         } else if (object instanceof CompletionStage) {
-            return unwrapProviders(((CompletionStage<?>) object).toCompletableFuture().get());
+            return unwrapProviders(((CompletionStage<?>) object).toCompletableFuture().get(5, MINUTES));
 
         } else if (object instanceof AtomicBoolean) {
             return ((AtomicBoolean) object).get();
@@ -113,6 +116,11 @@ public abstract class ObjectUtils {
 
         } else if (object instanceof Provider) {
             return unwrapProviders(((Provider<?>) object).getOrNull());
+
+        } else if (('.' + object.getClass().getName()).endsWith(".com.google.common.base.Absent")) {
+            return null;
+        } else if (('.' + object.getClass().getName()).endsWith(".com.google.common.base.Present")) {
+            return unwrapProviders(invokeMethod(object, Object.class, "get"));
 
         } else {
             return object;
