@@ -4,6 +4,7 @@ import static org.gradle.api.attributes.Category.ENFORCED_PLATFORM
 import static org.gradle.api.attributes.Category.REGULAR_PLATFORM
 import static org.gradle.api.attributes.Category.VERIFICATION
 
+import com.vdurmont.semver4j.Semver
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.util.concurrent.ConcurrentHashMap
@@ -18,6 +19,7 @@ import org.json.JSONTokener
 buildscript {
     dependencies {
         classpath "org.json:json:${rootBuildscriptClasspathVersionOf('org.json:json')}"
+        classpath "com.vdurmont:semver4j:${rootBuildscriptClasspathVersionOf('com.vdurmont:semver4j')}"
     }
     repositories {
         mavenCentral()
@@ -123,9 +125,25 @@ project.ext.isVerificationDependency = { Object dep ->
 }
 
 
+Closure<JSONArray> loadJsonFromUrl = { Object untypedUrl ->
+    URL url = project.uri(untypedUrl).toURL()
+    URLConnection connection = url.openConnection()
+    connection.connectTimeout = 5000
+    connection.readTimeout = 15000
+    connection.useCaches = false
+    try {
+        String content = connection.inputStream.getText('UTF-8')
+        return new JSONTokener(content).nextValue()
+    } finally {
+        if (connection instanceof HttpURLConnection) {
+            connection.disconnect()
+        }
+    }
+}
+
 project.ext.getAllGradleVersions = {
     synchronized (MUTEX) {
-        File cacheFile = rootProject.file("${rootProject.buildDir}/gradle-versions.list")
+        File cacheFile = project.file("${project.buildDir}/gradle-versions.list")
         if (cacheFile.exists()) {
             return cacheFile.getText('UTF-8')
                 .split('\n')
@@ -136,31 +154,21 @@ project.ext.getAllGradleVersions = {
 
         List<GradleVersion> result = []
 
-        URL versionsUrl = new URL('https://services.gradle.org/versions/all')
-        HttpURLConnection connection = (HttpURLConnection) versionsUrl.openConnection()
-        connection.connectTimeout = 5000
-        connection.readTimeout = 15000
-        connection.useCaches = false
-        try {
-            String content = connection.inputStream.getText('UTF-8')
-            JSONArray versionObjects = new JSONTokener(content).nextValue()
-            for (JSONObject versionObject : versionObjects) {
-                if (versionObject.optBoolean('snapshot')) continue
-                if (versionObject.optBoolean('nightly')) continue
-                if (versionObject.optBoolean('releaseNightly')) continue
-                if (versionObject.optBoolean('broken')) continue
-                if (!versionObject.optString('milestoneFor').isEmpty()) continue
-                if (!versionObject.optBoolean('activeRc') && !versionObject.optString('rcFor').isEmpty()) continue
+        JSONArray versionObjects = loadJsonFromUrl('https://services.gradle.org/versions/all')
+        for (JSONObject versionObject : versionObjects) {
+            if (versionObject.optBoolean('snapshot')) continue
+            if (versionObject.optBoolean('nightly')) continue
+            if (versionObject.optBoolean('releaseNightly')) continue
+            if (versionObject.optBoolean('broken')) continue
+            if (!versionObject.optString('milestoneFor').isEmpty()) continue
+            if (!versionObject.optBoolean('activeRc') && !versionObject.optString('rcFor').isEmpty()) continue
 
-                String version = versionObject.getString('version')
-                if (version.containsIgnoreCase('milestone')) continue
-                if (version.startsWith('0.')) continue
+            String version = versionObject.getString('version')
+            if (version.containsIgnoreCase('milestone')) continue
+            if (version.startsWith('0.')) continue
 
-                GradleVersion gradleVersion = GradleVersion.version(version)
-                result.add(gradleVersion)
-            }
-        } finally {
-            connection.disconnect()
+            GradleVersion gradleVersion = GradleVersion.version(version)
+            result.add(gradleVersion)
         }
 
         result.sort(Comparator.reverseOrder())
@@ -168,6 +176,91 @@ project.ext.getAllGradleVersions = {
         cacheFile.parentFile.mkdirs()
         cacheFile.setText(
             result.collect { it.version }.join('\n'),
+            'UTF-8'
+        )
+
+        return result
+    }
+}.memoize()
+
+Closure<List<String>> getNodeJsVersions = { Closure<Boolean> filter = { true } ->
+    List<Semver> result = []
+
+    JSONArray versionObjects = loadJsonFromUrl('https://nodejs.org/download/release/index.json')
+    for (JSONObject versionObject : versionObjects) {
+        if (filter(versionObject)) {
+            String version = versionObject.getString('version')
+            while (version.startsWith('v')) {
+                version = version.substring(1)
+            }
+
+            Semver semver = new Semver(version)
+            if (!semver.isStable()) continue
+
+            result.add(semver)
+        }
+    }
+
+    result.sort(Comparator.reverseOrder())
+
+    return result.collect { it.toString() }
+}
+
+project.ext.getAllNodeJsVersions = {
+    synchronized (MUTEX) {
+        File cacheFile = project.file("${project.buildDir}/nodejs-all-versions.list")
+        if (cacheFile.exists()) {
+            return cacheFile.getText('UTF-8')
+                .split('\n')
+                .collect { it.trim() }
+                .findAll { !it.isEmpty() }
+        }
+
+        List<String> result = getNodeJsVersions()
+
+        if (result.isEmpty()) {
+            throw new GradleException('No versions of Node.js found')
+        }
+
+        cacheFile.parentFile.mkdirs()
+        cacheFile.setText(
+            result.join('\n'),
+            'UTF-8'
+        )
+
+        return result
+    }
+}.memoize()
+
+project.ext.getLtsNodeJsVersions = {
+    synchronized (MUTEX) {
+        File cacheFile = project.file("${project.buildDir}/nodejs-lts-versions.list")
+        if (cacheFile.exists()) {
+            return cacheFile.getText('UTF-8')
+                .split('\n')
+                .collect { it.trim() }
+                .findAll { !it.isEmpty() }
+        }
+
+        List<String> allVersions = getNodeJsVersions { JSONObject versionObject ->
+            versionObject.has('lts') && versionObject.get('lts') != false
+        }
+
+        Map<String, String> majorLtsVersions = new LinkedHashMap<>()
+        allVersions.forEach { String version ->
+            String majorVersion = version.split(/\./)[0]
+            majorLtsVersions.putIfAbsent(majorVersion, version)
+        }
+
+        Collection<String> result = majorLtsVersions.values()
+
+        if (result.isEmpty()) {
+            throw new GradleException('No LTS versions of Node.js found')
+        }
+
+        cacheFile.parentFile.mkdirs()
+        cacheFile.setText(
+            result.join('\n'),
             'UTF-8'
         )
 

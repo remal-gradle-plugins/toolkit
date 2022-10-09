@@ -51,12 +51,17 @@ allprojects {
         }
 
 
+        project.ext.nonJavaApiDependencies = project.objects.setProperty(String)
+
         Configuration gradlePluginApiDependenciesConf = configurations.create('gradlePluginApiDependencies') { Configuration conf ->
             conf.extendsFrom(configurations.api)
             conf.extendsFrom(configurations.indirectApi)
         }
 
         tasks.register('collectGradlePluginApiDependencies') {
+            SetProperty<String> nonJavaApiDependencies = project.nonJavaApiDependencies
+            inputs.property('nonJavaApiDependencies', nonJavaApiDependencies)
+
             List<Configuration> inputConfs = [
                 gradlePluginApiDependenciesConf,
             ]
@@ -131,6 +136,8 @@ allprojects {
                     .findAll { !isExcludedCategory(it) }
                     .findAll { !it.selected.selectionReason.expected }
                     .forEach { processResolvedDependency(it) }
+
+                nonJavaApiDependencies.get().forEach { dependencies.add(it) }
 
                 outputFile.setText(dependencies.join('\n') + '\n', 'UTF-8')
             }
