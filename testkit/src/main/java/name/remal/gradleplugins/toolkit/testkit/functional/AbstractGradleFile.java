@@ -1,15 +1,18 @@
 package name.remal.gradleplugins.toolkit.testkit.functional;
 
+import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.createDirectories;
+import static java.nio.file.Files.write;
 import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 import static name.remal.gradleplugins.toolkit.ObjectUtils.isNotEmpty;
+import static name.remal.gradleplugins.toolkit.StringUtils.escapeGroovy;
+import static name.remal.gradleplugins.toolkit.testkit.functional.BuildDirMavenRepositories.getBuildDirMavenRepositories;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.io.File;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -67,10 +70,28 @@ abstract class AbstractGradleFile<Child extends AbstractGradleFile<Child>> {
     }
 
 
+    @Contract(" -> this")
+    @CanIgnoreReturnValue
+    @SuppressWarnings({"unchecked", "java:S3457"})
+    public final Child appendBuildDirMavenRepositories() {
+        val sb = new StringBuilder();
+        sb.append("repositories {\n");
+        getBuildDirMavenRepositories().forEach(repoPath -> {
+            sb.append(format(
+                "\n    maven { url = '%s' }",
+                escapeGroovy(repoPath.toUri().toString())
+            ));
+        });
+        sb.append("\n}");
+        append(sb.toString());
+        return (Child) this;
+    }
+
+
     @SneakyThrows
     public final void writeToDisk() {
         createDirectories(requireNonNull(file.getParentFile()).toPath());
-        Files.write(file.toPath(), getContent().getBytes(UTF_8));
+        write(file.toPath(), getContent().getBytes(UTF_8));
     }
 
 

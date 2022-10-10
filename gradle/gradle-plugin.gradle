@@ -8,11 +8,33 @@ allprojects {
             }
         }
 
-        testSourceSets.create('functional')
-
         dependencies {
             optional 'name.remal.gradle-api:gradle-api'
             testImplementation 'name.remal.gradle-api:gradle-test-kit'
+        }
+
+
+        SourceSet functionalSourceSet = testSourceSets.create('functional')
+
+        project.tasks.named(functionalSourceSet.testTaskName, Test) { Test task ->
+            Closure<List<Task>> getPublishToBuildDirTasks = {
+                rootProject.allprojects
+                    .collect { it.tasks.matching { it.name == 'publishToBuildDir' } }
+                    .flatten()
+            }
+
+            dependsOn(project.provider { getPublishToBuildDirTasks() })
+
+            onlyIf {
+                task.systemProperty(
+                    'build-dir-maven-repos',
+                    getPublishToBuildDirTasks()
+                        .collect { it.outputDir.absolutePath }
+                        .toSorted()
+                        .join(File.pathSeparator)
+                )
+                return true
+            }
         }
 
 
