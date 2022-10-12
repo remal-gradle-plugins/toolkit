@@ -19,14 +19,14 @@ dependencies {
 configurations.all { attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.LIBRARY)) }
 
 rootProject.buildscript.configurations.classpathApi.allDependencies.forEach { Dependency dep ->
-    project.configurations.api.dependencies.add(dep)
+    project.configurations.api.dependencies.add(dep.copy())
 }
 
 configurations.gradlePluginApiDependencies {
     exclude(group: 'com.google.code.findbugs')
     exclude(group: 'com.google.errorprone')
     exclude(group: 'com.google.guava')
-    exclude(group: 'com.google.guava')
+    exclude(group: 'com.google.code.gson')
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
