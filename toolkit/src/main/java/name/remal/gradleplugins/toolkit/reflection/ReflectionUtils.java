@@ -18,6 +18,7 @@ import java.util.Deque;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.CustomLog;
@@ -213,6 +214,23 @@ public abstract class ReflectionUtils {
 
     public static boolean isNotAbstract(Method method) {
         return !isAbstract(method);
+    }
+
+
+    private static final Pattern GETTER_NAME = Pattern.compile("^get[^a-z\\p{Ll}].*$");
+    private static final Pattern BOOLEAN_GETTER_NAME = Pattern.compile("^is[^a-z\\p{Ll}].*$");
+
+    public static boolean isGetterOf(Method method, Class<?> type) {
+        if (type.isAssignableFrom(method.getReturnType())
+            && method.getParameterCount() == 0
+        ) {
+            if (type == boolean.class) {
+                return BOOLEAN_GETTER_NAME.matcher(method.getName()).matches();
+            }
+
+            return GETTER_NAME.matcher(method.getName()).matches();
+        }
+        return false;
     }
 
 

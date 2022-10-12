@@ -7,6 +7,8 @@ import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.createTempFile;
 import static java.nio.file.Files.newOutputStream;
 import static java.nio.file.Files.write;
+import static name.remal.gradleplugins.toolkit.SourceSetUtils.whenTestSourceSetRegistered;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME;
 import static org.gradle.api.tasks.SourceSet.TEST_SOURCE_SET_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -14,12 +16,16 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import lombok.SneakyThrows;
 import lombok.val;
+import name.remal.gradleplugins.toolkit.testkit.MinSupportedGradleVersion;
 import org.gradle.api.Project;
+import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.tasks.AbstractCopyTask;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -30,6 +36,7 @@ import org.junit.jupiter.api.Test;
 class SourceSetUtilsTest {
 
     private final Project project;
+    private final SourceSetContainer sourceSets;
     private final SourceSet mainSourceSet;
     private final SourceSet testSourceSet;
     private final File tempFile;
@@ -40,7 +47,7 @@ class SourceSetUtilsTest {
         project.getPluginManager().apply("java");
         this.project = project;
 
-        val sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
+        this.sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
 
         this.mainSourceSet = sourceSets.getByName(MAIN_SOURCE_SET_NAME);
         val mainJavaDir = mainSourceSet.getJava().getSourceDirectories().getFiles().stream().findAny().get();
@@ -138,6 +145,78 @@ class SourceSetUtilsTest {
             .getByName(testSourceSet.getCompileJavaTaskName());
         assertFalse(SourceSetUtils.isCompiledBy(mainSourceSet, testJavaCompile));
         assertTrue(SourceSetUtils.isCompiledBy(testSourceSet, testJavaCompile));
+    }
+
+
+    @Test
+    void getAllSourceDirectorySets() {
+        project.getPluginManager().apply("groovy");
+
+        assertThat(SourceSetUtils.getAllSourceDirectorySets(mainSourceSet))
+            .extracting(SourceDirectorySet::getName)
+            .containsExactlyInAnyOrder(
+                "allsource",
+                "java",
+                "alljava",
+                "resources",
+                "groovy",
+                "allgroovy"
+            );
+    }
+
+
+    @Test
+    void whenTestSourceSetRegistered_default() {
+        Collection<SourceSet> testSourceSets = new ArrayList<>();
+        whenTestSourceSetRegistered(project, testSourceSets::add);
+        assertThat(testSourceSets)
+            .extracting(SourceSet::getName)
+            .containsExactlyInAnyOrder(
+                "test"
+            );
+    }
+
+    @Test
+    @MinSupportedGradleVersion("5.6")
+    void whenTestSourceSetRegistered_test_fixtures() {
+        Collection<SourceSet> testSourceSets = new ArrayList<>();
+        whenTestSourceSetRegistered(project, testSourceSets::add);
+
+        project.getPluginManager().apply("java-test-fixtures");
+
+        assertThat(testSourceSets)
+            .extracting(SourceSet::getName)
+            .containsExactlyInAnyOrder(
+                "test",
+                "testFixtures"
+            );
+    }
+
+    @Test
+    void whenTestSourceSetRegistered_by_suffix() {
+        Collection<SourceSet> testSourceSets = new ArrayList<>();
+        whenTestSourceSetRegistered(project, testSourceSets::add);
+
+        sourceSets.create("integrationTest");
+        sourceSets.create("integrationTests");
+
+        sourceSets.create("functional-test");
+        sourceSets.create("functional-tests");
+
+        sourceSets.create("functional_test");
+        sourceSets.create("functional_tests");
+
+        assertThat(testSourceSets)
+            .extracting(SourceSet::getName)
+            .containsExactlyInAnyOrder(
+                "test",
+                "integrationTest",
+                "integrationTests",
+                "functional-test",
+                "functional-tests",
+                "functional_test",
+                "functional_tests"
+            );
     }
 
 }

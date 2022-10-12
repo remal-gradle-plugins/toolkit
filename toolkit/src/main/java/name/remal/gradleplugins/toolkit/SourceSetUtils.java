@@ -1,17 +1,28 @@
 package name.remal.gradleplugins.toolkit;
 
+import static com.google.common.base.CaseFormat.LOWER_CAMEL;
+import static com.google.common.base.CaseFormat.LOWER_HYPHEN;
 import static java.util.Arrays.asList;
+import static java.util.Arrays.stream;
+import static java.util.Collections.newSetFromMap;
+import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableSet;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradleplugins.toolkit.AbstractCompileUtils.getDestinationDir;
+import static name.remal.gradleplugins.toolkit.ExtensionContainerUtils.getExtension;
+import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.isGetterOf;
+import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.isNotStatic;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.tryLoadClass;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.unwrapGeneratedSubclass;
+import static org.gradle.api.tasks.SourceSet.TEST_SOURCE_SET_NAME;
 
 import com.google.common.collect.ImmutableList;
 import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
@@ -22,13 +33,21 @@ import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
+import name.remal.gradleplugins.toolkit.reflection.MethodsInvoker;
+import name.remal.gradleplugins.toolkit.reflection.ReflectionUtils;
+import org.gradle.api.Action;
+import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.tasks.AbstractCopyTask;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.compile.AbstractCompile;
+import org.jetbrains.annotations.Unmodifiable;
 import org.jetbrains.annotations.VisibleForTesting;
 
 @NoArgsConstructor(access = PRIVATE)
@@ -148,6 +167,8 @@ public abstract class SourceSetUtils {
     );
 
     private static final List<Method> GET_TASK_NAME_METHODS = Stream.of(SourceSet.class.getMethods())
+        .filter(ReflectionUtils::isNotStatic)
+        .filter(method -> isGetterOf(method, String.class))
         .filter(it -> GET_TASK_NAME_METHOD_NAME.matcher(it.getName()).matches())
         .sorted(comparing(Method::getName))
         .collect(toList());
@@ -177,6 +198,91 @@ public abstract class SourceSetUtils {
         }
 
         return false;
+    }
+
+
+    private static final List<Method> GET_SOURCE_DIRECTORY_SET_METHODS = stream(SourceSet.class.getMethods())
+        .filter(ReflectionUtils::isNotStatic)
+        .filter(method -> isGetterOf(method, SourceDirectorySet.class))
+        .sorted(comparing(Method::getName))
+        .collect(toList());
+
+    @Unmodifiable
+    @ReliesOnInternalGradleApi
+    @SneakyThrows
+    @SuppressWarnings("deprecation")
+    public static Collection<SourceDirectorySet> getAllSourceDirectorySets(SourceSet sourceSet) {
+        Collection<SourceDirectorySet> result = newSetFromMap(new IdentityHashMap<>());
+
+        for (val method : GET_SOURCE_DIRECTORY_SET_METHODS) {
+            val sourceDirectorySet = (SourceDirectorySet) method.invoke(sourceSet);
+            result.add(sourceDirectorySet);
+        }
+
+        if (sourceSet instanceof org.gradle.api.internal.HasConvention) {
+            val convention = ((org.gradle.api.internal.HasConvention) sourceSet).getConvention();
+            for (val pluginEntry : convention.getPlugins().entrySet()) {
+                val plugin = pluginEntry.getValue();
+                for (val pluginMethod : plugin.getClass().getMethods()) {
+                    if (isNotStatic(pluginMethod) && isGetterOf(pluginMethod, SourceDirectorySet.class)) {
+                        val sourceDirectorySet = (SourceDirectorySet) pluginMethod.invoke(plugin);
+                        result.add(sourceDirectorySet);
+                    }
+                }
+            }
+        }
+
+        return unmodifiableCollection(result);
+    }
+
+
+    public static void whenTestSourceSetRegistered(Project project, Action<SourceSet> action) {
+        Set<SourceSet> processedSourceSets = newSetFromMap(new IdentityHashMap<>());
+        Action<SourceSet> wrappedAction = sourceSet -> {
+            if (processedSourceSets.add(sourceSet)) {
+                action.execute(sourceSet);
+            }
+        };
+
+        project.getPluginManager().withPlugin("java", __ -> {
+            val sourceSets = getExtension(project, SourceSetContainer.class);
+            val testSourceSet = sourceSets.getByName(TEST_SOURCE_SET_NAME);
+            wrappedAction.execute(testSourceSet);
+
+            sourceSets
+                .matching(sourceSet -> {
+                    val normalizedName = LOWER_CAMEL.to(LOWER_HYPHEN, sourceSet.getName());
+                    return normalizedName.endsWith("-test")
+                        || normalizedName.endsWith("-tests")
+                        || normalizedName.endsWith("_test")
+                        || normalizedName.endsWith("_tests")
+                        ;
+                })
+                .all(wrappedAction);
+        });
+
+        project.getPluginManager().withPlugin("java-test-fixtures", __ -> {
+            val sourceSets = getExtension(project, SourceSetContainer.class);
+            val testFixturesSourceSet = sourceSets.getByName("testFixtures");
+            wrappedAction.execute(testFixturesSourceSet);
+        });
+
+        project.getPluginManager().withPlugin("name.remal.test-source-sets", __ -> {
+            val testSourceSetsExtension = getExtension(project, "testSourceSets");
+            @SuppressWarnings("unchecked")
+            val testSourceSetsContainer = (NamedDomainObjectContainer<Object>) testSourceSetsExtension;
+            testSourceSetsContainer.withType(SourceSet.class).all(wrappedAction);
+        });
+
+        project.getPluginManager().withPlugin("org.unbroken-dome.test-sets", __ -> {
+            val testSetsExtension = getExtension(project, "testSets");
+            @SuppressWarnings("unchecked")
+            val testSets = (NamedDomainObjectContainer<Object>) testSetsExtension;
+            testSets.all(testSet -> {
+                val testSourceSet = MethodsInvoker.invokeMethod(testSet, SourceSet.class, "getSourceSet");
+                wrappedAction.execute(testSourceSet);
+            });
+        });
     }
 
 }
