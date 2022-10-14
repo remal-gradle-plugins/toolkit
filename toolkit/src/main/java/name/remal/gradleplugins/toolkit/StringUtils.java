@@ -116,6 +116,10 @@ public abstract class StringUtils {
         return trimLeftWith(string, charPredicateOf(charsToRemove));
     }
 
+    public static String trimLeft(String string) {
+        return trimLeftWith(string, Character::isWhitespace);
+    }
+
     public static String trimRightWith(String string, CharPredicate charPredicate) {
         if (string.isEmpty()) {
             return "";
@@ -139,6 +143,10 @@ public abstract class StringUtils {
 
     public static String trimRightWith(String string, CharSequence charsToRemove) {
         return trimRightWith(string, charPredicateOf(charsToRemove));
+    }
+
+    public static String trimRight(String string) {
+        return trimRightWith(string, Character::isWhitespace);
     }
 
     @SneakyThrows
@@ -205,11 +213,13 @@ public abstract class StringUtils {
 
 
     public static String escapeJava(String string) {
-        return escapeGroovy(string);
+        return org.apache.commons.text.StringEscapeUtils.escapeJava(string);
     }
 
     public static String escapeGroovy(String string) {
-        return org.apache.commons.text.StringEscapeUtils.escapeEcmaScript(string);
+        return escapeJava(string)
+            .replace("$", "\\$")
+            ;
     }
 
     public static String escapeKotlin(String string) {

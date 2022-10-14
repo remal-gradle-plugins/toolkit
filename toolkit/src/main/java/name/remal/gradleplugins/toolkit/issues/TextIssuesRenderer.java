@@ -10,6 +10,7 @@ import static name.remal.gradleplugins.toolkit.issues.Utils.streamIssues;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.val;
+import name.remal.gradleplugins.toolkit.ObjectUtils;
 import org.intellij.lang.annotations.Language;
 
 public class TextIssuesRenderer implements IssuesRenderer {
@@ -24,7 +25,7 @@ public class TextIssuesRenderer implements IssuesRenderer {
                 ifPresent(issue.getSeverity(), it -> sb.append(it).append(':'));
 
                 val ruleText = Stream.of(issue.getCategory(), issue.getRule())
-                    .filter(Utils::isNotEmpty)
+                    .filter(ObjectUtils::isNotEmpty)
                     .collect(joining(" | "));
                 if (!ruleText.isEmpty()) {
                     appendDelimiter(sb).append('[').append(ruleText).append(']');

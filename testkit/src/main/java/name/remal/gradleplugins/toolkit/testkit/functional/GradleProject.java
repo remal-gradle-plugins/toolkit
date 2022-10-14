@@ -1,17 +1,20 @@
 package name.remal.gradleplugins.toolkit.testkit.functional;
 
 import static java.lang.String.format;
-import static java.lang.management.ManagementFactory.getRuntimeMXBean;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.synchronizedMap;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.NONE;
+import static name.remal.gradleplugins.toolkit.DebugUtils.isDebugEnabled;
+import static name.remal.gradleplugins.toolkit.PredicateUtils.not;
 import static name.remal.gradleplugins.toolkit.StringUtils.escapeGroovy;
 
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.io.File;
 import java.net.URI;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -20,12 +23,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.val;
-import org.gradle.initialization.StartParameterBuildOptions.WatchFileSystemOption;
+import name.remal.gradleplugins.toolkit.StringUtils;
+import org.gradle.api.JavaVersion;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
 import org.gradle.util.GradleVersion;
@@ -34,42 +37,49 @@ import org.jetbrains.annotations.Contract;
 @Getter
 public class GradleProject extends BaseGradleProject<GradleProject> {
 
+    private static final Duration DEFAULT_TASK_TIMEOUT = Duration.ofMinutes(1);
+
+
     protected final Map<String, GradleChildProject> children = synchronizedMap(new LinkedHashMap<>());
 
     protected final SettingsFile settingsFile;
 
     public GradleProject(File projectDir) {
-        super(projectDir);
+        super(projectDir.getAbsoluteFile());
         this.settingsFile = new SettingsFile(this.projectDir);
     }
 
     @Contract("_ -> this")
     @CanIgnoreReturnValue
-    public final GradleProject forSettingsFile(Consumer<SettingsFile> settingsFileConsumer) {
+    public final synchronized GradleProject forSettingsFile(Consumer<SettingsFile> settingsFileConsumer) {
         settingsFileConsumer.accept(this.settingsFile);
         return this;
     }
 
-    public final GradleChildProject newChildProject(String name) {
+    public final synchronized GradleChildProject newChildProject(String name) {
         return children.computeIfAbsent(name, __ -> {
             val childProjectDir = new File(projectDir, name);
             val child = new GradleChildProject(childProjectDir);
             settingsFile.append("include(':" + escapeGroovy(child.getName()) + "')");
+
+            child.buildFile.setTaskTimeout(taskTimeout);
+
             return child;
         });
     }
 
     @Contract("_,_ -> this")
     @CanIgnoreReturnValue
-    public final GradleProject newChildProject(String name, Consumer<GradleChildProject> childProjectConsumer) {
+    public final synchronized GradleProject newChildProject(
+        String name,
+        Consumer<GradleChildProject> childProjectConsumer
+    ) {
         val child = newChildProject(name);
         childProjectConsumer.accept(child);
         return this;
     }
 
 
-    private static final boolean IS_IN_DEBUG = getRuntimeMXBean().getInputArguments().toString().contains("jdwp");
-    private static final Pattern TRIM_RIGHT = Pattern.compile("\\s+$");
     private static final Pattern STACK_TRACE_LINE = Pattern.compile("^\\s+at ");
 
     private static final List<String> DEFAULT_DEPRECATION_MESSAGES = ImmutableList.of(
@@ -205,12 +215,40 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
 
 
     @Nullable
+    private Duration taskTimeout;
+
+    @Contract("_ -> this")
+    @CanIgnoreReturnValue
+    public final synchronized GradleProject setTaskTimeout(@Nullable Duration timeout) {
+        this.taskTimeout = timeout;
+        buildFile.setTaskTimeout(taskTimeout);
+        children.values().forEach(child -> {
+            child.buildFile.setTaskTimeout(taskTimeout);
+        });
+        return this;
+    }
+
+    {
+        setTaskTimeout(DEFAULT_TASK_TIMEOUT);
+    }
+
+
+    public final BuildResult assertBuildSuccessfully() {
+        return build(true);
+    }
+
+    public final BuildResult assertBuildFails() {
+        return build(false);
+    }
+
+    @Nullable
     private BuildResult buildResult;
     @Nullable
     private Throwable buildException;
 
     @SneakyThrows
-    public final synchronized BuildResult build() {
+    @SuppressWarnings({"java:S106", "UnstableApiUsage"})
+    private synchronized BuildResult build(boolean isExpectingSuccess) {
         if (buildException != null) {
             throw buildException;
         }
@@ -223,12 +261,17 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
                 children.values().forEach(child -> child.getBuildFile().writeToDisk());
 
                 val runner = createGradleRunner();
-                currentBuildResult = runner.build();
+
+                if (isExpectingSuccess) {
+                    currentBuildResult = runner.build();
+                } else {
+                    currentBuildResult = runner.buildAndFail();
+                }
 
                 val output = currentBuildResult.getOutput();
-                List<String> outputLines = Stream.of(output.split("\n"))
-                    .map(it -> TRIM_RIGHT.matcher(it).replaceFirst(""))
-                    .filter(it -> !it.isEmpty())
+                List<String> outputLines = Splitter.onPattern("[\\n\\r]+").splitToStream(output)
+                    .map(StringUtils::trimRight)
+                    .filter(not(String::isEmpty))
                     .collect(toList());
                 assertNoDeprecationMessages(outputLines);
                 assertNoMutableProjectStateWarnings(outputLines);
@@ -244,10 +287,6 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
         return buildResult;
     }
 
-    public final synchronized void assertBuildSuccessfully() {
-        build();
-    }
-
     private void assertIsNotBuilt() {
         if (buildException != null || buildResult != null) {
             throw new IllegalStateException("The project has already been built");
@@ -259,13 +298,13 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
         val runner = GradleRunner.create()
             .withProjectDir(projectDir)
             .forwardOutput()
-            .withDebug(IS_IN_DEBUG)
+            .withDebug(isDebugEnabled())
             .withArguments(
                 "--stacktrace",
                 "--warning-mode=all",
                 "-Dorg.gradle.parallel=true",
                 "-Dorg.gradle.workers.max=4",
-                format("-D%s=false", WatchFileSystemOption.GRADLE_PROPERTY),
+                "-Dorg.gradle.vfs.watch=false",
                 "-Dhttp.keepAlive=false",
                 "-Dsun.net.http.retryPost=false",
                 "-Dsun.io.useCanonCaches=false",
@@ -274,6 +313,12 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
                 "-Djava.awt.headless=true",
                 "-Dorg.gradle.internal.launcher.welcomeMessageEnabled=false"
             );
+
+        if (JavaVersion.current().isJava9Compatible()) {
+            List<String> args = new ArrayList<>(runner.getArguments());
+            //args.add("--add-opens=java.base/java.lang=ALL-UNNAMED");
+            runner.withArguments(args);
+        }
 
         if (withPluginClasspath) {
             runner.withPluginClasspath();

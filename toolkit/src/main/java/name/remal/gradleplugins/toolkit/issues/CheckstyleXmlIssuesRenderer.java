@@ -1,6 +1,7 @@
 package name.remal.gradleplugins.toolkit.issues;
 
 import static java.util.stream.Collectors.groupingBy;
+import static name.remal.gradleplugins.toolkit.issues.CheckstyleXmlUtils.getCheckstyleSeverityFor;
 import static name.remal.gradleplugins.toolkit.issues.Utils.ifPresent;
 import static name.remal.gradleplugins.toolkit.issues.Utils.streamIssues;
 import static org.jdom2.output.Format.getPrettyFormat;
@@ -41,13 +42,9 @@ public class CheckstyleXmlIssuesRenderer implements IssuesRenderer {
                     val errorNode = new Element("error");
                     fileNode.addContent(errorNode);
 
-                    val severity = issue.getSeverity();
-                    if (severity == IssueSeverity.ERROR) {
-                        errorNode.setAttribute("severity", "error");
-                    } else if (severity == IssueSeverity.WARNING) {
-                        errorNode.setAttribute("severity", "warning");
-                    } else if (severity == IssueSeverity.INFO) {
-                        errorNode.setAttribute("severity", "info");
+                    val severity = getCheckstyleSeverityFor(issue.getSeverity());
+                    if (severity != null) {
+                        errorNode.setAttribute("severity", severity);
                     }
 
                     ifPresent(issue.getStartLine(), it -> errorNode.setAttribute("line", "" + it));

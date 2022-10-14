@@ -9,7 +9,7 @@ apply plugin: 'name.remal.generate-sources'
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 dependencies {
-    api project(':toolkit')
+    relocateClasses project(':toolkit')
 
     testImplementation project(':testkit')
 }
@@ -39,6 +39,7 @@ rootProject.ext['includedBuildScripts'].forEach { String includedBuildScript ->
 }
 
 tasks.named('generateResources') {
+    inputs.files(configurations.compileClasspath).optional().withPropertyName('compileClasspath')
     scriptsToInclude.forEach { includedBuildScriptFile, resource ->
         inputs.file(includedBuildScriptFile)
         binaryFile(resource) { OutputStream outputStream ->
@@ -54,7 +55,7 @@ tasks.named('generateResources') {
 }
 
 tasks.named('generateJava') {
-    inputs.property('projectVersion', project.version)
+    inputs.property('project.version', project.provider { project.version })
     classFile('name.remal.gradleplugins.toolkit.buildlogic', 'BuildLogicPlugin') {
         it.writePackage()
         it.println("")
@@ -88,7 +89,7 @@ tasks.named('generateJava') {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 tasks.named('generateFunctionalJava') {
-    inputs.property('gradleVersion', GradleVersion.current().version)
+    inputs.property('gradle.version', GradleVersion.current().version)
     classFile('name.remal.gradleplugins.toolkit.buildlogic', 'BuildLogicPluginSimpleFunctionalTest') {
         it.writePackage()
         it.println("")

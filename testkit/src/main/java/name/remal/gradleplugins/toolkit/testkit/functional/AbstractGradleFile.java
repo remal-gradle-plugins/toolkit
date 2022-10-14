@@ -23,9 +23,9 @@ import org.jetbrains.annotations.Contract;
 
 abstract class AbstractGradleFile<Child extends AbstractGradleFile<Child>> {
 
-    private final List<Object> chunks = new ArrayList<>();
+    protected final List<Object> chunks = new ArrayList<>();
 
-    private final File file;
+    protected final File file;
 
     protected AbstractGradleFile(File file) {
         this.file = file.getAbsoluteFile();
@@ -45,7 +45,7 @@ abstract class AbstractGradleFile<Child extends AbstractGradleFile<Child>> {
     @CanIgnoreReturnValue
     @SuppressWarnings("unchecked")
     public final Child applyPlugin(String pluginId) {
-        getAppliedPlugins().add(pluginId);
+        getAppliedPluginsChunk().add(pluginId);
         return (Child) this;
     }
 
@@ -53,20 +53,20 @@ abstract class AbstractGradleFile<Child extends AbstractGradleFile<Child>> {
     @CanIgnoreReturnValue
     @SuppressWarnings("unchecked")
     public final Child applyPlugin(String pluginId, String version) {
-        getAppliedPlugins().add(pluginId, version);
+        getAppliedPluginsChunk().add(pluginId, version);
         return (Child) this;
     }
 
-    private AppliedPlugins getAppliedPlugins() {
+    private AppliedPluginsChunk getAppliedPluginsChunk() {
         for (val chunk : chunks) {
-            if (chunk instanceof AppliedPlugins) {
-                return (AppliedPlugins) chunk;
+            if (chunk instanceof AppliedPluginsChunk) {
+                return (AppliedPluginsChunk) chunk;
             }
         }
 
-        val appliedPlugins = new AppliedPlugins();
-        chunks.add(0, appliedPlugins);
-        return appliedPlugins;
+        val chunk = new AppliedPluginsChunk();
+        chunks.add(0, chunk);
+        return chunk;
     }
 
 
@@ -75,7 +75,7 @@ abstract class AbstractGradleFile<Child extends AbstractGradleFile<Child>> {
     @SuppressWarnings({"unchecked", "java:S3457"})
     public final Child appendBuildDirMavenRepositories() {
         val sb = new StringBuilder();
-        sb.append("repositories {\n");
+        sb.append("repositories {");
         getBuildDirMavenRepositories().forEach(repoPath -> {
             sb.append(format(
                 "\n    maven { url = '%s' }",
@@ -107,7 +107,7 @@ abstract class AbstractGradleFile<Child extends AbstractGradleFile<Child>> {
     }
 
 
-    private static final class AppliedPlugins {
+    private static final class AppliedPluginsChunk {
 
         private final Map<String, String> pluginToVersion = new LinkedHashMap<>();
 

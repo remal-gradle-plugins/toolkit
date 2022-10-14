@@ -3,11 +3,11 @@ package name.remal.gradleplugins.toolkit.xml;
 import static java.nio.file.Files.newInputStream;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradleplugins.toolkit.PathUtils.normalizePath;
+import static name.remal.gradleplugins.toolkit.internal.JdomUtils.newNonValidatingSaxBuilder;
 import static name.remal.gradleplugins.toolkit.xml.GroovyXmlUtils.compactGroovyXmlString;
 import static name.remal.gradleplugins.toolkit.xml.GroovyXmlUtils.prettyGroovyXmlString;
 import static name.remal.gradleplugins.toolkit.xml.XmlFormat.DEFAULT_XML_FORMAT;
 import static org.apache.commons.lang3.ObjectUtils.isNotEmpty;
-import static org.jdom2.input.sax.XMLReaders.NONVALIDATING;
 import static org.jdom2.output.Format.getCompactFormat;
 import static org.jdom2.output.Format.getPrettyFormat;
 
@@ -26,7 +26,6 @@ import lombok.SneakyThrows;
 import lombok.val;
 import org.intellij.lang.annotations.Language;
 import org.jdom2.input.DOMBuilder;
-import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.XMLOutputter;
 import org.jdom2.output.support.AbstractXMLOutputProcessor;
 import org.jdom2.output.support.FormatStack;
@@ -438,14 +437,6 @@ public abstract class XmlUtils {
         val documentBuilder = documentBuilderFactory.newDocumentBuilder();
         documentBuilder.setEntityResolver((publicId, systemId) -> new InputSource(new StringReader("")));
         return documentBuilder;
-    }
-
-    private static SAXBuilder newNonValidatingSaxBuilder() {
-        val saxBuilder = new SAXBuilder();
-        saxBuilder.setXMLReaderFactory(NONVALIDATING);
-        saxBuilder.setEntityResolver((publicId, systemId) -> new InputSource(new StringReader("")));
-        saxBuilder.setReuseParser(false);
-        return saxBuilder;
     }
 
     private static class ExtendedXmlOutputProcessor

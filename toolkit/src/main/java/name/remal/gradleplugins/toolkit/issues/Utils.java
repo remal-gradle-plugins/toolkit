@@ -12,17 +12,6 @@ import org.jetbrains.annotations.Contract;
 @NoArgsConstructor(access = PRIVATE)
 abstract class Utils {
 
-    @Contract("null -> true")
-    public static boolean isEmpty(@Nullable CharSequence charSequence) {
-        return charSequence == null || charSequence.length() == 0;
-    }
-
-    @Contract("null -> false")
-    public static boolean isNotEmpty(@Nullable CharSequence charSequence) {
-        return !isEmpty(charSequence);
-    }
-
-
     public static <T extends Comparable<T>> int compareOptionals(@Nullable T o1, @Nullable T o2) {
         if (o1 != null && o2 != null) {
             return o1.compareTo(o2);

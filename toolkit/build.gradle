@@ -7,8 +7,6 @@ apply from: 'build-generate-SneakyThrowUtils.gradle'
 apply from: 'build-generate-checkstyle.xsl.gradle'
 
 dependencies {
-    optional 'com.puppycrawl.tools:checkstyle'
-
     relocateClasses 'io.github.classgraph:classgraph'
     relocateClasses 'org.ec4j.core:ec4j-core'
     relocateClasses 'org.jdom:jdom'

@@ -26,9 +26,13 @@ public abstract class DebugUtils {
         void execute() throws Throwable;
     }
 
+    public static boolean isDebugEnabled() {
+        return IS_DEBUG_ENABLED;
+    }
+
     @SneakyThrows
     public static void ifDebugEnabled(IfDebugEnabled action) {
-        if (IS_DEBUG_ENABLED) {
+        if (isDebugEnabled()) {
             action.execute();
         }
     }

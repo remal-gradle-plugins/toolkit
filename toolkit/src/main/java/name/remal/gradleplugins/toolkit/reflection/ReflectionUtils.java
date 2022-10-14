@@ -73,15 +73,21 @@ public abstract class ReflectionUtils {
             write(tempFile, bytecode);
         });
 
-        val defineClassMethod = ClassLoader.class.getDeclaredMethod(
-            "defineClass",
-            String.class,
-            byte[].class,
-            int.class,
-            int.class
-        );
-        makeAccessible(defineClassMethod);
-        return (Class<?>) defineClassMethod.invoke(classLoader, null, bytecode, 0, bytecode.length);
+        try {
+            val defineClassMethod = ClassLoader.class.getDeclaredMethod(
+                "defineClass",
+                String.class,
+                byte[].class,
+                int.class,
+                int.class
+            );
+            makeAccessible(defineClassMethod);
+            return (Class<?>) defineClassMethod.invoke(classLoader, null, bytecode, 0, bytecode.length);
+
+        } catch (Exception exception) {
+            val className = new ClassReader(bytecode).getClassName().replace('/', '.');
+            throw new RuntimeException("Class defining error: " + className, exception);
+        }
     }
 
 
