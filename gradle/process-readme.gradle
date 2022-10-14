@@ -1,7 +1,13 @@
 allprojects {
-    tasks.create('processReadme') {
-        group = 'documentation'
-        doLast {
+    tasks.create('processReadme') { Task task ->
+        task.group = 'documentation'
+
+        List<Closure> readmeFileProcessors = []
+        task.ext.readmeFileProcessors = readmeFileProcessors
+
+        task.doLast {
+            if (readmeFileProcessors.isEmpty()) return
+
             FileTree files = project.fileTree(project.projectDir) {
                 include('README.md')
             }
@@ -9,6 +15,12 @@ allprojects {
                 if (details.directory) return
                 File readmeFile = details.file
                 logger.lifecycle('Processing {}', readmeFile)
+                readmeFileProcessors.forEach { fileProcessor -> fileProcessor(readmeFile) }
+            }
+        }
+
+        readmeFileProcessors.add(
+            { File readmeFile ->
                 String content = readmeFile.getText('UTF-8')
 
                 content = content.replaceAll(
@@ -16,14 +28,22 @@ allprojects {
                 ) {
                     String tag = it[1]
                     String property = it[2]
+                    logger.lifecycle('  Handling {}: {}', tag, property)
                     Object propertyValueObj = project.property(property)
                     if (propertyValueObj instanceof Provider) {
                         propertyValueObj = propertyValueObj.getOrNull()
                     }
                     String propertyValue = propertyValueObj?.toString()
-                    logger.lifecycle('Handling {}: {}', tag, property)
                     return "<!--$tag:$property-->$propertyValue<!--/$tag-->"
                 }
+
+                readmeFile.setText(content, 'UTF-8')
+            }
+        )
+
+        readmeFileProcessors.add(
+            { File readmeFile ->
+                String content = readmeFile.getText('UTF-8')
 
                 content = content.replaceAll(
                     /<!--\s*(include(?:-([^:>]+))?)\s*:\s*([^>]+?)\s*-->[\s\S]*?<!--\s*\/\s*\1\s*-->/
@@ -31,7 +51,8 @@ allprojects {
                     String tag = it[1]
                     String lang = it[2] ?: ''
                     String filePath = it[3]
-                    File file = file(filePath)
+                    logger.lifecycle('  Handling {}{}: {}', tag, lang.isEmpty() ? '' : " ($lang)", filePath)
+                    File file = readmeFile.parentFile.toPath().resolve(filePath).toFile()
                     String includeContent = file.getText('UTF-8')
                         .replace('\r\n', '\n')
                         .replace('\n\r', '\n')
@@ -42,12 +63,11 @@ allprojects {
                     while (includeContent.endsWith('\n')) {
                         includeContent = includeContent.substring(0, includeContent.length() - 1)
                     }
-                    logger.lifecycle('Handling {}: {}', tag, filePath)
                     return "<!--$tag:$filePath-->\n```$lang\n$includeContent\n```\n<!--/$tag -->"
                 }
 
                 readmeFile.setText(content, 'UTF-8')
             }
-        }
+        )
     }
 }
