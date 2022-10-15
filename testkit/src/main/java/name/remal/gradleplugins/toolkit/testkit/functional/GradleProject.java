@@ -5,7 +5,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.synchronizedMap;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.NONE;
-import static name.remal.gradleplugins.toolkit.DebugUtils.isDebugEnabled;
 import static name.remal.gradleplugins.toolkit.PredicateUtils.not;
 import static name.remal.gradleplugins.toolkit.StringUtils.escapeGroovy;
 
@@ -28,7 +27,6 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.val;
 import name.remal.gradleplugins.toolkit.StringUtils;
-import org.gradle.api.JavaVersion;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
 import org.gradle.util.GradleVersion;
@@ -298,7 +296,7 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
         val runner = GradleRunner.create()
             .withProjectDir(projectDir)
             .forwardOutput()
-            .withDebug(isDebugEnabled())
+            //.withDebug(isDebugEnabled())
             .withArguments(
                 "--stacktrace",
                 "--warning-mode=all",
@@ -313,12 +311,6 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
                 "-Djava.awt.headless=true",
                 "-Dorg.gradle.internal.launcher.welcomeMessageEnabled=false"
             );
-
-        if (JavaVersion.current().isJava9Compatible()) {
-            List<String> args = new ArrayList<>(runner.getArguments());
-            //args.add("--add-opens=java.base/java.lang=ALL-UNNAMED");
-            runner.withArguments(args);
-        }
 
         if (withPluginClasspath) {
             runner.withPluginClasspath();
