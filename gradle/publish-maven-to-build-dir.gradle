@@ -1,0 +1,82 @@
+allprojects {
+    pluginManager.withPlugin('maven-publish') {
+        tasks.register('publishToBuildDir') { Task task ->
+            Closure<GenerateMavenPom> getGeneratePomFileTask = { MavenPublication publication ->
+                project.tasks.named(
+                    "generatePomFileFor${publication.name.capitalize()}Publication",
+                    GenerateMavenPom
+                ).get()
+            }
+
+            NamedDomainObjectSet<MavenPublication> publications = publishing.publications.withType(MavenPublication)
+            task.dependsOn(project.provider { publications.collect { getGeneratePomFileTask(it) } })
+            task.dependsOn(project.provider { publications.collect { it.getArtifacts() }.flatten() })
+
+            File outputDir = project.file("${project.buildDir}/.m2")
+            task.ext.outputDir = outputDir
+            task.outputs.dir(outputDir).withPropertyName('outputDir')
+
+            task.onlyIf {
+                publications.forEach { publication ->
+                    task.inputs.file(getGeneratePomFileTask(publication).destination)
+                    publication.getArtifacts().forEach { artifact -> task.inputs.file(artifact.file) }
+                }
+                return true
+            }
+
+            task.doFirst {
+                outputDir.delete()
+                outputDir.deleteDir()
+                outputDir.mkdirs()
+            }
+
+            task.doLast {
+                publications.forEach { publication ->
+                    File artifactDir = project.file("${outputDir}/${publication.groupId.replace('.', '/')}/${publication.artifactId}")
+                    File versionDir = new File(artifactDir, publication.version)
+
+                    File pomFile = getGeneratePomFileTask(publication).destination
+                    File pomDestFile = new File(versionDir, "${publication.artifactId}-${publication.version}.pom")
+                    pomDestFile.parentFile.mkdirs()
+                    pomDestFile.bytes = pomFile.bytes
+
+                    publication.getArtifacts().forEach { artifact ->
+                        StringBuilder artifactDestFileName = new StringBuilder()
+                        artifactDestFileName.append(publication.artifactId).append('-').append(publication.version)
+                        if (artifact.classifier != null && !artifact.classifier.isEmpty()) {
+                            artifactDestFileName.append('-').append(artifact.classifier)
+                        }
+                        if (artifact.extension != null && !artifact.extension.isEmpty()) {
+                            artifactDestFileName.append('.').append(artifact.extension)
+                        } else {
+                            artifactDestFileName.append('.').append('jar')
+                        }
+                        File artifactDestFile = new File(versionDir, artifactDestFileName.toString())
+                        artifactDestFile.parentFile.mkdirs()
+                        artifactDestFile.bytes = artifact.file.bytes
+                    }
+
+                    File mavenMetadataLocalFile = new File(artifactDir, 'maven-metadata-local.xml')
+                    mavenMetadataLocalFile.parentFile.mkdirs()
+                    mavenMetadataLocalFile.setText(
+                        [
+                            '<?xml version="1.0" encoding="UTF-8"?>',
+                            '<metadata>',
+                            '  <groupId>' + publication.groupId + '</groupId>',
+                            '  <artifactId>' + publication.artifactId + '</artifactId>',
+                            '  <versioning>',
+                            '    <latest>' + publication.version + '</latest>',
+                            '    <versions>',
+                            '      <version>' + publication.version + '</version>',
+                            '    </versions>',
+                            '    <lastUpdated>' + System.currentTimeMillis() + '</lastUpdated>',
+                            '  </versioning>',
+                            '</metadata>',
+                        ].join('\n'),
+                        'UTF-8'
+                    )
+                }
+            }
+        }
+    }
+}

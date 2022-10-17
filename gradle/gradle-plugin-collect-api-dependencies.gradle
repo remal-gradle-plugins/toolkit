@@ -1,0 +1,144 @@
+allprojects {
+    pluginManager.withPlugin('java-gradle-plugin') {
+        project.ext.nonJavaApiDependencies = project.objects.setProperty(String)
+
+        Configuration gradlePluginApiDependenciesConf = configurations.create('gradlePluginApiDependencies') { Configuration conf ->
+            conf.extendsFrom(configurations.api)
+            conf.extendsFrom(configurations.indirectApi)
+        }
+
+        tasks.register('collectGradlePluginApiDependencies') { Task task ->
+            SetProperty<String> nonJavaApiDependencies = project.nonJavaApiDependencies
+            inputs.property('nonJavaApiDependencies', nonJavaApiDependencies)
+
+            List<Configuration> inputConfs = [
+                gradlePluginApiDependenciesConf,
+            ]
+
+            inputConfs.forEach { inputConf ->
+                task.inputs.files(inputConf)
+                    .optional()
+                    .withNormalizer(ClasspathNormalizer)
+                    .withPathSensitivity(PathSensitivity.RELATIVE)
+                    .withPropertyName(inputConf.name)
+            }
+
+            SetProperty<String> platformDependencyNotations = project.objects.setProperty(String)
+            platformDependencyNotations.addAll(
+                project.provider {
+                    Collection<String> notation = new TreeSet<String>()
+                    inputConfs.forEach { Configuration inputConf ->
+                        inputConf.allDependencies.forEach { Dependency dep ->
+                            notation.add("${dep.group}:${dep.name}:${dep.version}")
+                        }
+                    }
+                    return notation
+                }
+            )
+            task.inputs.property('platformDependencyNotations', platformDependencyNotations)
+
+            File outputFile = project.file("${project.buildDir}/gradle-plugin-api-dependencies.txt")
+            outputs.file(outputFile).withPropertyName('outputFile')
+            task.ext.outputFile = outputFile
+            task.doFirst { outputFile.delete() }
+
+            task.doLast {
+                outputFile.parentFile.mkdirs()
+
+                Collection<String> dependencies = new TreeSet<String>()
+
+                Collection<ResolvedArtifact> resolvedArtifacts = gradlePluginApiDependenciesConf.resolvedConfiguration.resolvedArtifacts
+
+                Closure<Boolean> isExcludedCategory = { ResolvedDependencyResult resolvedDependency ->
+                    return isPlatformDependency(resolvedDependency) || isDocumentationDependency(resolvedDependency) || isVerificationDependency(resolvedDependency)
+                }
+
+                Closure processResolvedDependency = { ResolvedDependencyResult resolvedDependency ->
+                    ComponentIdentifier componentIdentifierUntyped = resolvedDependency.selected.id
+                    if (!(componentIdentifierUntyped instanceof ModuleComponentIdentifier)) {
+                        return
+                    }
+                    ModuleComponentIdentifier componentIdentifier = (ModuleComponentIdentifier) componentIdentifierUntyped
+
+                    if (isPlatformDependency(resolvedDependency)) {
+                        String notation = "${componentIdentifier.group}:${componentIdentifier.module}:${componentIdentifier.version}"
+                        dependencies.add(notation)
+                        return
+                    }
+
+                    Collection<ResolvedArtifact> dependencyArtifacts = resolvedArtifacts.findAll { it.id.componentIdentifier == componentIdentifier }
+                    dependencyArtifacts.forEach { dependencyArtifact ->
+                        String notation = "${componentIdentifier.group}:${componentIdentifier.module}:${componentIdentifier.version}:${dependencyArtifact.classifier ?: ''}@${dependencyArtifact.extension}"
+                        notation = notation.replaceFirst(/:?@(jar)?$/, '')
+                        dependencies.add(notation)
+                    }
+                }
+
+                gradlePluginApiDependenciesConf.incoming.resolutionResult
+                    .root
+                    .dependencies
+                    .findAll { it instanceof ResolvedDependencyResult }
+                    .collect { (ResolvedDependencyResult) it }
+                    .findAll { !isExcludedCategory(it) }
+                    .forEach { processResolvedDependency(it) }
+
+                gradlePluginApiDependenciesConf.incoming.resolutionResult
+                    .allDependencies
+                    .findAll { it instanceof ResolvedDependencyResult }
+                    .collect { (ResolvedDependencyResult) it }
+                    .findAll { !isExcludedCategory(it) }
+                    .findAll { !it.selected.selectionReason.expected }
+                    .forEach { processResolvedDependency(it) }
+
+                nonJavaApiDependencies.get().forEach { dependencies.add(it) }
+
+                outputFile.setText(dependencies.join('\n') + '\n', 'UTF-8')
+            }
+        }
+    }
+}
+
+tasks.create('collectAllGradlePluginApiDependencies') { Task task ->
+    Closure<List<Task>> getCollectGradlePluginApiDependenciesTasks = {
+        project.allprojects
+            .findAll { it.pluginManager.hasPlugin('java-gradle-plugin') }
+            .collect { it.tasks.getByName('collectGradlePluginApiDependencies') }
+    }.memoize()
+    task.dependsOn(project.provider { getCollectGradlePluginApiDependenciesTasks() })
+
+    Closure<List<File>> getGradlePluginApiDependenciesFiles = {
+        getCollectGradlePluginApiDependenciesTasks().collect { it.outputFile }
+    }.memoize()
+    task.inputs.files(project.provider { getGradlePluginApiDependenciesFiles() })
+        .optional()
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+        .withPropertyName('gradlePluginApiDependenciesFiles')
+
+    File outputFile = project.file("gradle-plugin-api-dependencies.txt")
+    task.outputs.file(outputFile).withPropertyName('outputFile')
+    task.ext.outputFile = outputFile
+    task.doFirst { outputFile.delete() }
+
+    task.doLast {
+        outputFile.parentFile.mkdirs()
+
+        Collection<String> dependencies = new TreeSet<String>()
+        getGradlePluginApiDependenciesFiles().forEach { file ->
+            file.getText('UTF-8').split(/\n/)
+                .collect { it.replaceFirst(/#.*/, '') }
+                .collect { it.trim() }
+                .findAll { !it.isEmpty() }
+                .forEach { dependencies.add(it) }
+        }
+        outputFile.setText(
+            [
+                "# This file is generated automatically by `${it.name}` Gradle task.",
+                '# Do not modify it yourself unless you know what you are doing.',
+                '',
+                dependencies.join('\n'),
+                '',
+            ].join('\n'),
+            'UTF-8'
+        )
+    }
+}
