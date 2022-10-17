@@ -13,6 +13,8 @@ import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradleplugins.toolkit.AbstractCompileUtils.getDestinationDir;
 import static name.remal.gradleplugins.toolkit.ExtensionContainerUtils.getExtension;
+import static name.remal.gradleplugins.toolkit.reflection.MembersFinder.findMethod;
+import static name.remal.gradleplugins.toolkit.reflection.MethodsInvoker.invokeMethod;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.isGetterOf;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.isNotStatic;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.tryLoadClass;
@@ -33,9 +35,9 @@ import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
-import name.remal.gradleplugins.toolkit.reflection.MethodsInvoker;
 import name.remal.gradleplugins.toolkit.reflection.ReflectionUtils;
 import org.gradle.api.Action;
+import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -261,6 +263,20 @@ public abstract class SourceSetUtils {
                 .all(wrappedAction);
         });
 
+        project.getPluginManager().withPlugin("jvm-test-suite", __ -> {
+            val testing = getExtension(project, "testing");
+            val untypedSuites = invokeMethod(testing, DomainObjectCollection.class, "getSuites");
+            @SuppressWarnings("unchecked") val suites = (NamedDomainObjectContainer<Object>) untypedSuites;
+            suites.all(suite -> {
+                @SuppressWarnings("unchecked")
+                val getSourcesMethod = findMethod((Class<Object>) suite.getClass(), SourceSet.class, "getSources");
+                if (getSourcesMethod != null) {
+                    val testSourceSet = getSourcesMethod.invoke(suite);
+                    wrappedAction.execute(testSourceSet);
+                }
+            });
+        });
+
         project.getPluginManager().withPlugin("java-test-fixtures", __ -> {
             val sourceSets = getExtension(project, SourceSetContainer.class);
             val testFixturesSourceSet = sourceSets.getByName("testFixtures");
@@ -279,7 +295,7 @@ public abstract class SourceSetUtils {
             @SuppressWarnings("unchecked")
             val testSets = (NamedDomainObjectContainer<Object>) testSetsExtension;
             testSets.all(testSet -> {
-                val testSourceSet = MethodsInvoker.invokeMethod(testSet, SourceSet.class, "getSourceSet");
+                val testSourceSet = invokeMethod(testSet, SourceSet.class, "getSourceSet");
                 wrappedAction.execute(testSourceSet);
             });
         });

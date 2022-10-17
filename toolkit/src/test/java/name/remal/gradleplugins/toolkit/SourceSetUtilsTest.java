@@ -7,6 +7,7 @@ import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.createTempFile;
 import static java.nio.file.Files.newOutputStream;
 import static java.nio.file.Files.write;
+import static name.remal.gradleplugins.toolkit.ExtensionContainerUtils.getExtension;
 import static name.remal.gradleplugins.toolkit.SourceSetUtils.whenTestSourceSetRegistered;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME;
@@ -26,10 +27,12 @@ import lombok.val;
 import name.remal.gradleplugins.toolkit.testkit.MinSupportedGradleVersion;
 import org.gradle.api.Project;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.tasks.AbstractCopyTask;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.testing.base.TestingExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -173,6 +176,26 @@ class SourceSetUtilsTest {
             .extracting(SourceSet::getName)
             .containsExactlyInAnyOrder(
                 "test"
+            );
+    }
+
+    @Test
+    @MinSupportedGradleVersion("7.3")
+    @SuppressWarnings("UnstableApiUsage")
+    void whenTestSourceSetRegistered_jvm_test_suite() {
+        Collection<SourceSet> testSourceSets = new ArrayList<>();
+        whenTestSourceSetRegistered(project, testSourceSets::add);
+
+        project.getPluginManager().apply("jvm-test-suite");
+
+        val testingExtension = getExtension(project, TestingExtension.class);
+        testingExtension.getSuites().create("integration", JvmTestSuite.class);
+
+        assertThat(testSourceSets)
+            .extracting(SourceSet::getName)
+            .containsExactlyInAnyOrder(
+                "test",
+                "integration"
             );
     }
 
