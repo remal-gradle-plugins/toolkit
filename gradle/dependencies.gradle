@@ -19,10 +19,10 @@ allprojects {
                 'org.immutables:bom:2.9.2',
                 'org.ow2.asm:asm-bom:9.4',
                 'org.junit:junit-bom:5.9.1',
+                'org.mockito:mockito-bom:4.8.1',
             ].collect { project.dependencies.platform(it) }
         )
 
-        String mockitoVersion = '4.8.1'
         conf.dependencyConstraints.addAll(
             [
                 // Static analysis
@@ -55,9 +55,6 @@ allprojects {
 
                 // Test
                 "name.remal.gradle-api:gradle-test-kit:${property('gradle-api.version')}",
-                "org.mockito:mockito-core:$mockitoVersion",
-                "org.mockito:mockito-inline:$mockitoVersion",
-                "org.mockito:mockito-junit-jupiter:$mockitoVersion",
                 'org.assertj:assertj-core:3.23.1',
             ].collect {
                 project.dependencies.constraints.create(it) { DependencyConstraint constraint ->
