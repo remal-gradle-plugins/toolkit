@@ -72,11 +72,13 @@ allprojects {
     afterEvaluate {
         if (property('disable-compilation')?.toString()?.toBoolean()) {
             tasks.matching { it instanceof AbstractCompile }.all { disableTask(it) }
+            tasks.matching { it.name == 'delombok' }.all { disableTask(it) }
 
             pluginManager.withPlugin('java') {
                 sourceSets.all { SourceSet sourceSet ->
                     tasks.matching { it.name == sourceSet.processResourcesTaskName }.all { disableTask(it) }
                 }
+                tasks.matching { it.name == 'delombok' }.all { disableTask(it) }
             }
         }
 

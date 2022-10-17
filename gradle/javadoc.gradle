@@ -1,0 +1,84 @@
+allprojects {
+    pluginManager.withPlugin('java') {
+        TaskProvider<Task> delombok = tasks.register('delombok', JavaExec) { JavaExec task ->
+            SourceSet sourceSet = project.sourceSets.main
+            task.dependsOn(sourceSet.classesTaskName)
+
+            FileTree sources = sourceSet.java.asFileTree
+            task.inputs.files(sources).ignoreEmptyDirectories().skipWhenEmpty().withPropertyName('sources')
+
+            File outputDir = new File(project.buildDir, task.name)
+            task.outputs.dir(outputDir).withPropertyName('outputDir')
+            task.ext.outputDir = outputDir
+
+            task.doFirst {
+                outputDir.delete()
+                outputDir.deleteDir()
+                outputDir.mkdirs()
+            }
+
+
+            JavaToolchainService javaToolchains = project.javaToolchains
+            JavaToolchainSpec toolchain = project.java.toolchain
+            task.javaLauncher.convention(javaToolchains.launcherFor(toolchain))
+
+            task.classpath = project.configurations.lombok
+            task.mainClass.set('lombok.launch.Main')
+
+            List<String> options = [
+                '--format=pretty',
+                "--target=$outputDir",
+                '--encoding=UTF-8',
+            ]
+            task.onlyIf {
+                JavaCompile javaCompile = project.tasks.named(sourceSet.compileJavaTaskName, JavaCompile).get()
+                options.add(
+                    "--classpath=${javaCompile.classpath.filter { it.exists() }.files.join(File.pathSeparator)}",
+                )
+                return true
+            }
+
+            task.onlyIf {
+                File optionsFile = new File(task.temporaryDir, "${task.name}.options")
+                task.inputs.files(optionsFile).withPropertyName('optionsFile')
+                optionsFile.parentFile.mkdirs()
+                optionsFile.setText(
+                    options.collect { option ->
+                        option.replace('\\', '\\\\')
+                            .replace(' ', '\\ ')
+                    }.join('\n'),
+                    'UTF-8'
+                )
+
+                task.args(
+                    'delombok',
+                    "@$optionsFile",
+                )
+
+                List<File> directories = sourceSet.java.sourceDirectories.files.toList()
+                directories.add(
+                    project.tasks.named(sourceSet.compileJavaTaskName, JavaCompile).get()
+                        .options.generatedSourceOutputDirectory.asFile.getOrNull()
+                )
+                directories.findAll { it != null }.unique().forEach { task.args(it) }
+
+                return true
+            }
+        }
+
+
+        tasks.withType(Javadoc) { Javadoc task ->
+            task.dependsOn(delombok)
+            task.setSource(project.provider { delombok.get().outputDir })
+
+            task.exclude('**/internal', '**/internal/**/*')
+
+            task.options.addBooleanOption('Xdoclint:none', true)
+
+            int languageVersion = task.javadocTool.getOrNull()?.metadata?.languageVersion?.asInt() ?: Integer.parseInt(JavaVersion.current().majorVersion)
+            if (languageVersion >= 9) {
+                task.options.addBooleanOption('html5', true)
+            }
+        }
+    }
+}

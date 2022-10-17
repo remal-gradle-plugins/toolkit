@@ -3,6 +3,10 @@ import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_
 allprojects {
     tasks.matching { project.isVerificationTask(it) }.configureEach { group = VERIFICATION_GROUP }
 
+    tasks.matching { it instanceof ProcessForkOptions }.configureEach { ProcessForkOptions task ->
+        task.workingDir = project.projectDir
+    }
+
     tasks.withType(AbstractCopyTask).configureEach { AbstractCopyTask task ->
         task.duplicatesStrategy = DuplicatesStrategy.FAIL
         task.filteringCharset = 'UTF-8'
@@ -16,7 +20,7 @@ allprojects {
                     filesToMerge.computeIfAbsent(details.relativePath, { new LinkedHashSet<>() }).add(details.file)
                 }
 
-            File mergedFilesDir = project.file("${project.buildDir}/temp/${task.name}.merged")
+            File mergedFilesDir = new File(task.temporaryDir.absolutePath + '.merged')
             mergedFilesDir.delete()
             mergedFilesDir.deleteDir()
 

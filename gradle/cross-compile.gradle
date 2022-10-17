@@ -74,6 +74,16 @@ allprojects {
                 }
             }
 
+            crossCompileProject.tasks.withType(Javadoc).configureEach { enabled = false }
+            tasks.withType(Javadoc).configureEach { Javadoc task ->
+                task.source(
+                    project.provider {
+                        crossCompileProject.tasks.withType(Javadoc)
+                            .collect { it.source }
+                    }
+                )
+            }
+
             ; [
                 'api',
                 'implementation',
