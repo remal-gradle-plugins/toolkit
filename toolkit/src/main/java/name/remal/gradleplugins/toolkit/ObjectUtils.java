@@ -41,6 +41,16 @@ import org.jetbrains.annotations.Contract;
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ObjectUtils {
 
+    public static final byte DEFAULT_BYTE = new PrimitiveDefaultValues().defaultByte;
+    public static final short DEFAULT_SHORT = new PrimitiveDefaultValues().defaultShort;
+    public static final int DEFAULT_INT = new PrimitiveDefaultValues().defaultInt;
+    public static final long DEFAULT_LONG = new PrimitiveDefaultValues().defaultLong;
+    public static final float DEFAULT_FLOAT = new PrimitiveDefaultValues().defaultFloat;
+    public static final double DEFAULT_DOUBLE = new PrimitiveDefaultValues().defaultDouble;
+    public static final char DEFAULT_CHAR = new PrimitiveDefaultValues().defaultChar;
+    public static final boolean DEFAULT_BOOLEAN = new PrimitiveDefaultValues().defaultBoolean;
+
+
     @Contract(value = "_->param1", pure = true)
     public static <T> T doNotInline(T object) {
         return object;
@@ -159,6 +169,46 @@ public abstract class ObjectUtils {
         return value == null || value.length == 0;
     }
 
+    @Contract(value = "null->true", pure = true)
+    public static boolean isEmpty(@Nullable byte[] value) {
+        return value == null || value.length == 0;
+    }
+
+    @Contract(value = "null->true", pure = true)
+    public static boolean isEmpty(@Nullable short[] value) {
+        return value == null || value.length == 0;
+    }
+
+    @Contract(value = "null->true", pure = true)
+    public static boolean isEmpty(@Nullable int[] value) {
+        return value == null || value.length == 0;
+    }
+
+    @Contract(value = "null->true", pure = true)
+    public static boolean isEmpty(@Nullable long[] value) {
+        return value == null || value.length == 0;
+    }
+
+    @Contract(value = "null->true", pure = true)
+    public static boolean isEmpty(@Nullable float[] value) {
+        return value == null || value.length == 0;
+    }
+
+    @Contract(value = "null->true", pure = true)
+    public static boolean isEmpty(@Nullable double[] value) {
+        return value == null || value.length == 0;
+    }
+
+    @Contract(value = "null->true", pure = true)
+    public static boolean isEmpty(@Nullable char[] value) {
+        return value == null || value.length == 0;
+    }
+
+    @Contract(value = "null->true", pure = true)
+    public static boolean isEmpty(@Nullable boolean[] value) {
+        return value == null || value.length == 0;
+    }
+
 
     @Contract(value = "null->false", pure = true)
     public static boolean isNotEmpty(@Nullable CharSequence value) {
@@ -188,6 +238,46 @@ public abstract class ObjectUtils {
 
     @Contract(value = "null->false", pure = true)
     public static boolean isNotEmpty(@Nullable Object[] value) {
+        return !isEmpty(value);
+    }
+
+    @Contract(value = "null->false", pure = true)
+    public static boolean isNotEmpty(@Nullable byte[] value) {
+        return !isEmpty(value);
+    }
+
+    @Contract(value = "null->false", pure = true)
+    public static boolean isNotEmpty(@Nullable short[] value) {
+        return !isEmpty(value);
+    }
+
+    @Contract(value = "null->false", pure = true)
+    public static boolean isNotEmpty(@Nullable int[] value) {
+        return !isEmpty(value);
+    }
+
+    @Contract(value = "null->false", pure = true)
+    public static boolean isNotEmpty(@Nullable long[] value) {
+        return !isEmpty(value);
+    }
+
+    @Contract(value = "null->false", pure = true)
+    public static boolean isNotEmpty(@Nullable float[] value) {
+        return !isEmpty(value);
+    }
+
+    @Contract(value = "null->false", pure = true)
+    public static boolean isNotEmpty(@Nullable double[] value) {
+        return !isEmpty(value);
+    }
+
+    @Contract(value = "null->false", pure = true)
+    public static boolean isNotEmpty(@Nullable char[] value) {
+        return !isEmpty(value);
+    }
+
+    @Contract(value = "null->false", pure = true)
+    public static boolean isNotEmpty(@Nullable boolean[] value) {
         return !isEmpty(value);
     }
 
@@ -221,6 +311,109 @@ public abstract class ObjectUtils {
     @SuppressWarnings({"OptionalUsedAsFieldOrParameterType", "java:S2789"})
     public static <T> Optional<T> defaultValue(@Nullable Optional<T> value) {
         return defaultValue(value, Optional.empty());
+    }
+
+
+    @Contract(value = "!null,_->param1; null,_->param2", pure = true)
+    public static byte defaultValue(@Nullable Byte value, byte defaultValue) {
+        return value != null ? value : defaultValue;
+    }
+
+    @Contract(pure = true)
+    public static byte defaultValue(@Nullable Byte value) {
+        return defaultValue(value, DEFAULT_BYTE);
+    }
+
+    @Contract(value = "!null,_->param1; null,_->param2", pure = true)
+    public static short defaultValue(@Nullable Short value, short defaultValue) {
+        return value != null ? value : defaultValue;
+    }
+
+    @Contract(pure = true)
+    public static short defaultValue(@Nullable Short value) {
+        return defaultValue(value, DEFAULT_SHORT);
+    }
+
+    @Contract(value = "!null,_->param1; null,_->param2", pure = true)
+    public static int defaultValue(@Nullable Integer value, int defaultValue) {
+        return value != null ? value : defaultValue;
+    }
+
+    @Contract(pure = true)
+    public static int defaultValue(@Nullable Integer value) {
+        return defaultValue(value, DEFAULT_INT);
+    }
+
+    @Contract(value = "!null,_->param1; null,_->param2", pure = true)
+    public static long defaultValue(@Nullable Long value, long defaultValue) {
+        return value != null ? value : defaultValue;
+    }
+
+    @Contract(pure = true)
+    public static long defaultValue(@Nullable Long value) {
+        return defaultValue(value, DEFAULT_LONG);
+    }
+
+    @Contract(value = "!null,_->param1; null,_->param2", pure = true)
+    public static float defaultValue(@Nullable Float value, float defaultValue) {
+        return value != null ? value : defaultValue;
+    }
+
+    @Contract(pure = true)
+    public static float defaultValue(@Nullable Float value) {
+        return defaultValue(value, DEFAULT_FLOAT);
+    }
+
+    @Contract(value = "!null,_->param1; null,_->param2", pure = true)
+    public static double defaultValue(@Nullable Double value, double defaultValue) {
+        return value != null ? value : defaultValue;
+    }
+
+    @Contract(pure = true)
+    public static double defaultValue(@Nullable Double value) {
+        return defaultValue(value, DEFAULT_DOUBLE);
+    }
+
+    @Contract(value = "!null,_->param1; null,_->param2", pure = true)
+    public static char defaultValue(@Nullable Character value, char defaultValue) {
+        return value != null ? value : defaultValue;
+    }
+
+    @Contract(pure = true)
+    public static char defaultValue(@Nullable Character value) {
+        return defaultValue(value, DEFAULT_CHAR);
+    }
+
+    @Contract(value = "!null,_->param1; null,_->param2", pure = true)
+    public static boolean defaultValue(@Nullable Boolean value, boolean defaultValue) {
+        return value != null ? value : defaultValue;
+    }
+
+    @Contract(pure = true)
+    public static boolean defaultValue(@Nullable Boolean value) {
+        return defaultValue(value, DEFAULT_BOOLEAN);
+    }
+
+    @Contract(pure = true)
+    public static boolean defaultTrue(@Nullable Boolean value) {
+        return defaultValue(value, true);
+    }
+
+    @Contract(pure = true)
+    public static boolean defaultFalse(@Nullable Boolean value) {
+        return defaultValue(value, false);
+    }
+
+
+    private static class PrimitiveDefaultValues {
+        private byte defaultByte;
+        private short defaultShort;
+        private int defaultInt;
+        private long defaultLong;
+        private float defaultFloat;
+        private double defaultDouble;
+        private char defaultChar;
+        private boolean defaultBoolean;
     }
 
 }
