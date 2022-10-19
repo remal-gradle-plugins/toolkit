@@ -16,6 +16,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 
+@SuppressWarnings("java:S5993")
 abstract class GradleUtilsBuildFinishedService implements BuildService<Params>, AutoCloseable {
 
     private static final String SERVICE_NAME = join(

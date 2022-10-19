@@ -133,7 +133,6 @@ tasks.named('generateJava') {
         it.writeStaticImport('lombok.AccessLevel', 'PRIVATE')
         it.println("")
         it.writeImport('javax.annotation.Nonnull')
-        it.writeImport('javax.annotation.Nullable')
         it.writeImport('lombok.NoArgsConstructor')
         it.writeImport('lombok.val')
         it.println("")
@@ -143,7 +142,7 @@ tasks.named('generateJava') {
             (0..typedMethodMaxParamsCount).forEach { paramsCount ->
                 it.println("")
                 it.println("@Nonnull(when = UNKNOWN)")
-                it.writeBlock("public static <T, R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> R invokeMethod(T target, Class<R> returnType, String methodName${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<P$it> paramType$it, @Nullable P$it param$it" }.join("")})") {
+                it.writeBlock("public static <T, R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> R invokeMethod(T target, Class<R> returnType, String methodName${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<P$it> paramType$it, @Nonnull(when = UNKNOWN) P$it param$it" }.join("")})") {
                     it.println("val method = MembersFinder.getMethod((Class<T>) target.getClass(), returnType, methodName${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")});")
                     it.println("return method.invoke(target${paramsCount == 0 ? '' : (1..paramsCount).collect { ", param$it" }.join("")});")
                 }
@@ -151,7 +150,7 @@ tasks.named('generateJava') {
 
             (0..typedMethodMaxParamsCount).forEach { paramsCount ->
                 it.println("")
-                it.writeBlock("public static <T${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> void invokeMethod(T target, String methodName${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<P$it> paramType$it, @Nullable P$it param$it" }.join("")})") {
+                it.writeBlock("public static <T${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> void invokeMethod(T target, String methodName${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<P$it> paramType$it, @Nonnull(when = UNKNOWN) P$it param$it" }.join("")})") {
                     it.println("val method = MembersFinder.getMethod((Class<T>) target.getClass(), methodName${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")});")
                     it.println("method.invoke(target${paramsCount == 0 ? '' : (1..paramsCount).collect { ", param$it" }.join("")});")
                 }
@@ -160,7 +159,7 @@ tasks.named('generateJava') {
             (0..typedMethodMaxParamsCount).forEach { paramsCount ->
                 it.println("")
                 it.println("@Nonnull(when = UNKNOWN)")
-                it.writeBlock("public static <R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> R invokeStaticMethod(Class<?> type, Class<R> returnType, String methodName${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<P$it> paramType$it, @Nullable P$it param$it" }.join("")})") {
+                it.writeBlock("public static <R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> R invokeStaticMethod(Class<?> type, Class<R> returnType, String methodName${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<P$it> paramType$it, @Nonnull(when = UNKNOWN) P$it param$it" }.join("")})") {
                     it.println("val method = MembersFinder.getStaticMethod(type, returnType, methodName${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")});")
                     it.println("return method.invoke(${paramsCount == 0 ? '' : (1..paramsCount).collect { "param$it" }.join(", ")});")
                 }
@@ -168,7 +167,7 @@ tasks.named('generateJava') {
 
             (0..typedMethodMaxParamsCount).forEach { paramsCount ->
                 it.println("")
-                it.writeBlock("public static ${paramsCount == 0 ? '' : '<' + (1..paramsCount).collect { "P$it" }.join(", ") + '>'} void invokeStaticMethod(Class<?> type, String methodName${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<P$it> paramType$it, @Nullable P$it param$it" }.join("")})") {
+                it.writeBlock("public static ${paramsCount == 0 ? '' : '<' + (1..paramsCount).collect { "P$it" }.join(", ") + '>'} void invokeStaticMethod(Class<?> type, String methodName${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<P$it> paramType$it, @Nonnull(when = UNKNOWN) P$it param$it" }.join("")})") {
                     it.println("val method = MembersFinder.getStaticMethod(type, methodName${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")});")
                     it.println("method.invoke(${paramsCount == 0 ? '' : (1..paramsCount).collect { "param$it" }.join(",")});")
                 }
@@ -186,7 +185,6 @@ tasks.named('generateJava') {
             it.writeImport('java.lang.reflect.InvocationTargetException')
             it.writeImport('java.lang.reflect.Method')
             it.writeImport('javax.annotation.Nonnull')
-            it.writeImport('javax.annotation.Nullable')
             it.writeImport('lombok.SneakyThrows')
             it.println("")
             it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone")
@@ -202,7 +200,7 @@ tasks.named('generateJava') {
                 it.println("@Nonnull(when = UNKNOWN)")
                 it.println("@SneakyThrows")
                 it.writeSuppressWarnings("unchecked")
-                it.writeBlock("public R invoke(T target${paramsCount == 0 ? '' : (1..paramsCount).collect { ", @Nullable P$it param$it" }.join("")})") {
+                it.writeBlock("public R invoke(T target${paramsCount == 0 ? '' : (1..paramsCount).collect { ", @Nonnull(when = UNKNOWN) P$it param$it" }.join("")})") {
                     it.println("try {")
                     it.println("    return (R) method.invoke(target${paramsCount == 0 ? '' : (1..paramsCount).collect { ", param$it" }.join("")});")
                     it.println("} catch (InvocationTargetException e) {")
@@ -215,11 +213,12 @@ tasks.named('generateJava') {
         classFile('name.remal.gradleplugins.toolkit.reflection', "TypedVoidMethod${paramsCount}") {
             it.writePackage()
             it.println("")
+            it.writeStaticImport('javax.annotation.meta.When', 'UNKNOWN')
             it.writeStaticImport('name.remal.gradleplugins.toolkit.reflection.ReflectionUtils', 'isStatic')
             it.println("")
             it.writeImport('java.lang.reflect.InvocationTargetException')
             it.writeImport('java.lang.reflect.Method')
-            it.writeImport('javax.annotation.Nullable')
+            it.writeImport('javax.annotation.Nonnull')
             it.writeImport('lombok.SneakyThrows')
             it.println("")
             it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone")
@@ -233,7 +232,7 @@ tasks.named('generateJava') {
 
                 it.println("")
                 it.println("@SneakyThrows")
-                it.writeBlock("public void invoke(T target${paramsCount == 0 ? '' : (1..paramsCount).collect { ", @Nullable P$it param$it" }.join("")})") {
+                it.writeBlock("public void invoke(T target${paramsCount == 0 ? '' : (1..paramsCount).collect { ", @Nonnull(when = UNKNOWN) P$it param$it" }.join("")})") {
                     it.println("try {")
                     it.println("    method.invoke(target${paramsCount == 0 ? '' : (1..paramsCount).collect { ", param$it" }.join("")});")
                     it.println("} catch (InvocationTargetException e) {")
@@ -252,7 +251,6 @@ tasks.named('generateJava') {
             it.writeImport('java.lang.reflect.InvocationTargetException')
             it.writeImport('java.lang.reflect.Method')
             it.writeImport('javax.annotation.Nonnull')
-            it.writeImport('javax.annotation.Nullable')
             it.writeImport('lombok.SneakyThrows')
             it.println("")
             it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone")
@@ -268,7 +266,7 @@ tasks.named('generateJava') {
                 it.println("@Nonnull(when = UNKNOWN)")
                 it.println("@SneakyThrows")
                 it.writeSuppressWarnings("unchecked")
-                it.writeBlock("public R invoke(${paramsCount == 0 ? '' : (1..paramsCount).collect { "@Nullable P$it param$it" }.join(", ")})") {
+                it.writeBlock("public R invoke(${paramsCount == 0 ? '' : (1..paramsCount).collect { "@Nonnull(when = UNKNOWN) P$it param$it" }.join(", ")})") {
                     it.println("try {")
                     it.println("    return (R) method.invoke(null${paramsCount == 0 ? '' : (1..paramsCount).collect { ", param$it" }.join("")});")
                     it.println("} catch (InvocationTargetException e) {")
@@ -281,11 +279,12 @@ tasks.named('generateJava') {
         classFile('name.remal.gradleplugins.toolkit.reflection', "TypedStaticVoidMethod${paramsCount}") {
             it.writePackage()
             it.println("")
+            it.writeStaticImport('javax.annotation.meta.When', 'UNKNOWN')
             it.writeStaticImport('name.remal.gradleplugins.toolkit.reflection.ReflectionUtils', 'isNotStatic')
             it.println("")
             it.writeImport('java.lang.reflect.InvocationTargetException')
             it.writeImport('java.lang.reflect.Method')
-            it.writeImport('javax.annotation.Nullable')
+            it.writeImport('javax.annotation.Nonnull')
             it.writeImport('lombok.SneakyThrows')
             it.println("")
             it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone")
@@ -299,7 +298,7 @@ tasks.named('generateJava') {
 
                 it.println("")
                 it.println("@SneakyThrows")
-                it.writeBlock("public void invoke(${paramsCount == 0 ? '' : (1..paramsCount).collect { "@Nullable P$it param$it" }.join(", ")})") {
+                it.writeBlock("public void invoke(${paramsCount == 0 ? '' : (1..paramsCount).collect { "@Nonnull(when = UNKNOWN) P$it param$it" }.join(", ")})") {
                     it.println("try {")
                     it.println("    method.invoke(null${paramsCount == 0 ? '' : (1..paramsCount).collect { ", param$it" }.join("")});")
                     it.println("} catch (InvocationTargetException e) {")

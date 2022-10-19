@@ -1,11 +1,16 @@
 package name.remal.gradleplugins.toolkit;
 
 import static java.lang.management.ManagementFactory.getRuntimeMXBean;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
+import static javax.annotation.meta.When.UNKNOWN;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.time.Duration;
+import java.util.concurrent.Callable;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.CustomLog;
 import lombok.NoArgsConstructor;
@@ -104,6 +109,33 @@ public abstract class DebugUtils {
         if (parentClassLoader != null) {
             dumpClassLoader(message, parentClassLoader);
         }
+    }
+
+
+    private static final long MAX_NANOS_TO_DISPLAY_IN_NANOS = Duration.ofMillis(1).toNanos();
+
+    @Nonnull(when = UNKNOWN)
+    @SneakyThrows
+    public static <T> T logTiming(String timerName, Callable<T> action) {
+        val startNanos = System.nanoTime();
+        try {
+            return action.call();
+
+        } finally {
+            val durationNanos = System.nanoTime() - startNanos;
+            if (durationNanos <= MAX_NANOS_TO_DISPLAY_IN_NANOS) {
+                logger.quiet("{} took {} nanos", timerName, durationNanos);
+            } else {
+                logger.quiet("{} took {} millis", timerName, NANOSECONDS.toMillis(durationNanos));
+            }
+        }
+    }
+
+    public static void logTiming(String timerName, Runnable action) {
+        logTiming(timerName, () -> {
+            action.run();
+            return null;
+        });
     }
 
 }

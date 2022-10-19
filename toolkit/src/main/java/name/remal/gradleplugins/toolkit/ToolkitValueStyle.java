@@ -18,7 +18,6 @@ import org.immutables.value.Value.Style.ImplementationVisibility;
 @Retention(CLASS)
 @Value.Style(
     defaults = @Value.Immutable(
-        copy = false
     ),
     visibility = ImplementationVisibility.SAME,
     builderVisibility = BuilderVisibility.PUBLIC,

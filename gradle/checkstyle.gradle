@@ -1,3 +1,5 @@
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
+
 allprojects {
     apply plugin: 'checkstyle'
 
@@ -19,5 +21,10 @@ allprojects {
             .matching { it.version != null && !it.version.isEmpty() }
             .first()
             .version
+    }
+
+    tasks.register('allCheckstyle') {
+        group = VERIFICATION_GROUP
+        dependsOn(project.provider { project.sourceSets.collect { SourceSet sourceSet -> sourceSet.getTaskName('checkstyle', null) } })
     }
 }

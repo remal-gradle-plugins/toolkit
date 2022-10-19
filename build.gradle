@@ -7,9 +7,10 @@ buildscript {
     configurations.create('toolkitBuildLibs') { configurations.classpath.extendsFrom(it) }
     dependencies {
         classpathPlugins 'name.remal.gradle-plugins.test-source-sets:test-source-sets:2.2.3'
-        classpathPlugins 'com.gradle.publish:plugin-publish-plugin:1.0.0'
+        classpathPlugins 'name.remal.gradle-plugins.sonarlint:sonarlint:2.0.0-rc-2'
         classpathPlugins 'name.remal.gradle-plugins.idea-settings:idea-settings:2.0.3'
         classpathPlugins 'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.1.6'
+        classpathPlugins 'com.gradle.publish:plugin-publish-plugin:1.0.0'
         classpathPlugins 'name.remal:gradle-plugins:1.7.2'
         classpathPlugins 'io.github.gradle-nexus:publish-plugin:1.1.0'
         classpathPlugins 'net.ltgt.gradle:gradle-errorprone-plugin:3.0.1'
@@ -69,6 +70,7 @@ List<String> includedBuildScripts = [
     'gradle/cross-compile.gradle',
     'gradle/groovy.gradle',
     'gradle/checkstyle.gradle',
+    'gradle/sonarlint.gradle',
     'gradle/javadoc.gradle',
     'gradle/gradle-plugin.gradle',
     'gradle/gradle-plugin-collect-api-dependencies.gradle',

@@ -1,0 +1,39 @@
+import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
+
+allprojects {
+    pluginManager.withPlugin('name.remal.sonarlint') {
+        sonarLint {
+            rules {
+                disable(
+                    'java:S110',  // Inheritance tree of classes should not be too deep
+                    'java:S112',  // Generic exceptions should never be thrown
+                    'java:S125',  // Sections of code should not be commented out
+                    'java:S135',  // Loops should not contain more than a single "break" or "continue" statement
+                    'java:S1066', // Collapsible "if" statements should be merged
+                    'java:S1117', // Local variables should not shadow class fields
+                    'java:S1119', // Labels should not be used
+                    'java:S1126', // Return of boolean expressions should not be wrapped into an "if-then-else" statement
+                    'java:S1133', // Deprecated code should be removed
+                    'java:S1134', // Track uses of "FIXME" tags
+                    'java:S1171', // Only static class initializers should be used
+                    'java:S1192', // String literals should not be duplicated
+                    'java:S1199', // Nested code blocks should not be used
+                    'java:S1214', // Constants should not be defined in interfaces
+                    'java:S1452', // Generic wildcard types should not be used in return types
+                    'java:S1488', // Local variables should not be declared and then immediately returned or thrown
+                    'java:S1602', // Lambdas containing only one statement should not nest this statement in a block
+                    'java:S1610', // Abstract classes without fields should be converted to interfaces
+                    'java:S2259', // Null pointers should not be dereferenced
+                    'java:S3077', // Non-primitive fields should not be "volatile"
+
+                    'xml:S125', // Sections of code should not be commented out
+                )
+            }
+        }
+
+        tasks.register('allSonarlint') {
+            group = VERIFICATION_GROUP
+            dependsOn(project.provider { project.sourceSets.collect { SourceSet sourceSet -> sourceSet.getTaskName('sonarlint', null) } })
+        }
+    }
+}

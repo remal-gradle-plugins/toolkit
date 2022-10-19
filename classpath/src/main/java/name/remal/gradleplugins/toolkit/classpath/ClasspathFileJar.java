@@ -87,6 +87,7 @@ final class ClasspathFileJar extends ClasspathFileBase {
     @Nullable
     @Override
     @SneakyThrows
+    @SuppressWarnings("java:S2095")
     protected InputStream openStreamImpl(String resourceName) {
         val zipFile = new ZipFile(file);
         try {
@@ -133,6 +134,7 @@ final class ClasspathFileJar extends ClasspathFileBase {
 
     @Override
     @SneakyThrows
+    @SuppressWarnings("java:S2095")
     public void forEachResource(ResourceProcessor processor) {
         if (isMultiRelease()) {
             super.forEachResource(processor);
