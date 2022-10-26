@@ -12,17 +12,12 @@ allprojects {
             task.dependsOn(project.provider { publications.collect { getGeneratePomFileTask(it) } })
             task.dependsOn(project.provider { publications.collect { it.getArtifacts() }.flatten() })
 
+            task.inputs.files(project.provider { publications.collect { getGeneratePomFileTask(it).destination }.flatten() }).optional().withPropertyName('pomFiles')
+            task.inputs.files(project.provider { publications.collect { it.artifacts.collect { it.file } }.flatten() }).optional().withPropertyName('artifactFiles')
+
             File outputDir = project.file("${project.buildDir}/.m2")
             task.outputs.dir(outputDir).withPropertyName('outputDir')
             task.ext.outputDir = outputDir
-
-            task.onlyIf {
-                publications.forEach { publication ->
-                    task.inputs.file(getGeneratePomFileTask(publication).destination)
-                    publication.getArtifacts().forEach { artifact -> task.inputs.file(artifact.file) }
-                }
-                return true
-            }
 
             task.doFirst {
                 outputDir.delete()

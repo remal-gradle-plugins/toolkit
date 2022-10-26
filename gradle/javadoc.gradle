@@ -25,25 +25,25 @@ allprojects {
             task.classpath = project.configurations.lombok
             task.mainClass.set('lombok.launch.Main')
 
-            List<String> options = [
+            ListProperty<String> options = project.objects.listProperty(String)
+            options.addAll(
                 '--format=pretty',
                 "--target=$outputDir",
                 '--encoding=UTF-8',
-            ]
-            task.onlyIf {
-                JavaCompile javaCompile = project.tasks.named(sourceSet.compileJavaTaskName, JavaCompile).get()
-                options.add(
-                    "--classpath=${javaCompile.classpath.filter { it.exists() }.files.join(File.pathSeparator)}",
-                )
-                return true
-            }
+            )
+            options.add(
+                project.provider {
+                    JavaCompile javaCompile = project.tasks.named(sourceSet.compileJavaTaskName, JavaCompile).get()
+                    return "--classpath=${javaCompile.classpath.filter { it.exists() }.files.join(File.pathSeparator)}"
+                }
+            )
 
             task.onlyIf {
                 File optionsFile = new File(task.temporaryDir, "${task.name}.options")
                 task.inputs.files(optionsFile).withPropertyName('optionsFile')
                 optionsFile.parentFile.mkdirs()
                 optionsFile.setText(
-                    options.collect { option ->
+                    options.get().collect { option ->
                         option.replace('\\', '\\\\')
                             .replace(' ', '\\ ')
                     }.join('\n'),

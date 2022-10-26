@@ -9,6 +9,8 @@ apply plugin: 'name.remal.generate-sources'
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 dependencies {
+    indirectApi('org.eclipse.jgit:org.eclipse.jgit:6.3.0.202209071007-r') { transitive = false }
+
     relocateClasses project(':toolkit')
 
     testImplementation project(':testkit')

@@ -36,18 +36,18 @@ allprojects {
             }
         }
 
-        configurations.create('indirectApi') { Configuration conf ->
+        Configuration indirectApiConf = configurations.create('indirectApi') { Configuration conf ->
             conf.description("Indirect API dependencies (form example: default dependencies for configurations that are created by the plugin)")
         }
 
-        configurations.create('compileOnlyAll') { Configuration conf ->
+        Configuration compileOnlyAllConf = configurations.create('compileOnlyAll') { Configuration conf ->
             conf.description("Compile-only dependencies for all source-sets")
             sourceSets.all { SourceSet sourceSet ->
                 configurations[sourceSet.compileOnlyConfigurationName].extendsFrom(conf)
             }
         }
 
-        configurations.create('optional') { Configuration conf ->
+        Configuration optionalConf = configurations.create('optional') { Configuration conf ->
             sourceSets.all { SourceSet sourceSet ->
                 conf.description("Optional dependencies")
                 if (sourceSet.name == SourceSet.MAIN_SOURCE_SET_NAME) {
@@ -58,29 +58,38 @@ allprojects {
             }
         }
 
-        configurations.create('optionalHidden') { Configuration conf ->
+        Configuration optionalHiddenConf = configurations.create('optionalHidden') { Configuration conf ->
             conf.description("Optional dependencies hidden from IDE")
 
-            tasks.withType(AbstractCompile).configureEach {
-                onlyIf {
+            tasks.withType(AbstractCompile).configureEach { AbstractCompile task ->
+                task.onlyIf {
                     if (!conf.allDependencies.isEmpty()) {
-                        classpath = conf + classpath
+                        task.classpath = task.classpath + conf
                     }
                     return true
                 }
             }
 
-            tasks.withType(Test).configureEach {
-                onlyIf {
+            tasks.withType(Javadoc).configureEach { Javadoc task ->
+                task.onlyIf {
                     if (!conf.allDependencies.isEmpty()) {
-                        classpath = conf + classpath
+                        task.classpath = task.classpath + conf
+                    }
+                    return true
+                }
+            }
+
+            tasks.withType(Test).configureEach { Test task ->
+                task.onlyIf {
+                    if (!conf.allDependencies.isEmpty()) {
+                        task.classpath = task.classpath + conf
                     }
                     return true
                 }
             }
         }
 
-        configurations.create('apt') { Configuration conf ->
+        Configuration aptConf = configurations.create('apt') { Configuration conf ->
             conf.description("Annotation processors and compile-only dependencies for all source-sets")
             sourceSets.all { SourceSet sourceSet ->
                 configurations[sourceSet.annotationProcessorConfigurationName].extendsFrom(conf)
@@ -88,7 +97,7 @@ allprojects {
             }
         }
 
-        configurations.create('annotationProcessorAll') { Configuration conf ->
+        Configuration annotationProcessorAllConf = configurations.create('annotationProcessorAll') { Configuration conf ->
             conf.description("Annotation processors for all source-sets")
             sourceSets.all { SourceSet sourceSet ->
                 configurations[sourceSet.annotationProcessorConfigurationName].extendsFrom(conf)
@@ -105,7 +114,10 @@ allprojects {
             annotationProcessorAll 'org.immutables:value'
             compileOnlyAll 'org.immutables:value-annotations'
             compileOnlyAll 'org.immutables:builder'
-            compileOnlyAll 'org.immutables:gson'
+            compileOnlyAll('org.immutables:gson') {
+                exclude(group: 'com.google.code.gson', module: 'gson')
+            }
+            optionalHidden 'org.immutables:gson'
 
 
             testImplementation 'org.junit.jupiter:junit-jupiter-api'
@@ -118,7 +130,6 @@ allprojects {
         }
 
         /*
-         * Add Lombok annotation processor.
          * To make MapStruct work correctly with Lombok Builder, Lombok should be added *after* MapStruct (see https://github.com/mapstruct/mapstruct/issues/1581).
          * The only way to guarantee annotation processors ordering in Gradle is adding a file collection with Lombok to `sourceSet.annotationProcessorPath`.
          * Here we define a `lombok` configuration (which is a file collection) and add it to add `sourceSet.annotationProcessorPath`.
@@ -143,13 +154,13 @@ allprojects {
         }
 
         sourceSets.all { SourceSet sourceSet ->
-            configurations[sourceSet.compileClasspathConfigurationName].attributes { attrs ->
+            project.configurations[sourceSet.compileClasspathConfigurationName].attributes { attrs ->
                 attrs.attribute(
                     LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
                     objects.named(LibraryElements, LibraryElements.JAR)
                 )
             }
-            configurations[sourceSet.runtimeClasspathConfigurationName].attributes { attrs ->
+            project.configurations[sourceSet.runtimeClasspathConfigurationName].attributes { attrs ->
                 attrs.attribute(
                     LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
                     objects.named(LibraryElements, LibraryElements.JAR)

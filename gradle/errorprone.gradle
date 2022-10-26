@@ -4,6 +4,7 @@ allprojects {
 
         dependencies {
             errorprone 'com.google.errorprone:error_prone_core'
+            errorprone 'org.mockito:mockito-errorprone'
 
             compileOnlyAll 'com.google.errorprone:error_prone_annotations'
         }
