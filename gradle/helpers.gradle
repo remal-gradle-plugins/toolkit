@@ -30,6 +30,13 @@ buildscript {
 
 Object MUTEX = new Object[0]
 
+project.ext.isInstanceOf = { Object object, String parentClassName ->
+    if (object == null) return false
+
+    Class<?> parentClass = Class.forName(parentClassName, true, object.class.classLoader)
+    return parentClass.isInstance(object)
+}
+
 project.ext.disableTask = { Task task ->
     task.enabled = false
     task.onlyIf { false }
