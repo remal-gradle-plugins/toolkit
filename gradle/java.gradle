@@ -9,8 +9,14 @@ allprojects {
         apply plugin: 'name.remal.classes-relocation'
         apply plugin: 'name.remal.sonarlint'
 
-        sourceCompatibility = JavaVersion.VERSION_1_8.toString()
-        targetCompatibility = sourceCompatibility.toString()
+        java {
+            sourceCompatibility = JavaVersion.VERSION_1_8
+            targetCompatibility = sourceCompatibility
+
+            consistentResolution {
+                useCompileClasspathVersions()
+            }
+        }
 
         repositories {
             mavenCentral()
