@@ -15,9 +15,9 @@ class PluginUtilsTest {
     void getAllPluginClassNames() {
         assertThat(PluginUtils.getAllPluginClassNames())
             .contains(
-                entry("org.gradle.java", "org.gradle.api.plugins.JavaPlugin"),
-                entry("org.gradle.java-library", "org.gradle.api.plugins.JavaLibraryPlugin"),
-                entry("org.gradle.checkstyle", "org.gradle.api.plugins.quality.CheckstylePlugin")
+                entry("java", "org.gradle.api.plugins.JavaPlugin"),
+                entry("java-library", "org.gradle.api.plugins.JavaLibraryPlugin"),
+                entry("checkstyle", "org.gradle.api.plugins.quality.CheckstylePlugin")
             );
     }
 
@@ -31,11 +31,11 @@ class PluginUtilsTest {
         }
 
         assertThat(PluginUtils.findPluginIdFor(JavaPlugin.class))
-            .isEqualTo("org.gradle.java");
+            .isEqualTo("java");
         assertThat(PluginUtils.findPluginIdFor(JavaLibraryPlugin.class))
-            .isEqualTo("org.gradle.java-library");
+            .isEqualTo("java-library");
         assertThat(PluginUtils.findPluginIdFor(CheckstylePlugin.class))
-            .isEqualTo("org.gradle.checkstyle");
+            .isEqualTo("checkstyle");
         assertThat(PluginUtils.findPluginIdFor(UnknownPlugin.class))
             .isNull();
     }
