@@ -6,9 +6,8 @@ import static java.nio.file.Files.isRegularFile;
 import static java.nio.file.Files.newInputStream;
 import static java.util.Collections.emptyList;
 import static lombok.AccessLevel.PRIVATE;
+import static name.remal.gradleplugins.toolkit.ContinuousIntegrationUtils.isRunningOnCi;
 import static name.remal.gradleplugins.toolkit.PathUtils.normalizePath;
-import static name.remal.gradleplugins.toolkit.PredicateUtils.not;
-import static name.remal.gradleplugins.toolkit.PredicateUtils.startsWithPath;
 import static name.remal.gradleplugins.toolkit.git.GitBooleanAttribute.newGitBooleanAttributeBuilder;
 import static name.remal.gradleplugins.toolkit.git.GitStringAttribute.newGitStringAttributeBuilder;
 import static org.eclipse.jgit.attributes.Attribute.State.CUSTOM;
@@ -23,7 +22,6 @@ import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Stream;
@@ -31,6 +29,7 @@ import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
+import name.remal.gradleplugins.toolkit.ObjectUtils;
 import name.remal.gradleplugins.toolkit.PathUtils;
 import org.eclipse.jgit.attributes.AttributesNode;
 import org.eclipse.jgit.attributes.AttributesRule;
@@ -53,20 +52,21 @@ public abstract class GitUtils {
             }
         }
 
-        val ciProjectPath = Stream.of(
-                "CI_PROJECT_DIR",
-                "GITHUB_WORKSPACE"
-            )
-            .map(System::getenv)
-            .filter(Objects::nonNull)
-            .filter(not(String::isEmpty))
-            .map(Paths::get)
-            .map(PathUtils::normalizePath)
-            .filter(startsWithPath(path))
-            .findFirst()
-            .orElse(null);
-        if (ciProjectPath != null) {
-            return ciProjectPath;
+        if (isRunningOnCi()) {
+            val ciProjectPath = Stream.of(
+                    "CI_PROJECT_DIR",
+                    "GITHUB_WORKSPACE"
+                )
+                .map(System::getenv)
+                .filter(ObjectUtils::isNotEmpty)
+                .map(Paths::get)
+                .map(PathUtils::normalizePath)
+                .filter(path::startsWith)
+                .findFirst()
+                .orElse(null);
+            if (ciProjectPath != null) {
+                return ciProjectPath;
+            }
         }
 
         return null;
