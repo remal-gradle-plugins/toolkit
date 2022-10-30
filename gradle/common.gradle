@@ -1,6 +1,10 @@
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
 
+import java.time.Duration
+
 allprojects {
+    tasks.configureEach { timeout = Duration.ofMinutes(10) }
+
     tasks.matching { project.isVerificationTask(it) }.configureEach { group = VERIFICATION_GROUP }
 
     tasks.matching { it instanceof ProcessForkOptions }.configureEach { ProcessForkOptions task ->
