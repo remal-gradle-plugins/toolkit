@@ -7,9 +7,11 @@ import static name.remal.gradleplugins.toolkit.reflection.MembersFinder.findMeth
 import java.io.File;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
+import lombok.val;
 import name.remal.gradleplugins.toolkit.reflection.TypedMethod0;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.tasks.compile.AbstractCompile;
+import org.gradle.api.tasks.compile.CompileOptions;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class AbstractCompileUtils {
@@ -37,6 +39,17 @@ public abstract class AbstractCompileUtils {
                 "Both 'getDestinationDirectory' and 'getDestinationDir' methods can't be found for task: " + task
             );
         }
+    }
+
+    @Nullable
+    public static CompileOptions getCompileOptionsOf(AbstractCompile task) {
+        @SuppressWarnings("unchecked")
+        val getter = findMethod((Class<AbstractCompile>) task.getClass(), CompileOptions.class, "getOptions");
+        if (getter != null) {
+            return getter.invoke(task);
+        }
+
+        return null;
     }
 
 }
