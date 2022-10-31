@@ -72,7 +72,7 @@ class AbstractCompileUtilsTest {
 
 
     @Test
-    @MinSupportedGradleVersion("6.7")
+    @MinSupportedGradleVersion("6.8")
     void getCompilerJavaVersionOrNullOf() {
         val expectedJavaVersion = JavaVersion.values()[JavaVersion.current().ordinal() - 1];
 
@@ -100,6 +100,27 @@ class AbstractCompileUtilsTest {
             val javaLauncher = mock(JavaLauncher.class);
             when(javaLauncher.getMetadata()).thenReturn(metadata);
             task.getJavaLauncher().set(javaLauncher);
+
+            val javaVersion = AbstractCompileUtils.getCompilerJavaVersionOrNullOf(task);
+            assertEquals(expectedJavaVersion, javaVersion, task.getName());
+        }
+    }
+
+    @Test
+    @MinSupportedGradleVersion("6.7")
+    @MaxSupportedGradleVersion("6.7.9999")
+    void getCompilerJavaVersionOrNullOf_6_7() {
+        val expectedJavaVersion = JavaVersion.values()[JavaVersion.current().ordinal() - 1];
+
+        val metadata = mock(JavaInstallationMetadata.class);
+        when(metadata.getLanguageVersion()).thenReturn(JavaLanguageVersion.of(expectedJavaVersion.getMajorVersion()));
+
+        {
+            val task = compileJava;
+
+            val javaCompiler = mock(JavaCompiler.class);
+            when(javaCompiler.getMetadata()).thenReturn(metadata);
+            task.getJavaCompiler().set(javaCompiler);
 
             val javaVersion = AbstractCompileUtils.getCompilerJavaVersionOrNullOf(task);
             assertEquals(expectedJavaVersion, javaVersion, task.getName());
