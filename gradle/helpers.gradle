@@ -30,6 +30,36 @@ buildscript {
 
 Object MUTEX = new Object[0]
 
+project.ext.startWithWord = { CharSequence untypedString, CharSequence untypedNeedle ->
+    if (untypedString == null || untypedNeedle == null) return false
+    if (untypedNeedle.length() == 0) return true
+    if (untypedString.length() == 0) return false
+    String string = untypedString.toString()
+    String needle = untypedNeedle.toString()
+    if (string == needle) return true
+    if (string.startsWith(needle)) {
+        String remaining = string.substring(needle.length())
+        char firstRemainingChar = remaining.charAt(0)
+        char lastNeedleChar = needle.charAt(needle.length() - 1)
+        if (Character.isDigit(lastNeedleChar)) {
+            return !Character.isDigit(firstRemainingChar)
+        } else if (Character.isLetter(lastNeedleChar)) {
+            if (!Character.isLetter(lastNeedleChar)) {
+                return true
+            } else if (Character.isUpperCase(firstRemainingChar) && !Character.isUpperCase(lastNeedleChar)) {
+                return true
+            } else if (Character.isLowerCase(firstRemainingChar) && !Character.isLowerCase(lastNeedleChar)) {
+                return true
+            } else {
+                return false
+            }
+        } else {
+            return Character.isLetter(firstRemainingChar)
+        }
+    }
+    return false
+}
+
 project.ext.isInstanceOf = { Object object, String parentClassName ->
     if (object == null) return false
 

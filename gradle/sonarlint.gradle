@@ -1,3 +1,4 @@
+import static org.gradle.api.artifacts.ArtifactRepositoryContainer.MAVEN_CENTRAL_URL
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_GROUP
 
 allprojects {
@@ -35,6 +36,21 @@ allprojects {
         tasks.register('allSonarlint') {
             group = VERIFICATION_GROUP
             dependsOn(project.provider { project.sourceSets.collect { SourceSet sourceSet -> sourceSet.getTaskName('sonarlint', null) } })
+        }
+
+        pluginManager.withPlugin('java') {
+            URI mavenCentralUri = project.uri(MAVEN_CENTRAL_URL)
+            repositories.withType(MavenArtifactRepository)
+                .matching { MavenArtifactRepository repo -> repo.url != mavenCentralUri }
+                .configureEach { MavenArtifactRepository repo ->
+                    repo.content { RepositoryContentDescriptor content ->
+                        configurations.all { Configuration conf ->
+                            if (startWithWord(conf.name, 'sonarlint')) {
+                                content.notForConfigurations(conf.name)
+                            }
+                        }
+                    }
+                }
         }
     }
 }
