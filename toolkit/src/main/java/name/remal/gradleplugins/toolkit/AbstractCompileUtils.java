@@ -23,6 +23,9 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
+import org.gradle.api.tasks.compile.GroovyCompile;
+import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.language.scala.tasks.AbstractScalaCompile;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class AbstractCompileUtils {
@@ -55,6 +58,14 @@ public abstract class AbstractCompileUtils {
 
     @Nullable
     public static CompileOptions getCompileOptionsOf(AbstractCompile task) {
+        if (task instanceof JavaCompile) {
+            return ((JavaCompile) task).getOptions();
+        } else if (task instanceof GroovyCompile) {
+            return ((GroovyCompile) task).getOptions();
+        } else if (task instanceof AbstractScalaCompile) {
+            return ((AbstractScalaCompile) task).getOptions();
+        }
+
         @SuppressWarnings("unchecked")
         val getter = findMethod((Class<AbstractCompile>) task.getClass(), CompileOptions.class, "getOptions");
         if (getter != null) {
@@ -87,11 +98,32 @@ public abstract class AbstractCompileUtils {
     @SneakyThrows
     @SuppressWarnings({"UnstableApiUsage", "rawtypes", "java:S3776", "unchecked"})
     static JavaVersion getCompilerJavaVersionOrNullOf(AbstractCompile task) {
+        val taskClass = (Class<AbstractCompile>) unwrapGeneratedSubclass(task.getClass());
+
+        if (task instanceof JavaCompile) {
+            val getJavaCompilerMethod = findMethod(taskClass, Property.class, "getJavaCompiler");
+            if (getJavaCompilerMethod != null) {
+                return getJavaVersionFromJavaLauncherProperty(getJavaCompilerMethod.invoke(task));
+            } else {
+                return JavaVersion.current();
+            }
+
+        } else if (task instanceof GroovyCompile
+            || task instanceof AbstractScalaCompile
+        ) {
+            val getJavaLauncherMethod = findMethod(taskClass, Property.class, "getJavaLauncher");
+            if (getJavaLauncherMethod != null) {
+                return getJavaVersionFromJavaLauncherProperty(getJavaLauncherMethod.invoke(task));
+            } else {
+                return JavaVersion.current();
+            }
+        }
+
         if (JAVA_COMPILER_CLASS == null && JAVA_LAUNCHER_CLASS == null) {
             return JavaVersion.current();
         }
 
-        for (val method : unwrapGeneratedSubclass(task.getClass()).getMethods()) {
+        for (val method : taskClass.getMethods()) {
             if (isGetterOf(method, Property.class)) {
                 val propertyGenericType = TypeToken.of(task.getClass())
                     .method(method)
@@ -107,35 +139,27 @@ public abstract class AbstractCompileUtils {
                     continue;
                 }
 
-                if (JAVA_COMPILER_CLASS != null && JAVA_COMPILER_CLASS.isAssignableFrom(propertyType)) {
-                    val javaVersion = Optional.ofNullable((Property) method.invoke(task))
-                        .map(Property::getOrNull)
-                        .map(javaCompiler -> invokeMethod(javaCompiler, Object.class, "getMetadata"))
-                        .map(metadata -> invokeMethod(metadata, Object.class, "getLanguageVersion"))
-                        .map(languageVersion -> invokeMethod(languageVersion, int.class, "asInt"))
-                        .map(JavaVersion::toVersion)
-                        .orElse(null);
-                    if (javaVersion != null) {
-                        return javaVersion;
-                    }
-                }
-
-                if (JAVA_LAUNCHER_CLASS != null && JAVA_LAUNCHER_CLASS.isAssignableFrom(propertyType)) {
-                    val javaVersion = Optional.ofNullable((Property) method.invoke(task))
-                        .map(Property::getOrNull)
-                        .map(javaLauncher -> invokeMethod(javaLauncher, Object.class, "getMetadata"))
-                        .map(metadata -> invokeMethod(metadata, Object.class, "getLanguageVersion"))
-                        .map(languageVersion -> invokeMethod(languageVersion, int.class, "asInt"))
-                        .map(JavaVersion::toVersion)
-                        .orElse(null);
-                    if (javaVersion != null) {
-                        return javaVersion;
-                    }
+                if ((JAVA_COMPILER_CLASS != null && JAVA_COMPILER_CLASS.isAssignableFrom(propertyType))
+                    || (JAVA_LAUNCHER_CLASS != null && JAVA_LAUNCHER_CLASS.isAssignableFrom(propertyType))
+                ) {
+                    return getJavaVersionFromJavaLauncherProperty((Property) method.invoke(task));
                 }
             }
         }
 
         return null;
+    }
+
+    @Nullable
+    @SuppressWarnings("rawtypes")
+    private static JavaVersion getJavaVersionFromJavaLauncherProperty(@Nullable Property property) {
+        return Optional.ofNullable(property)
+            .map(Property::getOrNull)
+            .map(javaLauncher -> invokeMethod(javaLauncher, Object.class, "getMetadata"))
+            .map(metadata -> invokeMethod(metadata, Object.class, "getLanguageVersion"))
+            .map(languageVersion -> invokeMethod(languageVersion, int.class, "asInt"))
+            .map(JavaVersion::toVersion)
+            .orElse(null);
     }
 
 }
