@@ -16,7 +16,6 @@ import static name.remal.gradleplugins.toolkit.ExtensionContainerUtils.getExtens
 import static name.remal.gradleplugins.toolkit.reflection.MembersFinder.findMethod;
 import static name.remal.gradleplugins.toolkit.reflection.MethodsInvoker.invokeMethod;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.isGetterOf;
-import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.isNotStatic;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.tryLoadClass;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.unwrapGeneratedSubclass;
 import static org.gradle.api.tasks.SourceSet.TEST_SOURCE_SET_NAME;
@@ -35,7 +34,6 @@ import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
-import name.remal.gradleplugins.toolkit.reflection.ReflectionUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.NamedDomainObjectContainer;
@@ -169,7 +167,6 @@ public abstract class SourceSetUtils {
     );
 
     private static final List<Method> GET_TASK_NAME_METHODS = Stream.of(SourceSet.class.getMethods())
-        .filter(ReflectionUtils::isNotStatic)
         .filter(method -> isGetterOf(method, String.class))
         .filter(it -> GET_TASK_NAME_METHOD_NAME.matcher(it.getName()).matches())
         .sorted(comparing(Method::getName))
@@ -204,7 +201,6 @@ public abstract class SourceSetUtils {
 
 
     private static final List<Method> GET_SOURCE_DIRECTORY_SET_METHODS = stream(SourceSet.class.getMethods())
-        .filter(ReflectionUtils::isNotStatic)
         .filter(method -> isGetterOf(method, SourceDirectorySet.class))
         .sorted(comparing(Method::getName))
         .collect(toList());
@@ -226,7 +222,7 @@ public abstract class SourceSetUtils {
             for (val pluginEntry : convention.getPlugins().entrySet()) {
                 val plugin = pluginEntry.getValue();
                 for (val pluginMethod : plugin.getClass().getMethods()) {
-                    if (isNotStatic(pluginMethod) && isGetterOf(pluginMethod, SourceDirectorySet.class)) {
+                    if (isGetterOf(pluginMethod, SourceDirectorySet.class)) {
                         val sourceDirectorySet = (SourceDirectorySet) pluginMethod.invoke(plugin);
                         result.add(sourceDirectorySet);
                     }

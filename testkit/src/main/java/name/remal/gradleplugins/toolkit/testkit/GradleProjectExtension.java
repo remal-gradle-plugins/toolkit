@@ -1,9 +1,10 @@
 package name.remal.gradleplugins.toolkit.testkit;
 
+import static name.remal.gradleplugins.toolkit.testkit.internal.containers.ProjectsContainer.getProjectsContainer;
+
 import com.google.auto.service.AutoService;
 import lombok.val;
 import name.remal.gradleplugins.toolkit.testkit.internal.AbstractProjectDirPrefixExtension;
-import name.remal.gradleplugins.toolkit.testkit.internal.containers.ProjectsContainer;
 import org.gradle.api.Project;
 import org.gradle.api.invocation.Gradle;
 import org.junit.jupiter.api.extension.Extension;
@@ -30,7 +31,7 @@ public class GradleProjectExtension extends AbstractProjectDirPrefixExtension im
         ParameterContext parameterContext,
         ExtensionContext extensionContext
     ) throws ParameterResolutionException {
-        val projects = ProjectsContainer.getProjectsContainer(extensionStore, extensionContext);
+        val projects = getProjectsContainer(extensionStore, extensionContext);
         val project = projects.resolveParameterProject(parameterContext);
 
         val paramType = parameterContext.getParameter().getType();

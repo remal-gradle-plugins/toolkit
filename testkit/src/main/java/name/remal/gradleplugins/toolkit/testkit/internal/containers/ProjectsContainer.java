@@ -2,12 +2,13 @@ package name.remal.gradleplugins.toolkit.testkit.internal.containers;
 
 import static java.lang.String.format;
 import static java.nio.file.Files.createTempDirectory;
-import static org.codehaus.groovy.runtime.ResourceGroovyMethods.deleteDir;
+import static name.remal.gradleplugins.toolkit.PathUtils.deleteRecursively;
 
 import java.lang.reflect.Parameter;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
+import lombok.CustomLog;
 import lombok.SneakyThrows;
 import lombok.val;
 import name.remal.gradleplugins.toolkit.testkit.ApplyPlugin;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 
 @Internal
+@CustomLog
 public class ProjectsContainer extends AbstractExtensionContextContainer<Project> {
 
     public static ProjectsContainer getProjectsContainer(ExtensionStore extensionStore, ExtensionContext context) {
@@ -43,7 +45,11 @@ public class ProjectsContainer extends AbstractExtensionContextContainer<Project
     protected void cleanup(Project project, boolean isExceptionThrown) {
         if (!isExceptionThrown) {
             val projectDir = project.getProjectDir();
-            deleteDir(projectDir);
+            try {
+                deleteRecursively(projectDir.toPath());
+            } catch (Exception e) {
+                logger.debug(e.toString(), e);
+            }
         }
     }
 

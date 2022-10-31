@@ -226,17 +226,36 @@ public abstract class ReflectionUtils {
     private static final Pattern GETTER_NAME = Pattern.compile("^get[^a-z\\p{Ll}].*$");
     private static final Pattern BOOLEAN_GETTER_NAME = Pattern.compile("^is[^a-z\\p{Ll}].*$");
 
-    public static boolean isGetterOf(Method method, Class<?> type) {
-        if (type.isAssignableFrom(method.getReturnType())
-            && method.getParameterCount() == 0
-        ) {
-            if (type == boolean.class) {
+    public static boolean isGetter(Method method) {
+        if (isStatic(method)) {
+            return false;
+        }
+
+        if (method.getParameterCount() == 0) {
+            if (method.getReturnType() == boolean.class) {
                 return BOOLEAN_GETTER_NAME.matcher(method.getName()).matches();
             }
 
             return GETTER_NAME.matcher(method.getName()).matches();
         }
+
         return false;
+    }
+
+    public static boolean isGetterOf(Method method, Class<?> type) {
+        if (isGetter(method)) {
+            return type.isAssignableFrom(method.getReturnType());
+        }
+
+        return false;
+    }
+
+    public static boolean isNotGetter(Method method) {
+        return !isGetter(method);
+    }
+
+    public static boolean isNotGetterOf(Method method, Class<?> type) {
+        return !isGetterOf(method, type);
     }
 
 
