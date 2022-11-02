@@ -32,8 +32,6 @@ allprojects {
                 'com.google.errorprone:error_prone_core:2.16',
 
                 // Annotation processing
-                'org.projectlombok:lombok:1.18.24',
-                'org.projectlombok:lombok-mapstruct-binding:0.2.0',
                 'com.google.auto.service:auto-service:1.0.1',
                 'com.google.auto.service:auto-service-annotations:1.0.1',
 

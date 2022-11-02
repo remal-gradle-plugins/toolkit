@@ -27,7 +27,9 @@ buildscript {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 allprojects {
-    Collection<Project> crossCompileProjects = project.subprojects.findAll { it.name.startsWith('cross-compile--') }
+    Collection<Project> crossCompileProjects = project.subprojects
+        .findAll { it.parent == project }
+        .findAll { it.name.startsWith('cross-compile--') }
 
     crossCompileProjects.forEach { crossCompileProject ->
         if (!crossCompileProject.subprojects.isEmpty()) {

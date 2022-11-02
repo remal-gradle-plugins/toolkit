@@ -1,5 +1,39 @@
 allprojects {
     pluginManager.withPlugin('java') {
+        tasks.withType(Javadoc) { Javadoc task ->
+            task.exclude('**/internal', '**/internal/**/*')
+
+            task.options.addBooleanOption('Xdoclint:none', true)
+
+            task.onlyIf {
+                int languageVersion = task.javadocTool.getOrNull()?.metadata?.languageVersion?.asInt()
+                    ?: Integer.parseInt(JavaVersion.current().majorVersion)
+                if (languageVersion >= 9) {
+                    task.options.addBooleanOption('html5', true)
+                }
+                return true
+            }
+        }
+
+
+        if (rootProject.buildscript.configurations.classpath.allDependencies.any { it.group == 'name.remal.gradle-plugins.lombok' }) {
+            apply plugin: 'name.remal.lombok'
+            return
+        } else {
+            configurations.create('lombok') { Configuration conf ->
+                conf.description('Lombok')
+                sourceSets.configureEach { SourceSet sourceSet ->
+                    configurations[sourceSet.compileOnlyConfigurationName].extendsFrom(conf)
+                    sourceSet.annotationProcessorPath += configurations.lombok
+                }
+            }
+            dependencies {
+                lombok 'org.projectlombok:lombok:1.18.24'
+                annotationProcessorAll 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+            }
+        }
+
+
         TaskProvider<Task> delombok = tasks.register('delombok', JavaExec) { JavaExec task ->
             SourceSet sourceSet = project.sourceSets.main
             task.dependsOn(sourceSet.classesTaskName)
@@ -66,19 +100,9 @@ allprojects {
             }
         }
 
-
         tasks.withType(Javadoc) { Javadoc task ->
             task.dependsOn(delombok)
             task.setSource(project.provider { delombok.get().outputDir })
-
-            task.exclude('**/internal', '**/internal/**/*')
-
-            task.options.addBooleanOption('Xdoclint:none', true)
-
-            int languageVersion = task.javadocTool.getOrNull()?.metadata?.languageVersion?.asInt() ?: Integer.parseInt(JavaVersion.current().majorVersion)
-            if (languageVersion >= 9) {
-                task.options.addBooleanOption('html5', true)
-            }
         }
     }
 }

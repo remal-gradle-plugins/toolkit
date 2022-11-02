@@ -7,7 +7,6 @@ allprojects {
         apply plugin: 'name.remal.test-source-sets'
         apply plugin: 'name.remal.insert-null-checks'
         apply plugin: 'name.remal.classes-relocation'
-        apply plugin: 'name.remal.sonarlint'
 
         java {
             sourceCompatibility = JavaVersion.VERSION_1_8
@@ -133,23 +132,6 @@ allprojects {
             testImplementation 'org.assertj:assertj-core'
 
             testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
-        }
-
-        /*
-         * To make MapStruct work correctly with Lombok Builder, Lombok should be added *after* MapStruct (see https://github.com/mapstruct/mapstruct/issues/1581).
-         * The only way to guarantee annotation processors ordering in Gradle is adding a file collection with Lombok to `sourceSet.annotationProcessorPath`.
-         * Here we define a `lombok` configuration (which is a file collection) and add it to add `sourceSet.annotationProcessorPath`.
-         */
-        configurations.create('lombok') { Configuration conf ->
-            conf.description('Lombok')
-            sourceSets.configureEach { SourceSet sourceSet ->
-                configurations[sourceSet.compileOnlyConfigurationName].extendsFrom(conf)
-                sourceSet.annotationProcessorPath += configurations.lombok
-            }
-        }
-        dependencies {
-            lombok 'org.projectlombok:lombok'
-            annotationProcessorAll 'org.projectlombok:lombok-mapstruct-binding'
         }
 
         if (!rootProject.allprojects.any { it.group == 'name.remal.gradle-plugins.toolkit' }) {

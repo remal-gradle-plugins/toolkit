@@ -32,7 +32,7 @@ allprojects {
     pluginManager.withPlugin('java') {
         URI mavenCentralUri = project.uri(MAVEN_CENTRAL_URL)
         repositories.withType(MavenArtifactRepository)
-            .matching { MavenArtifactRepository repo -> repo.url != mavenCentralUri }
+            .matching { MavenArtifactRepository repo -> repo.url.scheme != 'file' && repo.url != mavenCentralUri }
             .configureEach { MavenArtifactRepository repo ->
                 repo.content { RepositoryContentDescriptor content ->
                     configurations.all { Configuration conf ->
