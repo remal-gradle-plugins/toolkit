@@ -2,13 +2,10 @@ package name.remal.gradleplugins.toolkit;
 
 import static com.google.common.base.CaseFormat.LOWER_CAMEL;
 import static com.google.common.base.CaseFormat.LOWER_HYPHEN;
-import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.Collections.newSetFromMap;
 import static java.util.Collections.unmodifiableCollection;
-import static java.util.Collections.unmodifiableSet;
 import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradleplugins.toolkit.AbstractCompileUtils.getDestinationDir;
@@ -17,8 +14,6 @@ import static name.remal.gradleplugins.toolkit.reflection.MembersFinder.findMeth
 import static name.remal.gradleplugins.toolkit.reflection.MethodsInvoker.invokeMethod;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.isGetterOf;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.isNotStatic;
-import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.tryLoadClass;
-import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.unwrapGeneratedSubclass;
 import static org.gradle.api.tasks.SourceSet.TEST_SOURCE_SET_NAME;
 
 import com.google.common.collect.ImmutableList;
@@ -27,7 +22,6 @@ import java.util.Collection;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
@@ -42,7 +36,6 @@ import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.tasks.AbstractCopyTask;
 import org.gradle.api.tasks.SourceSet;
@@ -50,7 +43,6 @@ import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.jetbrains.annotations.Unmodifiable;
-import org.jetbrains.annotations.VisibleForTesting;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class SourceSetUtils {
@@ -95,7 +87,7 @@ public abstract class SourceSetUtils {
         val result = new AtomicBoolean(false);
         val allSource = sourceSet.getAllSource();
         task.getSource().visit(details -> {
-            if (isNotArchiveEntry(details)) {
+            if (FileTreeElementUtils.isNotArchiveEntry(details)) {
                 val file = details.getFile();
                 if (allSource.contains(file)) {
                     result.set(true);
@@ -110,7 +102,7 @@ public abstract class SourceSetUtils {
         val result = new AtomicBoolean(false);
         val allSource = sourceSet.getAllSource();
         task.getSource().getAsFileTree().visit(details -> {
-            if (isNotArchiveEntry(details)) {
+            if (FileTreeElementUtils.isNotArchiveEntry(details)) {
                 val file = details.getFile();
                 if (allSource.contains(file)) {
                     result.set(true);
@@ -119,40 +111,6 @@ public abstract class SourceSetUtils {
             }
         });
         return result.get();
-    }
-
-    @ReliesOnInternalGradleApi
-    @VisibleForTesting
-    static final Set<Class<?>> ABSTRACT_ARCHIVE_FILE_TREE_CLASSES = Stream.of(
-            tryLoadClass("org.gradle.api.internal.file.archive.AbstractArchiveFileTree"),
-            tryLoadClass("org.gradle.api.internal.file.collections.FileSystemMirroringFileTree")
-        )
-        .filter(Objects::nonNull)
-        .collect(toCollection(LinkedHashSet::new));
-
-    private static final Set<String> ARCHIVE_FILE_TREE_SIMPLE_CLASS_NAMES = unmodifiableSet(new LinkedHashSet<>(asList(
-        // supported by Gradle natively:
-        "TarFileTree",
-        "ZipFileTree",
-
-        // supported by https://github.com/freefair/gradle-plugins/:
-        "ArFileTree",
-        "ArchiveFileTree",
-        "ArjFileTree",
-        "DumpFileTree",
-        "SevenZipFileTree"
-    )));
-
-    @VisibleForTesting
-    static boolean isNotArchiveEntry(FileTreeElement details) {
-        val detailsClass = unwrapGeneratedSubclass(details.getClass());
-        val enclosingClass = detailsClass.getEnclosingClass();
-        if (enclosingClass == null) {
-            return true;
-        }
-        val isArchive = ABSTRACT_ARCHIVE_FILE_TREE_CLASSES.contains(enclosingClass)
-            || ARCHIVE_FILE_TREE_SIMPLE_CLASS_NAMES.contains(enclosingClass.getSimpleName());
-        return !isArchive;
     }
 
     public static boolean isCompiledBy(SourceSet sourceSet, AbstractCompile task) {

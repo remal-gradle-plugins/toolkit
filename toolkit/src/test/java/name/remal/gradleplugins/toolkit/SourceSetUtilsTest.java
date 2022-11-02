@@ -1,27 +1,20 @@
 package name.remal.gradleplugins.toolkit;
 
-import static java.lang.Boolean.FALSE;
-import static java.lang.Boolean.TRUE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.createTempFile;
-import static java.nio.file.Files.newOutputStream;
 import static java.nio.file.Files.write;
 import static name.remal.gradleplugins.toolkit.ExtensionContainerUtils.getExtension;
 import static name.remal.gradleplugins.toolkit.SourceSetUtils.whenTestSourceSetRegistered;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME;
 import static org.gradle.api.tasks.SourceSet.TEST_SOURCE_SET_NAME;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 import lombok.SneakyThrows;
 import lombok.val;
 import name.remal.gradleplugins.toolkit.testkit.MinSupportedGradleVersion;
@@ -102,39 +95,6 @@ class SourceSetUtilsTest {
             .getByName(testSourceSet.getProcessResourcesTaskName());
         assertFalse(SourceSetUtils.isProcessedBy(mainSourceSet, testProcessResources));
         assertTrue(SourceSetUtils.isProcessedBy(testSourceSet, testProcessResources));
-    }
-
-    @Test
-    void abstract_archive_file_tree_classes() {
-        assertFalse(
-            SourceSetUtils.ABSTRACT_ARCHIVE_FILE_TREE_CLASSES.isEmpty(),
-            "ABSTRACT_ARCHIVE_FILE_TREE_CLASSES is empty"
-        );
-    }
-
-    @Test
-    void isNotArchive_file() {
-        val fileTree = project.files(tempFile).getAsFileTree();
-        val isNotArchiveEntry = new AtomicReference<Boolean>();
-        fileTree.visit(details -> {
-            isNotArchiveEntry.set(SourceSetUtils.isNotArchiveEntry(details));
-        });
-        assertEquals(TRUE, isNotArchiveEntry.get());
-    }
-
-    @Test
-    void isNotArchive_zip() throws Throwable {
-        try (val outputStream = new ZipOutputStream(newOutputStream(tempFile.toPath()))) {
-            outputStream.putNextEntry(new ZipEntry("entry"));
-            outputStream.write(new byte[]{1, 2, 3});
-        }
-
-        val fileTree = project.zipTree(tempFile);
-        val isNotArchiveEntry = new AtomicReference<Boolean>();
-        fileTree.visit(details -> {
-            isNotArchiveEntry.set(SourceSetUtils.isNotArchiveEntry(details));
-        });
-        assertEquals(FALSE, isNotArchiveEntry.get());
     }
 
     @Test
