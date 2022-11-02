@@ -1,5 +1,6 @@
 package name.remal.gradleplugins.toolkit.reflection;
 
+import static java.beans.Introspector.decapitalize;
 import static java.nio.file.Files.createTempFile;
 import static java.nio.file.Files.write;
 import static javax.annotation.meta.When.UNKNOWN;
@@ -226,17 +227,56 @@ public abstract class ReflectionUtils {
     private static final Pattern GETTER_NAME = Pattern.compile("^get[^a-z\\p{Ll}].*$");
     private static final Pattern BOOLEAN_GETTER_NAME = Pattern.compile("^is[^a-z\\p{Ll}].*$");
 
-    public static boolean isGetterOf(Method method, Class<?> type) {
-        if (type.isAssignableFrom(method.getReturnType())
-            && method.getParameterCount() == 0
-        ) {
-            if (type == boolean.class) {
-                return BOOLEAN_GETTER_NAME.matcher(method.getName()).matches();
-            }
+    @Nullable
+    private static final Class<?> RECORD_CLASS = tryLoadClass("java.lang.Record");
 
-            return GETTER_NAME.matcher(method.getName()).matches();
+    public static boolean isGetter(Method method) {
+        if (isStatic(method)) {
+            return false;
         }
-        return false;
+
+        if (method.getParameterCount() != 0) {
+            return false;
+        }
+
+        val returnType = method.getReturnType();
+        if (returnType == void.class) {
+            return false;
+        }
+
+        if (RECORD_CLASS != null && RECORD_CLASS.isAssignableFrom(method.getDeclaringClass())) {
+            return true;
+        }
+
+        if (returnType == boolean.class) {
+            return BOOLEAN_GETTER_NAME.matcher(method.getName()).matches();
+        }
+
+        return GETTER_NAME.matcher(method.getName()).matches();
+    }
+
+    public static boolean isGetterOf(Method method, Class<?> type) {
+        return isGetter(method) && type.isAssignableFrom(method.getReturnType());
+    }
+
+    public static String getPropertyNameForGetter(Method method) {
+        if (!isGetter(method)) {
+            throw new AssertionError("Not a getter: " + method);
+        }
+
+        val methodName = method.getName();
+
+        if (RECORD_CLASS != null && RECORD_CLASS.isAssignableFrom(method.getDeclaringClass())) {
+            return methodName;
+        }
+
+        if (methodName.startsWith("get")) {
+            return decapitalize(methodName.substring("get".length()));
+        } else if (methodName.startsWith("is")) {
+            return decapitalize(methodName.substring("is".length()));
+        } else {
+            return methodName;
+        }
     }
 
 
