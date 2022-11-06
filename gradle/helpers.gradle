@@ -119,6 +119,8 @@ project.ext.getDependencyCategory = { Object dep ->
         attributes = dep.attributes
     } else if (dep instanceof ResolvedDependencyResult) {
         attributes = dep.resolvedVariant.attributes
+    } else if (dep instanceof Dependency) {
+        return false
     } else {
         throw new GradleException("Unsupported dependency type: ${dep.class}")
     }
