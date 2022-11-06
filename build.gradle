@@ -66,6 +66,7 @@ List<String> includedBuildScripts = [
     'gradle/dependencies.gradle',
     'gradle/base-package.gradle',
     'gradle/java.gradle',
+    'gradle/lombok.gradle',
     'gradle/errorprone.gradle',
     'gradle/classes-relocation.gradle',
     'gradle/cross-compile.gradle',

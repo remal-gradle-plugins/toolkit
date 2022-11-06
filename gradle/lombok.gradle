@@ -1,0 +1,93 @@
+allprojects {
+    pluginManager.withPlugin('java') {
+        if (rootProject.buildscript.configurations.classpath.allDependencies.any { it.group == 'name.remal.gradle-plugins.lombok' }) {
+            apply plugin: 'name.remal.lombok'
+            return
+        }
+
+
+        configurations.create('lombok') { Configuration conf ->
+            conf.description('Lombok')
+            sourceSets.configureEach { SourceSet sourceSet ->
+                configurations[sourceSet.compileOnlyConfigurationName].extendsFrom(conf)
+                sourceSet.annotationProcessorPath += configurations.lombok
+            }
+        }
+        dependencies {
+            lombok 'org.projectlombok:lombok:1.18.24'
+            annotationProcessorAll 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+        }
+
+
+        TaskProvider<Task> delombok = tasks.register('delombok', JavaExec) { JavaExec task ->
+            SourceSet sourceSet = project.sourceSets.main
+            task.dependsOn(sourceSet.classesTaskName)
+
+            FileTree sources = sourceSet.java.asFileTree
+            task.inputs.files(sources).ignoreEmptyDirectories().skipWhenEmpty().withPropertyName('sources')
+
+            File outputDir = new File(project.buildDir, task.name)
+            task.outputs.dir(outputDir).withPropertyName('outputDir')
+            task.ext.outputDir = outputDir
+
+            task.doFirst {
+                outputDir.delete()
+                outputDir.deleteDir()
+                outputDir.mkdirs()
+            }
+
+
+            JavaToolchainService javaToolchains = project.javaToolchains
+            JavaToolchainSpec toolchain = project.java.toolchain
+            task.javaLauncher.convention(javaToolchains.launcherFor(toolchain))
+
+            task.classpath = project.configurations.lombok
+            task.mainClass.set('lombok.launch.Main')
+
+            ListProperty<String> options = project.objects.listProperty(String)
+            options.addAll(
+                '--format=pretty',
+                "--target=$outputDir",
+                '--encoding=UTF-8',
+            )
+            options.add(
+                project.provider {
+                    JavaCompile javaCompile = project.tasks.named(sourceSet.compileJavaTaskName, JavaCompile).get()
+                    return "--classpath=${javaCompile.classpath.filter { it.exists() }.files.join(File.pathSeparator)}"
+                }
+            )
+
+            task.onlyIf {
+                File optionsFile = new File(task.temporaryDir, "${task.name}.options")
+                task.inputs.files(optionsFile).withPropertyName('optionsFile')
+                optionsFile.parentFile.mkdirs()
+                optionsFile.setText(
+                    options.get().collect { option ->
+                        option.replace('\\', '\\\\')
+                            .replace(' ', '\\ ')
+                    }.join('\n'),
+                    'UTF-8'
+                )
+
+                task.args(
+                    'delombok',
+                    "@$optionsFile",
+                )
+
+                List<File> directories = sourceSet.java.sourceDirectories.files.toList()
+                directories.add(
+                    project.tasks.named(sourceSet.compileJavaTaskName, JavaCompile).get()
+                        .options.generatedSourceOutputDirectory.asFile.getOrNull()
+                )
+                directories.findAll { it != null }.unique().forEach { task.args(it) }
+
+                return true
+            }
+        }
+
+        tasks.withType(Javadoc) { Javadoc task ->
+            task.dependsOn(delombok)
+            task.setSource(project.provider { delombok.get().outputDir })
+        }
+    }
+}
