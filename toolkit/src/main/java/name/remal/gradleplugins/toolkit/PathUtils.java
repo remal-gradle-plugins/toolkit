@@ -7,6 +7,7 @@ import static java.nio.file.Files.walkFileTree;
 import static lombok.AccessLevel.PRIVATE;
 
 import com.google.errorprone.annotations.CheckReturnValue;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystemException;
 import java.nio.file.FileVisitResult;
@@ -21,8 +22,16 @@ import lombok.val;
 @NoArgsConstructor(access = PRIVATE)
 public abstract class PathUtils {
 
+    @SneakyThrows
     public static Path normalizePath(Path path) {
-        return path.toAbsolutePath().normalize();
+        final File file;
+        try {
+            file = path.toFile();
+        } catch (UnsupportedOperationException ignored) {
+            return path.toAbsolutePath().normalize();
+        }
+
+        return file.getCanonicalFile().toPath();
     }
 
     private static final int DELETE_ATTEMPTS = 5;
