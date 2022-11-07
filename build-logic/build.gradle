@@ -8,6 +8,14 @@ apply plugin: 'name.remal.generate-sources'
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+afterEvaluate {
+    if (property('gradle-api.version') != GradleVersion.current().version) {
+        tasks.matching { it instanceof AbstractTestTask }.all { disableTask(it) }
+    }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 dependencies {
     indirectApi('org.eclipse.jgit:org.eclipse.jgit:6.3.0.202209071007-r') { transitive = false }
 
@@ -91,12 +99,10 @@ tasks.named('generateJava') {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 tasks.named('generateFunctionalJava') {
-    inputs.property('gradle.version', GradleVersion.current().version)
     classFile('name.remal.gradleplugins.toolkit.buildlogic', 'BuildLogicPluginSimpleFunctionalTest') {
         it.writePackage()
         it.println("")
         it.writeImport("lombok.RequiredArgsConstructor")
-        it.writeImport("name.remal.gradleplugins.toolkit.testkit.MinSupportedGradleVersion")
         it.writeImport("name.remal.gradleplugins.toolkit.testkit.functional.GradleProject")
         it.writeImport("org.junit.jupiter.api.Test")
         it.println("")
@@ -108,7 +114,6 @@ tasks.named('generateFunctionalJava') {
 
             it.println("")
             it.println("@Test")
-            it.println("@MinSupportedGradleVersion(\"${it.escapeJava(GradleVersion.current().version)}\")")
             it.writeBlock("void applyPlugin()") {
                 it.println("project.forBuildFile(build -> {")
                 it.println("    build.applyPlugin(\"name.remal.toolkit.build-logic\");")
