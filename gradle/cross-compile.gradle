@@ -59,8 +59,22 @@ allprojects {
             crossCompileProject.apply plugin: 'name.remal.test-source-sets'
 
             tasks.named('classes') { dependsOn(project.provider { crossCompileProject.tasks.classes }) }
-            tasks.named('jar') { filesMatching('**/package-info.class') { duplicatesStrategy(DuplicatesStrategy.EXCLUDE) } }
-            tasks.matching { it.name == 'sourcesJar' }.configureEach { filesMatching('**/package-info.java') { duplicatesStrategy(DuplicatesStrategy.EXCLUDE) } }
+
+            tasks.withType(AbstractCopyTask) {
+                filesMatching(['**/package-info.class', '**/package-info.java']) {
+                    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+                }
+            }
+            tasks.withType(Javadoc) {
+                Set<String> processedPackageInfoResources = new LinkedHashSet<>()
+                exclude { FileTreeElement element ->
+                    String path = element.getPath()
+                    if ("/$path".endsWith('/package-info.class') || "/$path".endsWith('/package-info.java')) {
+                        return !processedPackageInfoResources.add(path)
+                    }
+                }
+            }
+
             afterEvaluate {
                 sourceSets.main.allSource.srcDirs(project.provider { crossCompileProject.sourceSets.main.allSource.srcDirs })
                 sourceSets.main.output.dir(project.provider { crossCompileProject.sourceSets.main.output })
