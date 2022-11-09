@@ -9,7 +9,8 @@ apply plugin: 'name.remal.generate-sources'
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 afterEvaluate {
-    if (property('gradle-api.version') != GradleVersion.current().version) {
+    GradleVersion versionToTest = GradleVersion.version(property('gradle-api.version'))
+    if (versionToTest < GradleVersion.current()) {
         tasks.matching { it instanceof AbstractTestTask }.all { disableTask(it) }
     }
 }
