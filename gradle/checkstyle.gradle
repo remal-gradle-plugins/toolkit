@@ -14,7 +14,7 @@ allprojects {
 
     checkstyle {
         ignoreFailures = false
-        configFile = rootProject.file('checkstyle.xml')
+        configFile = project.file("${project.rootProjectDir}/checkstyle.xml")
 
         toolVersion = project.configurations.checkstyle
             .allDependencyConstraints

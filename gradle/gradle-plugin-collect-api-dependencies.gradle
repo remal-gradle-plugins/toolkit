@@ -1,3 +1,5 @@
+if (project.isBuildSrcProject) return
+
 allprojects {
     pluginManager.withPlugin('java-gradle-plugin') {
         project.ext.nonJavaApiDependencies = project.objects.setProperty(String)

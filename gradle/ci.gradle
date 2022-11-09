@@ -78,7 +78,6 @@ allprojects {
                 sourceSets.all { SourceSet sourceSet ->
                     tasks.matching { it.name == sourceSet.processResourcesTaskName }.all { disableTask(it) }
                 }
-                tasks.matching { it.name == 'delombok' }.all { disableTask(it) }
             }
         }
 

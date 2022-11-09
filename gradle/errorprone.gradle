@@ -1,7 +1,9 @@
 allprojects {
     pluginManager.withPlugin('java') {
         apply plugin: 'net.ltgt.errorprone'
+    }
 
+    pluginManager.withPlugin('net.ltgt.errorprone') {
         dependencies {
             errorprone 'com.google.errorprone:error_prone_core'
             errorprone 'org.mockito:mockito-errorprone'
@@ -24,9 +26,6 @@ allprojects {
                     'MissingOverride', // false positives with Lombok
                     'BugPatternNaming', // too strict rule
                 )
-
-                option('NullAway:AnnotatedPackages', project.property('baseJavaPackage').toString())
-                option('NullAway:HandleTestAssertionLibraries', true)
             }
         }
     }

@@ -1,3 +1,5 @@
+if (project.isBuildSrcProject) return
+
 allprojects {
     pluginManager.withPlugin('java-gradle-plugin') {
         configurations.all { Configuration conf ->

@@ -2,6 +2,8 @@ import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 
+if (project.isBuildSrcProject) return
+
 allprojects {
     rootProject.evaluationDependsOnChildren()
     pluginManager.withPlugin('maven-publish') {

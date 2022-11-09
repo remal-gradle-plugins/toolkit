@@ -5,8 +5,8 @@ import org.gradle.api.internal.tasks.compile.HasCompileOptions
 allprojects {
     pluginManager.withPlugin('java') {
         apply plugin: 'name.remal.test-source-sets'
-        apply plugin: 'name.remal.insert-null-checks'
         apply plugin: 'name.remal.classes-relocation'
+        apply plugin: 'name.remal.insert-null-checks'
 
         java {
             sourceCompatibility = JavaVersion.VERSION_1_8

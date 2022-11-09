@@ -1,7 +1,11 @@
 import org.gradle.util.GradleVersion
 
 allprojects {
-    File ciPropertiesFile = rootProject.file("${rootProject.buildDir}/gradle-ci.properties")
+    File rootProjectDir = project.rootDir
+    if (project.isBuildSrcProject) rootProjectDir = rootProjectDir.parentFile
+    project.ext['rootProjectDir'] = rootProjectDir
+
+    File ciPropertiesFile = new File(rootProjectDir, 'build/gradle-ci.properties')
     synchronized (rootProject) {
         if (!rootProject.hasProperty('ciProperties')) {
             Properties props = new Properties()
@@ -58,11 +62,6 @@ allprojects {
     project.ext['repository-owner-name'] = getCiProperty('repository-owner-name', '', true)
     project.ext['repository-license-name'] = getCiProperty('repository-license-name', '', true)
     project.ext['repository-license-html-url'] = getCiProperty('repository-license-html-url', '', true)
-
-
-    File rootProjectDir = file(project.rootDir)
-    if (rootProjectDir.name == 'buildSrc') rootProjectDir = rootProjectDir.parentFile
-    project.ext['rootProjectDir'] = rootProjectDir
 
     String currentVersion = project.version.toString()
     if (currentVersion == 'unspecified') {

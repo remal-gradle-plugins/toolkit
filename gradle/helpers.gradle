@@ -30,6 +30,8 @@ buildscript {
 
 Object MUTEX = new Object[0]
 
+project.ext.isBuildSrcProject = rootProject.name == 'buildSrc'
+
 project.ext.startWithWord = { CharSequence untypedString, CharSequence untypedNeedle ->
     if (untypedString == null || untypedNeedle == null) return false
     if (untypedNeedle.length() == 0) return true
