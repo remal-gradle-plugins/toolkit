@@ -31,6 +31,7 @@ allprojects {
                     'java:S2259', // Null pointers should not be dereferenced
                     'java:S3077', // Non-primitive fields should not be "volatile"
                     'java:S5976', // Similar tests should be grouped in a single Parameterized test
+                    'java:S5993', // Constructors of an "abstract" class should not be declared "public"
 
                     'xml:S125', // Sections of code should not be commented out
                 )
