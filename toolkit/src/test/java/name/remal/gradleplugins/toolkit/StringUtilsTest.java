@@ -43,6 +43,35 @@ class StringUtilsTest {
 
 
     @Test
+    void substringBefore() {
+        assertEquals("", StringUtils.substringBefore("1212", "1"));
+        assertEquals("1", StringUtils.substringBefore("1212", "2"));
+        assertEquals("1212", StringUtils.substringBefore("1212", "a"));
+    }
+
+    @Test
+    void substringBeforeLast() {
+        assertEquals("12", StringUtils.substringBeforeLast("1212", "1"));
+        assertEquals("121", StringUtils.substringBeforeLast("1212", "2"));
+        assertEquals("1212", StringUtils.substringBeforeLast("1212", "a"));
+    }
+
+    @Test
+    void substringAfter() {
+        assertEquals("212", StringUtils.substringAfter("1212", "1"));
+        assertEquals("12", StringUtils.substringAfter("1212", "2"));
+        assertEquals("1212", StringUtils.substringAfter("1212", "a"));
+    }
+
+    @Test
+    void substringAfterLast() {
+        assertEquals("2", StringUtils.substringAfterLast("1212", "1"));
+        assertEquals("", StringUtils.substringAfterLast("1212", "2"));
+        assertEquals("1212", StringUtils.substringAfterLast("1212", "a"));
+    }
+
+
+    @Test
     void trimWith() {
         val mapping = ImmutableMap.<String, String>builder()
             .put("", "")

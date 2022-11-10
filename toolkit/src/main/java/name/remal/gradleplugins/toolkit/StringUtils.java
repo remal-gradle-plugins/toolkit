@@ -66,6 +66,55 @@ public abstract class StringUtils {
     }
 
 
+    public static String substringBefore(String string, String stringToFind) {
+        return substringBefore(string, stringToFind, string);
+    }
+
+    public static String substringBefore(String string, String stringToFind, String missingString) {
+        if (stringToFind.isEmpty()) {
+            throw new IllegalArgumentException("stringToFind must not be empty");
+        }
+        val pos = string.indexOf(stringToFind);
+        return pos >= 0 ? string.substring(0, pos) : missingString;
+    }
+
+    public static String substringBeforeLast(String string, String stringToFind) {
+        return substringBeforeLast(string, stringToFind, string);
+    }
+
+    public static String substringBeforeLast(String string, String stringToFind, String missingString) {
+        if (stringToFind.isEmpty()) {
+            throw new IllegalArgumentException("stringToFind must not be empty");
+        }
+        val pos = string.lastIndexOf(stringToFind);
+        return pos >= 0 ? string.substring(0, pos) : missingString;
+    }
+
+    public static String substringAfter(String string, String stringToFind) {
+        return substringAfter(string, stringToFind, string);
+    }
+
+    public static String substringAfter(String string, String stringToFind, String missingString) {
+        if (stringToFind.isEmpty()) {
+            throw new IllegalArgumentException("stringToFind must not be empty");
+        }
+        val pos = string.indexOf(stringToFind);
+        return pos >= 0 ? string.substring(pos + stringToFind.length()) : missingString;
+    }
+
+    public static String substringAfterLast(String string, String stringToFind) {
+        return substringAfterLast(string, stringToFind, string);
+    }
+
+    public static String substringAfterLast(String string, String stringToFind, String missingString) {
+        if (stringToFind.isEmpty()) {
+            throw new IllegalArgumentException("stringToFind must not be empty");
+        }
+        val pos = string.lastIndexOf(stringToFind);
+        return pos >= 0 ? string.substring(pos + stringToFind.length()) : missingString;
+    }
+
+
     public static String trimWith(String string, CharPredicate charPredicate) {
         if (string.isEmpty()) {
             return "";
