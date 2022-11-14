@@ -1,6 +1,5 @@
 package name.remal.gradleplugins.toolkit;
 
-import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static name.remal.gradleplugins.toolkit.ObjectUtils.isEmpty;
 import static name.remal.gradleplugins.toolkit.PathUtils.normalizePath;
@@ -14,9 +13,12 @@ import static org.ec4j.core.model.PropertyType.end_of_line;
 
 import com.google.common.collect.ImmutableMap;
 import java.io.File;
+import java.nio.charset.Charset;
+import java.nio.charset.UnsupportedCharsetException;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Nullable;
 import lombok.CustomLog;
 import lombok.SneakyThrows;
 import lombok.ToString;
@@ -29,6 +31,8 @@ import org.ec4j.core.Resource.Resources;
 import org.ec4j.core.ResourcePath.ResourcePaths;
 import org.ec4j.core.ResourcePropertiesService;
 import org.ec4j.core.model.Property;
+import org.ec4j.core.model.PropertyType;
+import org.ec4j.core.model.PropertyType.EndOfLineValue;
 import org.ec4j.core.model.Version;
 import org.ec4j.core.parser.ErrorHandler;
 import org.ec4j.core.parser.ParseException;
@@ -84,30 +88,12 @@ public final class EditorConfig {
 
 
     @Unmodifiable
-    public Map<String, String> getPropertiesForFileExtension(String extension) {
-        if (extension.contains("/") || extension.contains("\\")) {
-            throw new IllegalArgumentException("Not a file extension: " + extension);
-        }
-
-        return getPropertiesFor(rootPath.resolve("file." + extension));
-    }
-
-    @Unmodifiable
-    public Map<String, String> getPropertiesFor(File file) {
-        return getPropertiesFor(file.toPath());
-    }
-
-    @Unmodifiable
     @SneakyThrows
     @SuppressWarnings("java:S3776")
     public Map<String, String> getPropertiesFor(Path path) {
         path = normalizePath(path);
         if (!path.startsWith(rootPath)) {
-            throw new IllegalArgumentException(format(
-                "Provided path is outside of root path (%s): %s",
-                rootPath,
-                path
-            ));
+            throw new PathIsOutOfRootPathException(path, rootPath);
         }
 
         synchronized (CACHE) {
@@ -150,6 +136,91 @@ public final class EditorConfig {
 
             return ImmutableMap.copyOf(result);
         }
+    }
+
+    @Unmodifiable
+    public Map<String, String> getPropertiesFor(File file) {
+        return getPropertiesFor(file.toPath());
+    }
+
+    @Unmodifiable
+    public Map<String, String> getPropertiesForFileExtension(String extension) {
+        return getPropertiesFor(getExamplePathFileExtension(extension));
+    }
+
+
+    public String getLineSeparatorFor(Path path) {
+        String result = getPropertyFor(path, end_of_line, value -> {
+            for (val endOfLine : EndOfLineValue.values()) {
+                if (endOfLine.name().equalsIgnoreCase(value)) {
+                    return endOfLine.getEndOfLineString();
+                }
+            }
+            return null;
+        });
+        if (isEmpty(result)) {
+            result = "\n";
+        }
+        return result;
+    }
+
+    public String getLineSeparatorFor(File file) {
+        return getLineSeparatorFor(file.toPath());
+    }
+
+    public String getLineSeparatorForFileExtension(String extension) {
+        return getLineSeparatorFor(getExamplePathFileExtension(extension));
+    }
+
+
+    public Charset getCharsetFor(Path path) {
+        Charset result = getPropertyFor(path, charset, value -> {
+            try {
+                return Charset.forName(value);
+            } catch (UnsupportedCharsetException ignored) {
+                return null;
+            }
+        });
+        if (result == null) {
+            result = UTF_8;
+        }
+        return result;
+    }
+
+    public Charset getCharsetFor(File file) {
+        return getCharsetFor(file.toPath());
+    }
+
+    public Charset getCharsetForFileExtension(String extension) {
+        return getCharsetFor(getExamplePathFileExtension(extension));
+    }
+
+
+    private Path getExamplePathFileExtension(String extension) {
+        if (isEmpty(extension) || extension.contains("/") || extension.contains("\\")) {
+            throw new IllegalArgumentException("Not a file extension: " + extension);
+        }
+
+        return rootPath.resolve("file." + extension);
+    }
+
+    @FunctionalInterface
+    private interface PropertyValueConverter<T> {
+        @Nullable
+        T convert(String value) throws Throwable;
+
+    }
+
+    @Nullable
+    @SneakyThrows
+    private <T> T getPropertyFor(
+        Path path,
+        PropertyType<?> property,
+        PropertyValueConverter<T> converter
+    ) {
+        val properties = getPropertiesFor(path);
+        val value = properties.get(property.getName());
+        return value != null ? converter.convert(value) : null;
     }
 
 }
