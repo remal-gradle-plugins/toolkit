@@ -1,6 +1,7 @@
 package name.remal.gradleplugins.toolkit;
 
 import static name.remal.gradleplugins.toolkit.PluginUtils.findPluginIdFor;
+import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.unwrapGeneratedSubclass;
 
 import javax.annotation.Nullable;
 import lombok.EqualsAndHashCode;
@@ -13,7 +14,7 @@ public final class PluginDescription {
     private final Class<? extends Plugin<?>> type;
 
     public PluginDescription(Class<? extends Plugin<?>> type) {
-        this.type = type;
+        this.type = unwrapGeneratedSubclass(type);
     }
 
     public Class<? extends Plugin<?>> getType() {
@@ -46,7 +47,7 @@ public final class PluginDescription {
         if (id != null) {
             sb.append(id).append(" (").append(type).append(')');
         } else {
-            sb.append("of ").append(type);
+            sb.append("of ").append(type.getName());
         }
 
         return sb.toString();
