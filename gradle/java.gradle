@@ -69,7 +69,7 @@ allprojects {
             tasks.withType(AbstractCompile).configureEach { AbstractCompile task ->
                 task.onlyIf {
                     if (!conf.allDependencies.isEmpty()) {
-                        task.classpath = task.classpath + conf
+                        task.classpath = task.classpath + project.files(conf.files)
                     }
                     return true
                 }
@@ -78,7 +78,7 @@ allprojects {
             tasks.withType(Javadoc).configureEach { Javadoc task ->
                 task.onlyIf {
                     if (!conf.allDependencies.isEmpty()) {
-                        task.classpath = task.classpath + conf
+                        task.classpath = task.classpath + project.files(conf.files)
                     }
                     return true
                 }
@@ -87,7 +87,7 @@ allprojects {
             tasks.withType(Test).configureEach { Test task ->
                 task.onlyIf {
                     if (!conf.allDependencies.isEmpty()) {
-                        task.classpath = task.classpath + conf
+                        task.classpath = task.classpath + project.files(conf.files)
                     }
                     return true
                 }
@@ -113,6 +113,7 @@ allprojects {
             compileOnlyAll 'com.google.code.findbugs:jsr305'
             compileOnlyAll 'org.jetbrains:annotations'
             compileOnlyAll 'name.remal:gradle-plugins-api'
+            optionalHidden 'com.github.spotbugs:spotbugs-annotations'
 
             annotationProcessorAll 'com.google.auto.service:auto-service'
             compileOnlyAll 'com.google.auto.service:auto-service-annotations'
