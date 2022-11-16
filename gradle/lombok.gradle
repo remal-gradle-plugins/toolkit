@@ -2,9 +2,11 @@ allprojects {
     pluginManager.withPlugin('java') {
         apply plugin: 'name.remal.lombok'
 
-        tasks.named('delombok') {
-            format {
-                pretty = true
+        lombok {
+            delombok {
+                format {
+                    pretty = true
+                }
             }
         }
     }
