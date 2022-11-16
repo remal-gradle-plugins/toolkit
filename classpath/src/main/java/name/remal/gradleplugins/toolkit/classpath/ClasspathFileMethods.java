@@ -21,6 +21,10 @@ interface ClasspathFileMethods {
     @Unmodifiable
     Set<String> getResourceNames();
 
+    default boolean hasResource(@Language("file-reference") String resourceName) {
+        return getResourceNames().contains(resourceName);
+    }
+
     /**
      * Opens {@link InputStream} for the resource.
      *
@@ -47,10 +51,23 @@ interface ClasspathFileMethods {
 
     @Unmodifiable
     default Set<String> getClassNames() {
+        val classResourceSuffix = ".class";
         return toImmutableSet(getResourceNames().stream()
-            .filter(resourceName -> resourceName.endsWith(".class"))
+            .filter(resourceName -> resourceName.endsWith(classResourceSuffix))
+            .map(resourceName -> resourceName.substring(0, resourceName.length() - classResourceSuffix.length()))
+            .map(resourceName -> resourceName.replace('/', '.'))
             .collect(toCollection(LinkedHashSet::new))
         );
+    }
+
+    @SuppressWarnings("InjectedReferences")
+    default boolean hasClass(String className) {
+        val resourceName = className.replace('.', '/') + ".class";
+        return hasResource(resourceName);
+    }
+
+    default boolean hasClass(Class<?> clazz) {
+        return hasClass(clazz.getName());
     }
 
     /**

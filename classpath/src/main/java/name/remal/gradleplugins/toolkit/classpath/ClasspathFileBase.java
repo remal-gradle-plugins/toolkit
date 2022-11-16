@@ -6,9 +6,11 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyMap;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
+import static name.remal.gradleplugins.toolkit.FileUtils.normalizeFile;
 import static name.remal.gradleplugins.toolkit.PredicateUtils.containsString;
 import static name.remal.gradleplugins.toolkit.PredicateUtils.not;
 import static name.remal.gradleplugins.toolkit.PredicateUtils.startsWithString;
+import static name.remal.gradleplugins.toolkit.cache.ToolkitCaches.newFileToolkitCache;
 import static name.remal.gradleplugins.toolkit.classpath.Utils.toDeepImmutableSetMap;
 import static name.remal.gradleplugins.toolkit.classpath.Utils.toImmutableSet;
 
@@ -18,7 +20,6 @@ import com.google.errorprone.annotations.MustBeClosed;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -35,16 +36,16 @@ import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.ToString;
-import lombok.Value;
 import lombok.val;
 import name.remal.gradleplugins.toolkit.LazyInitializer;
 import name.remal.gradleplugins.toolkit.ObjectUtils;
+import name.remal.gradleplugins.toolkit.cache.ToolkitCache;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.Unmodifiable;
 import org.objectweb.asm.ClassReader;
 
 @RequiredArgsConstructor
-@EqualsAndHashCode(of = "file")
+@EqualsAndHashCode(of = {"file", "jvmMajorCompatibilityVersion"})
 abstract class ClasspathFileBase implements ClasspathFileMethods {
 
     public static ClasspathFileBase of(File file, int jvmMajorCompatibilityVersion) {
@@ -64,36 +65,22 @@ abstract class ClasspathFileBase implements ClasspathFileMethods {
         File file,
         int jvmMajorCompatibilityVersion
     ) {
-        val lastModified = file.lastModified();
-        if (lastModified <= 0) {
-            return new ClasspathFileJar(file, jvmMajorCompatibilityVersion);
-        }
-
-        CLASSPATH_FILE_JARS_CACHE.values().removeIf(ref -> ref.get() == null);
-
-        val cacheItemReference = CLASSPATH_FILE_JARS_CACHE.get(file);
-        if (cacheItemReference != null) {
-            val cacheItem = cacheItemReference.get();
-            if (cacheItem != null && cacheItem.lastModified == lastModified) {
-                return cacheItem.getClasspathFile();
-            }
-        }
-
-        val classpathFileJar = new ClasspathFileJar(file, jvmMajorCompatibilityVersion);
-        val newCacheItem = new ClasspathFileJarCacheItem(classpathFileJar, lastModified);
-        val newCacheItemReference = new SoftReference<>(newCacheItem);
-        CLASSPATH_FILE_JARS_CACHE.put(file, newCacheItemReference);
-
-        return classpathFileJar;
+        val cache = getClasspathFileJarCache(jvmMajorCompatibilityVersion);
+        return cache.get(file);
     }
 
-    private static final ConcurrentMap<File, SoftReference<ClasspathFileJarCacheItem>> CLASSPATH_FILE_JARS_CACHE =
+    private static final ConcurrentMap<Integer, ToolkitCache<File, ClasspathFileJar>> CLASSPATH_FILE_JAR_CACHES =
         new ConcurrentHashMap<>();
 
-    @Value
-    private static class ClasspathFileJarCacheItem {
-        ClasspathFileJar classpathFile;
-        long lastModified;
+    private static ToolkitCache<File, ClasspathFileJar> getClasspathFileJarCache(int jvmMajorCompatibilityVersion) {
+        val cache = CLASSPATH_FILE_JAR_CACHES.computeIfAbsent(
+            jvmMajorCompatibilityVersion,
+            version -> newFileToolkitCache(file -> {
+                return new ClasspathFileJar(file, version);
+            })
+        );
+        cache.cleanup();
+        return cache;
     }
 
     //#endregion
@@ -345,14 +332,6 @@ abstract class ClasspathFileBase implements ClasspathFileMethods {
     @Override
     public final String toString() {
         return this.getClass().getSimpleName() + '[' + file + ']';
-    }
-
-    protected static File normalizeFile(File file) {
-        return file
-            .toPath()
-            .toAbsolutePath()
-            .normalize()
-            .toFile();
     }
 
     protected static String normalizePathSeparator(String path) {

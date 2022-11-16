@@ -14,6 +14,11 @@ final class ClasspathFileNotExist extends ClasspathFileBase {
     }
 
     @Override
+    public boolean hasResource(String resourceName) {
+        return false;
+    }
+
+    @Override
     protected Set<String> getResourceNamesImpl() {
         return emptySet();
     }

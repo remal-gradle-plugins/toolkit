@@ -3,6 +3,7 @@ package name.remal.gradleplugins.toolkit;
 import static java.nio.file.FileVisitResult.CONTINUE;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.deleteIfExists;
+import static java.nio.file.Files.getLastModifiedTime;
 import static java.nio.file.Files.walkFileTree;
 import static lombok.AccessLevel.PRIVATE;
 
@@ -15,6 +16,8 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
+import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -32,6 +35,16 @@ public abstract class PathUtils {
         }
 
         return file.getCanonicalFile().toPath();
+    }
+
+    @Nullable
+    @SneakyThrows
+    public static FileTime getPathLastModifiedIfExists(Path path) {
+        try {
+            return getLastModifiedTime(path);
+        } catch (NoSuchFileException ignored) {
+            return null;
+        }
     }
 
     private static final int DELETE_ATTEMPTS = 5;

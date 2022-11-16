@@ -35,7 +35,7 @@ final class ClasspathFileJar extends ClasspathFileBase {
     @Override
     @SneakyThrows
     protected Set<String> getResourceNamesImpl() {
-        try (val zipFile = new ZipFile(file)) {
+        try (val zipFile = new ZipFile(file, UTF_8)) {
             Set<String> resourceNames = new LinkedHashSet<>();
             val entries = zipFile.entries();
             while (entries.hasMoreElements()) {

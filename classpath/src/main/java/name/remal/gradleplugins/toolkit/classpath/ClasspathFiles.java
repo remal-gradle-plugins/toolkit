@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import javax.annotation.Nullable;
 import lombok.val;
+import name.remal.gradleplugins.toolkit.FileUtils;
 import name.remal.gradleplugins.toolkit.LazyInitializer;
 import org.gradle.api.JavaVersion;
 import org.intellij.lang.annotations.Language;
@@ -52,6 +53,7 @@ public final class ClasspathFiles implements ClasspathFileMethods {
         val filesBuilder = ImmutableList.<ClasspathFileBase>builder();
         StreamSupport.stream(files.spliterator(), false)
             .filter(Objects::nonNull)
+            .map(FileUtils::normalizeFile)
             .distinct()
             .map(file -> ClasspathFileBase.of(file, jvmMajorCompatibilityVersion))
             .forEach(filesBuilder::add);
@@ -98,6 +100,12 @@ public final class ClasspathFiles implements ClasspathFileMethods {
     }
 
     @Override
+    public boolean hasResource(String resourceName) {
+        return files.stream()
+            .anyMatch(file -> file.hasResource(resourceName));
+    }
+
+    @Override
     @Nullable
     @MustBeClosed
     @SuppressWarnings("MustBeClosedChecker")
@@ -132,6 +140,12 @@ public final class ClasspathFiles implements ClasspathFileMethods {
         for (val file : files) {
             file.forEachResource(resourceName, processor);
         }
+    }
+
+    @Override
+    public boolean hasClass(String className) {
+        return files.stream()
+            .anyMatch(file -> file.hasClass(className));
     }
 
     @Override

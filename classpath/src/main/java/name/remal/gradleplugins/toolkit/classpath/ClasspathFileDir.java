@@ -22,6 +22,11 @@ final class ClasspathFileDir extends ClasspathFileBase {
     }
 
     @Override
+    public boolean hasResource(String resourceName) {
+        return new File(file, resourceName).isFile();
+    }
+
+    @Override
     @SneakyThrows
     protected Set<String> getResourceNamesImpl() {
         val filePath = file.toPath();
