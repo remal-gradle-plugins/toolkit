@@ -24,5 +24,4 @@ final class ToolkitCacheLocks<Key> {
         val index = abs(key.hashCode() % locks.length);
         return locks[index];
     }
-
 }
