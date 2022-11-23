@@ -1,10 +1,15 @@
 tasks.named('generateResources') {
-    binaryFile('name/remal/gradleplugins/toolkit/issues/checkstyle.xsl') { outputStream ->
+    binaryFile('name/remal/gradleplugins/toolkit/issues/checkstyle.xsl') { OutputStream outputStream ->
         String resourceName = 'checkstyle-noframes-sorted.xsl'
         InputStream inputStream = Checkstyle.getClassLoader().getResourceAsStream(resourceName)
         if (inputStream == null) {
             throw new IllegalStateException("Resource can't be found: " + resourceName)
         }
-        inputStream.withCloseable { outputStream << it }
+        String content = inputStream.getText('UTF-8')
+
+        //content = content.replaceFirst(/(?i)<table[^>]*>[\s\S]*?<h2[^>]*>\s*CheckStyle Audit\s*<\/h2>[\s\S]*?<\/table>\s*<hr[^>]*>\s*/, '')
+        content = content.replaceFirst(/(?i)<!--\s*jakarta logo\s*-->[\s\S]*?(<!--\s*Summary part\s*-->)/, '$1')
+
+        outputStream.bytes = content.getBytes('UTF-8')
     }
 }
