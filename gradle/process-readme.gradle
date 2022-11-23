@@ -1,6 +1,7 @@
 allprojects {
     tasks.create('processReadme') { Task task ->
         task.group = 'documentation'
+        task.outputs.upToDateWhen { false }
 
         List<Closure> readmeFileProcessors = []
         task.ext.readmeFileProcessors = readmeFileProcessors
