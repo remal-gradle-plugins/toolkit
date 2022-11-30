@@ -11,7 +11,7 @@ name.remal.gradle-plugins.test-source-sets:test-source-sets:2.2.3
 name.remal:gradle-plugins-api:1.7.2
 name.remal:gradle-plugins:1.7.2
 net.ltgt.gradle:gradle-errorprone-plugin:3.0.1
-org.eclipse.jgit:org.eclipse.jgit:6.3.0.202209071007-r
+org.eclipse.jgit:org.eclipse.jgit:6.4.0.202211300538-r
 org.ow2.asm:asm-analysis:9.4
 org.ow2.asm:asm-bom:9.4:@pom
 org.ow2.asm:asm-commons:9.4
