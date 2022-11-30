@@ -120,6 +120,7 @@ tasks.named('generateFunctionalJava') {
                 it.println("    build.applyPlugin(\"name.remal.toolkit.build-logic\");")
                 it.println("    build.registerDefaultTask(\"allClasses\");")
                 it.println("});")
+                it.println("project.withoutConfigurationCache();")
                 it.println("project.assertBuildSuccessfully();")
             }
         }
