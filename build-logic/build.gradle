@@ -96,33 +96,3 @@ tasks.named('generateJava') {
         }
     }
 }
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-tasks.named('generateFunctionalJava') {
-    classFile('name.remal.gradleplugins.toolkit.buildlogic', 'BuildLogicPluginSimpleFunctionalTest') {
-        it.writePackage()
-        it.println("")
-        it.writeImport("lombok.RequiredArgsConstructor")
-        it.writeImport("name.remal.gradleplugins.toolkit.testkit.functional.GradleProject")
-        it.writeImport("org.junit.jupiter.api.Test")
-        it.println("")
-        it.println("@RequiredArgsConstructor")
-        it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone")
-        it.writeBlock("class ${it.simpleName}") {
-            it.println("")
-            it.println("private final GradleProject project;")
-
-            it.println("")
-            it.println("@Test")
-            it.writeBlock("void applyPlugin()") {
-                it.println("project.forBuildFile(build -> {")
-                it.println("    build.applyPlugin(\"name.remal.toolkit.build-logic\");")
-                it.println("    build.registerDefaultTask(\"allClasses\");")
-                it.println("});")
-                it.println("project.withoutConfigurationCache();")
-                it.println("project.assertBuildSuccessfully();")
-            }
-        }
-    }
-}
