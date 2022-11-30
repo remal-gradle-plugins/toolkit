@@ -73,31 +73,31 @@ allprojects {
         throw new GradleException("Can't extract major version for version '$currentVersion'")
     }
 
-    String rootPackage = rootProject.group
-    if (!rootPackage.endsWith(".${rootProject.name}") && !"${rootPackage}-root".endsWith(".${rootProject.name}")) {
-        rootPackage += ".${rootProject.name}"
+    List<String> baseJavaPackageTokens = "${rootProject.group}:${rootProject.name}${project.path}".split(/[.:]+/)
+        .findAll { !it.isEmpty() }
+    int hiddenTokenPos = baseJavaPackageTokens.findIndexOf { it.contains('--') }
+    if (hiddenTokenPos >= 0) {
+        baseJavaPackageTokens = baseJavaPackageTokens.subList(0, hiddenTokenPos)
     }
-    String baseJavaPackage = "${rootPackage}${project.path}"
-        .replace(':', '.')
-        .replaceAll(/\.{2,}/, '.')
-        .replaceFirst(/\.+$/, '')
-        .replaceAll(/[^\w.]/, '')
-    List<String> baseJavaPackageTokens = baseJavaPackage.split(/\./)
-    for (int i = baseJavaPackageTokens.size() - 1; 1 <= i; --i) {
-        String prefix = baseJavaPackageTokens[i - 1]
-        String current = baseJavaPackageTokens[i]
-        if (current.startsWith(prefix)) {
-            baseJavaPackageTokens[i] = current.substring(prefix.length())
+    for (int index = 0; index < baseJavaPackageTokens.size() - 1; ++index) {
+        String token = baseJavaPackageTokens.get(index)
+        String nextToken = baseJavaPackageTokens.get(index + 1)
+        if (token == nextToken) {
+            baseJavaPackageTokens.remove(index)
+            --index
+        } else if ("${token}-root" == nextToken) {
+            baseJavaPackageTokens.remove(index + 1)
+            --index
+        } else if (token == "${nextToken}-root") {
+            baseJavaPackageTokens.remove(index)
+            --index
         }
     }
-    Project currentProject = project
-    while (currentProject != null && currentProject.name.contains('--') && !baseJavaPackageTokens.isEmpty()) {
-        baseJavaPackageTokens.remove(baseJavaPackageTokens.size() - 1)
-        currentProject = currentProject.parent
-    }
-    baseJavaPackage = baseJavaPackageTokens.join('.')
+    String baseJavaPackage = baseJavaPackageTokens.join('.')
+        .replaceAll(/[^\w.]/, '')
         .replaceAll(/\.{2,}/, '.')
-        .replaceFirst(/\.+$/, '')
+        .replaceFirst(/^\./, '')
+        .replaceFirst(/\.$/, '')
     project.ext['baseJavaPackage'] = baseJavaPackage
     project.ext['javaModuleName'] = baseJavaPackage
 }
