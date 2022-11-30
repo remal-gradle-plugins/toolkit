@@ -64,7 +64,7 @@ public final class EditorConfig {
         this.rootPath = normalizePath(rootPath);
 
         this.service = ResourcePropertiesService.builder()
-            .rootDirectory(ResourcePaths.ofPath(rootPath, UTF_8))
+            .rootDirectory(ResourcePaths.ofPath(this.rootPath, UTF_8))
             .loader(EDITOR_CONFIG_LOADER)
             .keepUnset(false)
             .cache(CACHE)
@@ -94,6 +94,7 @@ public final class EditorConfig {
                 .filter(Property::isValid)
                 .forEach(property -> {
                     val name = property.getName();
+                    result.remove(name);
                     val value = property.getSourceValue();
                     result.put(name, value);
                 });

@@ -17,7 +17,7 @@ class EditorConfigTest {
 
     @BeforeEach
     void beforeEach() throws Throwable {
-        tempDir = createTempDirectory(EditorConfigTest.class.getSimpleName() + "-'");
+        tempDir = createTempDirectory(EditorConfigTest.class.getSimpleName() + "-");
         editorConfig = new EditorConfig(tempDir);
     }
 
