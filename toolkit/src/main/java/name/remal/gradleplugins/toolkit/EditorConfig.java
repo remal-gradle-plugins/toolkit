@@ -1,11 +1,10 @@
 package name.remal.gradleplugins.toolkit;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static name.remal.gradleplugins.toolkit.LayoutUtils.getRootPathOf;
 import static name.remal.gradleplugins.toolkit.ObjectUtils.isEmpty;
 import static name.remal.gradleplugins.toolkit.PathUtils.normalizePath;
 import static name.remal.gradleplugins.toolkit.PredicateUtils.not;
-import static name.remal.gradleplugins.toolkit.ProjectUtils.getTopLevelDirOf;
-import static name.remal.gradleplugins.toolkit.git.GitUtils.findGitRepositoryRootFor;
 import static name.remal.gradleplugins.toolkit.git.GitUtils.getGitAttributesFor;
 import static org.ec4j.core.Cache.Caches.permanent;
 import static org.ec4j.core.model.PropertyType.charset;
@@ -74,16 +73,6 @@ public final class EditorConfig {
 
     public EditorConfig(Project project) {
         this(getRootPathOf(project));
-    }
-
-    private static Path getRootPathOf(Project project) {
-        val topLevelDir = getTopLevelDirOf(project);
-        val repositoryRoot = findGitRepositoryRootFor(topLevelDir);
-        if (repositoryRoot != null) {
-            return repositoryRoot;
-        }
-
-        return topLevelDir;
     }
 
 

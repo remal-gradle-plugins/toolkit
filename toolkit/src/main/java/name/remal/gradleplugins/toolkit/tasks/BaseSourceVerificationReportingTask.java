@@ -1,6 +1,7 @@
 package name.remal.gradleplugins.toolkit.tasks;
 
 import static groovy.lang.Closure.DELEGATE_FIRST;
+import static name.remal.gradleplugins.toolkit.ClosureUtils.configureWith;
 import static name.remal.gradleplugins.toolkit.ReportContainerUtils.createReportContainerFor;
 
 import groovy.lang.Closure;
@@ -33,7 +34,7 @@ public abstract class BaseSourceVerificationReportingTask<Reports extends Report
 
     @Override
     public Reports reports(@DelegatesTo(strategy = DELEGATE_FIRST) Closure closure) {
-        getProject().configure(reports, closure);
+        configureWith(reports, closure);
         return reports;
     }
 

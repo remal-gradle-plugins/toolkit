@@ -23,9 +23,10 @@ public abstract class TaskUtils {
     /**
      * Execute {@code action} before task cache state is calculated, and any task action is executed.
      */
+    @SuppressWarnings("unchecked")
     public static <T extends Task> void doBeforeTaskExecution(T task, Action<? super T> action) {
-        task.onlyIf(new DescribableSpec<>("Before task execution", __ -> {
-            action.execute(task);
+        task.onlyIf(new DescribableSpec<>("Before task execution", currentTask -> {
+            action.execute((T) currentTask);
             return true;
         }));
     }

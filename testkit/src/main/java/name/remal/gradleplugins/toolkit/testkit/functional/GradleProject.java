@@ -5,7 +5,9 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.synchronizedMap;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.NONE;
+import static name.remal.gradleplugins.toolkit.ObjectUtils.isEmpty;
 import static name.remal.gradleplugins.toolkit.PredicateUtils.not;
+import static name.remal.gradleplugins.toolkit.PredicateUtils.startsWithString;
 import static name.remal.gradleplugins.toolkit.StringUtils.escapeGroovy;
 
 import com.google.common.base.Splitter;
@@ -21,7 +23,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -36,6 +40,8 @@ import org.jetbrains.annotations.Contract;
 public class GradleProject extends BaseGradleProject<GradleProject> {
 
     private static final Duration DEFAULT_TASK_TIMEOUT = Duration.ofMinutes(1);
+
+    private static final GradleVersion MIN_GRADLE_VERSION_WITH_CONFIGURATION_CACHE = GradleVersion.version("6.6");
 
 
     protected final Map<String, GradleChildProject> children = synchronizedMap(new LinkedHashMap<>());
@@ -91,22 +97,26 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
     private final List<String> deprecationMessages = new ArrayList<>(DEFAULT_DEPRECATION_MESSAGES);
 
     private static final List<SuppressedMessage> DEFAULT_SUPPRESSED_DEPRECATIONS_MESSAGES = ImmutableList.of(
-        new SuppressedMessage(
-            "The DefaultSourceDirectorySet constructor has been deprecated",
-            "org.jetbrains.kotlin.gradle.plugin."
-        ),
-        new SuppressedMessage(
-            "Classpath configuration has been deprecated for dependency declaration",
-            "org.jetbrains.kotlin.gradle.plugin.mpp.AbstractKotlinCompilation."
-        ),
-        new SuppressedMessage(
-            "Internal API constructor TaskReportContainer(Class<T>, Task) has been deprecated",
-            "com.github.spotbugs."
-        ),
-        new SuppressedMessage(
-            "BuildListener#buildStarted(Gradle) has been deprecated",
-            "org.jetbrains.gradle.ext."
-        )
+        SuppressedMessage.builder()
+            .message("The DefaultSourceDirectorySet constructor has been deprecated")
+            .stackTracePackagePrefix("org.jetbrains.kotlin.gradle.plugin.")
+            .build(),
+        SuppressedMessage.builder()
+            .message("Classpath configuration has been deprecated for dependency declaration")
+            .stackTracePackagePrefix("org.jetbrains.kotlin.gradle.plugin.mpp.AbstractKotlinCompilation.")
+            .build(),
+        SuppressedMessage.builder()
+            .message("Internal API constructor TaskReportContainer(Class<T>, Task) has been deprecated")
+            .stackTracePackagePrefix("com.github.spotbugs.")
+            .build(),
+        SuppressedMessage.builder()
+            .message("BuildListener#buildStarted(Gradle) has been deprecated")
+            .stackTracePackagePrefix("org.jetbrains.gradle.ext.")
+            .build(),
+        SuppressedMessage.builder()
+            .message("org.gradle.util.ConfigureUtil type has been deprecated")
+            .stackTracePackagePrefix("io.github.gradlenexus.publishplugin.")
+            .build()
     );
 
     @Getter(NONE)
@@ -146,6 +156,27 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
     @Getter(NONE)
     private final List<SuppressedMessage> suppressedOptimizationsDisabledWarnings =
         new ArrayList<>(DEFAULT_SUPPRESSED_OPTIMIZATIONS_DISABLED_WARNINGS);
+
+
+    private static final List<String> DEFAULT_CONFIGURATION_CACHE_WARNINGS = ImmutableList.of(
+        "problem were found storing the configuration cache",
+        "problems were found storing the configuration cache"
+    );
+
+    @Getter(NONE)
+    private final List<String> configurationCacheWarnings =
+        new ArrayList<>(DEFAULT_CONFIGURATION_CACHE_WARNINGS);
+
+    private static final List<SuppressedMessage> DEFAULT_SUPPRESSED_CONFIGURATION_CACHE_WARNINGS = ImmutableList.of(
+        SuppressedMessage.builder()
+            .startsWith(true)
+            .message("0 problems were found storing the configuration cache")
+            .build()
+    );
+
+    @Getter(NONE)
+    private final List<SuppressedMessage> suppressedConfigurationCacheWarnings =
+        new ArrayList<>(DEFAULT_SUPPRESSED_CONFIGURATION_CACHE_WARNINGS);
 
 
     @Contract("_ -> this")
@@ -200,6 +231,24 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
         return this;
     }
 
+    @Contract("_ -> this")
+    @CanIgnoreReturnValue
+    public final synchronized GradleProject addConfigurationCacheWarning(String message) {
+        assertIsNotBuilt();
+        configurationCacheWarnings.add(message);
+        return this;
+    }
+
+    @Contract("_ -> this")
+    @CanIgnoreReturnValue
+    public final synchronized GradleProject addSuppressedConfigurationCacheWarning(
+        SuppressedMessage suppressedMessage
+    ) {
+        assertIsNotBuilt();
+        suppressedConfigurationCacheWarnings.add(suppressedMessage);
+        return this;
+    }
+
 
     private boolean withPluginClasspath = true;
 
@@ -208,6 +257,18 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
     public final synchronized GradleProject withoutPluginClasspath() {
         assertIsNotBuilt();
         this.withPluginClasspath = false;
+        return this;
+    }
+
+
+    private boolean withConfigurationCache = GradleVersion.current()
+        .compareTo(MIN_GRADLE_VERSION_WITH_CONFIGURATION_CACHE) >= 0;
+
+    @Contract("-> this")
+    @CanIgnoreReturnValue
+    public final synchronized GradleProject withoutConfigurationCache() {
+        assertIsNotBuilt();
+        this.withConfigurationCache = false;
         return this;
     }
 
@@ -274,6 +335,7 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
                 assertNoDeprecationMessages(outputLines);
                 assertNoMutableProjectStateWarnings(outputLines);
                 assertNoOptimizationsDisabledWarnings(outputLines);
+                assertNoConfigurationCacheWarnings(outputLines);
 
             } catch (Throwable e) {
                 buildException = e;
@@ -316,6 +378,16 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
             runner.withPluginClasspath();
         }
 
+        if (withConfigurationCache) {
+            runner.withArguments(Stream.concat(
+                runner.getArguments().stream(),
+                Stream.of(
+                    "--configuration-cache",
+                    "--configuration-cache-problems=warn"
+                )
+            ).collect(toList()));
+        }
+
         String gradleDistribMirror = System.getenv("GRADLE_DISTRIBUTIONS_MIRROR");
         if (gradleDistribMirror == null || gradleDistribMirror.isEmpty()) {
             runner.withGradleVersion(GradleVersion.current().getVersion());
@@ -337,7 +409,8 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
         val errors = parseErrors(
             outputLines,
             deprecationMessages,
-            suppressedDeprecationMessages
+            suppressedDeprecationMessages,
+            null
         );
         if (!errors.isEmpty()) {
             val sb = new StringBuilder();
@@ -351,7 +424,8 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
         val errors = parseErrors(
             outputLines,
             mutableProjectStateWarnings,
-            suppressedMutableProjectStateWarnings
+            suppressedMutableProjectStateWarnings,
+            null
         );
         if (!errors.isEmpty()) {
             val sb = new StringBuilder();
@@ -365,7 +439,8 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
         val errors = parseErrors(
             outputLines,
             optimizationsDisabledWarnings,
-            suppressedOptimizationsDisabledWarnings
+            suppressedOptimizationsDisabledWarnings,
+            null
         );
         if (!errors.isEmpty()) {
             val sb = new StringBuilder();
@@ -375,11 +450,27 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
         }
     }
 
-    @SuppressWarnings("java:S3776")
+    private void assertNoConfigurationCacheWarnings(List<String> outputLines) {
+        val errors = parseErrors(
+            outputLines,
+            configurationCacheWarnings,
+            suppressedConfigurationCacheWarnings,
+            startsWithString("See the complete report at ")
+        );
+        if (!errors.isEmpty()) {
+            val sb = new StringBuilder();
+            sb.append("Configuration cache warnings were found:");
+            errors.forEach(it -> sb.append("\n  * ").append(it));
+            throw new AssertionError(sb.toString());
+        }
+    }
+
+    @SuppressWarnings({"java:S3776", "java:S127"})
     private Collection<String> parseErrors(
         List<String> outputLines,
         List<String> messages,
-        List<SuppressedMessage> suppressedMessages
+        List<SuppressedMessage> suppressedMessages,
+        @Nullable Predicate<String> isWarningEndLine
     ) {
         Collection<String> errors = new LinkedHashSet<>();
         forEachLine:
@@ -391,24 +482,45 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
             }
 
             for (val suppressedMessage : suppressedMessages) {
-                if (line.contains(suppressedMessage.getMessage())) {
+                boolean matches;
+                if (suppressedMessage.isStartsWith()) {
+                    matches = line.startsWith(suppressedMessage.getMessage());
+                } else {
+                    matches = line.contains(suppressedMessage.getMessage());
+                }
+                if (matches) {
+                    val stackTracePackagePrefix = suppressedMessage.getStackTracePackagePrefix();
+                    if (isEmpty(stackTracePackagePrefix)) {
+                        continue forEachLine;
+                    }
+
                     for (int i = lineIndex + 1; i < outputLines.size(); ++i) {
                         val stackTraceLine = outputLines.get(i);
                         if (!STACK_TRACE_LINE.matcher(stackTraceLine).find()) {
                             break;
                         }
-                        val stackTracePackagePrefix = suppressedMessage.getStackTracePackagePrefix();
-                        if (stackTracePackagePrefix != null
-                            && !stackTracePackagePrefix.isEmpty()
-                            && stackTraceLine.contains("at " + stackTracePackagePrefix)
-                        ) {
+                        if (stackTraceLine.contains("at " + stackTracePackagePrefix)) {
                             continue forEachLine;
                         }
                     }
                 }
             }
 
-            errors.add(line);
+            if (isWarningEndLine == null) {
+                errors.add(line);
+                continue;
+            }
+
+            val message = new StringBuilder();
+            message.append(line);
+            for (++lineIndex; lineIndex < outputLines.size(); ++lineIndex) {
+                val nextLine = outputLines.get(lineIndex);
+                message.append('\n').append(nextLine);
+                if (isWarningEndLine.test(nextLine)) {
+                    break;
+                }
+            }
+            errors.add(message.toString());
         }
 
         return errors;
