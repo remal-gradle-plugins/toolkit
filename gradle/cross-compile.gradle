@@ -49,7 +49,7 @@ allprojects {
 
     pluginManager.withPlugin('java') {
         crossCompileProjects.forEach { crossCompileProject ->
-            Pattern pattern = Pattern.compile(/^cross-compile--(.+)-(common|(\d(?:\.\d)*)-(lt|lte|eq|ne|gte|gt))$/)
+            Pattern pattern = Pattern.compile(/^cross-compile--(common|(.+)-(\d(?:\.\d)*)-(lt|lte|eq|ne|gte|gt))$/)
             Matcher matcher = pattern.matcher(crossCompileProject.name)
             if (!matcher.matches()) {
                 throw new GradleException("Project name of cross-compile project ${crossCompileProject} doesn't match to /${pattern}/")
@@ -100,11 +100,8 @@ allprojects {
                 )
             }
 
-            ; [
-                'api',
-                'implementation',
-            ].forEach { confName ->
-                crossCompileProject.configurations.getByName(confName).allDependencies.all { Dependency dependency ->
+            crossCompileProject.configurations.matching { ['api', 'implementation'].contains(it.name) }.all { Configuration conf ->
+                conf.allDependencies.all { Dependency dependency ->
                     String category = dependency.attributes.getAttribute(CATEGORY_ATTRIBUTE)?.name
                     if (![REGULAR_PLATFORM, ENFORCED_PLATFORM, DOCUMENTATION, VERIFICATION].contains(category)) {
                         throw new GradleException("Can't add ${dependency} dependcency to cross-compile project $crossCompileProject '$confName' configuration, as this configuration can't have dependencies")
@@ -112,42 +109,45 @@ allprojects {
                 }
             }
 
-            String dependency = matcher.group(1)
-            String versionSpec = matcher.group(2)
-            if (versionSpec == 'common') {
+            String fullSpec = matcher.group(1)
+            String dependency = matcher.group(2)
+            String dependencyVersion = matcher.group(3)
+            String dependencyVersionOperator = matcher.group(4)
+            if (fullSpec == 'common') {
                 dependencies {
                     compileOnly project(crossCompileProject.path)
                 }
 
             } else {
-                crossCompileProjects.find { it.name == "cross-compile--$dependency-common" }?.with { commonProject ->
+                crossCompileProjects.find { it.name == "cross-compile--common" }?.with { commonProject ->
                     crossCompileProject.dependencies {
                         compileOnly project(commonProject.path)
                     }
                 }
 
-                String version = matcher.group(3)
-                String versionExtender = matcher.group(4)
-
                 if (dependency == 'java') {
-                    if (!version.matches(/^\d+$/)) throw new GradleException("Invalid Java version for cross-compile project $crossCompileProject (only major versions are supported): $version")
-                    int majorVersion = Integer.parseInt(version)
+                    if (!dependencyVersion.matches(/^\d+$/)) throw new GradleException("Invalid Java version for cross-compile project $crossCompileProject (only major versions are supported): $dependencyVersion")
+                    int majorVersion = Integer.parseInt(dependencyVersion)
                     JavaVersion javaVersion = JavaVersion.toVersion(majorVersion)
                     crossCompileProject.sourceCompatibility = crossCompileProject.targetCompatibility = javaVersion.toString()
 
                 } else if (dependency == 'gradle') {
-                    GradleVersion gradleVersion = GradleVersion.version(version)
+                    GradleVersion gradleVersion = GradleVersion.version(dependencyVersion)
                     for (GradleVersion currentGradleVersion : project.getAllGradleVersions()) {
-                        if (currentGradleVersion.version == version
-                            || currentGradleVersion.version.startsWith("${version}.")
-                            || currentGradleVersion.version.startsWith("${version}-")
+                        if (currentGradleVersion.version == dependencyVersion
+                            || currentGradleVersion.version.startsWith("${dependencyVersion}.")
+                            || currentGradleVersion.version.startsWith("${dependencyVersion}-")
                         ) {
                             gradleVersion = currentGradleVersion
                             break
                         }
                     }
 
-                    crossCompileProject.configurations.matching { it.name != 'optionalHidden' }.all { Configuration conf ->
+                    crossCompileProject.configurations.create('crossCompileGradleApi') { Configuration conf ->
+                        crossCompileProject.configurations.optionalHidden.extendsFrom(conf)
+                    }
+
+                    crossCompileProject.configurations.matching { !['crossCompileGradleApi', 'crossCompileGradleApiTransitive'].contains(it.name) }.all { Configuration conf ->
                         conf.dependencies.all { Dependency dep ->
                             if (dep.group == 'name.remal.gradle-api') {
                                 conf.dependencies.remove(dep)
@@ -156,13 +156,28 @@ allprojects {
                     }
 
                     crossCompileProject.dependencies {
-                        optionalHidden 'name.remal.gradle-api:gradle-api'
-                        optionalHidden 'name.remal.gradle-api:gradle-test-kit'
+                        crossCompileGradleApi('name.remal.gradle-api:local-groovy') { transitive = true }
+                        crossCompileGradleApi('name.remal.gradle-api:gradle-api') { transitive = false }
+                        crossCompileGradleApi('name.remal.gradle-api:gradle-test-kit') { transitive = false }
 
                         constraints {
-                            projectDependencyConstraints "name.remal.gradle-api:local-groovy:${gradleVersion.version}"
-                            projectDependencyConstraints "name.remal.gradle-api:gradle-api:${gradleVersion.version}"
-                            projectDependencyConstraints "name.remal.gradle-api:gradle-test-kit:${gradleVersion.version}"
+                            projectDependencyConstraints("name.remal.gradle-api:local-groovy:${gradleVersion.version}") { version { strictly(gradleVersion.version) } }
+                            projectDependencyConstraints("name.remal.gradle-api:gradle-api:${gradleVersion.version}") { version { strictly(gradleVersion.version) } }
+                            projectDependencyConstraints("name.remal.gradle-api:gradle-test-kit:${gradleVersion.version}") { version { strictly(gradleVersion.version) } }
+                        }
+                    }
+
+                    crossCompileProject.configurations.create('crossCompileGradleApiTransitive') { Configuration conf ->
+                        conf.defaultDependencies { DependencySet deps ->
+                            deps.addAll(
+                                crossCompileProject.configurations.crossCompileGradleApi.dependencies.toList().collect { Dependency dep ->
+                                    dep = dep.copy()
+                                    if (dep instanceof ModuleDependency) {
+                                        dep.transitive = true
+                                    }
+                                    return dep
+                                }
+                            )
                         }
                     }
                 }
@@ -185,8 +200,8 @@ allprojects {
                                 AnnotationNode annotation = new AnnotationNode('Lname/remal/gradleplugins/toolkit/internal/RemalGradlePluginsCrossCompilation;')
                                 annotation.values = [
                                     'dependency', dependency,
-                                    'version', version,
-                                    'versionExtender', versionExtender ?: '',
+                                    'version', dependencyVersion,
+                                    'versionOperator', dependencyVersionOperator ?: '',
                                 ]
                                 annotations.add(annotation)
                                 classNode.invisibleAnnotations = annotations

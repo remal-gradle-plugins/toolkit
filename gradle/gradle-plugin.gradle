@@ -41,34 +41,30 @@ allprojects {
         }
 
 
-        Closure<String> getCorrespondingKotlinVersion = { project.getGradleApiDependencyVersion('org.jetbrains.kotlin:kotlin-stdlib') }
+        Closure<String> getCorrespondingKotlinVersion = { project.getGradleApiDependencyVersion('org.jetbrains.kotlin:kotlin-stdlib') }.memoize()
 
         tasks.matching { it instanceof JavaForkOptions }.configureEach {
-            String correspondingKotlinVersion = getCorrespondingKotlinVersion()
-            if (correspondingKotlinVersion != null) {
-                onlyIf {
-                    systemProperty('corresponding-kotlin.version', correspondingKotlinVersion)
-                    return true
-                }
+            onlyIf {
+                String correspondingKotlinVersion = getCorrespondingKotlinVersion()
+                systemProperty('corresponding-kotlin.version', correspondingKotlinVersion ?: '')
+                return true
             }
         }
 
         configurations.create('correspondingKotlinPlugin') { Configuration conf ->
             conf.defaultDependencies { deps ->
                 String correspondingKotlinVersion = getCorrespondingKotlinVersion()
-                if (correspondingKotlinVersion != null) {
-                    Dependency kotlinPluginDep = project.dependencies.create(
-                        "org.jetbrains.kotlin:kotlin-gradle-plugin:${correspondingKotlinVersion}"
-                    ) {
-                        exclude group: 'commons-logging', module: 'commons-logging'
-                        exclude group: 'com.google.code.findbugs'
-                        exclude group: 'org.checkerframework'
-                        exclude group: 'com.google.errorprone'
-                        exclude group: 'com.google.j2objc', module: 'j2objc-annotations'
-                    }
-
-                    deps.add(kotlinPluginDep)
+                Dependency kotlinPluginDep = project.dependencies.create(
+                    "org.jetbrains.kotlin:kotlin-gradle-plugin:${correspondingKotlinVersion}"
+                ) {
+                    exclude group: 'commons-logging', module: 'commons-logging'
+                    exclude group: 'com.google.code.findbugs'
+                    exclude group: 'org.checkerframework'
+                    exclude group: 'com.google.errorprone'
+                    exclude group: 'com.google.j2objc', module: 'j2objc-annotations'
                 }
+
+                deps.add(kotlinPluginDep)
             }
 
             conf.extendsFrom = []

@@ -2,8 +2,9 @@ rootProject.name = 'toolkit-root'
 
 include(
     ':toolkit',
-    ':toolkit:cross-compile--java-common',
+    ':toolkit:cross-compile--common',
     ':toolkit:cross-compile--java-9-gte',
+    ':toolkit:cross-compile--gradle-6.7-lte',
     ':classpath',
     ':testkit',
     ':build-logic',

@@ -24,14 +24,11 @@ class CrossCompileServiceDependencyVersion
     @Nullable
     Version version;
 
-    @Default
-    boolean earlierIncluded = false;
+    boolean earlierIncluded;
 
-    @Default
-    boolean selfIncluded = false;
+    boolean selfIncluded;
 
-    @Default
-    boolean laterIncluded = false;
+    boolean laterIncluded;
 
 
     @SuppressWarnings("UnstableApiUsage")

@@ -1,16 +1,32 @@
 allprojects {
     configurations.create('projectDependencyConstraints') { Configuration conf ->
         conf.dependencies.whenObjectAdded { Dependency dep ->
-            conf.dependencies.removeIf { Dependency otherDep ->
-                if (otherDep === dep) return false
-                return "${otherDep.group}:${otherDep.name}" == "${dep.group}:${dep.name}"
+            List<Dependency> sameDeps = conf.dependencies.toList()
+                .findAll { "${it.group}:${it.name}" == "${dep.group}:${dep.name}" }
+            List<ExternalDependency> strictDeps = sameDeps
+                .findAll { it instanceof ExternalDependency }
+                .collect { (ExternalDependency) it }
+                .findAll { !(it.versionConstraint.strictVersion ?: '').isEmpty() }
+            if (!strictDeps.isEmpty()) {
+                ExternalDependency strictDep = strictDeps.last()
+                conf.dependencies.removeIf { sameDeps.contains(it) && it !== strictDep }
+            } else {
+                Dependency sameDep = sameDeps.last()
+                conf.dependencies.removeIf { sameDeps.contains(it) && it !== sameDep }
             }
         }
 
         conf.dependencyConstraints.whenObjectAdded { DependencyConstraint constraint ->
-            conf.dependencyConstraints.removeIf { DependencyConstraint otherConstraint ->
-                if (otherConstraint === constraint) return false
-                return "${otherConstraint.group}:${otherConstraint.name}" == "${constraint.group}:${constraint.name}"
+            List<DependencyConstraint> sameConstraints = conf.dependencyConstraints.toList()
+                .findAll { "${it.group}:${it.name}" == "${constraint.group}:${constraint.name}" }
+            List<DependencyConstraint> strictConstraints = sameConstraints
+                .findAll { !(it.versionConstraint.strictVersion ?: '').isEmpty() }
+            if (!strictConstraints.isEmpty()) {
+                DependencyConstraint strictConstraint = strictConstraints.last()
+                conf.dependencyConstraints.removeIf { sameConstraints.contains(it) && it !== strictConstraint }
+            } else {
+                DependencyConstraint sameConstraint = sameConstraints.last()
+                conf.dependencyConstraints.removeIf { sameConstraints.contains(it) && it !== sameConstraint }
             }
         }
 

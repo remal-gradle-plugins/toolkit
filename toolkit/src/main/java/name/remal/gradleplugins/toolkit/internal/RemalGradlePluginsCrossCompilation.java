@@ -18,6 +18,6 @@ public @interface RemalGradlePluginsCrossCompilation {
 
     String version();
 
-    String versionExtender();
+    String versionOperator();
 
 }

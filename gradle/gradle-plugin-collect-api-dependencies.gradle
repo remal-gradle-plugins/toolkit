@@ -4,12 +4,14 @@ allprojects {
     pluginManager.withPlugin('java-gradle-plugin') {
         project.ext.nonJavaApiDependencies = project.objects.setProperty(String)
 
-        Dependency asmBomDependency = configurations.projectDependencyConstraints.allDependencies
-            .findAll { isPlatformDependency(it) }
-            .find { "${it.group}:${it.name}" == 'org.ow2.asm:asm-bom' }
-        if (asmBomDependency == null) throw new GradleException("asm-bom platform dependency can't be found")
-        configurations.indirectApi.dependencies.add(
-            project.dependencies.create("${asmBomDependency.group}:${asmBomDependency.name}:${asmBomDependency.version}:@pom")
+        configurations.indirectApi.dependencies.addAllLater(
+            project.provider {
+                Dependency asmBomDependency = configurations.projectDependencyConstraints.allDependencies
+                    .findAll { isPlatformDependency(it) }
+                    .find { "${it.group}:${it.name}" == 'org.ow2.asm:asm-bom' }
+                if (asmBomDependency == null) throw new GradleException("asm-bom platform dependency can't be found")
+                return [project.dependencies.create("${asmBomDependency.group}:${asmBomDependency.name}:${asmBomDependency.version}:@pom")]
+            }
         )
 
         Configuration gradlePluginApiDependenciesConf = configurations.create('gradlePluginApiDependencies') { Configuration conf ->

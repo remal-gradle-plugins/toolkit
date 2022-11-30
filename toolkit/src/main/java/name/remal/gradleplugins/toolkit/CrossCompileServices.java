@@ -211,32 +211,50 @@ public abstract class CrossCompileServices {
                                     case "version":
                                         dependencyVersionInfoBuilder.version(Version.parse(value.toString()));
                                         break;
-                                    case "versionExtender":
-                                        val versionExtender = value.toString();
-                                        switch (versionExtender) {
+                                    case "versionOperator":
+                                        val versionOperator = value.toString();
+                                        switch (versionOperator) {
                                             case "lt":
-                                                dependencyVersionInfoBuilder.earlierIncluded(true);
+                                                dependencyVersionInfoBuilder
+                                                    .earlierIncluded(true)
+                                                    .selfIncluded(false)
+                                                    .laterIncluded(false);
                                                 break;
                                             case "lte":
-                                                dependencyVersionInfoBuilder.earlierIncluded(true).selfIncluded(true);
+                                                dependencyVersionInfoBuilder
+                                                    .earlierIncluded(true)
+                                                    .selfIncluded(true)
+                                                    .laterIncluded(false);
                                                 break;
                                             case "eq":
-                                                dependencyVersionInfoBuilder.selfIncluded(true);
+                                                dependencyVersionInfoBuilder
+                                                    .earlierIncluded(false)
+                                                    .selfIncluded(true)
+                                                    .laterIncluded(false);
                                                 break;
                                             case "ne":
-                                                // do nothing
+                                                dependencyVersionInfoBuilder
+                                                    .earlierIncluded(false)
+                                                    .selfIncluded(false)
+                                                    .laterIncluded(false);
                                                 break;
                                             case "gte":
-                                                dependencyVersionInfoBuilder.selfIncluded(true).laterIncluded(true);
+                                                dependencyVersionInfoBuilder
+                                                    .earlierIncluded(false)
+                                                    .selfIncluded(true)
+                                                    .laterIncluded(true);
                                                 break;
                                             case "gt":
-                                                dependencyVersionInfoBuilder.laterIncluded(true);
+                                                dependencyVersionInfoBuilder
+                                                    .earlierIncluded(false)
+                                                    .selfIncluded(false)
+                                                    .laterIncluded(true);
                                                 break;
                                             default:
                                                 logger.error(
-                                                    "Unsupported cross-compile 'versionExtender' parameter for {}: {}",
+                                                    "Unsupported cross-compile 'versionOperator' parameter for {}: {}",
                                                     implClassName,
-                                                    versionExtender
+                                                    versionOperator
                                                 );
                                         }
                                         break;
