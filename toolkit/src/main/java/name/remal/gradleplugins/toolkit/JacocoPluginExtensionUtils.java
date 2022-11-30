@@ -14,6 +14,7 @@ public abstract class JacocoPluginExtensionUtils {
     private static final JacocoPluginExtensionUtilsMethods METHODS =
         loadCrossCompileService(JacocoPluginExtensionUtilsMethods.class);
 
+
     public static File getReportsDir(JacocoPluginExtension extension) {
         return METHODS.getReportsDir(extension);
     }
