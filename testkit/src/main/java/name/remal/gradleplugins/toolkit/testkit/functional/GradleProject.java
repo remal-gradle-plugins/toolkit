@@ -159,7 +159,7 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
 
 
     private static final List<String> DEFAULT_CONFIGURATION_CACHE_WARNINGS = ImmutableList.of(
-        "problem were found storing the configuration cache",
+        "problem was found storing the configuration cache",
         "problems were found storing the configuration cache"
     );
 
