@@ -5,6 +5,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.write;
 import static java.util.Arrays.asList;
+import static java.util.Collections.unmodifiableSet;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 import static name.remal.gradleplugins.toolkit.ObjectUtils.isNotEmpty;
@@ -17,9 +18,12 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.UnmodifiableView;
 
 abstract class AbstractGradleFile<Child extends AbstractGradleFile<Child>> {
 
@@ -55,6 +59,17 @@ abstract class AbstractGradleFile<Child extends AbstractGradleFile<Child>> {
     public final Child applyPlugin(String pluginId, String version) {
         getAppliedPluginsChunk().add(pluginId, version);
         return (Child) this;
+    }
+
+    @UnmodifiableView
+    public final Set<String> getAppliedPlugins() {
+        return unmodifiableSet(getAppliedPluginsChunk().getPluginToVersion().keySet());
+    }
+
+    public final boolean isPluginApplied(String pluginId) {
+        val appliedPlugins = getAppliedPlugins();
+        return appliedPlugins.contains(pluginId)
+            || appliedPlugins.contains("org.gradle." + pluginId);
     }
 
     private AppliedPluginsChunk getAppliedPluginsChunk() {
@@ -109,6 +124,7 @@ abstract class AbstractGradleFile<Child extends AbstractGradleFile<Child>> {
 
     private static final class AppliedPluginsChunk {
 
+        @Getter
         private final Map<String, String> pluginToVersion = new LinkedHashMap<>();
 
         public void add(String pluginId) {

@@ -5,6 +5,8 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.synchronizedMap;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.NONE;
+import static name.remal.gradleplugins.toolkit.GradleVersionUtils.isCurrentGradleVersionGreaterThanOrEqualTo;
+import static name.remal.gradleplugins.toolkit.GradleVersionUtils.isCurrentGradleVersionLessThan;
 import static name.remal.gradleplugins.toolkit.ObjectUtils.isEmpty;
 import static name.remal.gradleplugins.toolkit.PredicateUtils.not;
 import static name.remal.gradleplugins.toolkit.PredicateUtils.startsWithString;
@@ -261,8 +263,8 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
     }
 
 
-    private boolean withConfigurationCache = GradleVersion.current()
-        .compareTo(MIN_GRADLE_VERSION_WITH_CONFIGURATION_CACHE) >= 0;
+    private boolean withConfigurationCache =
+        isCurrentGradleVersionGreaterThanOrEqualTo(MIN_GRADLE_VERSION_WITH_CONFIGURATION_CACHE);
 
     @Contract("-> this")
     @CanIgnoreReturnValue
@@ -379,13 +381,15 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
         }
 
         if (withConfigurationCache) {
-            runner.withArguments(Stream.concat(
-                runner.getArguments().stream(),
-                Stream.of(
-                    "--configuration-cache",
-                    "--configuration-cache-problems=warn"
-                )
-            ).collect(toList()));
+            if (isConfigurationCacheSupportedWithAppliedPlugins()) {
+                runner.withArguments(Stream.concat(
+                    runner.getArguments().stream(),
+                    Stream.of(
+                        "--configuration-cache",
+                        "--configuration-cache-problems=warn"
+                    )
+                ).collect(toList()));
+            }
         }
 
         String gradleDistribMirror = System.getenv("GRADLE_DISTRIBUTIONS_MIRROR");
@@ -403,6 +407,32 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
         }
 
         return runner;
+    }
+
+    private boolean isConfigurationCacheSupportedWithAppliedPlugins() {
+        if (isCurrentGradleVersionLessThan("6.8")) {
+            if (isPluginAppliedForAnyProject("checkstyle")
+                || isPluginAppliedForAnyProject("pmd")
+                || isPluginAppliedForAnyProject("jacoco")
+                || isPluginAppliedForAnyProject("codenarc")
+            ) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean isPluginAppliedForAnyProject(String pluginId) {
+        if (getSettingsFile().isPluginApplied(pluginId)
+            || getBuildFile().isPluginApplied(pluginId)
+        ) {
+            return true;
+        }
+
+        val isAppliedToChild = getChildren().values().stream()
+            .anyMatch(child -> child.getBuildFile().isPluginApplied(pluginId));
+        return isAppliedToChild;
     }
 
     private void assertNoDeprecationMessages(List<String> outputLines) {
