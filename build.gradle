@@ -63,6 +63,7 @@ List<String> includedBuildScripts = [
     'gradle/properties.gradle',
     'gradle/ci.gradle',
     'gradle/common.gradle',
+    'gradle/merge-resources.gradle',
     'gradle/dependencies.gradle',
     'gradle/base-package.gradle',
     'gradle/java.gradle',
