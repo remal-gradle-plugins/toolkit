@@ -28,6 +28,7 @@ allprojects {
                     'java:S1488', // Local variables should not be declared and then immediately returned or thrown
                     'java:S1602', // Lambdas containing only one statement should not nest this statement in a block
                     'java:S1610', // Abstract classes without fields should be converted to interfaces
+                    'java:S1181', // Throwable and Error should not be caught
                     'java:S1874', // "@Deprecated" code should not be used
                     'java:S2259', // Null pointers should not be dereferenced
                     'java:S3077', // Non-primitive fields should not be "volatile"

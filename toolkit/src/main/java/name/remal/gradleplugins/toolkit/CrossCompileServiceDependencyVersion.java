@@ -24,11 +24,22 @@ class CrossCompileServiceDependencyVersion
     @Nullable
     Version version;
 
-    boolean earlierIncluded;
+    @Default
+    boolean earlierIncluded = false;
 
-    boolean selfIncluded;
+    @Default
+    boolean selfIncluded = false;
 
-    boolean laterIncluded;
+    @Default
+    boolean laterIncluded = false;
+
+    public boolean isOnlySelfIncluded() {
+        return !earlierIncluded && selfIncluded && !laterIncluded;
+    }
+
+    public boolean isNothingIncluded() {
+        return !earlierIncluded && !selfIncluded && !laterIncluded;
+    }
 
 
     @SuppressWarnings("UnstableApiUsage")
@@ -55,9 +66,19 @@ class CrossCompileServiceDependencyVersion
         if (result == 0) {
             result = nullsFirst(Version::compareTo).compare(this.version, other.version);
         }
+        if (result == 0) {
+            result = Boolean.compare(this.laterIncluded, other.laterIncluded);
+        }
+        if (result == 0) {
+            result = Boolean.compare(this.selfIncluded, other.selfIncluded);
+        }
+        if (result == 0) {
+            result = -1 * Boolean.compare(this.earlierIncluded, other.earlierIncluded);
+        }
         return result;
     }
 
+    @SuppressWarnings("java:S3776")
     public boolean intersectsWith(CrossCompileServiceDependencyVersion other) {
         if (!Objects.equals(this.dependency, other.dependency)
             || this.version == null
@@ -66,16 +87,30 @@ class CrossCompileServiceDependencyVersion
             return false;
         }
 
-        val comparisonResult = this.version.compareTo(other.version);
-        if (comparisonResult < 0) {
-            return this.laterIncluded || other.earlierIncluded;
-
-        } else if (comparisonResult > 0) {
-            return this.earlierIncluded || other.laterIncluded;
-
-        } else {
-            return this.selfIncluded == other.selfIncluded;
+        if (this.isNothingIncluded() || other.isNothingIncluded()) {
+            return false;
         }
+
+        val comparisonResult = this.version.compareTo(other.version);
+        if (comparisonResult == 0) {
+            if (this.selfIncluded && other.selfIncluded) {
+                return true;
+            }
+        }
+
+        if (comparisonResult < 0) {
+            if (this.laterIncluded && other.earlierIncluded) {
+                return true;
+            }
+        }
+
+        if (comparisonResult > 0) {
+            if (this.earlierIncluded && other.laterIncluded) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 }

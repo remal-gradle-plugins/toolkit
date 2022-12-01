@@ -30,8 +30,14 @@ public abstract class PathUtils {
         final File file;
         try {
             file = path.toFile();
-        } catch (UnsupportedOperationException ignored) {
-            return path.toAbsolutePath().normalize();
+        } catch (UnsupportedOperationException ignored1) {
+            path = path.toAbsolutePath().normalize();
+            try {
+                path = path.toRealPath();
+            } catch (IOException ignored2) {
+                // do nothing
+            }
+            return path;
         }
 
         return file.getCanonicalFile().toPath();

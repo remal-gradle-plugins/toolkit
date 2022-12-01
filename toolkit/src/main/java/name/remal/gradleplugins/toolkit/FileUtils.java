@@ -13,6 +13,7 @@ import lombok.SneakyThrows;
 @NoArgsConstructor(access = PRIVATE)
 public abstract class FileUtils {
 
+    @SneakyThrows
     public static File normalizeFile(File file) {
         return normalizePath(file.toPath()).toFile();
     }

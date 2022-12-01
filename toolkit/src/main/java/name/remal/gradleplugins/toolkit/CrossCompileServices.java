@@ -2,12 +2,17 @@ package name.remal.gradleplugins.toolkit;
 
 import static java.lang.Math.toIntExact;
 import static java.lang.String.format;
-import static java.lang.String.join;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Comparator.comparing;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
+import static name.remal.gradleplugins.toolkit.CrossCompileVersionComparator.CrossCompileVersionComparisonResult.DEPENDENCY_EQUALS_TO_CURRENT;
+import static name.remal.gradleplugins.toolkit.CrossCompileVersionComparator.CrossCompileVersionComparisonResult.DEPENDENCY_GREATER_THAN_CURRENT;
+import static name.remal.gradleplugins.toolkit.CrossCompileVersionComparator.CrossCompileVersionComparisonResult.DEPENDENCY_LESS_THAN_CURRENT;
+import static name.remal.gradleplugins.toolkit.CrossCompileVersionComparator.CrossCompileVersionComparisonResult.compareDependencyVersionToCurrentVersionObjects;
 import static name.remal.gradleplugins.toolkit.PredicateUtils.not;
 import static name.remal.gradleplugins.toolkit.ResourceUtils.readResource;
 import static name.remal.gradleplugins.toolkit.UrlUtils.readStringFromUrl;
@@ -16,11 +21,13 @@ import static org.objectweb.asm.ClassReader.SKIP_CODE;
 import static org.objectweb.asm.ClassReader.SKIP_DEBUG;
 import static org.objectweb.asm.ClassReader.SKIP_FRAMES;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -52,46 +59,12 @@ public abstract class CrossCompileServices {
         @Nullable CrossCompileVersionComparator dependencyVersionComparator
     ) {
         val implClassNames = getImplClassNames(service);
-        val dependencyVersions = parseDependencyVersions(service, implClassNames);
+        val impls = parseServiceImpls(service, implClassNames);
+        val fallbackImpl = extractFallbackImpl(service, impls);
+        impls.removeIf(impl -> impl.getDependencyVersion().isNothingIncluded());
 
-        final String fallbackImplClassName;
-        val fallbackImpls = dependencyVersions.entrySet().stream()
-            .filter(entry -> entry.getValue().getVersion() == null)
-            .map(Entry::getKey)
-            .collect(toList());
-        if (fallbackImpls.isEmpty()) {
-            throw new CrossCompileServiceLoadingException(format(
-                "Cross-compile fallback implementation not found for %s",
-                service
-            ));
-        } else if (fallbackImpls.size() >= 2) {
-            throw new CrossCompileServiceLoadingException(format(
-                "Multiple cross-compile fallback implementations found for %s: %s",
-                service,
-                join(", ", fallbackImpls)
-            ));
-        } else {
-            fallbackImplClassName = fallbackImpls.get(0);
-            dependencyVersions.remove(fallbackImplClassName);
-        }
+        assertNoIntersections(service, impls);
 
-        if (dependencyVersions.size() >= 2) {
-            val dependencyVersionEntries = new ArrayList<>(dependencyVersions.entrySet());
-            for (int i = 0; i < dependencyVersionEntries.size() - 1; ++i) {
-                for (int g = i + 1; g < dependencyVersionEntries.size(); ++g) {
-                    val thisEntry = dependencyVersionEntries.get(i);
-                    val thatEntry = dependencyVersionEntries.get(g);
-                    if (thisEntry.getValue().intersectsWith(thatEntry.getValue())) {
-                        throw new CrossCompileServiceLoadingException(format(
-                            "Cross-compile implementation versions intersect for %s: %s, %s",
-                            service,
-                            thisEntry.getKey(),
-                            thatEntry.getKey()
-                        ));
-                    }
-                }
-            }
-        }
 
         if (dependencyVersionComparator == null) {
             dependencyVersionComparator = DEFAULT_VERSION_COMPARATOR;
@@ -99,81 +72,58 @@ public abstract class CrossCompileServices {
             dependencyVersionComparator = dependencyVersionComparator.then(DEFAULT_VERSION_COMPARATOR);
         }
 
-        String implClassName = fallbackImplClassName;
-        for (val dependencyVersionEntry : dependencyVersions.entrySet()) {
-            val isActive = isActive(
-                dependencyVersionEntry.getKey(),
-                dependencyVersionEntry.getValue(),
-                dependencyVersionComparator
+        CrossCompileServiceImpl impl = getImpl(impls, dependencyVersionComparator);
+
+        if (impl == null) {
+            impl = fallbackImpl;
+        }
+
+
+        try {
+            val implClass = Class.forName(impl.getClassName(), true, service.getClassLoader());
+            val implCtor = implClass.getDeclaredConstructor();
+            makeAccessible(implCtor);
+            val implInstance = implCtor.newInstance();
+            return service.cast(implInstance);
+
+        } catch (Throwable exception) {
+            throw new CrossCompileServiceLoadingException(
+                format(
+                    "Error instantiating cross-compile implementation of %s: %s",
+                    service.getName(),
+                    impl
+                ),
+                exception
             );
-            if (isActive) {
-                implClassName = dependencyVersionEntry.getKey();
-                break;
-            }
         }
-
-        val implClass = Class.forName(implClassName, true, service.getClassLoader());
-        val implCtor = implClass.getDeclaredConstructor();
-        makeAccessible(implCtor);
-        val impl = implCtor.newInstance();
-        return service.cast(impl);
     }
-
-    @SuppressWarnings("UnstableApiUsage")
-    private static final CrossCompileVersionComparator DEFAULT_VERSION_COMPARATOR = (dependency, versionString) -> {
-        val version = Version.parse(versionString);
-        if (dependency.equals("java")) {
-            val requiredMajorVersion = toIntExact(version.getNumber(0));
-            val currentMajorVersion = Integer.parseInt(JavaVersion.current().getMajorVersion());
-            return Integer.compare(requiredMajorVersion, currentMajorVersion);
-
-        } else if (dependency.equals("gradle")) {
-            val currentVersionString = GradleVersion.current().getBaseVersion().getVersion();
-            val currentVersionStringNormalized = Splitter.on('.').splitToStream(currentVersionString)
-                .limit(version.getNumbersCount())
-                .collect(joining("."));
-            val currentVersion = Version.parse(currentVersionStringNormalized);
-            return version.compareTo(currentVersion);
-
-        } else {
-            return null;
-        }
-    };
 
     @SneakyThrows
-    private static boolean isActive(
-        String className,
-        CrossCompileServiceDependencyVersion dependencyVersion,
-        CrossCompileVersionComparator dependencyVersionComparator
-    ) {
-        val dependency = requireNonNull(dependencyVersion.getDependency());
-        val version = requireNonNull(dependencyVersion.getVersion()).withoutSuffix();
-        val earlierIncluded = dependencyVersion.isEarlierIncluded();
-        val selfIncluded = dependencyVersion.isSelfIncluded();
-        val laterIncluded = dependencyVersion.isLaterIncluded();
-        val comparisonResult = dependencyVersionComparator.compareVersion(dependency, version.toString());
-        if (comparisonResult == null) {
-            logger.error("Unsupported cross-compile dependency for {}: {}", className, dependencyVersion);
-            return false;
+    @SuppressWarnings("UnstableApiUsage")
+    private static Set<String> getImplClassNames(Class<?> service) {
+        Set<String> implClassNames = new LinkedHashSet<>();
+
+        val resourceName = "META-INF/services/" + service.getName();
+        val resourceUrls = service.getClassLoader().getResources(resourceName);
+        while (resourceUrls.hasMoreElements()) {
+            val resourceUrl = resourceUrls.nextElement();
+            val content = readStringFromUrl(resourceUrl, UTF_8);
+            Splitter.onPattern("[\\r\\n]+").splitToStream(content)
+                .map(line -> {
+                    val commentPos = line.indexOf('#');
+                    return commentPos >= 0 ? line.substring(0, commentPos) : line;
+                })
+                .map(String::trim)
+                .filter(not(String::isEmpty))
+                .forEach(implClassNames::add);
         }
 
-        if (earlierIncluded && comparisonResult > 0) {
-            return true;
-        } else if (selfIncluded && comparisonResult == 0) {
-            return true;
-        } else if (laterIncluded && comparisonResult < 0) {
-            return true;
-        } else if (!selfIncluded && comparisonResult != 0) {
-            return true;
-        } else {
-            return false;
-        }
+        return implClassNames;
     }
-
 
     @SneakyThrows
     @SuppressWarnings("java:S3776")
-    private static Map<String, CrossCompileServiceDependencyVersion> parseDependencyVersions(
+    private static List<CrossCompileServiceImpl> parseServiceImpls(
         Class<?> loadingClass,
         Collection<String> implClassNames
     ) {
@@ -187,7 +137,7 @@ public abstract class CrossCompileServices {
                     loadingClass.getClassLoader()
                 );
             } catch (ResourceNotFoundException ignored) {
-                logger.error("Cross-compile implementation not found: {}", implClassName);
+                logger.error("Cross-compile implementation class not found: {}", implClassName);
                 continue;
             }
 
@@ -217,38 +167,29 @@ public abstract class CrossCompileServices {
                                             case "lt":
                                                 dependencyVersionInfoBuilder
                                                     .earlierIncluded(true)
-                                                    .selfIncluded(false)
-                                                    .laterIncluded(false);
+                                                ;
                                                 break;
                                             case "lte":
                                                 dependencyVersionInfoBuilder
                                                     .earlierIncluded(true)
                                                     .selfIncluded(true)
-                                                    .laterIncluded(false);
+                                                ;
                                                 break;
                                             case "eq":
                                                 dependencyVersionInfoBuilder
-                                                    .earlierIncluded(false)
                                                     .selfIncluded(true)
-                                                    .laterIncluded(false);
-                                                break;
-                                            case "ne":
-                                                dependencyVersionInfoBuilder
-                                                    .earlierIncluded(false)
-                                                    .selfIncluded(false)
-                                                    .laterIncluded(false);
+                                                ;
                                                 break;
                                             case "gte":
                                                 dependencyVersionInfoBuilder
-                                                    .earlierIncluded(false)
                                                     .selfIncluded(true)
-                                                    .laterIncluded(true);
+                                                    .laterIncluded(true)
+                                                ;
                                                 break;
                                             case "gt":
                                                 dependencyVersionInfoBuilder
-                                                    .earlierIncluded(false)
-                                                    .selfIncluded(false)
-                                                    .laterIncluded(true);
+                                                    .laterIncluded(true)
+                                                ;
                                                 break;
                                             default:
                                                 logger.error(
@@ -292,37 +233,16 @@ public abstract class CrossCompileServices {
         }
 
 
-        Map<String, CrossCompileServiceDependencyVersion> sortedVersionInfos = new LinkedHashMap<>();
-        versionInfos.entrySet().stream()
-            .sorted(Entry.<String, CrossCompileServiceDependencyVersion>comparingByValue().reversed())
-            .forEach(entry -> sortedVersionInfos.put(entry.getKey(), entry.getValue()));
-        return sortedVersionInfos;
+        return versionInfos.entrySet().stream()
+            .sorted(Entry.<String, CrossCompileServiceDependencyVersion>comparingByValue())
+            .map(entry ->
+                CrossCompileServiceImpl.builder()
+                    .className(entry.getKey())
+                    .dependencyVersion(entry.getValue())
+                    .build()
+            )
+            .collect(toCollection(ArrayList::new));
     }
-
-
-    @SneakyThrows
-    @SuppressWarnings("UnstableApiUsage")
-    private static Set<String> getImplClassNames(Class<?> service) {
-        Set<String> implClassNames = new LinkedHashSet<>();
-
-        val resourceName = "META-INF/services/" + service.getName();
-        val resourceUrls = service.getClassLoader().getResources(resourceName);
-        while (resourceUrls.hasMoreElements()) {
-            val resourceUrl = resourceUrls.nextElement();
-            val content = readStringFromUrl(resourceUrl, UTF_8);
-            Splitter.onPattern("[\\r\\n]+").splitToStream(content)
-                .map(line -> {
-                    val commentPos = line.indexOf('#');
-                    return commentPos >= 0 ? line.substring(0, commentPos) : line;
-                })
-                .map(String::trim)
-                .filter(not(String::isEmpty))
-                .forEach(implClassNames::add);
-        }
-
-        return implClassNames;
-    }
-
 
     @SneakyThrows
     private static int getAsmApi() {
@@ -330,5 +250,163 @@ public abstract class CrossCompileServices {
         makeAccessible(field);
         return field.getInt(new ClassNode());
     }
+
+    private static CrossCompileServiceImpl extractFallbackImpl(
+        Class<?> service,
+        List<CrossCompileServiceImpl> impls
+    ) {
+        val fallbackImpls = impls.stream()
+            .filter(impl -> impl.getDependencyVersion().getVersion() == null)
+            .collect(toList());
+        if (fallbackImpls.isEmpty()) {
+            throw new CrossCompileServiceLoadingException(format(
+                "Cross-compile fallback implementation not found for %s",
+                service
+            ));
+        } else if (fallbackImpls.size() >= 2) {
+            throw new CrossCompileServiceLoadingException(format(
+                "Multiple cross-compile fallback implementations found for %s: %s",
+                service,
+                fallbackImpls.stream()
+                    .map(Object::toString)
+                    .collect(joining(", "))
+            ));
+        }
+
+        val fallbackImpl = fallbackImpls.get(0);
+        impls.remove(fallbackImpl);
+        return fallbackImpl;
+    }
+
+    private static void assertNoIntersections(
+        Class<?> service,
+        List<CrossCompileServiceImpl> impls
+    ) {
+        for (int i = 0; i < impls.size() - 1; ++i) {
+            for (int g = i + 1; g < impls.size(); ++g) {
+                val thisImpl = impls.get(i);
+                val thatImpl = impls.get(g);
+                if (thisImpl.getDependencyVersion().intersectsWith(thatImpl.getDependencyVersion())) {
+                    throw new CrossCompileServiceLoadingException(format(
+                        "Cross-compile implementation versions intersect for %s: %s, %s",
+                        service,
+                        thisImpl,
+                        thatImpl
+                    ));
+                }
+            }
+        }
+    }
+
+    @Nullable
+    private static CrossCompileServiceImpl getImpl(
+        List<CrossCompileServiceImpl> impls,
+        CrossCompileVersionComparator dependencyVersionComparator
+    ) {
+        {
+            val onlySelfIncludedImpls = impls.stream()
+                .filter(impl -> impl.getDependencyVersion().isOnlySelfIncluded())
+                .collect(toList());
+            for (val impl : onlySelfIncludedImpls) {
+                val isActive = isActive(impl, dependencyVersionComparator);
+                if (isActive) {
+                    return impl;
+                }
+            }
+        }
+
+        {
+            val earlierIncludedImpls = impls.stream()
+                .filter(impl -> impl.getDependencyVersion().isEarlierIncluded())
+                .sorted(comparing(CrossCompileServiceImpl::getDependencyVersion))
+                .collect(toList());
+            for (val impl : earlierIncludedImpls) {
+                val isActive = isActive(impl, dependencyVersionComparator);
+                if (isActive) {
+                    return impl;
+                }
+            }
+        }
+
+        {
+            val laterIncludedImpls = impls.stream()
+                .filter(impl -> impl.getDependencyVersion().isLaterIncluded())
+                .filter(not(impl -> impl.getDependencyVersion().isEarlierIncluded()))
+                .sorted(comparing(CrossCompileServiceImpl::getDependencyVersion)
+                    .reversed()
+                )
+                .collect(toList());
+            for (val impl : laterIncludedImpls) {
+                val isActive = isActive(impl, dependencyVersionComparator);
+                if (isActive) {
+                    return impl;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    @SneakyThrows
+    @VisibleForTesting
+    static boolean isActive(
+        CrossCompileServiceImpl impl,
+        CrossCompileVersionComparator dependencyVersionComparator
+    ) {
+        val className = impl.getClassName();
+        val dependencyVersion = impl.getDependencyVersion();
+        val dependency = dependencyVersion.getDependency();
+        val version = requireNonNull(dependencyVersion.getVersion()).withoutSuffix();
+        val earlierIncluded = dependencyVersion.isEarlierIncluded();
+        val selfIncluded = dependencyVersion.isSelfIncluded();
+        val laterIncluded = dependencyVersion.isLaterIncluded();
+
+        val comparisonResult = dependencyVersionComparator.compareDependencyVersionToCurrentVersion(
+            dependency,
+            version.toString()
+        );
+
+        if (comparisonResult == null) {
+            logger.error("Unsupported cross-compile dependency for {}: {}", className, dependencyVersion);
+            return false;
+
+        } else if (comparisonResult == DEPENDENCY_GREATER_THAN_CURRENT) {
+            // the current version is less than the dependency version
+            return earlierIncluded;
+
+        } else if (comparisonResult == DEPENDENCY_EQUALS_TO_CURRENT) {
+            // the current version equals to the dependency version
+            return selfIncluded;
+
+        } else if (comparisonResult == DEPENDENCY_LESS_THAN_CURRENT) {
+            // the current version is greater than the dependency version
+            return laterIncluded;
+
+        } else {
+            throw new UnsupportedOperationException("Unsupported comparison result: " + comparisonResult);
+        }
+    }
+
+    @SuppressWarnings("UnstableApiUsage")
+    private static final CrossCompileVersionComparator DEFAULT_VERSION_COMPARATOR =
+        (dependency, dependencyVersionString) -> {
+            val dependencyVersion = Version.parse(dependencyVersionString);
+            if (dependency.equals("java")) {
+                val majorVersion = toIntExact(dependencyVersion.getNumber(0));
+                val currentMajorVersion = Integer.parseInt(JavaVersion.current().getMajorVersion());
+                return compareDependencyVersionToCurrentVersionObjects(majorVersion, currentMajorVersion);
+
+            } else if (dependency.equals("gradle")) {
+                val currentVersionString = GradleVersion.current().getBaseVersion().getVersion();
+                val currentVersionStringNormalized = Splitter.on('.').splitToStream(currentVersionString)
+                    .limit(dependencyVersion.getNumbersCount())
+                    .collect(joining("."));
+                val currentVersion = Version.parse(currentVersionStringNormalized);
+                return compareDependencyVersionToCurrentVersionObjects(dependencyVersion, currentVersion);
+
+            } else {
+                return null;
+            }
+        };
 
 }
