@@ -42,19 +42,25 @@ allprojects {
         }
 
         Configuration indirectApiConf = configurations.create('indirectApi') { Configuration conf ->
-            conf.description("Indirect API dependencies (form example: default dependencies for configurations that are created by the plugin)")
+            conf.canBeResolved = false
+            conf.canBeConsumed = false
+            conf.description = "Indirect API dependencies (form example: default dependencies for configurations that are created by the plugin)"
         }
 
         Configuration compileOnlyAllConf = configurations.create('compileOnlyAll') { Configuration conf ->
-            conf.description("Compile-only dependencies for all source-sets")
+            conf.canBeResolved = false
+            conf.canBeConsumed = false
+            conf.description = "Compile-only dependencies for all source-sets"
             sourceSets.all { SourceSet sourceSet ->
                 configurations[sourceSet.compileOnlyConfigurationName].extendsFrom(conf)
             }
         }
 
         Configuration optionalConf = configurations.create('optional') { Configuration conf ->
+            conf.canBeResolved = false
+            conf.canBeConsumed = false
+            conf.description = "Optional dependencies"
             sourceSets.all { SourceSet sourceSet ->
-                conf.description("Optional dependencies")
                 if (sourceSet.name == SourceSet.MAIN_SOURCE_SET_NAME) {
                     configurations[sourceSet.compileOnlyConfigurationName].extendsFrom(conf)
                 } else {
@@ -64,7 +70,9 @@ allprojects {
         }
 
         Configuration optionalHiddenConf = configurations.create('optionalHidden') { Configuration conf ->
-            conf.description("Optional dependencies hidden from IDE")
+            conf.canBeResolved = true
+            conf.canBeConsumed = false
+            conf.description = "Optional dependencies hidden from IDE"
 
             tasks.withType(AbstractCompile).configureEach { AbstractCompile task ->
                 task.onlyIf {
@@ -95,7 +103,9 @@ allprojects {
         }
 
         Configuration aptConf = configurations.create('apt') { Configuration conf ->
-            conf.description("Annotation processors and compile-only dependencies for all source-sets")
+            conf.canBeResolved = false
+            conf.canBeConsumed = false
+            conf.description = "Annotation processors and compile-only dependencies for all source-sets"
             sourceSets.all { SourceSet sourceSet ->
                 configurations[sourceSet.annotationProcessorConfigurationName].extendsFrom(conf)
                 configurations[sourceSet.compileOnlyConfigurationName].extendsFrom(conf)
@@ -103,7 +113,9 @@ allprojects {
         }
 
         Configuration annotationProcessorAllConf = configurations.create('annotationProcessorAll') { Configuration conf ->
-            conf.description("Annotation processors for all source-sets")
+            conf.canBeResolved = false
+            conf.canBeConsumed = false
+            conf.description = "Annotation processors for all source-sets"
             sourceSets.all { SourceSet sourceSet ->
                 configurations[sourceSet.annotationProcessorConfigurationName].extendsFrom(conf)
             }

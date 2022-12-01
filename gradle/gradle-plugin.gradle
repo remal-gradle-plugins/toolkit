@@ -52,6 +52,9 @@ allprojects {
         }
 
         configurations.create('correspondingKotlinPlugin') { Configuration conf ->
+            conf.canBeResolved = false
+            conf.canBeConsumed = false
+
             conf.defaultDependencies { deps ->
                 String correspondingKotlinVersion = getCorrespondingKotlinVersion()
                 Dependency kotlinPluginDep = project.dependencies.create(
@@ -68,7 +71,7 @@ allprojects {
             }
 
             conf.extendsFrom = []
-            conf.description('Kotlin Gradle plugin os the same version, as Kotlin that bundled in the current Gradle instance')
+            conf.description = 'Kotlin Gradle plugin os the same version, as Kotlin that bundled in the current Gradle instance'
         }
     }
 }

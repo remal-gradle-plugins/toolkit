@@ -145,6 +145,8 @@ allprojects {
                     }
 
                     crossCompileProject.configurations.create('crossCompileGradleApi') { Configuration conf ->
+                        conf.canBeResolved = false
+                        conf.canBeConsumed = false
                         crossCompileProject.configurations.optionalHidden.extendsFrom(conf)
                     }
 
@@ -169,6 +171,8 @@ allprojects {
                     }
 
                     crossCompileProject.configurations.create('crossCompileGradleApiTransitive') { Configuration conf ->
+                        conf.canBeResolved = false
+                        conf.canBeConsumed = false
                         conf.defaultDependencies { DependencySet deps ->
                             deps.addAll(
                                 crossCompileProject.configurations.crossCompileGradleApi.dependencies.toList().collect { Dependency dep ->
