@@ -4,6 +4,7 @@ include(
     ':toolkit',
     ':toolkit:cross-compile--common',
     ':toolkit:cross-compile--java-9-gte',
+    ':toolkit:cross-compile--gradle-5-lte',
     ':toolkit:cross-compile--gradle-6.0-lte',
     ':toolkit:cross-compile--gradle-6.7-lte',
     ':toolkit:cross-compile--gradle-7.3-lte',

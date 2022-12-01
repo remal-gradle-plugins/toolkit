@@ -410,6 +410,14 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
     }
 
     private boolean isConfigurationCacheSupportedWithAppliedPlugins() {
+        if (isCurrentGradleVersionLessThan("7.2")) {
+            if (isPluginAppliedForAnyProject("groovy")
+                || isPluginAppliedForAnyProject("scala")
+            ) {
+                return false;
+            }
+        }
+
         if (isCurrentGradleVersionLessThan("6.8")) {
             if (isPluginAppliedForAnyProject("checkstyle")
                 || isPluginAppliedForAnyProject("pmd")

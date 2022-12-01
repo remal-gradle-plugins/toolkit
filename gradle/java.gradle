@@ -176,7 +176,7 @@ allprojects {
             }
         }
 
-        tasks.matching { it instanceof JavaForkOptions }.all {
+        tasks.matching { it instanceof JavaForkOptions }.configureEach {
             List<String> jvmArgs = it.jvmArgs
             if (JavaVersion.VERSION_1_9 <= JavaVersion.current() && JavaVersion.current() <= JavaVersion.VERSION_16) {
                 jvmArgs += '--illegal-access=deny'
@@ -203,7 +203,7 @@ allprojects {
             }
         }
 
-        tasks.withType(Test) {
+        tasks.withType(Test).configureEach {
             if (name == 'test') {
                 /*
                  * Required for `org.gradle.testfixtures.ProjectBuilder`.

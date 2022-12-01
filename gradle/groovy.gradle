@@ -1,6 +1,6 @@
 allprojects {
     pluginManager.withPlugin('groovy') {
-        tasks.withType(GroovyCompile) {
+        tasks.withType(GroovyCompile).configureEach {
             groovyOptions.with {
                 it.fork = false
                 it.parameters = true

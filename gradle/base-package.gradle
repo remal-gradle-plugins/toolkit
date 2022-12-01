@@ -1,7 +1,7 @@
 if (project.isBuildSrcProject) return
 
 allprojects {
-    tasks.withType(AbstractCompile) {
+    tasks.withType(AbstractCompile).configureEach {
         doLast {
             String baseJavaPackage = project.property('baseJavaPackage').toString()
             String classFilePrefix = baseJavaPackage.replace('.', '/')

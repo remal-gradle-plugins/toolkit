@@ -60,12 +60,12 @@ allprojects {
 
             tasks.named('classes') { dependsOn(project.provider { crossCompileProject.tasks.classes }) }
 
-            tasks.withType(AbstractCopyTask) {
+            tasks.withType(AbstractCopyTask).configureEach {
                 filesMatching(['**/package-info.class', '**/package-info.java']) {
                     duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
                 }
             }
-            tasks.withType(Javadoc) {
+            tasks.withType(Javadoc).configureEach {
                 Set<String> processedPackageInfoResources = new LinkedHashSet<>()
                 exclude { FileTreeElement element ->
                     String path = element.getPath()
@@ -85,7 +85,7 @@ allprojects {
                 'javadocJar',
                 'sourcesJar',
             ].forEach { String taskName ->
-                tasks.matching { it.name == taskName }.all {
+                tasks.matching { it.name == taskName }.configureEach {
                     dependsOn(project.provider { crossCompileProject.tasks.matching { it.name == taskName } })
                 }
             }
@@ -132,11 +132,12 @@ allprojects {
                     crossCompileProject.sourceCompatibility = crossCompileProject.targetCompatibility = javaVersion.toString()
 
                 } else if (dependency == 'gradle') {
-                    GradleVersion gradleVersion = GradleVersion.version(dependencyVersion)
+                    GradleVersion gradleVersion = dependencyVersion.matches(/\d+/)
+                        ? GradleVersion.version("${dependencyVersion}.0")
+                        : GradleVersion.version(dependencyVersion)
                     for (GradleVersion currentGradleVersion : project.getAllGradleVersions()) {
                         if (currentGradleVersion.version == dependencyVersion
                             || currentGradleVersion.version.startsWith("${dependencyVersion}.")
-                            || currentGradleVersion.version.startsWith("${dependencyVersion}-")
                         ) {
                             gradleVersion = currentGradleVersion
                             break

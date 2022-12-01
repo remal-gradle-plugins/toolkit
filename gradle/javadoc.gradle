@@ -1,6 +1,6 @@
 allprojects {
     pluginManager.withPlugin('java') {
-        tasks.withType(Javadoc) { Javadoc task ->
+        tasks.withType(Javadoc).configureEach { Javadoc task ->
             task.exclude('**/internal', '**/internal/**/*')
 
             task.options.addBooleanOption('Xdoclint:none', true)
