@@ -26,7 +26,7 @@ import lombok.CustomLog;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
-import name.remal.gradleplugins.toolkit.ReliesOnInternalGradleApi;
+import name.remal.gradleplugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Unmodifiable;

@@ -6,6 +6,7 @@ import java.util.concurrent.Callable;
 import java.util.function.Function;
 import lombok.NoArgsConstructor;
 import lombok.val;
+import name.remal.gradleplugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.internal.IConventionAware;
 
 @ReliesOnInternalGradleApi

@@ -5,6 +5,7 @@ import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.unwrap
 
 import lombok.NoArgsConstructor;
 import lombok.val;
+import name.remal.gradleplugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.plugins.Convention;
 

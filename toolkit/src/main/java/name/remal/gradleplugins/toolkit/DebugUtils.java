@@ -16,6 +16,7 @@ import lombok.CustomLog;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
+import name.remal.gradleplugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.internal.classloader.ClassLoaderHierarchy;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.ClassLoaderVisitor;

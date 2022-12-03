@@ -4,7 +4,7 @@ import static lombok.AccessLevel.PRIVATE;
 
 import lombok.NoArgsConstructor;
 import lombok.val;
-import name.remal.gradleplugins.toolkit.ReliesOnInternalGradleApi;
+import name.remal.gradleplugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;

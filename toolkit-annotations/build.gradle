@@ -1,0 +1,3 @@
+project.ext['baseJavaPackage'] = 'name.remal.gradleplugins.toolkit.annotations'
+
+apply plugin: 'java-library'

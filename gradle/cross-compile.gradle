@@ -61,47 +61,7 @@ allprojects {
             crossCompileProject.apply plugin: 'java-library'
             crossCompileProject.apply plugin: 'name.remal.test-source-sets'
 
-            tasks.named('classes') { dependsOn(project.provider { crossCompileProject.tasks.classes }) }
-
-            tasks.withType(AbstractCopyTask).configureEach {
-                filesMatching(['**/package-info.class', '**/package-info.java']) {
-                    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
-                }
-            }
-            tasks.withType(Javadoc).configureEach {
-                Set<String> processedPackageInfoResources = new LinkedHashSet<>()
-                exclude { FileTreeElement element ->
-                    String path = element.getPath()
-                    if ("/$path".endsWith('/package-info.class') || "/$path".endsWith('/package-info.java')) {
-                        return !processedPackageInfoResources.add(path)
-                    }
-                }
-            }
-
-            afterEvaluate {
-                sourceSets.main.allSource.srcDirs(project.provider { crossCompileProject.sourceSets.main.allSource.srcDirs })
-                sourceSets.main.output.dir(project.provider { crossCompileProject.sourceSets.main.output })
-            }
-
-            ; [
-                'classes',
-                'javadocJar',
-                'sourcesJar',
-            ].forEach { String taskName ->
-                tasks.matching { it.name == taskName }.configureEach {
-                    dependsOn(project.provider { crossCompileProject.tasks.matching { it.name == taskName } })
-                }
-            }
-
-            crossCompileProject.tasks.withType(Javadoc).configureEach { enabled = false }
-            tasks.withType(Javadoc).configureEach { Javadoc task ->
-                task.source(
-                    project.provider {
-                        crossCompileProject.tasks.withType(Javadoc)
-                            .collect { it.source }
-                    }
-                )
-            }
+            project.fatJarWith(crossCompileProject)
 
             crossCompileProject.configurations.matching { ['api', 'implementation'].contains(it.name) }.all { Configuration conf ->
                 conf.allDependencies.all { Dependency dependency ->

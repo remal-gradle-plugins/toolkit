@@ -70,6 +70,7 @@ import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.Value;
 import lombok.val;
+import name.remal.gradleplugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import name.remal.gradleplugins.toolkit.reflection.ReflectionUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;

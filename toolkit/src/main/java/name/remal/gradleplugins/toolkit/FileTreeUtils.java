@@ -8,7 +8,6 @@ import java.util.Set;
 import lombok.NoArgsConstructor;
 import org.gradle.api.file.FileTree;
 
-@ReliesOnInternalGradleApi
 @NoArgsConstructor(access = PRIVATE)
 public abstract class FileTreeUtils {
 

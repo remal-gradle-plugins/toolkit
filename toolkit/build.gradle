@@ -21,6 +21,11 @@ dependencies {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+Project annotationsProject = rootProject.findProject(':toolkit-annotations')
+project.fatJarWith(annotationsProject)
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 tasks.named('generateJava') { Task it ->
     inputs.property('project.group', project.group)
     inputs.property('project.name', project.name)

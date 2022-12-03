@@ -75,31 +75,27 @@ allprojects {
             conf.description = "Optional dependencies hidden from IDE"
 
             tasks.withType(AbstractCompile).configureEach { AbstractCompile task ->
-                task.onlyIf {
-                    if (!conf.allDependencies.isEmpty()) {
-                        task.classpath = task.classpath + project.files(conf.files)
-                    }
+                onlyIf {
+                    task.classpath += project.files(project.provider { conf.files })
                     return true
                 }
             }
 
             tasks.withType(Javadoc).configureEach { Javadoc task ->
-                task.onlyIf {
-                    if (!conf.allDependencies.isEmpty()) {
-                        task.classpath = task.classpath + project.files(conf.files)
-                    }
+                onlyIf {
+                    task.classpath += project.files(project.provider { conf.files })
                     return true
                 }
             }
 
             tasks.withType(Test).configureEach { Test task ->
-                task.onlyIf {
-                    if (!conf.allDependencies.isEmpty()) {
-                        task.classpath = task.classpath + project.files(conf.files)
-                    }
+                onlyIf {
+                    task.classpath += project.files(project.provider { conf.files })
                     return true
                 }
             }
+
+            project.createConfigurationResolveTask(conf)
         }
 
         Configuration aptConf = configurations.create('apt') { Configuration conf ->
@@ -198,7 +194,9 @@ allprojects {
 
         tasks.withType(Jar).named(sourceSets.main.jarTaskName).configure {
             manifest {
-                attributes('Automatic-Module-Name': project.property('javaModuleName'))
+                attributes(
+                    'Automatic-Module-Name': project.findProperty('javaModuleName') ?: project.property('baseJavaPackage')
+                )
             }
         }
 

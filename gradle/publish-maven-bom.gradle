@@ -15,11 +15,11 @@ allprojects {
         publishing.publications.create('mavenBom', MavenPublication) { MavenPublication publication ->
             publication.artifactId = publication.artifactId?.replaceFirst(/-root$/, '') + '-bom'
 
-            publication.pom {
-                String prevName = name.get()
-                name = "${prevName}: BOM"
-                description = "${prevName}: Bill of Materials (BOM)"
-                it.withXml {
+            publication.pom { MavenPom pom ->
+                String prevName = pom.name.get()
+                pom.name = "${prevName}: BOM"
+                pom.description = "${prevName}: Bill of Materials (BOM)"
+                pom.withXml {
                     Element root = asElement()
                     Document document = root.ownerDocument
                     Node dependencyManagement = root.appendChild(document.createElement("dependencyManagement"))

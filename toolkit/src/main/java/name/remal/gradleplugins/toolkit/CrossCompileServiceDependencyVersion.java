@@ -105,9 +105,7 @@ class CrossCompileServiceDependencyVersion
         }
 
         if (comparisonResult > 0) {
-            if (this.earlierIncluded && other.laterIncluded) {
-                return true;
-            }
+            return this.earlierIncluded && other.laterIncluded;
         }
 
         return false;

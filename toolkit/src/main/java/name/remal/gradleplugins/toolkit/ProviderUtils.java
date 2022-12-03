@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import org.gradle.api.Project;
 import org.gradle.api.provider.Provider;
 
-@ReliesOnInternalGradleApi
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ProviderUtils {
 

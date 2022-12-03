@@ -64,9 +64,7 @@ public abstract class GitUtils {
                 .filter(path::startsWith)
                 .findFirst()
                 .orElse(null);
-            if (ciProjectPath != null) {
-                return ciProjectPath;
-            }
+            return ciProjectPath;
         }
 
         return null;
@@ -155,11 +153,7 @@ public abstract class GitUtils {
 
     public static boolean isGitRepositoryRoot(Path path) {
         val dotGit = path.resolve(DOT_GIT);
-        if (!isDirectory(dotGit)) {
-            return false;
-        }
-
-        return true;
+        return isDirectory(dotGit);
     }
 
 }

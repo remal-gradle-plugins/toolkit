@@ -8,6 +8,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import javax.annotation.Nullable;
 import lombok.val;
+import name.remal.gradleplugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionLeafVisitor;
@@ -15,6 +16,7 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.tasks.util.PatternSet;
 import org.jetbrains.annotations.Unmodifiable;
 
+@ReliesOnInternalGradleApi
 @AutoService(FileTreeUtilsMethods.class)
 final class FileTreeUtilsMethods_5 extends FileTreeUtilsMethods {
 

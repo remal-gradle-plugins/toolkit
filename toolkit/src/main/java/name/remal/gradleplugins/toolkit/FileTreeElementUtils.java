@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
 import lombok.val;
+import name.remal.gradleplugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.file.FileTreeElement;
 import org.jetbrains.annotations.VisibleForTesting;
 

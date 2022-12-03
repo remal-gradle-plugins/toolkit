@@ -32,6 +32,24 @@ Object MUTEX = new Object[0]
 
 project.ext.isBuildSrcProject = rootProject.name == 'buildSrc'
 
+allprojects {
+    project.ext.afterEvaluateOrNow = { Closure action ->
+        if (project.state.executed) {
+            project.configure(project, action)
+        } else {
+            project.afterEvaluate(action)
+        }
+    }
+
+    project.ext.withPluginAfterEvaluateOrNow = { String pluginId, Closure action ->
+        project.afterEvaluateOrNow {
+            project.pluginManager.withPlugin(pluginId) {
+                project.configure(project, action)
+            }
+        }
+    }
+}
+
 project.ext.startWithWord = { CharSequence untypedString, CharSequence untypedNeedle ->
     if (untypedString == null || untypedNeedle == null) return false
     if (untypedNeedle.length() == 0) return true
@@ -67,6 +85,14 @@ project.ext.isInstanceOf = { Object object, String parentClassName ->
 
     Class<?> parentClass = Class.forName(parentClassName, true, object.class.classLoader)
     return parentClass.isInstance(object)
+}
+
+allprojects {
+    project.ext.createConfigurationResolveTask = { Configuration conf ->
+        tasks.register("resolve${conf.name.capitalize()}Configuration") {
+            doLast { conf.resolve() }
+        }
+    }
 }
 
 project.ext.disableTask = { Task task ->
@@ -332,6 +358,70 @@ allprojects {
                 ?.version
             if (version == null) throw new GradleException("Gradle API dependency not found: $notation")
             return version
+        }
+    }
+}
+
+
+allprojects {
+    project.ext.fatJarWithDependentTaskNames = [
+        'classes',
+        'jar',
+        'sourcesJar',
+        'javadocJar',
+    ]
+
+    Closure fatJarWithImpl = { Project otherProject ->
+        otherProject.tasks.withType(Javadoc).configureEach { enabled = false }
+
+        project.fatJarWithDependentTaskNames.forEach { String taskName ->
+            tasks.matching { it.name == taskName }.configureEach {
+                dependsOn(otherProject.tasks.matching { it.name == taskName })
+            }
+        }
+
+        sourceSets.main.allSource.srcDirs(otherProject.sourceSets.main.allSource.srcDirs)
+        otherProject.sourceSets.main.output.forEach { sourceSets.main.output.dir(it) }
+
+        tasks.withType(AbstractCopyTask).configureEach {
+            filesMatching(['**/package-info.class', '**/package-info.java']) {
+                duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+            }
+        }
+
+        tasks.withType(Javadoc).configureEach { Javadoc task ->
+            task.dependsOn(otherProject.tasks.matching { it.name == 'resolveOptionalHiddenConfiguration' })
+
+            task.onlyIf {
+                task.classpath += otherProject.configurations.optionalHidden
+                otherProject.tasks.withType(Javadoc).forEach { Javadoc otherTask ->
+                    task.classpath += otherTask.classpath
+                }
+                return true
+            }
+
+            Set<String> processedPackageInfoResources = new LinkedHashSet<>()
+            task.exclude { FileTreeElement element ->
+                String path = element.path
+                if ("/$path".endsWith('/package-info.class') || "/$path".endsWith('/package-info.java')) {
+                    return !processedPackageInfoResources.add(path)
+                }
+            }
+
+            task.source(
+                project.provider {
+                    otherProject.tasks.withType(Javadoc)
+                        .collect { it.source }
+                }
+            )
+        }
+    }
+
+    project.ext.fatJarWith = { Project otherProject ->
+        project.withPluginAfterEvaluateOrNow('java') {
+            otherProject.withPluginAfterEvaluateOrNow('java') {
+                fatJarWithImpl(otherProject)
+            }
         }
     }
 }

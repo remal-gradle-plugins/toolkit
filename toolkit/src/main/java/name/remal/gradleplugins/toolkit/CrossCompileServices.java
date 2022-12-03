@@ -234,7 +234,7 @@ public abstract class CrossCompileServices {
 
 
         return versionInfos.entrySet().stream()
-            .sorted(Entry.<String, CrossCompileServiceDependencyVersion>comparingByValue())
+            .sorted(Entry.comparingByValue())
             .map(entry ->
                 CrossCompileServiceImpl.builder()
                     .className(entry.getKey())

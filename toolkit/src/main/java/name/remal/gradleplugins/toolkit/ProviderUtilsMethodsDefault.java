@@ -3,10 +3,12 @@ package name.remal.gradleplugins.toolkit;
 import com.google.auto.service.AutoService;
 import java.util.concurrent.Callable;
 import javax.annotation.Nullable;
+import name.remal.gradleplugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 
+@ReliesOnInternalGradleApi
 @AutoService(ProviderUtilsMethods.class)
 final class ProviderUtilsMethodsDefault implements ProviderUtilsMethods {
 

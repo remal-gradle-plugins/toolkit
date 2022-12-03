@@ -4,6 +4,7 @@ import static lombok.AccessLevel.PRIVATE;
 
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
+import name.remal.gradleplugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;

@@ -12,6 +12,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import lombok.val;
+import name.remal.gradleplugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -21,6 +22,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.jetbrains.annotations.Unmodifiable;
 
+@ReliesOnInternalGradleApi
 @AutoService(FileTreeUtilsMethods.class)
 final class FileTreeUtilsMethods_5_0 extends FileTreeUtilsMethods {
 

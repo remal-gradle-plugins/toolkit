@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
 import lombok.val;
+import name.remal.gradleplugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileCollectionInternal.Source;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
@@ -18,6 +19,7 @@ import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.tasks.util.PatternSet;
 import org.jetbrains.annotations.Unmodifiable;
 
+@ReliesOnInternalGradleApi
 @AutoService(FileTreeUtilsMethods.class)
 final class FileTreeUtilsMethodsDefault extends FileTreeUtilsMethods {
 

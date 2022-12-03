@@ -112,5 +112,11 @@ allprojects {
             testImplementation 'org.ow2.asm:asm'
             testImplementation 'org.ow2.asm:asm-tree'
         }
+
+        if (project.path != ':toolkit-annotations' && !project.path.startsWith(':toolkit-annotations:')) {
+            dependencies {
+                optional project(':toolkit-annotations')
+            }
+        }
     }
 }

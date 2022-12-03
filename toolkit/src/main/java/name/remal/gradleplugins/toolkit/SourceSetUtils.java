@@ -29,6 +29,7 @@ import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
+import name.remal.gradleplugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import name.remal.gradleplugins.toolkit.reflection.ReflectionUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;

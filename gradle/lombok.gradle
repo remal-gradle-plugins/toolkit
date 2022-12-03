@@ -9,5 +9,16 @@ allprojects {
                 }
             }
         }
+
+        sourceSets.all { SourceSet sourceSet ->
+            tasks.named(sourceSet.getTaskName('delombok', '')).configure { Task task ->
+                onlyIf {
+                    task.classpath.from(project.files(project.provider { project.configurations.optionalHidden.files }))
+                    return true
+                }
+            }
+        }
+
+        project.ext.fatJarWithDependentTaskNames.add('delombok')
     }
 }
