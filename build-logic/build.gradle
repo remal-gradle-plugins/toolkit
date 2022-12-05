@@ -1,13 +1,4 @@
-import static org.objectweb.asm.ClassReader.SKIP_DEBUG
-import static org.objectweb.asm.ClassReader.SKIP_FRAMES
-
-import java.security.MessageDigest
-import java.util.function.Function
 import org.gradle.util.GradleVersion
-import org.objectweb.asm.ClassReader
-import org.objectweb.asm.ClassWriter
-import org.objectweb.asm.tree.ClassNode
-import org.objectweb.asm.tree.MethodNode
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -90,150 +81,6 @@ tasks.named('generateResources') {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-Closure<List<Project>> getProjectsThatRelyOnInternalApi = {
-    rootProject.allprojects
-        .findAll { it.path != project.path }
-        .findAll { it.pluginManager.hasPlugin('java') }
-        .findAll { it.pluginManager.hasPlugin('maven-publish') }
-        .findAll { it.publishing.publications.withType(MavenPublication).any { !it.artifacts.isEmpty() } }
-}.memoize()
-
-Configuration dependenciesThatRelyOnInternalApiConf = configurations.create('dependenciesThatRelyOnInternalApi') { Configuration conf ->
-    conf.dependencies.all { Dependency dep ->
-        if (dep instanceof ModuleDependency) {
-            dep.transitive = false
-        }
-    }
-
-    conf.extendsFrom = []
-    conf.dependencies.clear()
-    conf.dependencyConstraints.clear()
-
-    conf.withDependencies { DependencySet deps ->
-        getProjectsThatRelyOnInternalApi().forEach { Project otherProject ->
-            deps.add(project.dependencies.create(project(otherProject.path)))
-        }
-    }
-}
-
-Set<String> additionalScriptsToInclude = [].toSet()
-tasks.named('generateResources') {
-    dependsOn(provider { getProjectsThatRelyOnInternalApi().collect { it.tasks.named('jar') } })
-    inputs.files(dependenciesThatRelyOnInternalApiConf).optional().withPropertyName('dependenciesThatRelyOnInternalApiConf')
-    String dependenciesThatRelyOnInternalApiHashScriptPath = "name/remal/gradleplugins/toolkit/buildlogic/toolkit-classes-that-rely-on-internal-api-hash.gradle"
-    additionalScriptsToInclude.add(dependenciesThatRelyOnInternalApiHashScriptPath)
-    textFile(dependenciesThatRelyOnInternalApiHashScriptPath) {
-        FileTree dependencyThatRelyOnInternalApiFileTree = project.files().asFileTree
-        for (File dependencyThatRelyOnInternalApi : dependenciesThatRelyOnInternalApiConf.files) {
-            if (dependencyThatRelyOnInternalApi.isDirectory()) {
-                dependencyThatRelyOnInternalApiFileTree = project.fileTree(dependencyThatRelyOnInternalApi)
-            } else if (dependencyThatRelyOnInternalApi.isFile()) {
-                dependencyThatRelyOnInternalApiFileTree = project.zipTree(dependencyThatRelyOnInternalApi)
-            }
-        }
-        dependencyThatRelyOnInternalApiFileTree = dependencyThatRelyOnInternalApiFileTree.matching { include('**/*.class') }
-
-        Closure<Boolean> isNodeAnnotatedWithReliesOnInternalGradleApi = { node ->
-            if (node.visibleAnnotations?.any { it.desc.endsWith('/ReliesOnInternalGradleApi;') }
-                || node.invisibleAnnotations?.any { it.desc.endsWith('/ReliesOnInternalGradleApi;') }
-                || node.visibleTypeAnnotations?.any { it.desc.endsWith('/ReliesOnInternalGradleApi;') }
-                || node.invisibleTypeAnnotations?.any { it.desc.endsWith('/ReliesOnInternalGradleApi;') }
-            ) {
-                return true
-            }
-            if (node instanceof MethodNode) {
-                if (node.visibleParameterAnnotations?.any { it?.any { it.desc.endsWith('/ReliesOnInternalGradleApi;') } }
-                    || node.invisibleParameterAnnotations?.any { it?.any { it.desc.endsWith('/ReliesOnInternalGradleApi;') } }
-                    || node.visibleLocalVariableAnnotations?.any { it.desc.endsWith('/ReliesOnInternalGradleApi;') }
-                    || node.invisibleLocalVariableAnnotations?.any { it.desc.endsWith('/ReliesOnInternalGradleApi;') }
-                ) {
-                    return true
-                }
-            }
-            return false
-        }
-
-        Closure<Boolean> hasAnythingAnnotatedWithReliesOnInternalGradleApi = { ClassNode classNode ->
-            if (isNodeAnnotatedWithReliesOnInternalGradleApi(classNode)) {
-                return true
-            }
-            if (classNode.fields?.any { isNodeAnnotatedWithReliesOnInternalGradleApi(it) }) {
-                return true
-            }
-            if (classNode.methods?.any { isNodeAnnotatedWithReliesOnInternalGradleApi(it) }) {
-                return true
-            }
-            return false
-        }
-
-        Closure<String> relativePathToClassName = { String relativePath ->
-            relativePath = relativePath.replace('\\', '/').replaceFirst('^/+', '')
-            if (relativePath.endsWith(".class")) {
-                relativePath = relativePath.substring(0, relativePath.length() - ".class".length())
-            }
-            return relativePath.replace('/', '.')
-        }
-
-        Map<String, ClassNode> classesThatRelyOnInternalApi = new TreeMap<>()
-        dependencyThatRelyOnInternalApiFileTree.visit { FileTreeElement fileTreeElement ->
-            if (fileTreeElement.directory) return
-
-            ClassNode classNode = new ClassNode()
-            fileTreeElement.open().withCloseable { new ClassReader(it).accept(classNode, SKIP_DEBUG | SKIP_FRAMES) }
-            if (!hasAnythingAnnotatedWithReliesOnInternalGradleApi(classNode)) return
-
-            String className = relativePathToClassName(fileTreeElement.path)
-            classesThatRelyOnInternalApi.put(className, classNode)
-        }
-        dependencyThatRelyOnInternalApiFileTree
-            .matching {
-                for (String className : classesThatRelyOnInternalApi.keySet()) {
-                    include(className.replace('.', '/') + '*.class')
-                }
-            }
-            .visit { FileTreeElement fileTreeElement ->
-                if (fileTreeElement.directory) return
-
-                String className = relativePathToClassName(fileTreeElement.path)
-                if (classesThatRelyOnInternalApi.containsKey(className)) return
-
-                ClassNode classNode = new ClassNode()
-                fileTreeElement.open().withCloseable { new ClassReader(it).accept(classNode, SKIP_DEBUG | SKIP_FRAMES) }
-                classesThatRelyOnInternalApi.put(className, classNode)
-            }
-
-        MessageDigest messageDigest = MessageDigest.getInstance('SHA-256')
-        classesThatRelyOnInternalApi.forEach { String className, ClassNode classNode ->
-            classNode.fields = classNode.fields?.toSorted(Comparator.comparing((Function) { it.name }))
-            classNode.methods = classNode.methods?.toSorted(Comparator.comparing((Function) { it.name }).thenComparing((Function) { it.desc }))
-
-            ClassWriter classWriter = new ClassWriter(classNode.api)
-            classNode.accept(classWriter)
-
-            byte[] bytes = classWriter.toByteArray()
-            messageDigest.update(className.getBytes('UTF-8'))
-            messageDigest.update(bytes)
-        }
-        String classesThatRelyOnInternalApiHash = new BigInteger(1, messageDigest.digest()).toString(16)
-
-        it.println("if (project.isBuildSrcProject) return")
-        it.println("")
-        it.println("allprojects {")
-        it.println("    pluginManager.withPlugin('java-gradle-plugin') {")
-        it.println("")
-        classesThatRelyOnInternalApi.keySet().forEach { String className ->
-            it.println("        // $className")
-        }
-        it.println("")
-        it.println("        project.nonJavaApiDependencies.add('toolkit-classes-that-rely-on-internal-api:$classesThatRelyOnInternalApiHash')")
-        it.println("")
-        it.println("    }")
-        it.println("}")
-    }
-}
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 tasks.named('generateJava') {
     inputs.property('project.version', project.provider { project.version })
     classFile('name.remal.gradleplugins.toolkit.buildlogic', 'BuildLogicPlugin') {
@@ -248,9 +95,6 @@ tasks.named('generateJava') {
         it.writeBlock("public class ${it.simpleName} implements Plugin<Project>") {
             it.writeBlock("public void apply(Project project)") {
                 scriptsToInclude.values().forEach { resource ->
-                    it.writeln("project.apply(it -> it.from(getResourceUrl(\"/${it.escapeJava(resource)}\", ${it.simpleName}.class)));")
-                }
-                additionalScriptsToInclude.forEach { resource ->
                     it.writeln("project.apply(it -> it.from(getResourceUrl(\"/${it.escapeJava(resource)}\", ${it.simpleName}.class)));")
                 }
 

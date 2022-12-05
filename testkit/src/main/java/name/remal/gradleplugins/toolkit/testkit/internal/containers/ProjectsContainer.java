@@ -10,6 +10,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import lombok.val;
+import name.remal.gradleplugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import name.remal.gradleplugins.toolkit.testkit.ApplyPlugin;
 import name.remal.gradleplugins.toolkit.testkit.ChildProjectOf;
 import org.gradle.api.Project;
@@ -59,6 +60,7 @@ public class ProjectsContainer extends AbstractExtensionContextContainer<Project
     }
 
     @SneakyThrows
+    @ReliesOnInternalGradleApi
     private synchronized Project newProject(@Nullable Project parentProject, ProjectDirPrefix dirPrefix) {
         final Project project;
         if (parentProject == null) {

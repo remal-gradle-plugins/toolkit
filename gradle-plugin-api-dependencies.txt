@@ -1,6 +1,7 @@
 # This file is generated automatically by `collectAllGradlePluginApiDependencies` Gradle task.
 # Do not modify it yourself unless you know what you are doing.
 
+classes-that-rely-on-gradle-internal-api:28cd4208e7fa06190714a1ed7cde7b39574330ecf86b7c8c0e47f1c2b7624487
 com.gradle.publish:plugin-publish-plugin:1.1.0
 gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.1.7
 io.github.gradle-nexus:publish-plugin:1.1.0

@@ -5,11 +5,11 @@ import static java.lang.String.format;
 import java.util.Comparator;
 import javax.annotation.Nullable;
 import lombok.val;
-import name.remal.gradle_plugins.api.RelocatePackages;
+import name.remal.gradleplugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 
-@RelocatePackages("org.gradle.api.internal")
+@ReliesOnInternalGradleApi
 public final class Version implements Comparable<Version> {
 
     private static final VersionParser PARSER = new VersionParser();

@@ -1,0 +1,127 @@
+import static org.objectweb.asm.ClassReader.SKIP_DEBUG
+import static org.objectweb.asm.ClassReader.SKIP_FRAMES
+
+import java.security.MessageDigest
+import java.util.function.Function
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.tree.ClassNode
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+buildscript {
+    dependencies {
+        classpath platform("org.ow2.asm:asm-bom:${rootBuildscriptClasspathVersionOf('org.ow2.asm:asm-bom')}")
+        classpath 'org.ow2.asm:asm-tree'
+        classpath 'org.ow2.asm:asm-commons'
+    }
+    repositories {
+        mavenCentral()
+    }
+}
+
+if (project.isBuildSrcProject) return
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+Closure<String> relativePathToClassName = { String relativePath ->
+    relativePath = relativePath.replace('\\', '/').replaceFirst('^/+', '')
+    if (relativePath.endsWith(".class")) {
+        relativePath = relativePath.substring(0, relativePath.length() - ".class".length())
+    }
+    return relativePath.replace('/', '.')
+}
+
+Closure<Boolean> isNodeAnnotatedWith = { node, simpleClassName ->
+    if (node.visibleAnnotations?.any { it.desc.endsWith("/$simpleClassName;") }
+        || node.invisibleAnnotations?.any { it.desc.endsWith("/$simpleClassName;") }
+    ) {
+        return true
+    }
+    return false
+}
+
+Closure<Boolean> isNodeAnnotatedWithReliesOnInternalGradleApi = { node ->
+    return isNodeAnnotatedWith(node, 'ReliesOnInternalGradleApi')
+}
+
+allprojects {
+    pluginManager.withPlugin('java-gradle-plugin') {
+        tasks.named('collectGradlePluginApiDependencies').configure {
+            dependsOn('classes')
+        }
+
+        project.nonJavaApiDependencies.add(
+            provider {
+                FileTree classesFileTree = project.files().asFileTree
+                for (File runtimeClasspathFile : sourceSets.main.runtimeClasspath.files) {
+                    if (runtimeClasspathFile.isDirectory()) {
+                        classesFileTree += project.fileTree(runtimeClasspathFile)
+                    } else if (runtimeClasspathFile.isFile()) {
+                        classesFileTree += project.zipTree(runtimeClasspathFile)
+                    }
+                }
+
+                classesFileTree = classesFileTree
+                    .matching { include('**/*.class') }
+                    .matching { exclude('**/ReliesOnInternalGradleApi.class') }
+
+                Map<String, ClassNode> classesRelyingOnInternalApi = new TreeMap<>()
+                classesFileTree.visit { FileTreeElement fileTreeElement ->
+                    if (fileTreeElement.directory) return
+
+                    ClassNode classNode = new ClassNode()
+                    fileTreeElement.open().withCloseable { new ClassReader(it).accept(classNode, SKIP_DEBUG | SKIP_FRAMES) }
+
+                    if (isNodeAnnotatedWithReliesOnInternalGradleApi(classNode)
+                        || classNode.fields?.any { isNodeAnnotatedWithReliesOnInternalGradleApi(it) }
+                        || classNode.methods?.any { isNodeAnnotatedWithReliesOnInternalGradleApi(it) }
+                    ) {
+                        String className = relativePathToClassName(fileTreeElement.path)
+                        classesRelyingOnInternalApi.put(className, classNode)
+                    }
+                }
+
+                if (!classesRelyingOnInternalApi.isEmpty()) {
+                    classesFileTree
+                        .matching {
+                            for (String className : classesRelyingOnInternalApi.keySet()) {
+                                include(className.replace('.', '/') + '*.class')
+                            }
+                        }
+                        .visit { FileTreeElement fileTreeElement ->
+                            if (fileTreeElement.directory) return
+
+                            String className = relativePathToClassName(fileTreeElement.path)
+                            classesRelyingOnInternalApi.computeIfAbsent(className) {
+                                ClassNode classNode = new ClassNode()
+                                fileTreeElement.open().withCloseable { new ClassReader(it).accept(classNode, SKIP_DEBUG | SKIP_FRAMES) }
+                                return classNode
+                            }
+                        }
+                }
+
+                if (classesRelyingOnInternalApi.isEmpty()) {
+                    return ''
+                }
+
+                MessageDigest messageDigest = MessageDigest.getInstance('SHA-256')
+                classesRelyingOnInternalApi.forEach { String className, ClassNode classNode ->
+                    classNode.fields = classNode.fields?.toSorted(Comparator.comparing((Function) { it.name }))
+                    classNode.methods = classNode.methods?.toSorted(Comparator.comparing((Function) { it.name }).thenComparing((Function) { it.desc }))
+
+                    ClassWriter classWriter = new ClassWriter(classNode.api)
+                    classNode.accept(classWriter)
+
+                    byte[] bytes = classWriter.toByteArray()
+                    messageDigest.update(className.getBytes('UTF-8'))
+                    messageDigest.update(bytes)
+                    messageDigest.update('\n'.getBytes('UTF-8'))
+                }
+
+                String hash = new BigInteger(1, messageDigest.digest()).toString(16)
+                return "classes-that-rely-on-gradle-internal-api:$hash"
+            }
+        )
+    }
+}

@@ -11,6 +11,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.val;
+import name.remal.gradleplugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.jetbrains.annotations.Contract;
 
 @NoArgsConstructor(access = PRIVATE)
@@ -28,6 +29,7 @@ public abstract class ClosureUtils {
     }
 
 
+    @ReliesOnInternalGradleApi
     private static final List<String> CONFIGURE_UTIL_CLASS_NAMES = unmodifiableList(asList(
         "org.gradle.util.internal.ConfigureUtil",
         "org.gradle.util.ConfigureUtil"

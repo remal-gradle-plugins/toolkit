@@ -104,7 +104,9 @@ allprojects {
                     .findAll { !it.selected.selectionReason.expected }
                     .forEach { processResolvedDependency(it) }
 
-                nonJavaApiDependencies.get().forEach { dependencies.add(it) }
+                nonJavaApiDependencies.get()
+                    .findAll { it != null && !it.isEmpty() }
+                    .forEach { dependencies.add(it) }
 
                 outputFile.setText(dependencies.join('\n') + '\n', 'UTF-8')
             }
