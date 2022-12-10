@@ -10,5 +10,20 @@ allprojects {
         classesRelocation {
             relocatedClassesPackageName = "${project.baseJavaPackage}.internal._relocated"
         }
+
+        configurations.matching { ['relocateClasses', 'excludeFromClassesRelocation', 'excludeFromForcedClassesRelocation'].contains(it.name) }.all { Configuration conf ->
+            conf.canBeConsumed = false
+
+            conf.attributes {
+                attribute(
+                    Usage.USAGE_ATTRIBUTE,
+                    objects.named(Usage.class, Usage.JAVA_RUNTIME)
+                )
+                attribute(
+                    Category.CATEGORY_ATTRIBUTE,
+                    objects.named(Category.class, Category.LIBRARY)
+                )
+            }
+        }
     }
 }
