@@ -3,7 +3,7 @@ if (project.isBuildSrcProject) return
 allprojects {
     tasks.withType(AbstractCompile).configureEach {
         doLast {
-            String baseJavaPackage = project.property('baseJavaPackage').toString()
+            String baseJavaPackage = project.calculateBaseJavaPackage()
             String classFilePrefix = baseJavaPackage.replace('.', '/')
             project.files(it.destinationDirectory).asFileTree
                 .matching { include('**/*.class') }

@@ -8,7 +8,10 @@ allprojects {
         }
 
         classesRelocation {
-            relocatedClassesPackageName = "${project.baseJavaPackage}.internal._relocated"
+            relocatedClassesPackageName = "${project.calculateBaseJavaPackage()}.internal._relocated"
+        }
+        tasks.withType(AbstractCompile).configureEach {
+            it.inputs.property('relocatedClassesPackageName', classesRelocation.relocatedClassesPackageName)
         }
 
         configurations.matching { ['relocateClasses', 'excludeFromClassesRelocation', 'excludeFromForcedClassesRelocation'].contains(it.name) }.all { Configuration conf ->

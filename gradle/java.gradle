@@ -195,7 +195,7 @@ allprojects {
         tasks.withType(Jar).named(sourceSets.main.jarTaskName).configure {
             manifest {
                 attributes(
-                    'Automatic-Module-Name': project.findProperty('javaModuleName') ?: project.property('baseJavaPackage')
+                    'Automatic-Module-Name': project.calculateJavaModuleName()
                 )
             }
         }

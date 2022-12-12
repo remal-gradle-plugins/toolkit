@@ -191,6 +191,46 @@ project.ext.isVerificationDependency = { Object dep ->
     return [VERIFICATION].contains(category)
 }
 
+allprojects {
+    project.ext.calculateBaseJavaPackage = {
+        String baseJavaPackage = project.ext.find('baseJavaPackage')
+        if (baseJavaPackage != null) return baseJavaPackage
+
+        List<String> baseJavaPackageTokens = "${rootProject.group}:${rootProject.name}${project.path}".split(/[.:]+/)
+            .findAll { !it.isEmpty() }
+        int hiddenTokenPos = baseJavaPackageTokens.findIndexOf { it.contains('--') }
+        if (hiddenTokenPos >= 0) {
+            baseJavaPackageTokens = baseJavaPackageTokens.subList(0, hiddenTokenPos)
+        }
+        for (int index = 0; index < baseJavaPackageTokens.size() - 1; ++index) {
+            String token = baseJavaPackageTokens.get(index)
+            String nextToken = baseJavaPackageTokens.get(index + 1)
+            if (token == nextToken) {
+                baseJavaPackageTokens.remove(index)
+                --index
+            } else if ("${token}-root" == nextToken) {
+                baseJavaPackageTokens.remove(index + 1)
+                --index
+            } else if (token == "${nextToken}-root") {
+                baseJavaPackageTokens.remove(index)
+                --index
+            }
+        }
+        return baseJavaPackageTokens.join('.')
+            .replaceAll(/[^\w.]+/, '_')
+            .replaceAll(/_\./, '.')
+            .replaceAll(/\._/, '.')
+            .replace('_', '')
+            .replaceAll(/\.{2,}/, '.')
+            .replaceFirst(/^\./, '')
+            .replaceFirst(/\.$/, '')
+    }.memoize()
+
+    project.ext.calculateJavaModuleName = {
+        return project.findProperty('javaModuleName') ?: project.calculateBaseJavaPackage()
+    }.memoize()
+}
+
 
 Closure<JSONArray> loadJsonFromUrl = { Object untypedUrl ->
     URL url = project.uri(untypedUrl).toURL()
