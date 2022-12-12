@@ -1,15 +1,19 @@
 package name.remal.gradleplugins.toolkit;
 
+import static com.google.common.io.ByteStreams.toByteArray;
 import static lombok.AccessLevel.PRIVATE;
 
 import java.io.FilterInputStream;
 import java.io.FilterOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.val;
 
 @NoArgsConstructor(access = PRIVATE)
+@SuppressWarnings("checkstyle:OverloadMethodsDeclarationOrder")
 public abstract class InputOutputStreamUtils {
 
     @FunctionalInterface
@@ -29,6 +33,16 @@ public abstract class InputOutputStreamUtils {
                 }
             }
         };
+    }
+
+    @SneakyThrows
+    public static byte[] readBytesFromStream(InputStream inputStream) {
+        return toByteArray(inputStream);
+    }
+
+    public static String readStringFromStream(InputStream inputStream, Charset charset) {
+        val bytes = readBytesFromStream(inputStream);
+        return new String(bytes, charset);
     }
 
 
