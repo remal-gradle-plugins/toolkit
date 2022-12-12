@@ -203,6 +203,10 @@ public abstract class ReflectionUtils {
         return Modifier.isStatic(member.getModifiers());
     }
 
+    public static boolean isAbstract(Class<?> type) {
+        return Modifier.isAbstract(type.getModifiers());
+    }
+
     public static boolean isAbstract(Method method) {
         return Modifier.isAbstract(method.getModifiers());
     }
@@ -217,6 +221,10 @@ public abstract class ReflectionUtils {
 
     public static boolean isNotStatic(Member member) {
         return !isStatic(member);
+    }
+
+    public static boolean isNotAbstract(Class<?> type) {
+        return !isAbstract(type);
     }
 
     public static boolean isNotAbstract(Method method) {
