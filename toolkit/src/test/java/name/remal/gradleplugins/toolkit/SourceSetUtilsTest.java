@@ -72,6 +72,22 @@ class SourceSetUtilsTest {
 
 
     @Test
+    void getSourceSetConfigurationNames() {
+        val mainConfNames = SourceSetUtils.getSourceSetConfigurationNames(mainSourceSet);
+        assertThat(mainConfNames).contains(
+            "implementation",
+            "compileOnly"
+        );
+
+        val testConfNames = SourceSetUtils.getSourceSetConfigurationNames(testSourceSet);
+        assertThat(testConfNames).contains(
+            "testImplementation",
+            "testCompileOnly"
+        );
+    }
+
+
+    @Test
     void isProcessedBy_SourceTask() {
         val mainJavaCompile = project.getTasks().withType(JavaCompile.class)
             .getByName(mainSourceSet.getCompileJavaTaskName());

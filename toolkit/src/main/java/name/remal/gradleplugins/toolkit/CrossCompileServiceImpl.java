@@ -11,6 +11,10 @@ class CrossCompileServiceImpl {
 
     CrossCompileServiceDependencyVersion dependencyVersion;
 
+    public boolean isFallback() {
+        return getDependencyVersion().getVersion() == null;
+    }
+
     @Override
     public String toString() {
         return getClassName()

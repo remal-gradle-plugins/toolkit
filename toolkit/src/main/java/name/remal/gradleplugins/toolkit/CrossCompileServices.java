@@ -3,6 +3,7 @@ package name.remal.gradleplugins.toolkit;
 import static java.lang.Math.toIntExact;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Collections.unmodifiableList;
 import static java.util.Comparator.comparing;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
@@ -39,6 +40,7 @@ import lombok.SneakyThrows;
 import lombok.val;
 import org.gradle.api.JavaVersion;
 import org.gradle.util.GradleVersion;
+import org.jetbrains.annotations.Unmodifiable;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -66,13 +68,11 @@ public abstract class CrossCompileServices {
         assertNoIntersections(service, impls);
 
 
-        if (dependencyVersionComparator == null) {
-            dependencyVersionComparator = DEFAULT_VERSION_COMPARATOR;
-        } else {
-            dependencyVersionComparator = dependencyVersionComparator.then(DEFAULT_VERSION_COMPARATOR);
-        }
+        val dependencyVersionComparatorWithDefault = withDefaultCrossCompileVersionComparator(
+            dependencyVersionComparator
+        );
 
-        CrossCompileServiceImpl impl = getImpl(impls, dependencyVersionComparator);
+        CrossCompileServiceImpl impl = getImpl(impls, dependencyVersionComparatorWithDefault);
 
         if (impl == null) {
             impl = fallbackImpl;
@@ -97,6 +97,64 @@ public abstract class CrossCompileServices {
             );
         }
     }
+
+
+    @Unmodifiable
+    public static synchronized <T> List<T> loadAllCrossCompileServiceImplementations(Class<T> service) {
+        return loadAllCrossCompileServiceImplementations(service, null);
+    }
+
+    @Unmodifiable
+    public static synchronized <T> List<T> loadAllCrossCompileServiceImplementations(
+        Class<T> service,
+        @Nullable CrossCompileVersionComparator dependencyVersionComparator
+    ) {
+        val implClassNames = getImplClassNames(service);
+        val impls = parseServiceImpls(service, implClassNames);
+
+        val dependencyVersionComparatorWithDefault = withDefaultCrossCompileVersionComparator(
+            dependencyVersionComparator
+        );
+
+        val activeImpls = impls.stream()
+            .filter(impl -> impl.isFallback() || isActive(impl, dependencyVersionComparatorWithDefault))
+            .collect(toList());
+
+        List<T> instances = new ArrayList<>(impls.size());
+        for (val impl : activeImpls) {
+            try {
+                val implClass = Class.forName(impl.getClassName(), true, service.getClassLoader());
+                val implCtor = implClass.getDeclaredConstructor();
+                makeAccessible(implCtor);
+                val implInstance = implCtor.newInstance();
+                val instance = service.cast(implInstance);
+                instances.add(instance);
+
+            } catch (Throwable exception) {
+                throw new CrossCompileServiceLoadingException(
+                    format(
+                        "Error instantiating cross-compile implementation of %s: %s",
+                        service.getName(),
+                        impl
+                    ),
+                    exception
+                );
+            }
+        }
+        return unmodifiableList(instances);
+    }
+
+
+    private static CrossCompileVersionComparator withDefaultCrossCompileVersionComparator(
+        @Nullable CrossCompileVersionComparator dependencyVersionComparator
+    ) {
+        if (dependencyVersionComparator == null) {
+            return DEFAULT_VERSION_COMPARATOR;
+        } else {
+            return dependencyVersionComparator.then(DEFAULT_VERSION_COMPARATOR);
+        }
+    }
+
 
     @SneakyThrows
     @SuppressWarnings("UnstableApiUsage")
@@ -256,7 +314,7 @@ public abstract class CrossCompileServices {
         List<CrossCompileServiceImpl> impls
     ) {
         val fallbackImpls = impls.stream()
-            .filter(impl -> impl.getDependencyVersion().getVersion() == null)
+            .filter(CrossCompileServiceImpl::isFallback)
             .collect(toList());
         if (fallbackImpls.isEmpty()) {
             throw new CrossCompileServiceLoadingException(format(

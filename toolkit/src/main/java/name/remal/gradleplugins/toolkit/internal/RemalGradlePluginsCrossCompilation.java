@@ -7,11 +7,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * @deprecated DO NOT USE IT DIRECTLY
+ * @deprecated <b>DO NOT USE IT DIRECTLY</b>
  */
 @Target(TYPE)
 @Retention(CLASS)
 @Deprecated
+@SuppressWarnings("DeprecatedIsStillUsed")
 public @interface RemalGradlePluginsCrossCompilation {
 
     String dependency();

@@ -1,7 +1,5 @@
 package name.remal.gradleplugins.toolkit;
 
-import static com.google.common.base.CaseFormat.LOWER_CAMEL;
-import static com.google.common.base.CaseFormat.LOWER_HYPHEN;
 import static java.util.Arrays.stream;
 import static java.util.Collections.newSetFromMap;
 import static java.util.Collections.unmodifiableCollection;
@@ -9,12 +7,9 @@ import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradleplugins.toolkit.AbstractCompileUtils.getDestinationDir;
-import static name.remal.gradleplugins.toolkit.ExtensionContainerUtils.getExtension;
-import static name.remal.gradleplugins.toolkit.reflection.MembersFinder.findMethod;
-import static name.remal.gradleplugins.toolkit.reflection.MethodsInvoker.invokeMethod;
+import static name.remal.gradleplugins.toolkit.CrossCompileServices.loadAllCrossCompileServiceImplementations;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.isGetterOf;
 import static name.remal.gradleplugins.toolkit.reflection.ReflectionUtils.isNotStatic;
-import static org.gradle.api.tasks.SourceSet.TEST_SOURCE_SET_NAME;
 
 import com.google.common.collect.ImmutableList;
 import java.lang.reflect.Method;
@@ -32,15 +27,12 @@ import lombok.val;
 import name.remal.gradleplugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import name.remal.gradleplugins.toolkit.reflection.ReflectionUtils;
 import org.gradle.api.Action;
-import org.gradle.api.DomainObjectCollection;
-import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.tasks.AbstractCopyTask;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.jetbrains.annotations.Unmodifiable;
@@ -54,6 +46,9 @@ public abstract class SourceSetUtils {
 
     private static final List<Method> GET_CONFIGURATION_NAME_METHODS = ImmutableList.copyOf(
         Stream.of(SourceSet.class.getMethods())
+            .filter(ReflectionUtils::isNotStatic)
+            .filter(it -> it.getParameterCount() == 0)
+            .filter(it -> it.getReturnType() == String.class)
             .filter(it -> GET_CONFIGURATION_NAME_METHOD_NAME.matcher(it.getName()).matches())
             .sorted(comparing(Method::getName))
             .collect(toList())
@@ -197,6 +192,14 @@ public abstract class SourceSetUtils {
     }
 
 
+    private static final LazyInitializer<List<WhenTestSourceSetRegistered>> ALL_WHEN_TEST_SOURCE_SET_REGISTERED =
+        new LazyInitializer<List<WhenTestSourceSetRegistered>>() {
+            @Override
+            protected List<WhenTestSourceSetRegistered> create() {
+                return loadAllCrossCompileServiceImplementations(WhenTestSourceSetRegistered.class);
+            }
+        };
+
     public static void whenTestSourceSetRegistered(Project project, Action<SourceSet> action) {
         Set<SourceSet> processedSourceSets = newSetFromMap(new IdentityHashMap<>());
         Action<SourceSet> wrappedAction = sourceSet -> {
@@ -205,59 +208,9 @@ public abstract class SourceSetUtils {
             }
         };
 
-        project.getPluginManager().withPlugin("java", __ -> {
-            val sourceSets = getExtension(project, SourceSetContainer.class);
-            val testSourceSet = sourceSets.getByName(TEST_SOURCE_SET_NAME);
-            wrappedAction.execute(testSourceSet);
-
-            sourceSets
-                .matching(sourceSet -> {
-                    val normalizedName = LOWER_CAMEL.to(LOWER_HYPHEN, sourceSet.getName());
-                    return normalizedName.endsWith("-test")
-                        || normalizedName.endsWith("-tests")
-                        || normalizedName.endsWith("_test")
-                        || normalizedName.endsWith("_tests")
-                        ;
-                })
-                .all(wrappedAction);
-        });
-
-        project.getPluginManager().withPlugin("jvm-test-suite", __ -> {
-            val testing = getExtension(project, "testing");
-            val untypedSuites = invokeMethod(testing, DomainObjectCollection.class, "getSuites");
-            @SuppressWarnings("unchecked") val suites = (NamedDomainObjectContainer<Object>) untypedSuites;
-            suites.all(suite -> {
-                @SuppressWarnings("unchecked")
-                val getSourcesMethod = findMethod((Class<Object>) suite.getClass(), SourceSet.class, "getSources");
-                if (getSourcesMethod != null) {
-                    val testSourceSet = getSourcesMethod.invoke(suite);
-                    wrappedAction.execute(testSourceSet);
-                }
-            });
-        });
-
-        project.getPluginManager().withPlugin("java-test-fixtures", __ -> {
-            val sourceSets = getExtension(project, SourceSetContainer.class);
-            val testFixturesSourceSet = sourceSets.getByName("testFixtures");
-            wrappedAction.execute(testFixturesSourceSet);
-        });
-
-        project.getPluginManager().withPlugin("name.remal.test-source-sets", __ -> {
-            val testSourceSetsExtension = getExtension(project, "testSourceSets");
-            @SuppressWarnings("unchecked")
-            val testSourceSetsContainer = (NamedDomainObjectContainer<Object>) testSourceSetsExtension;
-            testSourceSetsContainer.withType(SourceSet.class).all(wrappedAction);
-        });
-
-        project.getPluginManager().withPlugin("org.unbroken-dome.test-sets", __ -> {
-            val testSetsExtension = getExtension(project, "testSets");
-            @SuppressWarnings("unchecked")
-            val testSets = (NamedDomainObjectContainer<Object>) testSetsExtension;
-            testSets.all(testSet -> {
-                val testSourceSet = invokeMethod(testSet, SourceSet.class, "getSourceSet");
-                wrappedAction.execute(testSourceSet);
-            });
-        });
+        for (val handler : ALL_WHEN_TEST_SOURCE_SET_REGISTERED.get()) {
+            handler.registerAction(project, wrappedAction);
+        }
     }
 
 }

@@ -2,6 +2,7 @@ package name.remal.gradleplugins.toolkit;
 
 import static javax.annotation.meta.When.UNKNOWN;
 
+import com.google.errorprone.annotations.ForOverride;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 import lombok.SneakyThrows;
@@ -20,6 +21,7 @@ public abstract class LazyInitializer<T> {
 
 
     @Nonnull(when = UNKNOWN)
+    @ForOverride
     protected abstract T create() throws Throwable;
 
 
