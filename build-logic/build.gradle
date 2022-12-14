@@ -70,8 +70,18 @@ tasks.named('generateResources') {
         binaryFile(resource) { OutputStream outputStream ->
             String content = includedBuildScriptFile.getText('UTF-8')
 
-            content = content.replaceAll(/\$\{\s*(rootBuildscriptClasspathVersionOf)\s*\(\s*('|")(.+?)\2\s*\)\s*\}/) { matcher ->
+            content = content.replaceAll(/\$\{\s*(?:project\s*\.\s*)?(rootBuildscriptClasspathVersionOf)\s*\(\s*('|")(.+?)\2\s*\)\s*\}/) { matcher ->
                 project.property(matcher[1])(matcher[3])
+            }
+            content = content.replaceAll(/\b(?:project\s*\.\s*)?(rootBuildscriptClasspathVersionOf)\s*\(\s*('|")(.+?)\2\s*\)/) { matcher ->
+                '\'' + project.property(matcher[1])(matcher[3]) + '\''
+            }
+
+            content = content.replaceAll(/\$\{\s*(?:project\s*\.\s*)?(tookitGroup|tookitVersion)\s*\(\s*\)\s*\}/) { matcher ->
+                project.property(matcher[1])()
+            }
+            content = content.replaceAll(/\b(?:project\s*\.\s*)?(tookitGroup|tookitVersion|tookitUrl)\s*\(\s*\)/) { matcher ->
+                '\'' + project.property(matcher[1])() + '\''
             }
 
             outputStream.write(content.getBytes('UTF-8'))
