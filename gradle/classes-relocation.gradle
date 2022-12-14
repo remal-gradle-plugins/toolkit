@@ -10,11 +10,24 @@ allprojects {
         classesRelocation {
             relocatedClassesPackageName = "${project.calculateBaseJavaPackage()}.internal._relocated"
         }
-        tasks.withType(AbstractCompile).configureEach {
-            it.inputs.property('relocatedClassesPackageName', classesRelocation.relocatedClassesPackageName)
+
+        List<String> relocationConfNames = [
+            'relocateClasses',
+            'excludeFromClassesRelocation',
+            'excludeFromForcedClassesRelocation',
+        ]
+
+        tasks.withType(AbstractCompile).configureEach { AbstractCompile task ->
+            task.inputs.property('relocatedClassesPackageName', classesRelocation.relocatedClassesPackageName)
+            relocationConfNames.forEach { relocationConfName ->
+                task.dependsOn(configurations[relocationConfName])
+                task.inputs.files(configurations[relocationConfName])
+                    .optional()
+                    .withPropertyName("configuration-$relocationConfName")
+            }
         }
 
-        configurations.matching { ['relocateClasses', 'excludeFromClassesRelocation', 'excludeFromForcedClassesRelocation'].contains(it.name) }.all { Configuration conf ->
+        configurations.matching { relocationConfNames.contains(it.name) }.all { Configuration conf ->
             conf.canBeConsumed = false
 
             conf.attributes {
