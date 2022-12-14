@@ -5,12 +5,14 @@ import static name.remal.gradleplugins.toolkit.reflection.MembersFinder.findMeth
 
 import lombok.NoArgsConstructor;
 import lombok.val;
+import name.remal.gradleplugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import name.remal.gradleplugins.toolkit.reflection.TypedMethod0;
 import org.gradle.api.artifacts.Configuration;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ConfigurationUtils {
 
+    @ReliesOnInternalGradleApi
     @SuppressWarnings("unchecked")
     public static boolean isConfigurationDependenciesDeclarationDeprecated(Configuration configuration) {
         val getDeclarationAlternativesMethod = (TypedMethod0<Configuration, Object>) findMethod(
@@ -25,6 +27,7 @@ public abstract class ConfigurationUtils {
         return false;
     }
 
+    @ReliesOnInternalGradleApi
     @SuppressWarnings("unchecked")
     public static boolean isConfigurationConsumptionDeprecated(Configuration configuration) {
         val getConsumptionDeprecationMethod = (TypedMethod0<Configuration, Object>) findMethod(
@@ -39,6 +42,7 @@ public abstract class ConfigurationUtils {
         return false;
     }
 
+    @ReliesOnInternalGradleApi
     @SuppressWarnings("unchecked")
     public static boolean isConfigurationResolutionDeprecated(Configuration configuration) {
         val getResolutionAlternativesMethod = (TypedMethod0<Configuration, Object>) findMethod(

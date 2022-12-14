@@ -9,6 +9,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BooleanSupplier;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
+import name.remal.gradleplugins.toolkit.testkit.MinSupportedGradleVersion;
+import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
@@ -18,6 +20,15 @@ import org.junit.jupiter.api.Test;
 class TaskUtilsTest {
 
     private final Project project;
+
+    @Test
+    @MinSupportedGradleVersion("7.4")
+    void markAsNotCompatibleWithConfigurationCache() {
+        val task = project.getTasks().create("testTask", DefaultTask.class);
+        assertTrue(task.isCompatibleWithConfigurationCache());
+        TaskUtils.markAsNotCompatibleWithConfigurationCache(task);
+        assertFalse(task.isCompatibleWithConfigurationCache());
+    }
 
     @Test
     void clearRegisteredFileProperties() {
