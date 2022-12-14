@@ -44,9 +44,16 @@ allprojects {
         }
     }
 
-    project.ext['git-ref'] = getCiProperty('git-ref', '')
-
     project.ext['gradle-api.version'] = getCiProperty('gradle-api.version', GradleVersion.current().version)
+
+    project.ext['git-ref'] = getCiProperty('git-ref', '')
+    project.ext['git-sha'] = getCiProperty('git-sha', '')
+
+    project.ext['github-actions-token'] = getCiProperty('github-actions-token', '')
+    project.ext['github-actions-run-id'] = getCiProperty('github-actions-run-id', '')
+    project.ext['github-actions-run-attempt'] = getCiProperty('github-actions-run-attempt', '')
+    project.ext['github-actions-job'] = getCiProperty('github-actions-job', '')
+    project.ext['github-actions-job-index'] = getCiProperty('github-actions-job-index', '')
 
     project.ext['disable-compilation'] = getCiProperty('disable-compilation', 'false')
     project.ext['disable-tests'] = getCiProperty('disable-tests', 'false')
@@ -55,6 +62,7 @@ allprojects {
 
     project.ext['repository-name'] = getCiProperty('repository-name', '', true)
     project.ext['repository-full-name'] = getCiProperty('repository-full-name', '', true)
+    project.ext['repository-api-url'] = getCiProperty('repository-api-url', '', true)
     project.ext['repository-html-url'] = getCiProperty('repository-html-url', '', true)
     project.ext['repository-description'] = getCiProperty('repository-description', '', true)
     project.ext['repository-topics'] = getCiProperty('repository-topics', '', true)

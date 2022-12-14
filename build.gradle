@@ -48,7 +48,7 @@ buildscript {
             throw new GradleException("Classpath dependency version can't be found for '${notation}'")
         }
         return version
-    }
+    }.memoize()
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -57,6 +57,10 @@ allprojects {
     group = 'name.remal.gradle-plugins.toolkit'
     version = '0-SNAPSHOT'
 }
+
+project.ext.tookitGroup = { return rootProject.group }
+project.ext.tookitVersion = { return rootProject.version }
+project.ext.tookitUrl = { return rootProject.property('repository-html-url') }
 
 List<String> includedBuildScripts = [
     'gradle/helpers.gradle',
@@ -86,6 +90,7 @@ List<String> includedBuildScripts = [
     'gradle/signing.gradle',
     'gradle/process-readme.gradle',
     'gradle/ide.gradle',
+    'gradle/github-submit-dependencies.gradle',
 ].toUnique()
 project.ext['includedBuildScripts'] = includedBuildScripts
 includedBuildScripts.forEach { apply from: it }

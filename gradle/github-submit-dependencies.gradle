@@ -1,0 +1,230 @@
+import static java.nio.charset.StandardCharsets.UTF_8
+
+import groovy.json.JsonGenerator
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+import groovy.transform.EqualsAndHashCode
+import groovy.transform.TupleConstructor
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+import java.time.Duration
+
+allprojects {
+    pluginManager.withPlugin('java') {
+        project.apply plugin: 'reporting-base'
+
+        Task githubSubmitDependencies = tasks.create('githubSubmitDependencies') { Task task ->
+            SetProperty<DependencyToSubmit> lazyDependenciesToSubmitSet = project.objects.setProperty(DependencyToSubmit.class)
+            task.ext.dependenciesToSubmit = lazyDependenciesToSubmitSet
+            task.inputs.property('dependenciesToSubmit', lazyDependenciesToSubmitSet)
+
+            File reportFile = project.file("${project.reporting.baseDir}/${task.name}.json")
+            task.ext.reportFile = reportFile
+            task.outputs.file(reportFile).withPropertyName('reportFile')
+            doFirst { reportFile.delete() }
+
+            Closure<String> nullIfEmpty = { String string ->
+                return string != null && string.isEmpty() ? null : string
+            }
+
+            Closure<String> nullIfJar = { String string ->
+                return string != null && string == 'jar' ? null : string
+            }
+
+            Closure<Boolean> isExcludedCategory = { ResolvedDependencyResult resolvedDependency ->
+                return isPlatformDependency(resolvedDependency) || isDocumentationDependency(resolvedDependency) || isVerificationDependency(resolvedDependency)
+            }
+
+            project.configurations.all { Configuration conf ->
+                lazyDependenciesToSubmitSet.addAll(
+                    provider {
+                        if (!conf.canSafelyBeResolved()) return []
+
+                        Collection<ResolvedArtifact> resolvedArtifacts = conf.resolvedConfiguration.resolvedArtifacts
+
+                        Set<DependencyToSubmit> result = [].toSet()
+                        Closure processResolvedDependency = { ResolvedDependencyResult resolvedDependency ->
+                            ComponentIdentifier componentIdentifierUntyped = resolvedDependency.selected.id
+                            if (!(componentIdentifierUntyped instanceof ModuleComponentIdentifier)) {
+                                return
+                            }
+                            ModuleComponentIdentifier id = (ModuleComponentIdentifier) componentIdentifierUntyped
+
+                            if (isPlatformDependency(resolvedDependency)) {
+                                result.add(new DependencyToSubmit(nullIfEmpty(id.group), nullIfEmpty(id.module), nullIfEmpty(id.version)))
+                            } else {
+                                Collection<ResolvedArtifact> dependencyArtifacts = resolvedArtifacts.findAll { it.id.componentIdentifier == id }
+                                dependencyArtifacts.forEach { dependencyArtifact ->
+                                    result.add(new DependencyToSubmit(nullIfEmpty(id.group), nullIfEmpty(id.module), nullIfEmpty(id.version), nullIfEmpty(dependencyArtifact.classifier), nullIfEmpty(nullIfJar(dependencyArtifact.extension))))
+                                }
+                            }
+                        }
+
+                        conf.incoming.resolutionResult
+                            .root
+                            .dependencies
+                            .findAll { it instanceof ResolvedDependencyResult }
+                            .collect { (ResolvedDependencyResult) it }
+                            .findAll { !isExcludedCategory(it) }
+                            .forEach { processResolvedDependency(it) }
+
+                        conf.incoming.resolutionResult
+                            .allDependencies
+                            .findAll { it instanceof ResolvedDependencyResult }
+                            .collect { (ResolvedDependencyResult) it }
+                            .findAll { !isExcludedCategory(it) }
+                            .findAll { !it.selected.selectionReason.expected }
+                            .forEach { processResolvedDependency(it) }
+
+                        return result
+                    }
+                )
+            }
+
+            ListProperty<DependencyToSubmit> lazyDependenciesToSubmit = project.objects.listProperty(DependencyToSubmit.class)
+            lazyDependenciesToSubmit.set(
+                provider {
+                    lazyDependenciesToSubmitSet.get()
+                        .findAll { it.version != null && !it.version.isEmpty() }
+                        .toSorted()
+                }
+            )
+
+            JsonGenerator jsonGenerator = new JsonGenerator.Options()
+                .excludeNulls()
+                .excludeFieldsByName('contentHash', 'originalClassName')
+                .build()
+
+            doLast {
+                Closure<String> encodeUrlPart = { String string ->
+                    if (string == null) return ''
+                    return URLEncoder.encode(string, UTF_8)
+                        .replace("+", "%20")
+                        .replace("*", "%2A")
+                        .replace("%7E", "~");
+                }
+
+                Map resolved = [:]
+                lazyDependenciesToSubmit.get().forEach { DependencyToSubmit dep ->
+                    String packageUrl = "pkg:maven/${encodeUrlPart(dep.group)}/${encodeUrlPart(dep.name)}@${encodeUrlPart(dep.version)}"
+                    if (dep.classifier) {
+                        if (!packageUrl.contains('?')) {
+                            packageUrl += '?'
+                        } else {
+                            packageUrl += '&'
+                        }
+                        packageUrl += "packaging=${encodeUrlPart(dep.classifier)}"
+                    }
+                    resolved.put(
+                        dep.toString(),
+                        [
+                            package_url: packageUrl,
+                        ]
+                    )
+                }
+
+                Map manifests = [:]
+                manifests.put(
+                    rootProject.relativePath(project.buildFile),
+                    [
+                        name    : rootProject.relativePath(project.buildFile),
+                        file    : [
+                            source_location: rootProject.relativePath(project.buildFile),
+                        ],
+                        resolved: resolved,
+                    ]
+                )
+
+                String runId = [
+                    'github-actions-run',
+                    project.property('github-actions-run-id'),
+                    project.property('github-actions-run-attempt'),
+                    project.property('github-actions-job'),
+                    project.property('github-actions-job-index'),
+                ].collect { it ?: '' }.join('-')
+
+                Map requestBody = [
+                    version  : System.currentTimeMillis(),
+                    job      : [
+                        id        : runId,
+                        correlator: project.path,
+                    ],
+                    sha      : project.property('git-sha'),
+                    ref      : project.property('git-ref'),
+                    detector : [
+                        name   : project.tookitGroup(),
+                        version: project.tookitVersion(),
+                        url    : project.tookitUrl(),
+                    ],
+                    manifests: manifests,
+                    scanned  : new Date(),
+                ]
+                String jsonContent = jsonGenerator.toJson(requestBody)
+
+                HttpRequest httpRequest = HttpRequest.newBuilder()
+                    .timeout(Duration.ofMinutes(1))
+                    .uri(new URI("${project.property('repository-api-url')}/dependency-graph/snapshots"))
+                    .header('Authorization', "token ${project.property('github-actions-token')}")
+                    .header('Accept', 'application/vnd.github+json')
+                    .header('Content-Type', 'application/json;charset=UTF-8')
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonContent, UTF_8))
+                    .build()
+
+                HttpResponse<String> httpResponse = HttpClient.newHttpClient().send(httpRequest, HttpResponse.BodyHandlers.ofString(UTF_8))
+                if (httpResponse.statusCode() >= 400) {
+                    throw new GradleException("Dependencies submitting REST API call returned ${httpResponse.statusCode()} error:\n${httpResponse.body()}")
+                } else {
+                    String responseBodyJson = httpResponse.body()
+                    Map responseBody = new JsonSlurper().parseText(responseBodyJson)
+                    if (responseBody.message) {
+                        println responseBody.message
+                    } else {
+                        println responseBodyJson
+                    }
+                }
+
+                jsonContent = JsonOutput.prettyPrint(jsonContent)
+
+                reportFile.parentFile.mkdirs()
+                reportFile.setText(jsonContent, 'UTF-8')
+            }
+        }
+
+        if (project.isBuildSrcProject) {
+            if (gradle.startParameter.taskNames.contains(githubSubmitDependencies.name)
+                || (gradle.parent && gradle.parent.startParameter.taskNames.contains(githubSubmitDependencies.name))
+            ) {
+                project.rootProject.tasks.named('build') {
+                    dependsOn(githubSubmitDependencies)
+                }
+            }
+        }
+    }
+}
+
+@TupleConstructor
+@EqualsAndHashCode
+class DependencyToSubmit implements Serializable, Comparable<DependencyToSubmit> {
+
+    String group
+    String name
+    String version
+    String classifier
+    String type
+
+    String toString() {
+        String group = this.group ?: ''
+        String name = this.name ?: ''
+        String version = this.version ?: ''
+        String classifier = this.classifier ?: ''
+        String type = this.type ?: ''
+        return "$group:$name:$version:$classifier@$type"
+            .replaceFirst(/:?@(jar)?$/, '')
+    }
+
+    @Override
+    int compareTo(DependencyToSubmit other) {
+        return toString() <=> other.toString()
+    }
+}
