@@ -47,11 +47,8 @@ Closure<Boolean> isNodeAnnotatedWithReliesOnInternalGradleApi = { node ->
 
 allprojects {
     pluginManager.withPlugin('java-gradle-plugin') {
-        tasks.named('collectGradlePluginApiDependencies').configure {
-            dependsOn('classes')
-        }
-
-        project.nonJavaApiDependencies.add(
+        MapProperty<String, ClassNode> lazyClassesRelyingOnInternalApi = project.objects.mapProperty(String, ClassNode)
+        lazyClassesRelyingOnInternalApi.set(
             provider {
                 FileTree classesFileTree = project.files().asFileTree
                 for (File runtimeClasspathFile : sourceSets.main.runtimeClasspath.files) {
@@ -101,6 +98,16 @@ allprojects {
                         }
                 }
 
+                return classesRelyingOnInternalApi
+            }
+        )
+
+
+        tasks.named('collectGradlePluginApiDependencies').configure { dependsOn('classes') }
+
+        project.nonJavaApiDependencies.add(
+            provider {
+                Map<String, ClassNode> classesRelyingOnInternalApi = lazyClassesRelyingOnInternalApi.get()
                 if (classesRelyingOnInternalApi.isEmpty()) {
                     return ''
                 }
@@ -123,5 +130,38 @@ allprojects {
                 return "classes-that-rely-on-gradle-internal-api:$hash"
             }
         )
+
+
+        project.apply plugin: 'reporting-base'
+
+        TaskProvider reportClassesRelyingOnInternalApi = tasks.register('reportClassesRelyingOnInternalApi') { Task task ->
+            task.dependsOn('classes')
+
+            ListProperty<String> classNamesRelyingOnInternalApi = project.objects.listProperty(String)
+            classNamesRelyingOnInternalApi.set(
+                provider {
+                    lazyClassesRelyingOnInternalApi.get()
+                        .keySet()
+                        .toList()
+                        .toSorted()
+                }
+            )
+            task.inputs.property('classNamesRelyingOnInternalApi', classNamesRelyingOnInternalApi)
+
+            File reportFile = project.file("${project.reporting.baseDir}/${task.name}.txt")
+            task.outputs.file(reportFile).withPropertyName('reportFile')
+            doFirst { reportFile.delete() }
+
+            doLast {
+                reportFile.parentFile.mkdirs()
+                reportFile.setText(
+                    classNamesRelyingOnInternalApi.get().join('\n'),
+                    'UTF-8'
+                )
+            }
+        }
+
+        tasks.named('assemble').configure { dependsOn(reportClassesRelyingOnInternalApi) }
+        tasks.named('build').configure { dependsOn(reportClassesRelyingOnInternalApi) }
     }
 }
