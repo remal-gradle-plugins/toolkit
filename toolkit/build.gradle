@@ -7,7 +7,7 @@ apply from: 'build-generate-SneakyThrowUtils.gradle'
 apply from: 'build-generate-checkstyle.xsl.gradle'
 
 dependencies {
-    relocateClasses 'org.jdom:jdom'
+    relocateClasses 'org.jdom:jdom2'
     relocateClasses 'io.github.classgraph:classgraph:4.8.152'
     relocateClasses 'org.ec4j.core:ec4j-core:0.3.0'
     relocateClasses 'net.htmlparser.jericho:jericho-html:3.4'
