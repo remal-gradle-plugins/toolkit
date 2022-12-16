@@ -60,25 +60,25 @@ allprojects {
                 Dependency kotlinPluginDep = project.dependencies.create(
                     "org.jetbrains.kotlin:kotlin-gradle-plugin:${correspondingKotlinVersion}"
                 ) {
-                    exclude group: 'commons-logging', module: 'commons-logging'
-                    exclude group: 'com.google.code.findbugs'
-                    exclude group: 'org.checkerframework'
-                    exclude group: 'com.google.errorprone'
-                    exclude group: 'com.google.j2objc', module: 'j2objc-annotations'
+                    exclude(group: 'commons-logging', module: 'commons-logging')
+                    exclude(group: 'com.google.code.findbugs')
+                    exclude(group: 'org.checkerframework')
+                    exclude(group: 'com.google.errorprone')
+                    exclude(group: 'com.google.j2objc', module: 'j2objc-annotations')
+
+                    attributes {
+                        attribute(
+                            Usage.USAGE_ATTRIBUTE,
+                            objects.named(Usage.class, Usage.JAVA_RUNTIME)
+                        )
+                        attribute(
+                            Category.CATEGORY_ATTRIBUTE,
+                            objects.named(Category.class, Category.LIBRARY)
+                        )
+                    }
                 }
 
                 deps.add(kotlinPluginDep)
-            }
-
-            conf.attributes {
-                attribute(
-                    Usage.USAGE_ATTRIBUTE,
-                    objects.named(Usage.class, Usage.JAVA_RUNTIME)
-                )
-                attribute(
-                    Category.CATEGORY_ATTRIBUTE,
-                    objects.named(Category.class, Category.LIBRARY)
-                )
             }
 
             conf.extendsFrom = []
