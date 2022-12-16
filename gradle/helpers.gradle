@@ -147,6 +147,8 @@ project.ext.getDependencyCategory = { Object dep ->
         attributes = dep.attributes
     } else if (dep instanceof ResolvedDependencyResult) {
         attributes = dep.resolvedVariant.attributes
+    } else if (dep instanceof UnresolvedDependencyResult) {
+        attributes = dep.attempted.attributes
     } else if (dep instanceof Dependency) {
         return false
     } else {

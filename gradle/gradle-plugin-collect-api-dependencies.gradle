@@ -68,21 +68,24 @@ allprojects {
                 }
 
                 Closure processResolvedDependency = { ResolvedDependencyResult resolvedDependency ->
-                    ComponentIdentifier componentIdentifierUntyped = resolvedDependency.selected.id
-                    if (!(componentIdentifierUntyped instanceof ModuleComponentIdentifier)) {
-                        return
+                    ModuleComponentIdentifier id = resolvedDependency.selected.id.with { id ->
+                        if (id instanceof ModuleComponentIdentifier) {
+                            return id
+                        } else {
+                            return null
+                        }
                     }
-                    ModuleComponentIdentifier componentIdentifier = (ModuleComponentIdentifier) componentIdentifierUntyped
+                    if (id == null) return
 
                     if (isPlatformDependency(resolvedDependency)) {
-                        String notation = "${componentIdentifier.group}:${componentIdentifier.module}:${componentIdentifier.version}"
+                        String notation = "${id.group}:${id.module}:${id.version}"
                         dependencies.add(notation)
                         return
                     }
 
-                    Collection<ResolvedArtifact> dependencyArtifacts = resolvedArtifacts.findAll { it.id.componentIdentifier == componentIdentifier }
+                    Collection<ResolvedArtifact> dependencyArtifacts = resolvedArtifacts.findAll { it.id.componentIdentifier == id }
                     dependencyArtifacts.forEach { dependencyArtifact ->
-                        String notation = "${componentIdentifier.group}:${componentIdentifier.module}:${componentIdentifier.version}:${dependencyArtifact.classifier ?: ''}@${dependencyArtifact.extension}"
+                        String notation = "${id.group}:${id.module}:${id.version}:${dependencyArtifact.classifier ?: ''}@${dependencyArtifact.extension}"
                         notation = notation.replaceFirst(/:?@(jar)?$/, '')
                         dependencies.add(notation)
                     }

@@ -15,6 +15,8 @@ allprojects {
         project.apply plugin: 'reporting-base'
 
         Task githubSubmitDependencies = tasks.create('githubSubmitDependencies') { Task task ->
+            task.group = 'documentation'
+
             SetProperty<DependencyToSubmit> lazyDependenciesToSubmitSet = project.objects.setProperty(DependencyToSubmit.class)
             task.ext.dependenciesToSubmit = lazyDependenciesToSubmitSet
             task.inputs.property('dependenciesToSubmit', lazyDependenciesToSubmitSet)
@@ -36,7 +38,7 @@ allprojects {
                 return isPlatformDependency(resolvedDependency) || isDocumentationDependency(resolvedDependency) || isVerificationDependency(resolvedDependency)
             }
 
-            project.configurations.all { Configuration conf ->
+            Closure processConfiguration = { Configuration conf, boolean isBuildscript = false ->
                 lazyDependenciesToSubmitSet.addAll(
                     provider {
                         if (!conf.canSafelyBeResolved()) return []
@@ -44,43 +46,83 @@ allprojects {
                         Collection<ResolvedArtifact> resolvedArtifacts = conf.resolvedConfiguration.resolvedArtifacts
 
                         Set<DependencyToSubmit> result = [].toSet()
-                        Closure processResolvedDependency = { ResolvedDependencyResult resolvedDependency ->
-                            ComponentIdentifier componentIdentifierUntyped = resolvedDependency.selected.id
-                            if (!(componentIdentifierUntyped instanceof ModuleComponentIdentifier)) {
-                                return
-                            }
-                            ModuleComponentIdentifier id = (ModuleComponentIdentifier) componentIdentifierUntyped
-
-                            if (isPlatformDependency(resolvedDependency)) {
-                                result.add(new DependencyToSubmit(nullIfEmpty(id.group), nullIfEmpty(id.module), nullIfEmpty(id.version)))
-                            } else {
-                                Collection<ResolvedArtifact> dependencyArtifacts = resolvedArtifacts.findAll { it.id.componentIdentifier == id }
-                                dependencyArtifacts.forEach { dependencyArtifact ->
-                                    result.add(new DependencyToSubmit(nullIfEmpty(id.group), nullIfEmpty(id.module), nullIfEmpty(id.version), nullIfEmpty(dependencyArtifact.classifier), nullIfEmpty(nullIfJar(dependencyArtifact.extension))))
+                        Closure processResolvedDependency = {
+                            ResolvedDependencyResult resolvedDependency,
+                            DependencyToSubmitScope scope,
+                            DependencyToSubmitRelationship relationship ->
+                                ModuleComponentIdentifier id = resolvedDependency.selected.id.with { id ->
+                                    if (id instanceof ModuleComponentIdentifier) {
+                                        return id
+                                    } else {
+                                        return null
+                                    }
                                 }
-                            }
+                                if (id == null) return
+
+                                if (isPlatformDependency(resolvedDependency)) {
+                                    result.add(
+                                        new DependencyToSubmit(
+                                            nullIfEmpty(id.group),
+                                            nullIfEmpty(id.module),
+                                            nullIfEmpty(id.version),
+                                            null,
+                                            null,
+                                            scope,
+                                            relationship
+                                        )
+                                    )
+                                } else {
+                                    Collection<ResolvedArtifact> dependencyArtifacts = resolvedArtifacts.findAll { it.id.componentIdentifier == id }
+                                    dependencyArtifacts.forEach { dependencyArtifact ->
+                                        result.add(
+                                            new DependencyToSubmit(
+                                                nullIfEmpty(id.group),
+                                                nullIfEmpty(id.module),
+                                                nullIfEmpty(id.version),
+                                                nullIfEmpty(dependencyArtifact.classifier),
+                                                nullIfEmpty(nullIfJar(dependencyArtifact.extension)),
+                                                scope,
+                                                relationship
+                                            )
+                                        )
+                                    }
+                                }
+                        }
+
+                        DependencyToSubmitScope scope = DependencyToSubmitScope.DEVELOPMENT
+                        if (isBuildscript) {
+                            // do nothing
+                        } else if (['runtimeClasspath', 'relocateClasses'].contains(conf.name)) {
+                            scope = DependencyToSubmitScope.RUNTIME
                         }
 
                         conf.incoming.resolutionResult
                             .root
                             .dependencies
+                            .collect { (DependencyResult) it }
+                            .findAll { !it.constraint }
                             .findAll { it instanceof ResolvedDependencyResult }
                             .collect { (ResolvedDependencyResult) it }
                             .findAll { !isExcludedCategory(it) }
-                            .forEach { processResolvedDependency(it) }
+                            .forEach { processResolvedDependency(it, scope, DependencyToSubmitRelationship.DIRECT) }
 
                         conf.incoming.resolutionResult
                             .allDependencies
+                            .collect { (DependencyResult) it }
+                            .findAll { !it.constraint }
                             .findAll { it instanceof ResolvedDependencyResult }
                             .collect { (ResolvedDependencyResult) it }
                             .findAll { !isExcludedCategory(it) }
                             .findAll { !it.selected.selectionReason.expected }
-                            .forEach { processResolvedDependency(it) }
+                            .forEach { processResolvedDependency(it, scope, DependencyToSubmitRelationship.INDIRECT) }
 
                         return result
                     }
                 )
             }
+
+            project.buildscript.configurations.all { processConfiguration(it, true) }
+            project.configurations.all { processConfiguration(it) }
 
             ListProperty<DependencyToSubmit> lazyDependenciesToSubmit = project.objects.listProperty(DependencyToSubmit.class)
             lazyDependenciesToSubmit.set(
@@ -88,6 +130,10 @@ allprojects {
                     lazyDependenciesToSubmitSet.get()
                         .findAll { it.version != null && !it.version.isEmpty() }
                         .toSorted()
+                        .groupBy { it.toString() }
+                        .values()
+                        .toList()
+                        .collect { it.get(0) }
                 }
             )
 
@@ -116,10 +162,13 @@ allprojects {
                         }
                         packageUrl += "packaging=${encodeUrlPart(dep.classifier)}"
                     }
+
                     resolved.put(
                         dep.toString(),
                         [
-                            package_url: packageUrl,
+                            package_url : packageUrl,
+                            relationship: dep.relationship?.name()?.toLowerCase(),
+                            scope       : dep.scope?.name()?.toLowerCase(),
                         ]
                     )
                 }
@@ -162,6 +211,11 @@ allprojects {
                 ]
                 String jsonContent = jsonGenerator.toJson(requestBody)
 
+
+                reportFile.parentFile.mkdirs()
+                reportFile.setText(JsonOutput.prettyPrint(jsonContent), 'UTF-8')
+
+
                 HttpRequest httpRequest = HttpRequest.newBuilder()
                     .timeout(Duration.ofMinutes(1))
                     .uri(new URI("${project.property('repository-api-url')}/dependency-graph/snapshots"))
@@ -183,11 +237,6 @@ allprojects {
                         println responseBodyJson
                     }
                 }
-
-                jsonContent = JsonOutput.prettyPrint(jsonContent)
-
-                reportFile.parentFile.mkdirs()
-                reportFile.setText(jsonContent, 'UTF-8')
             }
         }
 
@@ -213,6 +262,9 @@ class DependencyToSubmit implements Serializable, Comparable<DependencyToSubmit>
     String classifier
     String type
 
+    DependencyToSubmitScope scope
+    DependencyToSubmitRelationship relationship
+
     String toString() {
         String group = this.group ?: ''
         String name = this.name ?: ''
@@ -223,8 +275,25 @@ class DependencyToSubmit implements Serializable, Comparable<DependencyToSubmit>
             .replaceFirst(/:?@(jar)?$/, '')
     }
 
+    private static final Comparator<DependencyToSubmitScope> scopeComparator = Comparator.nullsLast(Comparator.naturalOrder())
+    private static final Comparator<DependencyToSubmitRelationship> relationshipComparator = Comparator.nullsLast(Comparator.naturalOrder())
+
     @Override
     int compareTo(DependencyToSubmit other) {
-        return toString() <=> other.toString()
+        int result = toString() <=> other.toString()
+        if (result == 0) result = scopeComparator.compare(scope, other.scope)
+        if (result == 0) result = relationshipComparator.compare(relationship, other.relationship)
+        return result
     }
+
+}
+
+enum DependencyToSubmitScope {
+    RUNTIME,
+    DEVELOPMENT,
+}
+
+enum DependencyToSubmitRelationship {
+    DIRECT,
+    INDIRECT,
 }
