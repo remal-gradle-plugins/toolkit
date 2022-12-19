@@ -1,8 +1,8 @@
 package name.remal.gradleplugins.toolkit;
 
-import static name.remal.gradleplugins.toolkit.CrossCompileVersionComparator.CrossCompileVersionComparisonResult.DEPENDENCY_EQUALS_TO_CURRENT;
-import static name.remal.gradleplugins.toolkit.CrossCompileVersionComparator.CrossCompileVersionComparisonResult.DEPENDENCY_GREATER_THAN_CURRENT;
-import static name.remal.gradleplugins.toolkit.CrossCompileVersionComparator.CrossCompileVersionComparisonResult.DEPENDENCY_LESS_THAN_CURRENT;
+import static name.remal.gradleplugins.toolkit.CrossCompileVersionComparisonResult.DEPENDENCY_EQUALS_TO_CURRENT;
+import static name.remal.gradleplugins.toolkit.CrossCompileVersionComparisonResult.DEPENDENCY_GREATER_THAN_CURRENT;
+import static name.remal.gradleplugins.toolkit.CrossCompileVersionComparisonResult.DEPENDENCY_LESS_THAN_CURRENT;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

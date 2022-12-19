@@ -1,6 +1,5 @@
 package name.remal.gradleplugins.toolkit;
 
-import static java.lang.Math.toIntExact;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.unmodifiableList;
@@ -10,10 +9,10 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
-import static name.remal.gradleplugins.toolkit.CrossCompileVersionComparator.CrossCompileVersionComparisonResult.DEPENDENCY_EQUALS_TO_CURRENT;
-import static name.remal.gradleplugins.toolkit.CrossCompileVersionComparator.CrossCompileVersionComparisonResult.DEPENDENCY_GREATER_THAN_CURRENT;
-import static name.remal.gradleplugins.toolkit.CrossCompileVersionComparator.CrossCompileVersionComparisonResult.DEPENDENCY_LESS_THAN_CURRENT;
-import static name.remal.gradleplugins.toolkit.CrossCompileVersionComparator.CrossCompileVersionComparisonResult.compareDependencyVersionToCurrentVersionObjects;
+import static name.remal.gradleplugins.toolkit.CrossCompileVersionComparator.standardVersionCrossCompileVersionComparator;
+import static name.remal.gradleplugins.toolkit.CrossCompileVersionComparisonResult.DEPENDENCY_EQUALS_TO_CURRENT;
+import static name.remal.gradleplugins.toolkit.CrossCompileVersionComparisonResult.DEPENDENCY_GREATER_THAN_CURRENT;
+import static name.remal.gradleplugins.toolkit.CrossCompileVersionComparisonResult.DEPENDENCY_LESS_THAN_CURRENT;
 import static name.remal.gradleplugins.toolkit.PredicateUtils.not;
 import static name.remal.gradleplugins.toolkit.ResourceUtils.readResource;
 import static name.remal.gradleplugins.toolkit.UrlUtils.readStringFromUrl;
@@ -445,26 +444,8 @@ public abstract class CrossCompileServices {
         }
     }
 
-    @SuppressWarnings("UnstableApiUsage")
     private static final CrossCompileVersionComparator DEFAULT_VERSION_COMPARATOR =
-        (dependency, dependencyVersionString) -> {
-            val dependencyVersion = Version.parse(dependencyVersionString);
-            if (dependency.equals("java")) {
-                val majorVersion = toIntExact(dependencyVersion.getNumber(0));
-                val currentMajorVersion = Integer.parseInt(JavaVersion.current().getMajorVersion());
-                return compareDependencyVersionToCurrentVersionObjects(majorVersion, currentMajorVersion);
-
-            } else if (dependency.equals("gradle")) {
-                val currentVersionString = GradleVersion.current().getBaseVersion().getVersion();
-                val currentVersionStringNormalized = Splitter.on('.').splitToStream(currentVersionString)
-                    .limit(dependencyVersion.getNumbersCount())
-                    .collect(joining("."));
-                val currentVersion = Version.parse(currentVersionStringNormalized);
-                return compareDependencyVersionToCurrentVersionObjects(dependencyVersion, currentVersion);
-
-            } else {
-                return null;
-            }
-        };
+        standardVersionCrossCompileVersionComparator("gradle", GradleVersion.current().getVersion())
+            .then(standardVersionCrossCompileVersionComparator("java", JavaVersion.current().getMajorVersion()));
 
 }

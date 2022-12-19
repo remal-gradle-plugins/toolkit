@@ -1,33 +1,13 @@
 package name.remal.gradleplugins.toolkit;
 
+import static java.lang.Math.min;
+import static name.remal.gradleplugins.toolkit.CrossCompileVersionComparisonResult.compareDependencyVersionToCurrentVersionObjects;
+
 import javax.annotation.Nullable;
 import lombok.val;
 
 @FunctionalInterface
 public interface CrossCompileVersionComparator {
-
-    enum CrossCompileVersionComparisonResult {
-        DEPENDENCY_GREATER_THAN_CURRENT,
-        DEPENDENCY_EQUALS_TO_CURRENT,
-        DEPENDENCY_LESS_THAN_CURRENT,
-        ;
-
-        public static <
-            T extends Comparable<T>
-            > CrossCompileVersionComparisonResult compareDependencyVersionToCurrentVersionObjects(
-            T dependencyVersionObject,
-            T currentVersionObject
-        ) {
-            val result = dependencyVersionObject.compareTo(currentVersionObject);
-            if (result < 0) {
-                return DEPENDENCY_LESS_THAN_CURRENT;
-            } else if (result == 0) {
-                return DEPENDENCY_EQUALS_TO_CURRENT;
-            } else {
-                return DEPENDENCY_GREATER_THAN_CURRENT;
-            }
-        }
-    }
 
 
     /**
@@ -48,6 +28,42 @@ public interface CrossCompileVersionComparator {
             } else {
                 return other.compareDependencyVersionToCurrentVersion(dependency, dependencyVersionString);
             }
+        };
+    }
+
+
+    static CrossCompileVersionComparator standardVersionCrossCompileVersionComparator(
+        String dependency,
+        String currentDependencyVersionString
+    ) {
+        val currentDependencyVersion = Version.parse(currentDependencyVersionString);
+        return (dependencyToCheck, dependencyVersionToCheckString) -> {
+            if (dependency.equals(dependencyToCheck)) {
+                val dependencyVersionToCheck = Version.parse(dependencyVersionToCheckString).withoutSuffix();
+                if (dependencyVersionToCheck.getNumberOrNull(0) == null) {
+                    // not a numeric version, just compare
+                    return compareDependencyVersionToCurrentVersionObjects(
+                        dependencyVersionToCheck,
+                        currentDependencyVersion
+                    );
+                }
+
+                val versionNumbers = dependencyVersionToCheck.getNumbersCount();
+                val dependencyVersionToCheckNumbers = new long[versionNumbers];
+                for (int i = 0; i < min(dependencyVersionToCheck.getNumbersCount(), versionNumbers); ++i) {
+                    dependencyVersionToCheckNumbers[i] = dependencyVersionToCheck.getNumber(i);
+                }
+                val currentDependencyVersionNumbers = new long[versionNumbers];
+                for (int i = 0; i < min(currentDependencyVersion.getNumbersCount(), versionNumbers); ++i) {
+                    currentDependencyVersionNumbers[i] = currentDependencyVersion.getNumber(i);
+                }
+                return compareDependencyVersionToCurrentVersionObjects(
+                    dependencyVersionToCheckNumbers,
+                    currentDependencyVersionNumbers
+                );
+            }
+
+            return null;
         };
     }
 

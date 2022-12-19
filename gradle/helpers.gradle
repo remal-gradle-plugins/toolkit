@@ -459,7 +459,9 @@ allprojects {
         }
     }
 
+    Set<Project> fatJarWithProjects = new LinkedHashSet<>()
     project.ext.fatJarWith = { Project otherProject ->
+        if (!fatJarWithProjects.add(otherProject)) return
         project.withPluginAfterEvaluateOrNow('java') {
             otherProject.withPluginAfterEvaluateOrNow('java') {
                 fatJarWithImpl(otherProject)

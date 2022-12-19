@@ -1,12 +1,5 @@
-import static com.vdurmont.semver4j.Semver.SemverType
-import static java.util.Comparator.reverseOrder
-import static org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE
-import static org.gradle.api.attributes.Category.DOCUMENTATION
-import static org.gradle.api.attributes.Category.ENFORCED_PLATFORM
-import static org.gradle.api.attributes.Category.REGULAR_PLATFORM
-import static org.gradle.api.attributes.Category.VERIFICATION
-
-import com.vdurmont.semver4j.Semver
+import groovy.transform.MapConstructor
+import java.util.concurrent.TimeUnit
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 import org.objectweb.asm.ClassReader
@@ -18,7 +11,6 @@ import org.objectweb.asm.tree.ClassNode
 
 buildscript {
     dependencies {
-        classpath "com.vdurmont:semver4j:${rootBuildscriptClasspathVersionOf('com.vdurmont:semver4j')}"
         classpath platform("org.ow2.asm:asm-bom:${rootBuildscriptClasspathVersionOf('org.ow2.asm:asm-bom')}")
         classpath 'org.ow2.asm:asm-tree'
     }
@@ -29,202 +21,277 @@ buildscript {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+NamedDomainObjectContainer<CrossCompileDependencyInfo> allCrossCompileDependencies = project.objects.domainObjectContainer(CrossCompileDependencyInfo, { String name -> new CrossCompileDependencyInfo(name) })
+
+project.ext.registerCrossCompileDependencyInfo = { Map<String, Object> params ->
+    CrossCompileDependencyInfo crossCompileDependencyInfo = new CrossCompileDependencyInfo(params)
+    allCrossCompileDependencies.add(crossCompileDependencyInfo)
+}
+
+allCrossCompileDependencies.create('java') {
+    maxVersionNumbers = 1
+    configureCrossCompileProject = { Project crossCompileProject, CrossCompileProjectInfo crossCompileProjectInfo ->
+        int majorVersion = Integer.parseInt(crossCompileProjectInfo.version)
+        JavaVersion javaVersion = JavaVersion.toVersion(majorVersion)
+        crossCompileProject.sourceCompatibility = crossCompileProject.targetCompatibility = javaVersion.toString()
+    }
+}
+
+allCrossCompileDependencies.create('gradle') {
+    maxVersionNumbers = 3
+    transitiveDependencyNotations.add('name.remal.gradle-api:local-groovy')
+    dependencyNotations.add('name.remal.gradle-api:gradle-api')
+    dependencyNotations.add('name.remal.gradle-api:gradle-test-kit')
+}
+
+@MapConstructor
+class CrossCompileDependencyInfo implements Named {
+
+    int maxVersionNumbers = Integer.MAX_VALUE
+
+    Collection<String> transitiveDependencyNotations = [].toSet()
+    Collection<String> dependencyNotations = [].toSet()
+
+    Closure configureCrossCompileProject = { Project crossCompileProject, CrossCompileProjectInfo crossCompileProjectInfo ->
+        // do nothing by default
+    }
+
+    final String name
+
+    CrossCompileDependencyInfo(String name) {
+        this.name = name
+    }
+
+    void setMaxVersionNumbers(int maxVersionNumbers) {
+        if (maxVersionNumbers <= 0) throw new IllegalArgumentException("maxVersionNumbers <= 0: $maxVersionNumbers")
+        this.maxVersionNumbers = maxVersionNumbers
+    }
+
+    @Override
+    String getName() {
+        return this.name
+    }
+
+    @Override
+    String toString() {
+        return this.name
+    }
+
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+NamedDomainObjectContainer<CrossCompileProjectInfo> allCrossCompileProjects = project.objects.domainObjectContainer(CrossCompileProjectInfo, { throw new UnsupportedOperationException() })
+project.ext.allCrossCompileProjects = allCrossCompileProjects
+
 allprojects {
-    Collection<Project> crossCompileProjects = project.subprojects
-        .findAll { it.parent == project }
-        .findAll { it.name.startsWith('cross-compile--') }
+    if (CrossCompileProjectInfo.matches(project)) {
+        allCrossCompileProjects.add(new CrossCompileProjectInfo(project))
+    }
+}
 
-    crossCompileProjects.forEach { crossCompileProject ->
-        if (!crossCompileProject.subprojects.isEmpty()) {
-            throw new GradleException("Cross-compile project ${crossCompileProject} can't have subprojects")
+allCrossCompileProjects.all { CrossCompileProjectInfo crossCompileProjectInfo ->
+    Project crossCompileProject = crossCompileProjectInfo.project
+    if (!crossCompileProject.subprojects.isEmpty()) {
+        throw new GradleException("Cross-compile project ${crossCompileProject} can't have subprojects")
+    }
+
+    Project targetProject = crossCompileProject.parent
+    if (targetProject == null) {
+        throw new GradleException("Cross-compile project ${crossCompileProject} can't be root project")
+    }
+
+    ; [
+        'maven-publish',
+    ].forEach { forbiddenPluginId ->
+        crossCompileProject.pluginManager.withPlugin(forbiddenPluginId) { appliedPlugin ->
+            throw new GradleException("${appliedPlugin.id} plugin can't applied for cross-compile project ${crossCompileProject}")
         }
     }
 
-    crossCompileProjects.forEach { crossCompileProject ->
-        ; [
-            'maven-publish',
-        ].forEach { forbiddenPluginId ->
-            crossCompileProject.pluginManager.withPlugin(forbiddenPluginId) { appliedPlugin ->
-                throw new GradleException("${appliedPlugin.id} plugin can't applied for cross-compile project ${crossCompileProject}")
+    crossCompileProject.apply plugin: 'java-library'
+    crossCompileProject.apply plugin: 'name.remal.test-source-sets'
+
+    targetProject.fatJarWith(crossCompileProject)
+
+    crossCompileProject.configurations.matching { ['api', 'implementation'].contains(it.name) }.all { Configuration conf ->
+        conf.allDependencies.all { Dependency dependency ->
+            String category = dependency.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE)?.name
+            if (![Category.REGULAR_PLATFORM, Category.ENFORCED_PLATFORM, Category.DOCUMENTATION, Category.VERIFICATION].contains(category)) {
+                throw new GradleException("Can't add ${dependency} dependcency to cross-compile project $crossCompileProject '${conf.name}' configuration, as this configuration can't have dependencies")
             }
         }
     }
 
-    pluginManager.withPlugin('java') {
-        crossCompileProjects.forEach { crossCompileProject ->
-            Pattern pattern = Pattern.compile(/^cross-compile--(common|(.+)-(\d+(?:\.\d+)*)-(lt|lte|eq|gte|gt))$/)
-            Matcher matcher = pattern.matcher(crossCompileProject.name)
-            if (!matcher.matches()) {
-                throw new GradleException("Project name of cross-compile project ${crossCompileProject} doesn't match to /${pattern}/")
+    if (crossCompileProjectInfo.dependency == null) {
+        targetProject.configurations.matching { it.name == 'compileOnlyAll' }.all { Configuration conf ->
+            Dependency crossCompileDep = targetProject.dependencies.create(crossCompileProject)
+            conf.dependencies.add(crossCompileDep)
+        }
+
+    } else {
+        targetProject.findProject('cross-compile--common')?.with { Project commonProject ->
+            Dependency dep = crossCompileProject.dependencies.create(commonProject)
+            crossCompileProject.configurations.optional.dependencies.add(dep)
+        }
+
+        Configuration depsConf = crossCompileProject.configurations.create("crossCompile${crossCompileProjectInfo.dependency.capitalize()}") { Configuration conf ->
+            conf.canBeResolved = false
+            conf.canBeConsumed = false
+            crossCompileProject.configurations.optionalHidden.extendsFrom(conf)
+        }
+
+        Configuration transitiveDepsConf = crossCompileProject.configurations.create("crossCompile${crossCompileProjectInfo.dependency.capitalize()}Transitive") { Configuration conf ->
+            conf.canBeResolved = false
+            conf.canBeConsumed = false
+            conf.defaultDependencies { DependencySet deps ->
+                deps.addAll(
+                    depsConf.dependencies.toList().collect { Dependency dep ->
+                        dep = dep.copy()
+                        if (dep instanceof ModuleDependency) {
+                            dep.transitive = true
+                        }
+                        return dep
+                    }
+                )
+            }
+        }
+
+        allCrossCompileDependencies.matching { it.name == crossCompileProjectInfo.dependency }.all { CrossCompileDependencyInfo crossCompileDependencyInfo ->
+            int versionNumbers = crossCompileProjectInfo.version.split(/\./).length
+            if (versionNumbers > crossCompileDependencyInfo.maxVersionNumbers) {
+                throw new GradleException("Cross-compile project $crossCompileProject can have version of not more than ${crossCompileDependencyInfo.maxVersionNumbers} numbers only")
             }
 
-            crossCompileProject.apply plugin: 'java-library'
-            crossCompileProject.apply plugin: 'name.remal.test-source-sets'
 
-            project.fatJarWith(crossCompileProject)
+            crossCompileDependencyInfo.configureCrossCompileProject(crossCompileProject, crossCompileProjectInfo)
 
-            crossCompileProject.configurations.matching { ['api', 'implementation'].contains(it.name) }.all { Configuration conf ->
-                conf.allDependencies.all { Dependency dependency ->
-                    String category = dependency.attributes.getAttribute(CATEGORY_ATTRIBUTE)?.name
-                    if (![REGULAR_PLATFORM, ENFORCED_PLATFORM, DOCUMENTATION, VERIFICATION].contains(category)) {
-                        throw new GradleException("Can't add ${dependency} dependcency to cross-compile project $crossCompileProject '${conf.name}' configuration, as this configuration can't have dependencies")
+
+            Set<String> allDependencyNotations = (crossCompileDependencyInfo.transitiveDependencyNotations + crossCompileDependencyInfo.dependencyNotations).toSet()
+
+            crossCompileProject.configurations.matching { ![depsConf.name, transitiveDepsConf.name].contains(it.name) }.all { Configuration conf ->
+                conf.dependencies.all { Dependency dep ->
+                    allDependencyNotations.forEach { dependencyNotation ->
+                        conf.dependencies.removeIf {
+                            allDependencyNotations.contains("${dep.group}:${dep.name}")
+                        }
                     }
                 }
             }
 
-            String fullSpec = matcher.group(1)
-            String dependency = matcher.group(2)
-            String dependencyVersion = matcher.group(3)
-            String dependencyVersionOperator = matcher.group(4)
-            if (fullSpec == 'common') {
-                dependencies {
-                    compileOnlyAll project(crossCompileProject.path)
-                }
-
+            String dependencyVersion
+            if (crossCompileProjectInfo.versionOperator == 'lt') {
+                dependencyVersion = "(,${crossCompileProjectInfo.version})"
+            } else if (crossCompileProjectInfo.versionOperator == 'lte') {
+                dependencyVersion = "(,${crossCompileProjectInfo.version}.9999)"
+            } else if (crossCompileProjectInfo.versionOperator == 'gt') {
+                dependencyVersion = "[${crossCompileProjectInfo.nextVersion},${crossCompileProjectInfo.nextVersion}.9999)"
             } else {
-                crossCompileProjects.find { it.name == "cross-compile--common" }?.with { commonProject ->
-                    crossCompileProject.dependencies {
-                        compileOnly project(commonProject.path)
-                    }
+                dependencyVersion = "[${crossCompileProjectInfo.version},${crossCompileProjectInfo.version}.9999)"
+            }
+            allDependencyNotations.forEach { dependencyNotation ->
+                Dependency dep = crossCompileProject.dependencies.create(dependencyNotation) {
+                    version { strictly(dependencyVersion) }
+                    transitive = crossCompileDependencyInfo.transitiveDependencyNotations.contains(dependencyNotation)
                 }
+                depsConf.dependencies.add(dep)
 
-                if (dependency == 'java') {
-                    if (!dependencyVersion.matches(/^\d+$/)) {
-                        throw new GradleException("Invalid Java version for cross-compile project $crossCompileProject (only major versions are supported): $dependencyVersion")
-                    }
-                    int majorVersion = Integer.parseInt(dependencyVersion)
-                    JavaVersion javaVersion = JavaVersion.toVersion(majorVersion)
-                    crossCompileProject.sourceCompatibility = crossCompileProject.targetCompatibility = javaVersion.toString()
-
-                } else if (dependency == 'gradle') {
-                    Semver gradleSemver = new Semver(dependencyVersion, SemverType.LOOSE)
-                    int gradleVersionNumbers = dependencyVersion.count('.') + 1
-                    Closure<Semver> alignGradleSemver = { Semver ver ->
-                        List<String> parts = ver.toString().split(/\./).toList()
-                        parts = parts.subList(0, Math.min(parts.size(), gradleVersionNumbers))
-                        return new Semver(parts.join('.'), SemverType.LOOSE)
-                    }
-                    List<Semver> allGradleSemvers = project.getAllGradleVersions()
-                        .collect { it.baseVersion }
-                        .toUnique()
-                        .toSorted(reverseOrder())
-                        .collect { new Semver(it.version, SemverType.LOOSE) }
-                    if (dependencyVersionOperator == 'lt') {
-                        for (Semver currentGradleSemver : allGradleSemvers) {
-                            if (alignGradleSemver(currentGradleSemver) < gradleSemver) {
-                                gradleSemver = currentGradleSemver
-                                break
-                            }
-                        }
-                    } else if (dependencyVersionOperator == 'lte') {
-                        for (Semver currentGradleSemver : allGradleSemvers) {
-                            if (alignGradleSemver(currentGradleSemver) <= gradleSemver) {
-                                gradleSemver = currentGradleSemver
-                                break
-                            }
-                        }
-                    } else if (dependencyVersionOperator == 'eq') {
-                        for (Semver currentGradleSemver : allGradleSemvers) {
-                            if (alignGradleSemver(currentGradleSemver).version == dependencyVersion) {
-                                gradleSemver = currentGradleSemver
-                                break
-                            }
-                        }
-                    } else if (dependencyVersionOperator == 'gte') {
-                        for (Semver currentGradleSemver : allGradleSemvers) {
-                            if (alignGradleSemver(currentGradleSemver) >= gradleSemver) {
-                                gradleSemver = currentGradleSemver
-                            } else {
-                                break
-                            }
-                        }
-                    } else if (dependencyVersionOperator == 'gt') {
-                        for (Semver currentGradleSemver : allGradleSemvers) {
-                            if (alignGradleSemver(currentGradleSemver) > gradleSemver) {
-                                gradleSemver = currentGradleSemver
-                            } else {
-                                break
-                            }
-                        }
-                    } else {
-                        throw new GradleException("Unsupported dependency version operator: ${crossCompileProject.name}")
-                    }
-
-                    crossCompileProject.configurations.create('crossCompileGradleApi') { Configuration conf ->
-                        conf.canBeResolved = false
-                        conf.canBeConsumed = false
-                        crossCompileProject.configurations.optionalHidden.extendsFrom(conf)
-                    }
-
-                    crossCompileProject.configurations.matching { !['crossCompileGradleApi', 'crossCompileGradleApiTransitive'].contains(it.name) }.all { Configuration conf ->
-                        conf.dependencies.all { Dependency dep ->
-                            if (dep.group == 'name.remal.gradle-api') {
-                                conf.dependencies.remove(dep)
-                            }
-                        }
-                    }
-
-                    crossCompileProject.dependencies {
-                        crossCompileGradleApi('name.remal.gradle-api:local-groovy') { transitive = true }
-                        crossCompileGradleApi('name.remal.gradle-api:gradle-api') { transitive = false }
-                        crossCompileGradleApi('name.remal.gradle-api:gradle-test-kit') { transitive = false }
-
-                        constraints {
-                            projectDependencyConstraints("name.remal.gradle-api:local-groovy:${gradleSemver}") { version { strictly(gradleSemver.toString()) } }
-                            projectDependencyConstraints("name.remal.gradle-api:gradle-api:${gradleSemver}") { version { strictly(gradleSemver.toString()) } }
-                            projectDependencyConstraints("name.remal.gradle-api:gradle-test-kit:${gradleSemver}") { version { strictly(gradleSemver.toString()) } }
-                        }
-                    }
-
-                    crossCompileProject.configurations.create('crossCompileGradleApiTransitive') { Configuration conf ->
-                        conf.canBeResolved = false
-                        conf.canBeConsumed = false
-                        conf.defaultDependencies { DependencySet deps ->
-                            deps.addAll(
-                                crossCompileProject.configurations.crossCompileGradleApi.dependencies.toList().collect { Dependency dep ->
-                                    dep = dep.copy()
-                                    if (dep instanceof ModuleDependency) {
-                                        dep.transitive = true
-                                    }
-                                    return dep
-                                }
-                            )
-                        }
-                    }
+                DependencyConstraint depConstraint = crossCompileProject.dependencies.constraints.create(dependencyNotation) {
+                    version { strictly(dependencyVersion) }
                 }
+                crossCompileProject.configurations.projectDependencyConstraints.dependencyConstraints.add(depConstraint)
 
-                crossCompileProject.tasks.withType(AbstractCompile).configureEach { AbstractCompile task ->
-                    doLast {
-                        task.destinationDirectory.asFileTree
-                            .matching { include('**/*.class') }
-                            .matching { exclude('module-info.class') }
-                            .visit { FileVisitDetails details ->
-                                if (details.directory) return
-
-                                File file = details.file
-                                ClassReader classReader = new ClassReader(file.bytes)
-                                ClassNode classNode = new ClassNode()
-                                classReader.accept(classNode, 0)
-
-                                List<AnnotationNode> annotations = classNode.invisibleAnnotations ?: []
-                                if (annotations.any { it.desc.endsWith('/RemalGradlePluginsCrossCompilation;') }) return
-                                AnnotationNode annotation = new AnnotationNode('Lname/remal/gradleplugins/toolkit/internal/RemalGradlePluginsCrossCompilation;')
-                                annotation.values = [
-                                    'dependency', dependency,
-                                    'version', dependencyVersion,
-                                    'versionOperator', dependencyVersionOperator ?: '',
-                                ]
-                                annotations.add(annotation)
-                                classNode.invisibleAnnotations = annotations
-
-                                ClassWriter classWriter = new ClassWriter(classReader, 0)
-                                classNode.accept(classWriter)
-                                byte[] bytecode = classWriter.toByteArray()
-                                file.bytes = bytecode
-                            }
-                    }
+                crossCompileProject.configurations.all { Configuration conf ->
+                    conf.resolutionStrategy.cacheDynamicVersionsFor(1, TimeUnit.HOURS)
                 }
             }
         }
     }
+
+    if (crossCompileProjectInfo.dependency != null) {
+        crossCompileProject.tasks.withType(AbstractCompile).configureEach { AbstractCompile task ->
+            doLast {
+                task.destinationDirectory.asFileTree
+                    .matching { it.include('**/*.class') }
+                    .matching { it.exclude('module-info.class') }
+                    .visit { FileVisitDetails details ->
+                        if (details.directory) return
+
+                        File file = details.file
+                        ClassReader classReader = new ClassReader(file.bytes)
+                        ClassNode classNode = new ClassNode()
+                        classReader.accept(classNode, 0)
+
+                        List<AnnotationNode> annotations = classNode.invisibleAnnotations ?: []
+                        if (annotations.any { it.desc.endsWith('/RemalGradlePluginsCrossCompilation;') }) return
+                        AnnotationNode annotation = new AnnotationNode('Lname/remal/gradleplugins/toolkit/internal/RemalGradlePluginsCrossCompilation;')
+                        annotation.values = [
+                            'dependency', crossCompileProjectInfo.dependency,
+                            'version', crossCompileProjectInfo.version,
+                            'versionOperator', crossCompileProjectInfo.versionOperator,
+                        ]
+                        annotations.add(annotation)
+                        classNode.invisibleAnnotations = annotations
+
+                        ClassWriter classWriter = new ClassWriter(classReader, 0)
+                        classNode.accept(classWriter)
+                        byte[] bytecode = classWriter.toByteArray()
+                        file.bytes = bytecode
+                    }
+            }
+        }
+    }
+}
+
+
+class CrossCompileProjectInfo implements Named {
+
+    private static final Pattern PATTERN = Pattern.compile(/^cross-compile--(common|(.+)-(\d+(?:\.\d+){0,2})-(lt|lte|eq|gte|gt))$/)
+
+    static boolean matches(Project project) {
+        return PATTERN.matcher(project.name).matches()
+    }
+
+
+    final Project project
+    final String dependency
+    final String version
+    final String nextVersion
+    final String versionOperator
+
+    CrossCompileProjectInfo(Project project) {
+        this.project = project
+
+        Matcher matcher = PATTERN.matcher(project.name)
+        if (!matcher.matches()) {
+            throw new GradleException("Project name of cross-compile project ${project} doesn't match to /${PATTERN}/")
+        }
+
+        if (matcher.group(1) == 'common') {
+            this.dependency = null
+            this.version = null
+            this.nextVersion = null
+            this.versionOperator = null
+
+        } else {
+            this.dependency = matcher.group(2)
+            this.version = matcher.group(3)
+            this.versionOperator = matcher.group(4)
+
+            String[] versionTokens = this.version.split(/\./)
+            versionTokens[versionTokens.length - 1] = versionTokens[versionTokens.length - 1].toInteger() + 1
+            this.nextVersion = versionTokens.join('.')
+        }
+    }
+
+    @Override
+    String getName() {
+        return project.path
+    }
+
+    @Override
+    String toString() {
+        return name
+    }
+
 }
