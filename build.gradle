@@ -8,7 +8,7 @@ buildscript {
     dependencies {
         classpathPlugins 'name.remal.gradle-plugins.lombok:lombok:1.1.1'
         classpathPlugins 'name.remal.gradle-plugins.test-source-sets:test-source-sets:2.3.2'
-        classpathPlugins 'name.remal.gradle-plugins.sonarlint:sonarlint:2.1.0'
+        classpathPlugins 'name.remal.gradle-plugins.sonarlint:sonarlint:2.1.1'
         classpathPlugins 'name.remal.gradle-plugins.idea-settings:idea-settings:2.2.4'
         classpathPlugins 'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.1.7'
         classpathPlugins 'com.gradle.publish:plugin-publish-plugin:1.1.0'
