@@ -52,6 +52,7 @@ configurations.gradlePluginApiDependencies {
     exclude(group: 'com.google.errorprone')
     exclude(group: 'com.google.guava')
     exclude(group: 'com.google.code.gson')
+    exclude(group: 'org.jdom')
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
