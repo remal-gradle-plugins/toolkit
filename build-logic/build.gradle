@@ -61,7 +61,7 @@ Map<File, String> scriptsToInclude = [:]
 rootProject.ext['includedBuildScripts'].forEach { String includedBuildScript ->
     File includedBuildScriptFile = rootProject.file(includedBuildScript)
     String includedBuildScriptResource = includedBuildScript.replaceFirst(/^gradle\//, '')
-    scriptsToInclude[includedBuildScriptFile] = "name/remal/gradleplugins/toolkit/buildlogic/${includedBuildScriptResource}"
+    scriptsToInclude[includedBuildScriptFile] = "${project.calculateBaseJavaPackage().replace('.', '/')}/${includedBuildScriptResource}"
 }
 
 tasks.named('generateResources') {
@@ -94,10 +94,10 @@ tasks.named('generateResources') {
 
 tasks.named('generateJava') {
     inputs.property('project.version', project.provider { project.version })
-    classFile('name.remal.gradleplugins.toolkit.buildlogic', 'BuildLogicPlugin') {
+    classFile(project.calculateBaseJavaPackage(), 'BuildLogicPlugin') {
         it.writePackage()
         it.println("")
-        it.writeStaticImport("name.remal.gradleplugins.toolkit.ResourceUtils", "getResourceUrl")
+        it.writeStaticImport("${project.calculateBaseJavaPackageFor(project(':toolkit'))}.ResourceUtils", "getResourceUrl")
         it.println("")
         it.writeImport("org.gradle.api.Plugin")
         it.writeImport("org.gradle.api.Project")
@@ -105,9 +105,11 @@ tasks.named('generateJava') {
         it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "InjectedReferences")
         it.writeBlock("public class ${it.simpleName} implements Plugin<Project>") {
             it.writeBlock("public void apply(Project project)") {
+                it.println("project.apply(it -> {");
                 scriptsToInclude.values().forEach { resource ->
-                    it.writeln("project.apply(it -> it.from(getResourceUrl(\"/${it.escapeJava(resource)}\", ${it.simpleName}.class)));")
+                    it.println("    it.from(getResourceUrl(\"/${it.escapeJava(resource)}\", ${it.simpleName}.class));")
                 }
+                it.println("});");
 
                 it.println("")
 

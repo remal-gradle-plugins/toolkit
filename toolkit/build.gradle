@@ -21,8 +21,7 @@ dependencies {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-Project annotationsProject = rootProject.findProject(':toolkit-annotations')
-project.fatJarWith(annotationsProject)
+project.fatJarWith(project(':toolkit-annotations'))
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -30,7 +29,7 @@ tasks.named('generateJava') { Task it ->
     inputs.property('project.group', project.group)
     inputs.property('project.name', project.name)
     inputs.property('project.version', project.version)
-    classFile('name.remal.gradleplugins.toolkit', 'ToolkitBuildInfo') {
+    classFile(project.calculateBaseJavaPackage(), 'ToolkitBuildInfo') {
         it.writePackage()
         it.println("")
         it.writeStaticImport("lombok.AccessLevel", "PRIVATE")

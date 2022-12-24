@@ -224,7 +224,7 @@ allCrossCompileProjects.all { CrossCompileProjectInfo crossCompileProjectInfo ->
 
                         List<AnnotationNode> annotations = classNode.invisibleAnnotations ?: []
                         if (annotations.any { it.desc.endsWith('/RemalGradlePluginsCrossCompilation;') }) return
-                        AnnotationNode annotation = new AnnotationNode('Lname/remal/gradleplugins/toolkit/internal/RemalGradlePluginsCrossCompilation;')
+                        AnnotationNode annotation = new AnnotationNode('Lname/remal/gradle_plugins/toolkit/internal/RemalGradlePluginsCrossCompilation;')
                         annotation.values = [
                             'dependency', crossCompileProjectInfo.dependency,
                             'version', crossCompileProjectInfo.version,

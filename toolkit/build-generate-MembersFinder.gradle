@@ -1,7 +1,7 @@
 int typedMethodMaxParamsCount = 15
 
 tasks.named('generateJava') {
-    classFile('name.remal.gradleplugins.toolkit.reflection', 'MembersFinder') {
+    classFile("${project.calculateBaseJavaPackage()}.reflection", 'MembersFinder') {
         it.writePackage()
         it.println("")
         it.writeStaticImport('lombok.AccessLevel', 'PRIVATE')
@@ -126,7 +126,7 @@ tasks.named('generateJava') {
         }
     }
 
-    classFile('name.remal.gradleplugins.toolkit.reflection', 'MethodsInvoker') {
+    classFile("${project.calculateBaseJavaPackage()}.reflection", 'MethodsInvoker') {
         it.writePackage()
         it.println("")
         it.writeStaticImport('javax.annotation.meta.When', 'UNKNOWN')
@@ -176,11 +176,11 @@ tasks.named('generateJava') {
     }
 
     (0..typedMethodMaxParamsCount).forEach { paramsCount ->
-        classFile('name.remal.gradleplugins.toolkit.reflection', "TypedMethod${paramsCount}") {
+        classFile("${project.calculateBaseJavaPackage()}.reflection", "TypedMethod${paramsCount}") {
             it.writePackage()
             it.println("")
             it.writeStaticImport('javax.annotation.meta.When', 'UNKNOWN')
-            it.writeStaticImport('name.remal.gradleplugins.toolkit.reflection.ReflectionUtils', 'isStatic')
+            it.writeStaticImport("${project.calculateBaseJavaPackage()}.reflection.ReflectionUtils", 'isStatic')
             it.println("")
             it.writeImport('java.lang.reflect.InvocationTargetException')
             it.writeImport('java.lang.reflect.Method')
@@ -210,11 +210,11 @@ tasks.named('generateJava') {
             }
         }
 
-        classFile('name.remal.gradleplugins.toolkit.reflection', "TypedVoidMethod${paramsCount}") {
+        classFile("${project.calculateBaseJavaPackage()}.reflection", "TypedVoidMethod${paramsCount}") {
             it.writePackage()
             it.println("")
             it.writeStaticImport('javax.annotation.meta.When', 'UNKNOWN')
-            it.writeStaticImport('name.remal.gradleplugins.toolkit.reflection.ReflectionUtils', 'isStatic')
+            it.writeStaticImport("${project.calculateBaseJavaPackage()}.reflection.ReflectionUtils", 'isStatic')
             it.println("")
             it.writeImport('java.lang.reflect.InvocationTargetException')
             it.writeImport('java.lang.reflect.Method')
@@ -242,11 +242,11 @@ tasks.named('generateJava') {
             }
         }
 
-        classFile('name.remal.gradleplugins.toolkit.reflection', "TypedStaticMethod${paramsCount}") {
+        classFile("${project.calculateBaseJavaPackage()}.reflection", "TypedStaticMethod${paramsCount}") {
             it.writePackage()
             it.println("")
             it.writeStaticImport('javax.annotation.meta.When', 'UNKNOWN')
-            it.writeStaticImport('name.remal.gradleplugins.toolkit.reflection.ReflectionUtils', 'isNotStatic')
+            it.writeStaticImport("${project.calculateBaseJavaPackage()}.reflection.ReflectionUtils", 'isNotStatic')
             it.println("")
             it.writeImport('java.lang.reflect.InvocationTargetException')
             it.writeImport('java.lang.reflect.Method')
@@ -276,11 +276,11 @@ tasks.named('generateJava') {
             }
         }
 
-        classFile('name.remal.gradleplugins.toolkit.reflection', "TypedStaticVoidMethod${paramsCount}") {
+        classFile("${project.calculateBaseJavaPackage()}.reflection", "TypedStaticVoidMethod${paramsCount}") {
             it.writePackage()
             it.println("")
             it.writeStaticImport('javax.annotation.meta.When', 'UNKNOWN')
-            it.writeStaticImport('name.remal.gradleplugins.toolkit.reflection.ReflectionUtils', 'isNotStatic')
+            it.writeStaticImport("${project.calculateBaseJavaPackage()}.reflection.ReflectionUtils", 'isNotStatic')
             it.println("")
             it.writeImport('java.lang.reflect.InvocationTargetException')
             it.writeImport('java.lang.reflect.Method')

@@ -74,7 +74,7 @@ tasks.named('generateJava') {
         Class.forName('java.util.function.ToLongFunction'),
         Class.forName('java.util.function.UnaryOperator'),
     ].sort { it.name }
-    classFile('name.remal.gradleplugins.toolkit', 'SneakyThrowUtils') {
+    classFile(project.calculateBaseJavaPackage(), 'SneakyThrowUtils') {
         it.writePackage()
         it.println("")
         it.writeStaticImport('javax.annotation.meta.When', 'UNKNOWN')

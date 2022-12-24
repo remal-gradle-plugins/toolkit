@@ -1,5 +1,5 @@
 tasks.named('generateResources') {
-    binaryFile('name/remal/gradleplugins/toolkit/issues/checkstyle.xsl') { OutputStream outputStream ->
+    binaryFile("${project.calculateBaseJavaPackage().replace('.', '/')}/issues/checkstyle.xsl") { OutputStream outputStream ->
         String resourceName = 'checkstyle-noframes-sorted.xsl'
         InputStream inputStream = Checkstyle.getClassLoader().getResourceAsStream(resourceName)
         if (inputStream == null) {
