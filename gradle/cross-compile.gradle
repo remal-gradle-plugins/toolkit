@@ -1,5 +1,4 @@
 import groovy.transform.MapConstructor
-import java.util.concurrent.TimeUnit
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 import org.objectweb.asm.ClassReader
@@ -200,10 +199,6 @@ allCrossCompileProjects.all { CrossCompileProjectInfo crossCompileProjectInfo ->
                     version { strictly(dependencyVersion) }
                 }
                 crossCompileProject.configurations.projectDependencyConstraints.dependencyConstraints.add(depConstraint)
-
-                crossCompileProject.configurations.all { Configuration conf ->
-                    conf.resolutionStrategy.cacheDynamicVersionsFor(1, TimeUnit.HOURS)
-                }
             }
         }
     }

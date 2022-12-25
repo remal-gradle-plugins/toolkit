@@ -4,12 +4,14 @@ import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_
 allprojects {
     apply plugin: 'checkstyle'
 
-    configurations.named('projectDependencyConstraints') { Configuration conf ->
-        conf.dependencyConstraints.addAll(
-            [
-                'com.puppycrawl.tools:checkstyle:10.5.0',
-            ].collect { project.dependencies.constraints.create(it) }
-        )
+    dependencies {
+        constraints {
+            checkstyle 'com.puppycrawl.tools:checkstyle:10.5.0'
+        }
+    }
+
+    configurations.checkstyle.with { Configuration conf ->
+        conf.extendsFrom = conf.extendsFrom.findAll { it.name != 'projectDependencyConstraints' }
     }
 
     checkstyle {

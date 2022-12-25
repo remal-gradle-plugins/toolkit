@@ -33,7 +33,7 @@ allprojects {
             }
         }
 
-        String jacocoVersion = '0.8.8'
+        String errorproneVersion = '2.16'
 
         conf.dependencies.addAll(
             [
@@ -49,8 +49,8 @@ allprojects {
                 // Static analysis
                 'com.google.code.findbugs:jsr305:3.0.2',
                 'org.jetbrains:annotations:23.1.0',
-                'com.google.errorprone:error_prone_annotations:2.16',
-                'com.google.errorprone:error_prone_core:2.16',
+                "com.google.errorprone:error_prone_annotations:$errorproneVersion",
+                "com.google.errorprone:error_prone_core:$errorproneVersion",
                 'com.github.spotbugs:spotbugs-annotations:4.7.3',
 
                 // Annotation processing
@@ -71,9 +71,6 @@ allprojects {
                 // Test
                 "name.remal.gradle-api:gradle-test-kit:${property('gradle-api.version')}",
                 'org.assertj:assertj-core:3.23.1',
-                "org.jacoco:org.jacoco.agent:$jacocoVersion",
-                "org.jacoco:org.jacoco.ant:$jacocoVersion",
-                "org.jacoco:org.jacoco.core:$jacocoVersion",
             ].collect {
                 project.dependencies.constraints.create(it) { DependencyConstraint constraint ->
                     constraint.version { it.strictly(constraint.version) }
@@ -104,6 +101,7 @@ allprojects {
 
     dependencies {
         components.all(GradleApiAlignmentRule)
+        components.all(ErrorproneAlignmentRule)
         components.all(SpotBugsAlignmentRule)
         components.all(JacocoAlignmentRule)
     }
@@ -114,6 +112,20 @@ class GradleApiAlignmentRule implements ComponentMetadataRule {
         context.details.with {
             if (id.group == 'name.remal.gradle-api') {
                 belongsTo("${id.group}:bom:${id.version}")
+            }
+        }
+    }
+}
+
+class ErrorproneAlignmentRule implements ComponentMetadataRule {
+    void execute(ComponentMetadataContext context) {
+        context.details.with {
+            if (id.group == 'com.google.errorprone') {
+                if (id.name == 'error_prone_core'
+                    || id.name == 'error_prone_annotations'
+                ) {
+                    belongsTo("${id.group}:bom:${id.version}")
+                }
             }
         }
     }
