@@ -1,11 +1,11 @@
 # This file is generated automatically by `collectAllGradlePluginApiDependencies` Gradle task.
 # Do not modify it yourself unless you know what you are doing.
 
-classes-that-rely-on-gradle-internal-api:e9c6e8790884753860e868c7f846c158114d1fc2c5b5375794945d96d008b1ed
+classes-that-rely-on-gradle-internal-api:7016a8325fe7875bc79dda4109fd491b678d94de99c43f75437c3183e52a6137
 com.gradle.publish:plugin-publish-plugin:1.1.0
 gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.1.7
 io.github.gradle-nexus:publish-plugin:1.1.0
-name.remal.gradle-plugins.idea-settings:idea-settings:2.2.4
+name.remal.gradle-plugins.idea-settings:idea-settings:3.0.0
 name.remal.gradle-plugins.lombok:lombok:1.1.2
 name.remal.gradle-plugins.sonarlint:sonarlint:2.1.1
 name.remal.gradle-plugins.test-source-sets:test-source-sets:2.3.2
