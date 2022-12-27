@@ -12,7 +12,7 @@ buildscript {
         classpathPlugins 'name.remal.gradle-plugins.idea-settings:idea-settings:3.0.0'
         classpathPlugins 'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.1.7'
         classpathPlugins 'com.gradle.publish:plugin-publish-plugin:1.1.0'
-        classpathPlugins 'name.remal:gradle-plugins:1.7.2'
+        classpathPlugins 'name.remal:gradle-plugins:1.7.3'
         classpathPlugins 'io.github.gradle-nexus:publish-plugin:1.1.0'
         classpathPlugins 'net.ltgt.gradle:gradle-errorprone-plugin:3.0.1'
 
