@@ -1,5 +1,6 @@
 package name.remal.gradle_plugins.toolkit;
 
+import static java.lang.String.format;
 import static java.lang.reflect.Modifier.isStatic;
 import static java.util.Collections.emptyList;
 import static lombok.AccessLevel.PRIVATE;
@@ -91,17 +92,19 @@ public abstract class TaskUtils {
         task.setEnabled(false);
         task.onlyIf(__ -> false);
         task.setDependsOn(emptyList());
-        clearRegisteredFileProperties(task.getInputs());
+        clearRegisteredFileProperties(task.getInputs(), false);
     }
+
+    private static final String REGISTERED_FILE_PROPERTIES_FIELD_NAME = "registeredFileProperties";
 
     @VisibleForTesting
     @SneakyThrows
     @ReliesOnInternalGradleApi
-    static void clearRegisteredFileProperties(TaskInputs taskInputs) {
+    static void clearRegisteredFileProperties(TaskInputs taskInputs, boolean strict) {
         Class<?> taskInputsType = unwrapGeneratedSubclass(taskInputs.getClass());
         while (taskInputsType != Object.class) {
             try {
-                val field = taskInputsType.getDeclaredField("registeredFileProperties");
+                val field = taskInputsType.getDeclaredField(REGISTERED_FILE_PROPERTIES_FIELD_NAME);
                 if (!isStatic(field.getModifiers()) && Iterable.class.isAssignableFrom(field.getType())) {
                     val properties = (Iterable<?>) makeAccessible(field).get(taskInputs);
                     val iterator = properties.iterator();
@@ -109,12 +112,28 @@ public abstract class TaskUtils {
                         iterator.next();
                         iterator.remove();
                     }
-                    break;
+                    return;
+
+                } else if (strict) {
+                    throw new IllegalStateException(format(
+                        "Unsupported field '%s' of %s",
+                        REGISTERED_FILE_PROPERTIES_FIELD_NAME,
+                        taskInputsType
+                    ));
                 }
+
             } catch (NoSuchFieldException e) {
                 // do nothing
             }
             taskInputsType = taskInputsType.getSuperclass();
+        }
+
+        if (strict) {
+            throw new IllegalStateException(format(
+                "Field '%s' can't be found for %s",
+                REGISTERED_FILE_PROPERTIES_FIELD_NAME,
+                taskInputsType
+            ));
         }
     }
 
