@@ -70,7 +70,7 @@ allprojects {
 
                 // Test
                 "name.remal.gradle-api:gradle-test-kit:${property('gradle-api.version')}",
-                'org.assertj:assertj-core:3.24.0',
+                'org.assertj:assertj-core:3.24.1',
             ].collect {
                 project.dependencies.constraints.create(it) { DependencyConstraint constraint ->
                     constraint.version { it.strictly(constraint.version) }
