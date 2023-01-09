@@ -33,7 +33,7 @@ allprojects {
             }
         }
 
-        String errorproneVersion = '2.17.0'
+        String errorproneVersion = '2.18.0'
 
         conf.dependencies.addAll(
             [
