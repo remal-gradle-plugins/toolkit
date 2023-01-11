@@ -48,7 +48,7 @@ allprojects {
             [
                 // Static analysis
                 'com.google.code.findbugs:jsr305:3.0.2',
-                'org.jetbrains:annotations:23.1.0',
+                'org.jetbrains:annotations:24.0.0',
                 "com.google.errorprone:error_prone_annotations:$errorproneVersion",
                 "com.google.errorprone:error_prone_core:$errorproneVersion",
                 'com.github.spotbugs:spotbugs-annotations:4.7.3',
