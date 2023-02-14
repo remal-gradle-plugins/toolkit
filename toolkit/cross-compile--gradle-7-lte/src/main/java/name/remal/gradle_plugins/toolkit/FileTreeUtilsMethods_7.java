@@ -5,6 +5,7 @@ import static java.util.Collections.unmodifiableSet;
 import com.google.auto.service.AutoService;
 import java.io.File;
 import java.util.LinkedHashSet;
+import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
 import lombok.val;
@@ -13,13 +14,14 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileCollectionInternal.Source;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.tasks.util.PatternSet;
 import org.jetbrains.annotations.Unmodifiable;
 
 @ReliesOnInternalGradleApi
 @AutoService(FileTreeUtilsMethods.class)
-final class FileTreeUtilsMethodsDefault extends FileTreeUtilsMethods {
+final class FileTreeUtilsMethods_7 extends FileTreeUtilsMethods {
 
     @Override
     @Unmodifiable
@@ -35,6 +37,20 @@ final class FileTreeUtilsMethodsDefault extends FileTreeUtilsMethods {
                 @Nullable Iterable<File> contents
             ) {
                 // should not be called
+            }
+
+            @Override
+            public void visitGenericFileTree(
+                @Nullable FileTreeInternal fileTree,
+                @Nullable FileSystemMirroringFileTree sourceTree
+            ) {
+                val dir = Optional.ofNullable(sourceTree)
+                    .map(FileSystemMirroringFileTree::getMirror)
+                    .map(DirectoryFileTree::getDir)
+                    .orElse(null);
+                if (dir != null) {
+                    roots.add(normalizeFile(dir));
+                }
             }
 
             @Override
