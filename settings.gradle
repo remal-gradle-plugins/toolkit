@@ -11,6 +11,7 @@ include(
     ':toolkit:cross-compile--gradle-6.2-lte',
     ':toolkit:cross-compile--gradle-6.7-lte',
     ':toolkit:cross-compile--gradle-7.3-lte',
+    ':toolkit:cross-compile--gradle-7-lte',
     ':classpath',
     ':testkit',
     ':build-logic',
