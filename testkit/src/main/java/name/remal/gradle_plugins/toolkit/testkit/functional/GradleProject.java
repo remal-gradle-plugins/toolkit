@@ -100,6 +100,7 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
 
     private static final List<SuppressedMessage> DEFAULT_SUPPRESSED_DEPRECATIONS_MESSAGES = ImmutableList.of(
         SuppressedMessage.builder()
+            .startsWith(true)
             .message("Java toolchain auto-provisioning enabled"
                 + ", but no java toolchain repositories declared by the build"
                 + ". Will rely on the built-in repository."
