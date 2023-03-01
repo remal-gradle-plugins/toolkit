@@ -16,6 +16,6 @@ public class SuppressedMessage {
 
     @Nullable
     @Default
-    String stackTracePackagePrefix = null;
+    String stackTracePrefix = null;
 
 }

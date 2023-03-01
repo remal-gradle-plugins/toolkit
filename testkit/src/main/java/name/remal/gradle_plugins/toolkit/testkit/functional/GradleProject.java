@@ -105,29 +105,29 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
                 + ", but no java toolchain repositories declared by the build"
                 + ". Will rely on the built-in repository."
             )
-            .stackTracePackagePrefix("org.gradle.jvm.toolchain.internal.JavaToolchainQueryService"
+            .stackTracePrefix("org.gradle.jvm.toolchain.internal.JavaToolchainQueryService"
                 + ".warnIfAutoProvisioningOnWithoutRepositoryDefinitions("
             )
             .build(),
         SuppressedMessage.builder()
             .message("The DefaultSourceDirectorySet constructor has been deprecated")
-            .stackTracePackagePrefix("org.jetbrains.kotlin.gradle.plugin.")
+            .stackTracePrefix("org.jetbrains.kotlin.gradle.plugin.")
             .build(),
         SuppressedMessage.builder()
             .message("Classpath configuration has been deprecated for dependency declaration")
-            .stackTracePackagePrefix("org.jetbrains.kotlin.gradle.plugin.mpp.AbstractKotlinCompilation.")
+            .stackTracePrefix("org.jetbrains.kotlin.gradle.plugin.mpp.AbstractKotlinCompilation.")
             .build(),
         SuppressedMessage.builder()
             .message("Internal API constructor TaskReportContainer(Class<T>, Task) has been deprecated")
-            .stackTracePackagePrefix("com.github.spotbugs.")
+            .stackTracePrefix("com.github.spotbugs.")
             .build(),
         SuppressedMessage.builder()
             .message("BuildListener#buildStarted(Gradle) has been deprecated")
-            .stackTracePackagePrefix("org.jetbrains.gradle.ext.")
+            .stackTracePrefix("org.jetbrains.gradle.ext.")
             .build(),
         SuppressedMessage.builder()
             .message("org.gradle.util.ConfigureUtil type has been deprecated")
-            .stackTracePackagePrefix("io.github.gradlenexus.publishplugin.")
+            .stackTracePrefix("io.github.gradlenexus.publishplugin.")
             .build()
     );
 
@@ -537,7 +537,7 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
                     matches = line.contains(suppressedMessage.getMessage());
                 }
                 if (matches) {
-                    val stackTracePackagePrefix = suppressedMessage.getStackTracePackagePrefix();
+                    val stackTracePackagePrefix = suppressedMessage.getStackTracePrefix();
                     if (isEmpty(stackTracePackagePrefix)) {
                         continue forEachLine;
                     }
