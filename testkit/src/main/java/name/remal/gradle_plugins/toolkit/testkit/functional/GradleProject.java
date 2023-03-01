@@ -100,6 +100,15 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
 
     private static final List<SuppressedMessage> DEFAULT_SUPPRESSED_DEPRECATIONS_MESSAGES = ImmutableList.of(
         SuppressedMessage.builder()
+            .message("Java toolchain auto-provisioning enabled"
+                + ", but no java toolchain repositories declared by the build"
+                + ". Will rely on the built-in repository."
+            )
+            .stackTracePackagePrefix("org.gradle.jvm.toolchain.internal.JavaToolchainQueryService"
+                + ".warnIfAutoProvisioningOnWithoutRepositoryDefinitions("
+            )
+            .build(),
+        SuppressedMessage.builder()
             .message("The DefaultSourceDirectorySet constructor has been deprecated")
             .stackTracePackagePrefix("org.jetbrains.kotlin.gradle.plugin.")
             .build(),
@@ -537,7 +546,7 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
                         if (!STACK_TRACE_LINE.matcher(stackTraceLine).find()) {
                             break;
                         }
-                        if (stackTraceLine.contains("at " + stackTracePackagePrefix)) {
+                        if (stackTraceLine.trim().startsWith("at " + stackTracePackagePrefix)) {
                             continue forEachLine;
                         }
                     }
