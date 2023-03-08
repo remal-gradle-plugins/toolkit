@@ -32,7 +32,7 @@ afterEvaluate {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 dependencies {
-    indirectApi('org.eclipse.jgit:org.eclipse.jgit:6.4.0.202211300538-r') { transitive = false }
+    indirectApi('org.eclipse.jgit:org.eclipse.jgit:6.5.0.202303070854-r') { transitive = false }
 
     relocateClasses project(':toolkit')
 
