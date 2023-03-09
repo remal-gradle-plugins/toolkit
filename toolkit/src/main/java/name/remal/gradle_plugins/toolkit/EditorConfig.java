@@ -1,5 +1,6 @@
 package name.remal.gradle_plugins.toolkit;
 
+import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static name.remal.gradle_plugins.toolkit.LayoutUtils.getRootPathOf;
 import static name.remal.gradle_plugins.toolkit.ObjectUtils.isEmpty;
@@ -34,7 +35,6 @@ import org.ec4j.core.model.PropertyType;
 import org.ec4j.core.model.PropertyType.EndOfLineValue;
 import org.ec4j.core.model.Version;
 import org.ec4j.core.parser.ErrorHandler;
-import org.ec4j.core.parser.ParseException;
 import org.gradle.api.Project;
 import org.jetbrains.annotations.Unmodifiable;
 
@@ -43,12 +43,14 @@ import org.jetbrains.annotations.Unmodifiable;
 public final class EditorConfig {
 
     private static final ErrorHandler ERROR_HANDLER = (context, errorEvent) -> {
-        val exception = new ParseException(errorEvent);
-        if (errorEvent.getErrorType().isSyntaxError()) {
-            throw exception;
-        } else {
-            logger.warn(".editorconfig parsing issue: {}", exception.getMessage());
-        }
+        val message = format(
+            "%s:%d:%d: %s",
+            errorEvent.getResource(),
+            errorEvent.getStart().getLine(),
+            errorEvent.getStart().getColumn(),
+            errorEvent.getMessage()
+        );
+        logger.debug(".editorconfig parsing issue: {}", message);
     };
 
     private static final EditorConfigLoader EDITOR_CONFIG_LOADER =
