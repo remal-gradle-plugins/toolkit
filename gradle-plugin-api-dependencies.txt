@@ -13,9 +13,9 @@ name.remal:gradle-plugins-api:1.8.3
 name.remal:gradle-plugins:1.8.3
 net.ltgt.gradle:gradle-errorprone-plugin:3.0.1
 org.eclipse.jgit:org.eclipse.jgit:6.5.0.202303070854-r
-org.ow2.asm:asm-analysis:9.4
-org.ow2.asm:asm-bom:9.4:@pom
-org.ow2.asm:asm-commons:9.4
-org.ow2.asm:asm-tree:9.4
-org.ow2.asm:asm-util:9.4
-org.ow2.asm:asm:9.4
+org.ow2.asm:asm-analysis:9.5
+org.ow2.asm:asm-bom:9.5:@pom
+org.ow2.asm:asm-commons:9.5
+org.ow2.asm:asm-tree:9.5
+org.ow2.asm:asm-util:9.5
+org.ow2.asm:asm:9.5
