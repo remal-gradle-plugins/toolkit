@@ -34,14 +34,6 @@ ideaSettings {
     }
 }
 
-allprojects {
-    pluginManager.withPlugin('java') {
-        sourceSets.all {
-            configurations[it.compileOnlyConfigurationName].canBeResolved = true
-        }
-    }
-}
-
 tasks.named('processIdeaSettings') {
     if (project.isRunningOnCi) {
         doFirst {
