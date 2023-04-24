@@ -213,7 +213,7 @@ allprojects {
         }
 
         tasks.withType(Test).configureEach {
-            if (name == 'test') {
+            if (name == 'test' && JavaVersion.current().isJava9Compatible()) {
                 /*
                  * Required for `org.gradle.testfixtures.ProjectBuilder`.
                  * See https://github.com/gradle/gradle/issues/18647
