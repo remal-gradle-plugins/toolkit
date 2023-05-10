@@ -26,7 +26,7 @@ allprojects {
             value = System.getProperty(name)
         }
         if (value == null) {
-            String envName = name.replaceAll(/\W/, '_').toUpperCase()
+            String envName = name.replaceAll(/\W/, '_').toUpperCase(Locale.ROOT)
             value = System.getenv(envName)
         }
 

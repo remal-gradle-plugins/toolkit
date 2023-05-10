@@ -3,6 +3,7 @@ package name.remal.gradle_plugins.toolkit;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.unwrapGeneratedSubclass;
 
+import java.util.Locale;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.val;
@@ -99,7 +100,7 @@ public abstract class ExtensionContainerUtils {
     private static String typeToExtensionName(Class<?> type) {
         type = unwrapGeneratedSubclass(type);
         val simpleName = type.getSimpleName();
-        return simpleName.substring(0, 1).toLowerCase() + simpleName.substring(1);
+        return simpleName.substring(0, 1).toLowerCase(Locale.ROOT) + simpleName.substring(1);
     }
 
 
