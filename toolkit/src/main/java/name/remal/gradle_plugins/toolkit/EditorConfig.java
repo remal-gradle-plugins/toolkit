@@ -52,6 +52,7 @@ import org.jetbrains.annotations.Unmodifiable;
 
 @ToString(of = "rootPath")
 @CustomLog
+@SuppressWarnings("java:S1948")
 public final class EditorConfig implements Serializable {
 
     private static final ErrorHandler ERROR_HANDLER = (context, errorEvent) -> {
@@ -212,7 +213,6 @@ public final class EditorConfig implements Serializable {
     private interface PropertyValueConverter<T> {
         @Nullable
         T convert(String value) throws Throwable;
-
     }
 
     @Nullable

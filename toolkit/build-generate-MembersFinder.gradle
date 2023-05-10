@@ -12,7 +12,7 @@ tasks.named('generateJava') {
         it.writeImport('lombok.val')
         it.println("")
         it.println("@NoArgsConstructor(access = PRIVATE)")
-        it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone")
+        it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "java:S107", "java:S1128", "java:S1611")
         it.writeBlock("public abstract class ${it.simpleName}") {
             // get*() methods:
             (0..typedMethodMaxParamsCount).forEach { paramsCount ->
@@ -137,7 +137,7 @@ tasks.named('generateJava') {
         it.writeImport('lombok.val')
         it.println("")
         it.println("@NoArgsConstructor(access = PRIVATE)")
-        it.writeSuppressWarnings("unchecked", "checkstyle:LineLength", "checkstyle:RightCurlyAlone")
+        it.writeSuppressWarnings("unchecked", "checkstyle:LineLength", "checkstyle:RightCurlyAlone", "java:S107", "java:S1128", "java:S1611")
         it.writeBlock("public abstract class ${it.simpleName}") {
             (0..typedMethodMaxParamsCount).forEach { paramsCount ->
                 it.println("")
@@ -187,7 +187,7 @@ tasks.named('generateJava') {
             it.writeImport('javax.annotation.Nonnull')
             it.writeImport('lombok.SneakyThrows')
             it.println("")
-            it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone")
+            it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "java:S107", "java:S1128", "java:S1611")
             it.writeBlock("public final class ${it.simpleName}<T, R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> extends AbstractTypedMethod") {
                 it.writeBlock("${it.simpleName}(Method method)") {
                     it.println("super(method);")
@@ -221,7 +221,7 @@ tasks.named('generateJava') {
             it.writeImport('javax.annotation.Nonnull')
             it.writeImport('lombok.SneakyThrows')
             it.println("")
-            it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone")
+            it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "java:S107", "java:S1128", "java:S1611")
             it.writeBlock("public final class ${it.simpleName}<T${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> extends AbstractTypedMethod") {
                 it.writeBlock("${it.simpleName}(Method method)") {
                     it.println("super(method);")
@@ -253,7 +253,7 @@ tasks.named('generateJava') {
             it.writeImport('javax.annotation.Nonnull')
             it.writeImport('lombok.SneakyThrows')
             it.println("")
-            it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone")
+            it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "java:S107", "java:S1128", "java:S1611")
             it.writeBlock("public final class ${it.simpleName}<R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> extends AbstractTypedMethod") {
                 it.writeBlock("${it.simpleName}(Method method)") {
                     it.println("super(method);")
@@ -287,7 +287,7 @@ tasks.named('generateJava') {
             it.writeImport('javax.annotation.Nonnull')
             it.writeImport('lombok.SneakyThrows')
             it.println("")
-            it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone")
+            it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "java:S107", "java:S1128", "java:S1611")
             it.writeBlock("public final class ${it.simpleName}${paramsCount == 0 ? '' : '<' + (1..paramsCount).collect { "P$it" }.join(", ") + '>'} extends AbstractTypedMethod") {
                 it.writeBlock("${it.simpleName}(Method method)") {
                     it.println("super(method);")
