@@ -2,6 +2,7 @@ package name.remal.gradle_plugins.toolkit;
 
 import static java.lang.Boolean.parseBoolean;
 import static java.lang.System.getenv;
+import static name.remal.gradle_plugins.toolkit.FileUtils.normalizeFile;
 import static name.remal.gradle_plugins.toolkit.ObjectUtils.isEmpty;
 import static name.remal.gradle_plugins.toolkit.ObjectUtils.isNotEmpty;
 
@@ -53,13 +54,15 @@ public abstract class CiSystemBase implements CiSystem {
     }
 
     protected static File getRequiredFileEnv(String name) {
-        return new File(getRequiredEnv(name));
+        return normalizeFile(new File(getRequiredEnv(name)));
     }
 
     @Nullable
     protected static File getOptionalFileEnv(String name) {
         return Optional.ofNullable(getenv(name))
+            .filter(ObjectUtils::isNotEmpty)
             .map(File::new)
+            .map(FileUtils::normalizeFile)
             .orElse(null);
     }
 
