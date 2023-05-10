@@ -166,9 +166,9 @@ allprojects {
                     resolved.put(
                         dep.toString(),
                         [
-                            package_url : packageUrl,
+                            package_url: packageUrl,
                             relationship: dep.relationship?.name()?.toLowerCase(),
-                            scope       : dep.scope?.name()?.toLowerCase(),
+                            scope: dep.scope?.name()?.toLowerCase(),
                         ]
                     )
                 }
@@ -177,8 +177,8 @@ allprojects {
                 manifests.put(
                     rootProject.relativePath(project.buildFile),
                     [
-                        name    : rootProject.relativePath(project.buildFile),
-                        file    : [
+                        name: rootProject.relativePath(project.buildFile),
+                        file: [
                             source_location: rootProject.relativePath(project.buildFile),
                         ],
                         resolved: resolved,
@@ -194,20 +194,20 @@ allprojects {
                 ].collect { it ?: '' }.join('-')
 
                 Map requestBody = [
-                    version  : System.currentTimeMillis(),
-                    job      : [
-                        id        : runId,
+                    version: System.currentTimeMillis(),
+                    job: [
+                        id: runId,
                         correlator: project.path,
                     ],
-                    sha      : project.property('git-sha'),
-                    ref      : project.property('git-ref'),
-                    detector : [
-                        name   : project.tookitGroup(),
+                    sha: project.property('git-sha'),
+                    ref: project.property('git-ref'),
+                    detector: [
+                        name: project.tookitGroup(),
                         version: project.tookitVersion(),
-                        url    : project.tookitUrl(),
+                        url: project.tookitUrl(),
                     ],
                     manifests: manifests,
-                    scanned  : new Date(),
+                    scanned: new Date(),
                 ]
                 String jsonContent = jsonGenerator.toJson(requestBody)
 
@@ -216,19 +216,35 @@ allprojects {
                 reportFile.setText(JsonOutput.prettyPrint(jsonContent), 'UTF-8')
 
 
-                HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .timeout(Duration.ofMinutes(1))
-                    .uri(new URI("${project.property('repository-api-url')}/dependency-graph/snapshots"))
-                    .header('Authorization', "token ${project.property('github-actions-token')}")
-                    .header('Accept', 'application/vnd.github+json')
-                    .header('Content-Type', 'application/json;charset=UTF-8')
-                    .POST(HttpRequest.BodyPublishers.ofString(jsonContent, UTF_8))
-                    .build()
+                int maxAttempts = 3
+                int attempt = 0
+                while (true) {
+                    ++attempt
 
-                HttpResponse<String> httpResponse = HttpClient.newHttpClient().send(httpRequest, HttpResponse.BodyHandlers.ofString(UTF_8))
-                if (httpResponse.statusCode() >= 400) {
-                    throw new GradleException("Dependencies submitting REST API call returned ${httpResponse.statusCode()} error:\n${httpResponse.body()}")
-                } else {
+                    HttpRequest httpRequest = HttpRequest.newBuilder()
+                        .timeout(Duration.ofMinutes(1))
+                        .uri(new URI("${project.property('repository-api-url')}/dependency-graph/snapshots"))
+                        .header('Authorization', "token ${project.property('github-actions-token')}")
+                        .header('Accept', 'application/vnd.github+json')
+                        .header('Content-Type', 'application/json;charset=UTF-8')
+                        .POST(HttpRequest.BodyPublishers.ofString(jsonContent, UTF_8))
+                        .build()
+
+                    HttpResponse<String> httpResponse = HttpClient.newHttpClient().send(httpRequest, HttpResponse.BodyHandlers.ofString(UTF_8))
+                    int statusCode = httpResponse.statusCode()
+                    if (statusCode >= 400) {
+                        if (statusCode == 429
+                            || statusCode >= 500
+                        ) {
+                            if (attempt < maxAttempts) {
+                                Thread.sleep(5_000)
+                                continue
+                            }
+                        }
+
+                        throw new GradleException("Dependencies submitting REST API call returned ${httpResponse.statusCode()} error:\n${httpResponse.body()}")
+                    }
+
                     String responseBodyJson = httpResponse.body()
                     Map responseBody = new JsonSlurper().parseText(responseBodyJson)
                     if (responseBody.message) {
@@ -236,6 +252,8 @@ allprojects {
                     } else {
                         println responseBodyJson
                     }
+
+                    break
                 }
             }
         }
