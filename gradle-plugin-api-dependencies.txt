@@ -1,7 +1,6 @@
 # This file is generated automatically by `collectAllGradlePluginApiDependencies` Gradle task.
 # Do not modify it yourself unless you know what you are doing.
 
-classes-that-rely-on-gradle-internal-api:2f719e5cd5ee5d41b162b1f1c156a066dd6ae5806ed8d254ce799795e3ba2a2c
 com.gradle.publish:plugin-publish-plugin:1.2.0
 gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.1.7
 io.github.gradle-nexus:publish-plugin:1.3.0
@@ -19,3 +18,46 @@ org.ow2.asm:asm-commons:9.5
 org.ow2.asm:asm-tree:9.5
 org.ow2.asm:asm-util:9.5
 org.ow2.asm:asm:9.5
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.idea_settings.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils$1:28dc91ab6296c5713a580d6016bd84ab839bdda697bffd4e9da3e9060b5ad60b
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.idea_settings.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils$IfDebugEnabled:d55ccdc2da79008698e3187a985a97f3b3e4011fb1bab5b3a8d4ad0c9f41b10e
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.idea_settings.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils:b9714531ebf3ecb262194a08809b2d6d73030ae05fc041f8eb36513940e1d342
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.idea_settings.internal._relocated.name.remal.gradle_plugins.toolkit.PropertiesConventionUtils:cd49764ba28b84413801219b505295c8ddd9d02dd718400ec8e820bd68205369
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.idea_settings.internal._relocated.name.remal.gradle_plugins.toolkit.Version:c05c42c0ac3e2dad8e94638c97b1f794f5349958c953d94d2348b94aee48ed68
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.idea_settings.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils:498f1ae71dfd5d81750771ba65f9474d02109d1e41f4e702eebb9cc7a9a0b0df
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.lombok.internal._relocated.name.remal.gradle_plugins.toolkit.ClosureUtils:96b05e5f826ce8f9e82dd22a0dcc1bbe2a37afe31ee32d0378c2c52e05c7477f
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.lombok.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils$1:32daf782772ff38c253722e912e3f562a109ab23146a1c6c6da23556eef686c5
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.lombok.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils$IfDebugEnabled:ce6be789ae1fa749c104de579e6befa8ced3a9243ad4b4c407bef0f6e9c10722
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.lombok.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils:e447a7334aea2fe2a1385e956b9d67cbb74a7477f316372b75aa6e7c6c4eef0d
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.lombok.internal._relocated.name.remal.gradle_plugins.toolkit.ReportContainerUtils$ReportInfo$ReportInfoBuilder:cdb0330ac15e391a86be2315b13769aeaa49f5f62ade123a0654e5d59ed8255c
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.lombok.internal._relocated.name.remal.gradle_plugins.toolkit.ReportContainerUtils$ReportInfo:2d641cbb8c27b6cca8265e460a676ae3e88377bd98893169131dce4e0ad552d
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.lombok.internal._relocated.name.remal.gradle_plugins.toolkit.ReportContainerUtils:f606398a53a29c04bef7f0aa12df1961a52ccf547db6502cf4b2909efb513667
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.lombok.internal._relocated.name.remal.gradle_plugins.toolkit.ServiceRegistryUtils:55ed0255a93f171ee2919ca05320dd4b38d31dc5856832660fe82a7495cf5f59
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.lombok.internal._relocated.name.remal.gradle_plugins.toolkit.TaskUtils:17e418a676820dfc91014b588d34aa87c0a3ffc375b82773ffda9440b29c30d4
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.lombok.internal._relocated.name.remal.gradle_plugins.toolkit.Version:17d5d7ce67bfbf01a0535423d278780d778507666dcfb4ed4a233585b659da37
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.lombok.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils:a6f0153ed6bff69b0e26cd469f23cb3656371f7642cdc20c2788f2e64eb62f94
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.SonarLintPlugin:aee3440833a1b23dd3c46902fe0e6a3e362cb79d4f58c6e5ebde597e6ab6603d
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.ClosureUtils:bb14e8fec3efc2cf5c47ae3ab51baee5859bd34a15de65db095f0b6cc87ab69b
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils$1:5ecc5eecbcfd5dc24f8f230262cc1c1109f7c9776e9c7a899a2cd8ad0080f2c5
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils$IfDebugEnabled:8bb322723d88a7ec244a69821ddd036f5aac55a2532dd1f309ffdc7cc57f72b7
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils:b6d906eb30e2a34e51195b32701128618edf289b810cc3fecc80dfa2d62104f8
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.FileTreeElementUtils:1af85fbfa51ee7ad7a5b76f0f2ebfd2e1f6c944f71b18efc9b32a7105f3de7aa
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.PropertiesConventionUtils:b88cb6c5a417a7be061e8594a44c1f3dcb9c0ece4e43293d964a37ad2edcd154
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.ReportContainerUtils$ReportInfo$ReportInfoBuilder:cc8becdbfa25ede1c2f8033e57d892de3b45bce576ad8ddbc029d01561c4b790
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.ReportContainerUtils$ReportInfo:b9e27dfd35609cd5c6bfb1c4295bbdaf8bf44e981a1776b70bebf080e45a9347
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.ReportContainerUtils:5219beeb68a8a102d409c9fdb308c8a35e4920efc7a5303d2328b3580710859b
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.ServiceRegistryUtils:6738f7534236020ea246b50d4022e464db191cfc625e3755080928f15bab4f77
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.SourceSetUtils$1:bbeb57aea83f4a898511ee8c5cb51f5527071c649a55436eb63cd3c11c6d9585
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.SourceSetUtils:ec3127dda4d9bbb31bba97ad874b233f0da71ae8f358308a8c8683fb2df50252
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.Version:95dbe8046df31a4235b79f4c7a88e306b2ed6bc8b01d81532f57a066df4da73d
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils:f20a51ca4aa6682af6d35fe5b7bf285efdffb3e43b3182db2bc015bd489af23d
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.test_source_sets.internal._relocated.name.remal.gradle_plugins.toolkit.ConventionUtils:524d01b0ca0617434472e8ab23e390e4da2c6e225324c35ec6579f7845dfd3e3
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.test_source_sets.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils$1:376c2bc1997b8b28f1f6e5a4354ef4c78cc6207e40ed08488434a09351734867
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.test_source_sets.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils$IfDebugEnabled:bb30655a4a49e4c1f6b42c1537ca5b2470fda07000265f0cb0724f094f2b666e
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.test_source_sets.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils:f6ec80c8bb4b34e5af9993ca1cfd9f921da0d2cad9217d4c83b01a38c7dbb473
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.test_source_sets.internal._relocated.name.remal.gradle_plugins.toolkit.Version:718531c656c80d8aa03a1a0ffa9a2cc4c54114e9133564150a6533196a1d30fe
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.test_source_sets.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils:deea9fd2005a9b0774427c56709956e4ca003c0236f4ae48c40751768c7c761d
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.toolkit.build_logic.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils$1:3b5a39c2fd576598bf777acfe61ad5ed1f5bd94a53cfe224a40d5552e92e29
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.toolkit.build_logic.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils$IfDebugEnabled:842440c89bc88c9de6f054c42dbf94de1eb97e64d065cdca62e84436e0cf6613
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.toolkit.build_logic.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils:a69f26e29c4399d300ff633e96444bd2381943a00c7c4b251eccc8689f75de73
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.toolkit.build_logic.internal._relocated.name.remal.gradle_plugins.toolkit.Version:c5b4d773396e94939a76cc0b16cd28f48be6167f6d21ef7ba9450c4253f88202
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.toolkit.build_logic.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils:3575a4cceaf9b5104da1e9b79f8262ce52e9bd08fed9577fa127cf89d932a98
