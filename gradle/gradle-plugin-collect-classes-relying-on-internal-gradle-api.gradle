@@ -5,7 +5,10 @@ import java.security.MessageDigest
 import java.util.function.Function
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.tree.AbstractInsnNode
 import org.objectweb.asm.tree.ClassNode
+import org.objectweb.asm.tree.LineNumberNode
+import org.objectweb.asm.tree.MethodNode
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -105,29 +108,35 @@ allprojects {
 
         tasks.named('collectGradlePluginApiDependencies').configure { dependsOn('classes') }
 
-        project.nonJavaApiDependencies.add(
+        project.nonJavaApiDependencies.addAll(
             provider {
                 Map<String, ClassNode> classesRelyingOnInternalApi = lazyClassesRelyingOnInternalApi.get()
-                if (classesRelyingOnInternalApi.isEmpty()) {
-                    return ''
-                }
-
-                MessageDigest messageDigest = MessageDigest.getInstance('SHA-256')
-                classesRelyingOnInternalApi.forEach { String className, ClassNode classNode ->
+                return classesRelyingOnInternalApi.collect { String className, ClassNode classNode ->
                     classNode.fields = classNode.fields?.toSorted(Comparator.comparing((Function) { it.name }))
                     classNode.methods = classNode.methods?.toSorted(Comparator.comparing((Function) { it.name }).thenComparing((Function) { it.desc }))
+
+                    classNode.methods?.forEach { MethodNode methodNode ->
+                        Iterator<AbstractInsnNode> instructions = (methodNode.instructions ?: []).iterator()
+                        while (instructions.hasNext()) {
+                            def instruction = instructions.next()
+                            if (instruction instanceof LineNumberNode) {
+                                instructions.remove()
+                            }
+                        }
+                    }
 
                     ClassWriter classWriter = new ClassWriter(classNode.api)
                     classNode.accept(classWriter)
 
                     byte[] bytes = classWriter.toByteArray()
+                    MessageDigest messageDigest = MessageDigest.getInstance('SHA-256')
                     messageDigest.update(className.getBytes('UTF-8'))
                     messageDigest.update(bytes)
                     messageDigest.update('\n'.getBytes('UTF-8'))
-                }
+                    String hash = new BigInteger(1, messageDigest.digest()).toString(16)
 
-                String hash = new BigInteger(1, messageDigest.digest()).toString(16)
-                return "classes-that-rely-on-gradle-internal-api:$hash"
+                    return "zzzz-classes-that-rely-on-gradle-internal-api:$className:$hash"
+                }
             }
         )
 
