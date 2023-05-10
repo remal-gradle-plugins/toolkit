@@ -12,7 +12,7 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.api.BuildTimeConstants.getClassDescriptor;
-import static name.remal.gradle_plugins.toolkit.ExtensionContainerUtils.findExtension;
+import static name.remal.gradle_plugins.toolkit.ExtensionContainerUtils.getExtension;
 import static name.remal.gradle_plugins.toolkit.ReportUtils.setReportDestination;
 import static name.remal.gradle_plugins.toolkit.ReportUtils.setReportEnabled;
 import static name.remal.gradle_plugins.toolkit.ServiceRegistryUtils.getService;
@@ -22,7 +22,6 @@ import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.getCl
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.tryLoadClass;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.unwrapGeneratedSubclass;
 import static org.gradle.api.reporting.Report.OutputType.DIRECTORY;
-import static org.gradle.api.reporting.ReportingExtension.DEFAULT_REPORTS_DIR_NAME;
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
 import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
 import static org.objectweb.asm.Opcodes.AASTORE;
@@ -76,6 +75,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.ReportingBasePlugin;
 import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportContainer;
@@ -573,42 +573,35 @@ public abstract class ReportContainerUtils {
         RC allReports,
         Callable<File> baseReportsDirProvider
     ) {
-        val project = task.getProject();
         @SuppressWarnings("unchecked") val allReportsTyped = (ReportContainer<Report>) allReports;
         val configurableReports = allReportsTyped.withType(ConfigurableReport.class);
+
+        val project = task.getProject();
+        val providers = project.getProviders();
+        project.getPluginManager().apply(ReportingBasePlugin.class);
+        val defaultBaseReportsDir = getExtension(project, ReportingExtension.class)
+            .getBaseDirectory()
+            .dir(getTaskTypeReportsDirName(task));
+        val taskName = task.getName();
         configurableReports.configureEach(report -> {
-            setReportDestination(report, project.provider(() -> {
+            setReportDestination(report, providers.provider(() -> {
                 File baseReportsDir = baseReportsDirProvider.call();
                 if (baseReportsDir == null) {
-                    baseReportsDir = getDefaultBaseReportsDirFor(task);
+                    baseReportsDir = defaultBaseReportsDir.get().getAsFile();
                 }
 
-                val taskReportsDir = new File(baseReportsDir, task.getName());
+                val taskReportsDir = new File(baseReportsDir, taskName);
 
                 if (report.getOutputType() == DIRECTORY) {
                     return new File(taskReportsDir, report.getName());
 
                 } else {
                     val reportFileExtension = getReportFileExtension(report);
-                    return new File(taskReportsDir, task.getName() + '.' + reportFileExtension);
+                    return new File(taskReportsDir, taskName + '.' + reportFileExtension);
                 }
             }));
         });
         return allReports;
-    }
-
-    private static File getDefaultBaseReportsDirFor(Task task) {
-        val project = task.getProject();
-        val reportingExtension = findExtension(project, ReportingExtension.class);
-
-        val allReportsDir = reportingExtension != null
-            ? reportingExtension.getBaseDir()
-            : new File(project.getBuildDir(), DEFAULT_REPORTS_DIR_NAME);
-
-        val taskTypeReportsDirName = getTaskTypeReportsDirName(task);
-        val taskTypeReportsDir = new File(allReportsDir, taskTypeReportsDirName);
-
-        return taskTypeReportsDir;
     }
 
     private static final List<String> TASK_TYPE_REPORTS_DIR_NAME_SUFFIXES_TO_REMOVE = ImmutableList.of(
