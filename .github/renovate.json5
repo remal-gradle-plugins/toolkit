@@ -3,5 +3,18 @@
   extends: ["github>remal-gradle-plugins/plugins-renovate-config:base"],
 
   // $$$sync-with-template-modifiable: local $$$
+
+  java: {
+    packageRules: [
+      {
+        // JGit 6 switched to Java 11
+        "packagePatterns": [
+          "^org\\.eclipse\\.jgit[.:]"
+        ],
+        "allowedVersions": "<= 5.9999",
+      }
+    ],
+  },
+
   // $$$sync-with-template-modifiable-end$$$
 }

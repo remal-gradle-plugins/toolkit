@@ -6,6 +6,7 @@ import static name.remal.gradle_plugins.toolkit.PathUtils.createParentDirectorie
 import static name.remal.gradle_plugins.toolkit.PathUtils.normalizePath;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +36,7 @@ class ProjectUtilsTest {
             archiveWriter.writeEntry("entry", new byte[]{3});
         }
 
-        val fileTree = ProjectUtils.newClasspathFileTree(project, List.of(
+        val fileTree = ProjectUtils.newClasspathFileTree(project, ImmutableList.of(
             fileA.getParent().toFile(),
             fileB.getParent().toFile(),
             archive.toFile()

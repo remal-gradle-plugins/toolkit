@@ -1,12 +1,13 @@
 package name.remal.gradle_plugins.toolkit;
 
 import static java.lang.String.join;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.createTempDirectory;
-import static java.nio.file.Files.writeString;
-import static java.util.Map.entry;
+import static java.nio.file.Files.write;
 import static name.remal.gradle_plugins.toolkit.JavaSerializationUtils.deserializeFrom;
 import static name.remal.gradle_plugins.toolkit.JavaSerializationUtils.serializeToBytes;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 
 import java.nio.file.Path;
 import lombok.val;
@@ -32,12 +33,12 @@ class EditorConfigTest {
 
     @Test
     void withEditorConfig() throws Throwable {
-        writeString(tempDir.resolve(".editorconfig"), join(
+        write(tempDir.resolve(".editorconfig"), join(
             "\n",
             "[*]",
             "charset = utf-8",
             "end_of_line = lf"
-        ));
+        ).getBytes(UTF_8));
         assertThat(editorConfig.getPropertiesForFileExtension("txt"))
             .containsExactly(
                 entry("charset", "utf-8"),
@@ -47,10 +48,10 @@ class EditorConfigTest {
 
     @Test
     void noEditorConfigAndWithGitAttributes() throws Throwable {
-        writeString(tempDir.resolve(".gitattributes"), join(
+        write(tempDir.resolve(".gitattributes"), join(
             "\n",
             "*.txt working-tree-encoding=UTF-16 eol=CRLF"
-        ));
+        ).getBytes(UTF_8));
         assertThat(editorConfig.getPropertiesForFileExtension("txt"))
             .containsExactly(
                 entry("charset", "utf-16be"),
@@ -60,15 +61,15 @@ class EditorConfigTest {
 
     @Test
     void withEditorConfigAndWithGitAttributes() throws Throwable {
-        writeString(tempDir.resolve(".editorconfig"), join(
+        write(tempDir.resolve(".editorconfig"), join(
             "\n",
             "[*]",
             "charset = utf-8"
-        ));
-        writeString(tempDir.resolve(".gitattributes"), join(
+        ).getBytes(UTF_8));
+        write(tempDir.resolve(".gitattributes"), join(
             "\n",
             "*.txt working-tree-encoding=UTF-16 eol=CRLF"
-        ));
+        ).getBytes(UTF_8));
         assertThat(editorConfig.getPropertiesForFileExtension("txt"))
             .containsExactly(
                 entry("charset", "utf-8"),

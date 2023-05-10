@@ -9,7 +9,7 @@ allprojects {
         apply plugin: 'name.remal.insert-null-checks'
 
         java {
-            sourceCompatibility = JavaVersion.VERSION_1_8
+            sourceCompatibility = JavaVersion.toVersion(property('java-runtime.min-version'))
             targetCompatibility = sourceCompatibility
 
             consistentResolution {
@@ -118,6 +118,10 @@ allprojects {
         }
 
         dependencies {
+            relocateClasses 'org.apache.commons:commons-lang3'
+            relocateClasses 'org.apache.commons:commons-text'
+            relocateClasses 'com.google.guava:guava'
+
             compileOnlyAll 'com.google.code.findbugs:jsr305'
             compileOnlyAll 'org.jetbrains:annotations'
             compileOnlyAll 'name.remal:gradle-plugins-api'
@@ -138,6 +142,8 @@ allprojects {
             testImplementation 'org.junit.jupiter:junit-jupiter-params'
             testImplementation 'org.mockito:mockito-junit-jupiter'
             testImplementation 'org.assertj:assertj-core'
+            testImplementation 'org.apache.commons:commons-lang3'
+            testImplementation 'com.google.guava:guava'
 
             testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
         }
@@ -183,14 +189,6 @@ allprojects {
             }
         }
 
-        tasks.matching { it instanceof JavaForkOptions }.configureEach {
-            List<String> jvmArgs = it.jvmArgs
-            if (JavaVersion.VERSION_1_9 <= JavaVersion.current() && JavaVersion.current() <= JavaVersion.VERSION_16) {
-                jvmArgs += '--illegal-access=deny'
-            }
-            it.jvmArgs = jvmArgs
-        }
-
         tasks.withType(Jar).named(sourceSets.main.jarTaskName).configure {
             manifest {
                 attributes(
@@ -199,21 +197,20 @@ allprojects {
             }
         }
 
-        testSourceSets.configureEach { SourceSet testSourceSet ->
-            Set<String> testCompileTaskNames = [
-                'java',
-                'kotlin',
-                'groovy',
-                'scala',
-            ].collect { testSourceSet.getCompileTaskName(it) }.toSet()
-            tasks.withType(AbstractCompile).matching { testCompileTaskNames.contains(it.name) }.configureEach { AbstractCompile task ->
-                task.sourceCompatibility = JavaVersion.VERSION_11.toString()
-                task.targetCompatibility = sourceCompatibility.toString()
-            }
-        }
-
         tasks.withType(Test).configureEach {
-            if (name == 'test' && JavaVersion.current().isJava9Compatible()) {
+            JavaVersion javaVersionToTest = findProperty('java-runtime.version')?.with { JavaVersion.toVersion(it) }
+            if (javaVersionToTest != null) {
+                javaLauncher = javaToolchains.launcherFor {
+                    languageVersion = JavaLanguageVersion.of(javaVersionToTest.majorVersion)
+                }
+            }
+
+            JavaVersion effectiveJavaVersionToTest = javaVersionToTest ?: JavaVersion.current()
+            if (effectiveJavaVersionToTest.isJava9Compatible()) {
+                if (effectiveJavaVersionToTest <= JavaVersion.VERSION_16) {
+                    jvmArgs('--illegal-access=deny')
+                }
+
                 /*
                  * Required for `org.gradle.testfixtures.ProjectBuilder`.
                  * See https://github.com/gradle/gradle/issues/18647

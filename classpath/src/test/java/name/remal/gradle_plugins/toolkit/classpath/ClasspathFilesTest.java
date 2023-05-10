@@ -9,9 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.google.common.collect.ImmutableList;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import lombok.SneakyThrows;
@@ -51,12 +51,12 @@ class ClasspathFilesTest {
             try (val fileStream = newOutputStream(resource.toPath())) {
                 fileStream.write(new byte[]{1, 2, 3}, 0, 3);
             }
-            classpathFiles = new ClasspathFiles(List.of(file));
+            classpathFiles = new ClasspathFiles(ImmutableList.of(file));
         }
 
         @Test
         void getResourceNames() {
-            assertEquals(List.of(resourceName), List.copyOf(classpathFiles.getResourceNames()));
+            assertEquals(ImmutableList.of(resourceName), ImmutableList.copyOf(classpathFiles.getResourceNames()));
         }
 
         @Test
@@ -89,12 +89,12 @@ class ClasspathFilesTest {
                     zipStream.write(new byte[]{1, 2, 3}, 0, 3);
                 }
             }
-            classpathFiles = new ClasspathFiles(List.of(file));
+            classpathFiles = new ClasspathFiles(ImmutableList.of(file));
         }
 
         @Test
         void getResourceNames() {
-            assertEquals(List.of(resourceName), List.copyOf(classpathFiles.getResourceNames()));
+            assertEquals(ImmutableList.of(resourceName), ImmutableList.copyOf(classpathFiles.getResourceNames()));
         }
 
         @Test

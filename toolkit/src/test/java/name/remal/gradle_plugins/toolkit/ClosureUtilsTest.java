@@ -15,7 +15,7 @@ class ClosureUtilsTest {
 
     @Test
     void configureWith() {
-        ClosureUtils.configureWith(project, new Closure<>(this) {
+        ClosureUtils.configureWith(project, new Closure<Object>(this) {
             @Override
             @Nullable
             public Object call() {

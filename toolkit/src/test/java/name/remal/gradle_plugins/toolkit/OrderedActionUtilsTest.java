@@ -4,9 +4,9 @@ import static name.remal.gradle_plugins.toolkit.testkit.TaskActionsExecutor.exec
 import static name.remal.gradle_plugins.toolkit.testkit.TaskActionsExecutor.executeOnlyIfSpecs;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.google.common.collect.ImmutableList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
@@ -25,7 +25,7 @@ class OrderedActionUtilsTest {
         val task = project.getTasks().create("test");
 
         Set<String> executedDoFirstActions = new LinkedHashSet<>();
-        OrderedActionUtils.doFirstOrdered(task, new OrderedAction<>() {
+        OrderedActionUtils.doFirstOrdered(task, new OrderedAction<Task>() {
             @Override
             @Pattern("[\\w.-]+")
             public String getId() {
@@ -37,7 +37,7 @@ class OrderedActionUtilsTest {
                 executedDoFirstActions.add(getId());
             }
         });
-        OrderedActionUtils.doFirstOrdered(task, new OrderedAction<>() {
+        OrderedActionUtils.doFirstOrdered(task, new OrderedAction<Task>() {
             @Override
             @Pattern("[\\w.-]+")
             public String getId() {
@@ -46,7 +46,7 @@ class OrderedActionUtilsTest {
 
             @Override
             public Collection<String> getShouldBeExecutedBefore() {
-                return List.of("2");
+                return ImmutableList.of("2");
             }
 
             @Override
@@ -54,7 +54,7 @@ class OrderedActionUtilsTest {
                 executedDoFirstActions.add(getId());
             }
         });
-        OrderedActionUtils.doFirstOrdered(task, new OrderedAction<>() {
+        OrderedActionUtils.doFirstOrdered(task, new OrderedAction<Task>() {
             @Override
             @Pattern("[\\w.-]+")
             public String getId() {
@@ -68,7 +68,7 @@ class OrderedActionUtilsTest {
         });
 
         Set<String> executedDoLastActions = new LinkedHashSet<>();
-        OrderedActionUtils.doLastOrdered(task, new OrderedAction<>() {
+        OrderedActionUtils.doLastOrdered(task, new OrderedAction<Task>() {
             @Override
             @Pattern("[\\w.-]+")
             public String getId() {
@@ -77,7 +77,7 @@ class OrderedActionUtilsTest {
 
             @Override
             public Collection<String> getShouldBeExecutedAfter() {
-                return List.of("1");
+                return ImmutableList.of("1");
             }
 
             @Override
@@ -85,7 +85,7 @@ class OrderedActionUtilsTest {
                 executedDoLastActions.add(getId());
             }
         });
-        OrderedActionUtils.doLastOrdered(task, new OrderedAction<>() {
+        OrderedActionUtils.doLastOrdered(task, new OrderedAction<Task>() {
             @Override
             @Pattern("[\\w.-]+")
             public String getId() {
@@ -97,7 +97,7 @@ class OrderedActionUtilsTest {
                 executedDoLastActions.add(getId());
             }
         });
-        OrderedActionUtils.doLastOrdered(task, new OrderedAction<>() {
+        OrderedActionUtils.doLastOrdered(task, new OrderedAction<Task>() {
             @Override
             @Pattern("[\\w.-]+")
             public String getId() {
