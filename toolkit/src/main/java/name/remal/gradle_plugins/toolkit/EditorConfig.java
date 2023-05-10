@@ -2,6 +2,7 @@ package name.remal.gradle_plugins.toolkit;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Objects.requireNonNull;
 import static name.remal.gradle_plugins.toolkit.LayoutUtils.getRootPathOf;
 import static name.remal.gradle_plugins.toolkit.ObjectUtils.isEmpty;
 import static name.remal.gradle_plugins.toolkit.PathUtils.normalizePath;
@@ -12,14 +13,25 @@ import static org.ec4j.core.model.PropertyType.charset;
 import static org.ec4j.core.model.PropertyType.end_of_line;
 
 import com.google.common.collect.ImmutableMap;
+import java.io.Externalizable;
 import java.io.File;
+import java.io.IOException;
+import java.io.InvalidObjectException;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.Serializable;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
+import lombok.AllArgsConstructor;
 import lombok.CustomLog;
+import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.ToString;
 import lombok.val;
@@ -40,7 +52,7 @@ import org.jetbrains.annotations.Unmodifiable;
 
 @ToString(of = "rootPath")
 @CustomLog
-public final class EditorConfig {
+public final class EditorConfig implements Serializable {
 
     private static final ErrorHandler ERROR_HANDLER = (context, errorEvent) -> {
         val message = format(
@@ -214,5 +226,46 @@ public final class EditorConfig {
         val value = properties.get(property.getName());
         return value != null ? converter.convert(value) : null;
     }
+
+
+    // region serialization
+
+    private Object writeReplace() {
+        return new EditorConfigSer(rootPath.toUri(), null);
+    }
+
+    private void readObject(ObjectInputStream inputStream) throws InvalidObjectException {
+        throw new InvalidObjectException("Deserialization via serialization delegate");
+    }
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    private static class EditorConfigSer implements Externalizable {
+
+        @Nullable
+        private URI rootPathUri;
+
+        @Nullable
+        private EditorConfig deserializedObject;
+
+        @Override
+        public void writeExternal(ObjectOutput out) throws IOException {
+            out.writeObject(rootPathUri);
+        }
+
+        @Override
+        public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+            rootPathUri = (URI) in.readObject();
+            val rootPath = Paths.get(rootPathUri);
+            deserializedObject = new EditorConfig(rootPath);
+        }
+
+        private Object readResolve() {
+            return requireNonNull(deserializedObject);
+        }
+
+    }
+
+    // endregion
 
 }

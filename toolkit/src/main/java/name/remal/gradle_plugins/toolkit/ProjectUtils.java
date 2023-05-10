@@ -1,6 +1,7 @@
 package name.remal.gradle_plugins.toolkit;
 
 import static java.util.Collections.emptyList;
+import static java.util.Objects.requireNonNull;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.PathUtils.normalizePath;
 
@@ -25,7 +26,7 @@ public abstract class ProjectUtils {
         val rootProject = project.getRootProject();
         val projectDir = normalizePath(rootProject.getProjectDir().toPath());
         if (isBuildSrcProject(project)) {
-            return projectDir.getParent();
+            return requireNonNull(projectDir.getParent());
         } else {
             return projectDir;
         }

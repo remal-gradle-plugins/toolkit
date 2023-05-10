@@ -4,9 +4,12 @@ import static java.lang.String.join;
 import static java.nio.file.Files.createTempDirectory;
 import static java.nio.file.Files.writeString;
 import static java.util.Map.entry;
+import static name.remal.gradle_plugins.toolkit.JavaSerializationUtils.deserializeFrom;
+import static name.remal.gradle_plugins.toolkit.JavaSerializationUtils.serializeToBytes;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Path;
+import lombok.val;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -71,6 +74,17 @@ class EditorConfigTest {
                 entry("charset", "utf-8"),
                 entry("end_of_line", "crlf")
             );
+    }
+
+    @Test
+    void serialization() throws Throwable {
+        val bytes = serializeToBytes(editorConfig);
+        val deserializedEditorConfig = deserializeFrom(bytes, EditorConfig.class);
+
+        assertThat(deserializedEditorConfig)
+            .isNotNull()
+            .asString()
+            .isEqualTo(editorConfig.toString());
     }
 
 }
