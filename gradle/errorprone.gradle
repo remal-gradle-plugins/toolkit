@@ -25,6 +25,7 @@ allprojects {
                     'ParameterName', // false positives with Lombok
                     'MissingOverride', // false positives with Lombok
                     'BugPatternNaming', // too strict rule
+                    'StringCaseLocaleUsage', // too strict rule
                 )
             }
         }
