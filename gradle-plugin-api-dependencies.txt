@@ -6,7 +6,7 @@ gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.1.7
 io.github.gradle-nexus:publish-plugin:1.3.0
 name.remal.gradle-plugins.idea-settings:idea-settings:3.0.2
 name.remal.gradle-plugins.lombok:lombok:2.1.0
-name.remal.gradle-plugins.sonarlint:sonarlint:3.1.1
+name.remal.gradle-plugins.sonarlint:sonarlint:3.1.2
 name.remal.gradle-plugins.test-source-sets:test-source-sets:3.0.1
 name.remal:gradle-plugins-api:1.8.3
 name.remal:gradle-plugins:1.8.3
@@ -35,7 +35,7 @@ zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.lombok.i
 zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.lombok.internal._relocated.name.remal.gradle_plugins.toolkit.TaskUtils:17e418a676820dfc91014b588d34aa87c0a3ffc375b82773ffda9440b29c30d4
 zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.lombok.internal._relocated.name.remal.gradle_plugins.toolkit.Version:17d5d7ce67bfbf01a0535423d278780d778507666dcfb4ed4a233585b659da37
 zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.lombok.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils:a6f0153ed6bff69b0e26cd469f23cb3656371f7642cdc20c2788f2e64eb62f94
-zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.SonarLintPlugin:aee3440833a1b23dd3c46902fe0e6a3e362cb79d4f58c6e5ebde597e6ab6603d
+zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.SonarLintPlugin:eca67f5733936f097f532a3254657bfa4dfe301aa355fb4dce9e0c20e58deda4
 zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.ClosureUtils:bb14e8fec3efc2cf5c47ae3ab51baee5859bd34a15de65db095f0b6cc87ab69b
 zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils$1:5ecc5eecbcfd5dc24f8f230262cc1c1109f7c9776e9c7a899a2cd8ad0080f2c5
 zzzz-classes-that-rely-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils$IfDebugEnabled:8bb322723d88a7ec244a69821ddd036f5aac55a2532dd1f309ffdc7cc57f72b7
