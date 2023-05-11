@@ -80,4 +80,17 @@ allprojects {
     } else {
         throw new GradleException("Can't extract major version for version '$currentVersion'")
     }
+
+    if (project.isBuildSrcProject) {
+        Properties props = new Properties()
+        File gradlePropertiesFile = new File(rootProjectDir, 'gradle.properties')
+        if (gradlePropertiesFile.isFile()) {
+            gradlePropertiesFile.newInputStream().withCloseable { props.load(it) }
+        }
+        props.forEach { key, value ->
+            if (!project.hasProperty(key)) {
+                project.ext[key] = value
+            }
+        }
+    }
 }
