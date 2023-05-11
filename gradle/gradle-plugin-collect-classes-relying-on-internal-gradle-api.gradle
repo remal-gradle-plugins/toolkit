@@ -48,17 +48,37 @@ Closure<Boolean> isNodeAnnotatedWithReliesOnInternalGradleApi = { node ->
     return isNodeAnnotatedWith(node, 'ReliesOnInternalGradleApi')
 }
 
+DomainObjectSet<Project> projectsToCollectClassesRelyingOnInternalGradleApi = project.objects.domainObjectSet(Project)
+project.ext.projectsToCollectClassesRelyingOnInternalGradleApi = projectsToCollectClassesRelyingOnInternalGradleApi
+
+projectsToCollectClassesRelyingOnInternalGradleApi.all { Project currentProject ->
+    currentProject.pluginManager.withPlugin('java') {
+        currentProject.tasks.register('resolveMainSourceSetRuntimeClasspath') {
+            doLast {
+                currentProject.sourceSets.main.runtimeClasspath.files
+            }
+        }
+    }
+}
+
 allprojects {
+    pluginManager.withPlugin('java') {
+        projectsToCollectClassesRelyingOnInternalGradleApi.add(project)
+    }
+
     pluginManager.withPlugin('java-gradle-plugin') {
-        MapProperty<String, ClassNode> lazyClassesRelyingOnInternalApi = project.objects.mapProperty(String, ClassNode)
+        MapProperty<String, ClassNode> lazyClassesRelyingOnInternalApi =
+            project.objects.mapProperty(String, ClassNode)
         lazyClassesRelyingOnInternalApi.set(
             provider {
                 FileTree classesFileTree = project.files().asFileTree
-                for (File runtimeClasspathFile : sourceSets.main.runtimeClasspath.files) {
-                    if (runtimeClasspathFile.isDirectory()) {
-                        classesFileTree += project.fileTree(runtimeClasspathFile)
-                    } else if (runtimeClasspathFile.isFile()) {
-                        classesFileTree += project.zipTree(runtimeClasspathFile)
+                projectsToCollectClassesRelyingOnInternalGradleApi.forEach { currentProject ->
+                    for (File runtimeClasspathFile : currentProject.sourceSets.main.runtimeClasspath.files) {
+                        if (runtimeClasspathFile.isDirectory()) {
+                            classesFileTree += project.fileTree(runtimeClasspathFile)
+                        } else if (runtimeClasspathFile.isFile()) {
+                            classesFileTree += project.zipTree(runtimeClasspathFile)
+                        }
                     }
                 }
 
@@ -71,7 +91,9 @@ allprojects {
                     if (fileTreeElement.directory) return
 
                     ClassNode classNode = new ClassNode()
-                    fileTreeElement.open().withCloseable { new ClassReader(it).accept(classNode, SKIP_DEBUG | SKIP_FRAMES) }
+                    fileTreeElement.open().withCloseable {
+                        new ClassReader(it).accept(classNode, SKIP_DEBUG | SKIP_FRAMES)
+                    }
 
                     if (isNodeAnnotatedWithReliesOnInternalGradleApi(classNode)
                         || classNode.fields?.any { isNodeAnnotatedWithReliesOnInternalGradleApi(it) }
@@ -95,7 +117,9 @@ allprojects {
                             String className = relativePathToClassName(fileTreeElement.path)
                             classesRelyingOnInternalApi.computeIfAbsent(className) {
                                 ClassNode classNode = new ClassNode()
-                                fileTreeElement.open().withCloseable { new ClassReader(it).accept(classNode, SKIP_DEBUG | SKIP_FRAMES) }
+                                fileTreeElement.open().withCloseable {
+                                    new ClassReader(it).accept(classNode, SKIP_DEBUG | SKIP_FRAMES)
+                                }
                                 return classNode
                             }
                         }
@@ -106,14 +130,31 @@ allprojects {
         )
 
 
-        tasks.named('collectGradlePluginApiDependencies').configure { dependsOn('classes') }
+        tasks.named('collectGradlePluginApiDependencies').configure {
+            dependsOn('classes')
+            dependsOn(
+                provider {
+                    projectsToCollectClassesRelyingOnInternalGradleApi.collect { currentProject ->
+                        [
+                            currentProject.tasks.named('classes'),
+                            currentProject.tasks.named('resolveMainSourceSetRuntimeClasspath'),
+                        ]
+                    }.flatten()
+                }
+            )
+        }
 
         project.nonJavaApiDependencies.addAll(
             provider {
                 Map<String, ClassNode> classesRelyingOnInternalApi = lazyClassesRelyingOnInternalApi.get()
                 return classesRelyingOnInternalApi.collect { String className, ClassNode classNode ->
-                    classNode.fields = classNode.fields?.toSorted(Comparator.comparing((Function) { it.name }))
-                    classNode.methods = classNode.methods?.toSorted(Comparator.comparing((Function) { it.name }).thenComparing((Function) { it.desc }))
+                    classNode.fields = classNode.fields?.toSorted(
+                        Comparator.comparing((Function) { it.name })
+                    )
+                    classNode.methods = classNode.methods?.toSorted(
+                        Comparator.comparing((Function) { it.name })
+                            .thenComparing((Function) { it.desc })
+                    )
 
                     classNode.methods?.forEach { MethodNode methodNode ->
                         Iterator<AbstractInsnNode> instructions = (methodNode.instructions ?: []).iterator()
@@ -143,7 +184,7 @@ allprojects {
 
         project.apply plugin: 'reporting-base'
 
-        TaskProvider reportClassesRelyingOnInternalApi = tasks.register('reportClassesRelyingOnInternalApi') { Task task ->
+        TaskProvider reportTask = tasks.register('reportClassesRelyingOnInternalApi') { Task task ->
             task.dependsOn('classes')
 
             ListProperty<String> classNamesRelyingOnInternalApi = project.objects.listProperty(String)
@@ -151,7 +192,6 @@ allprojects {
                 provider {
                     lazyClassesRelyingOnInternalApi.get()
                         .keySet()
-                        .toList()
                         .toSorted()
                 }
             )
@@ -170,7 +210,7 @@ allprojects {
             }
         }
 
-        tasks.named('assemble').configure { dependsOn(reportClassesRelyingOnInternalApi) }
-        tasks.named('build').configure { dependsOn(reportClassesRelyingOnInternalApi) }
+        tasks.named('assemble').configure { dependsOn(reportTask) }
+        tasks.named('build').configure { dependsOn(reportTask) }
     }
 }
