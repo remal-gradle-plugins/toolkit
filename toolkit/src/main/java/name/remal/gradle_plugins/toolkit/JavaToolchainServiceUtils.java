@@ -1,12 +1,13 @@
 package name.remal.gradle_plugins.toolkit;
 
 import static lombok.AccessLevel.PRIVATE;
-import static name.remal.gradle_plugins.toolkit.ExtensionContainerUtils.findExtension;
 import static name.remal.gradle_plugins.toolkit.ExtensionContainerUtils.getExtension;
+import static name.remal.gradle_plugins.toolkit.ExtensionContainerUtils.getOptionalExtension;
 import static name.remal.gradle_plugins.toolkit.ServiceRegistryUtils.getService;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.isGetterOf;
 
 import java.util.function.BiFunction;
+import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -46,30 +47,43 @@ public abstract class JavaToolchainServiceUtils {
         }
     }
 
-    @SuppressWarnings("ConstantConditions")
     public static <T> Provider<T> getJavaToolchainToolProviderFor(
         Project project,
         BiFunction<JavaToolchainService, Action<? super JavaToolchainSpec>, Provider<T>> getter
     ) {
+        return getJavaToolchainToolProviderFor(project, getter, __ -> { });
+    }
+
+    public static <T> Provider<T> getJavaToolchainToolProviderFor(
+        Project project,
+        BiFunction<JavaToolchainService, Action<? super JavaToolchainSpec>, Provider<T>> getter,
+        Action<? super JavaToolchainSpec> configurer
+    ) {
         val javaToolchainService = getJavaToolchainServiceFor(project);
-        val currentJvmProvider = getter.apply(javaToolchainService, spec ->
-            spec.getLanguageVersion().set(JavaLanguageVersion.of(JavaVersion.current().getMajorVersion()))
-        );
+        val currentJvmProvider = getter.apply(javaToolchainService, spec -> {
+            spec.getLanguageVersion().convention(JavaLanguageVersion.of(JavaVersion.current().getMajorVersion()));
+            configurer.execute(spec);
+        });
 
         return project.provider(() -> {
-            val extension = findExtension(project, JavaPluginExtension.class);
-            if (extension != null) {
-                val toolchain = extension.getToolchain();
-                if (toolchain != null) {
-                    val provider = getter.apply(javaToolchainService, spec ->
-                        copyJavaToolchainSpec(toolchain, spec)
-                    );
-                    return provider.orElse(currentJvmProvider).get();
-                }
+            val toolchain = getJavaToolchainSpecOf(project);
+            if (toolchain != null) {
+                val provider = getter.apply(javaToolchainService, spec -> {
+                    copyJavaToolchainSpec(toolchain, spec);
+                    configurer.execute(spec);
+                });
+                return provider.orElse(currentJvmProvider).get();
             }
 
             return currentJvmProvider.get();
         });
+    }
+
+    @Nullable
+    public static JavaToolchainSpec getJavaToolchainSpecOf(Project project) {
+        return getOptionalExtension(project, JavaPluginExtension.class)
+            .map(JavaPluginExtension::getToolchain)
+            .orElse(null);
     }
 
     @SuppressWarnings("unchecked")
@@ -80,7 +94,7 @@ public abstract class JavaToolchainServiceUtils {
                 val propertyFrom = (Property<Object>) method.invoke(from);
                 val propertyTo = (Property<Object>) method.invoke(to);
                 if (propertyFrom != null && propertyTo != null) {
-                    propertyTo.set(propertyFrom);
+                    propertyTo.convention(propertyFrom);
                 }
             }
         }

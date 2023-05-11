@@ -4,6 +4,7 @@ import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.unwrapGeneratedSubclass;
 
 import java.util.Locale;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.val;
@@ -152,6 +153,10 @@ public abstract class ExtensionContainerUtils {
         }
 
         return extensions.getByName(name);
+    }
+
+    public static <T> Optional<T> getOptionalExtension(Object object, Class<T> type) {
+        return Optional.ofNullable(findExtension(object, type));
     }
 
 
