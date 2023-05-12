@@ -9,7 +9,7 @@ allprojects {
         apply plugin: 'name.remal.insert-null-checks'
 
         java {
-            sourceCompatibility = JavaVersion.toVersion(property('java-runtime.min-version'))
+            sourceCompatibility = project.javaRuntimeMinVersion
             targetCompatibility = sourceCompatibility
 
             consistentResolution {
@@ -140,7 +140,6 @@ allprojects {
 
             testImplementation 'org.junit.jupiter:junit-jupiter-api'
             testImplementation 'org.junit.jupiter:junit-jupiter-params'
-            testImplementation 'org.mockito:mockito-junit-jupiter'
             testImplementation 'org.assertj:assertj-core'
             testImplementation 'org.apache.commons:commons-lang3'
             testImplementation 'com.google.guava:guava'
@@ -153,6 +152,38 @@ allprojects {
                 relocateClasses 'name.remal.gradle-plugins.toolkit:toolkit'
                 testImplementation 'name.remal.gradle-plugins.toolkit:testkit'
             }
+        }
+
+        Configuration mockito4Conf = configurations.create('mockito4') { Configuration conf ->
+            conf.canBeConsumed = false
+            conf.dependencies.addAll(
+                [
+                    project.dependencies.platform('org.mockito:mockito-bom:4.11.0'),
+                    project.dependencies.create('org.mockito:mockito-junit-jupiter'),
+                    project.dependencies.create('org.mockito:mockito-inline'),
+                ]
+            )
+        }
+        Configuration mockito5Conf = configurations.create('mockito5') { Configuration conf ->
+            conf.canBeConsumed = false
+            conf.dependencies.addAll(
+                [
+                    project.dependencies.platform('org.mockito:mockito-bom:5.3.1'),
+                    project.dependencies.create('org.mockito:mockito-junit-jupiter'),
+                ]
+            )
+        }
+        configurations.create('mockito') { Configuration conf ->
+            conf.canBeResolved = false
+            conf.canBeConsumed = false
+            if ((project.isJavaRuntimeVersionSet && project.javaRuntimeVersion.isJava11Compatible())
+                || (!project.isJavaRuntimeVersionSet && project.javaRuntimeMinVersion.isJava11Compatible())
+            ) {
+                conf.extendsFrom(mockito5Conf)
+            } else {
+                conf.extendsFrom(mockito4Conf)
+            }
+            configurations.testImplementation.extendsFrom(conf)
         }
 
         sourceSets.all { SourceSet sourceSet ->
@@ -198,16 +229,12 @@ allprojects {
         }
 
         tasks.withType(Test).configureEach {
-            JavaVersion javaVersionToTest = findProperty('java-runtime.version')?.with { JavaVersion.toVersion(it) }
-            if (javaVersionToTest != null) {
-                javaLauncher = javaToolchains.launcherFor {
-                    languageVersion = JavaLanguageVersion.of(javaVersionToTest.majorVersion)
-                }
+            javaLauncher = javaToolchains.launcherFor {
+                languageVersion = JavaLanguageVersion.of(project.javaRuntimeVersion.majorVersion)
             }
 
-            JavaVersion effectiveJavaVersionToTest = javaVersionToTest ?: JavaVersion.current()
-            if (effectiveJavaVersionToTest.isJava9Compatible()) {
-                if (effectiveJavaVersionToTest <= JavaVersion.VERSION_16) {
+            if (project.javaRuntimeVersion.isJava9Compatible()) {
+                if (project.javaRuntimeVersion <= JavaVersion.VERSION_16) {
                     jvmArgs('--illegal-access=deny')
                 }
 

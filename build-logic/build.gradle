@@ -26,13 +26,11 @@ afterEvaluate {
     tasks.matching { isVerificationTask(it) }.all {
         boolean shouldBeDisabled = false
 
-        JavaVersion javaVersionToTest = findProperty('java-runtime.version')?.with { JavaVersion.toVersion(it) }
-        if (javaVersionToTest != null && javaVersionToTest < JavaVersion.current()) {
+        if (project.javaRuntimeVersion < JavaVersion.current()) {
             shouldBeDisabled = true
         }
 
-        GradleVersion gradleVersionToTest = findProperty('gradle-api.version')?.with { GradleVersion.version(it) }
-        if (gradleVersionToTest != null && gradleVersionToTest < GradleVersion.current()) {
+        if (project.gradleApiVersion < GradleVersion.current()) {
             shouldBeDisabled = true
         }
 

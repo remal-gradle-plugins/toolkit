@@ -6,9 +6,13 @@ allprojects {
     pluginManager.withPlugin('net.ltgt.errorprone') {
         dependencies {
             errorprone 'com.google.errorprone:error_prone_core'
-            errorprone 'org.mockito:mockito-errorprone'
 
             compileOnlyAll 'com.google.errorprone:error_prone_annotations'
+        }
+
+        configurations.errorprone.extendsFrom(configurations.mockito)
+        dependencies {
+            errorprone 'org.mockito:mockito-errorprone'
         }
 
         tasks.withType(JavaCompile).configureEach {
