@@ -9,8 +9,8 @@ import static name.remal.gradle_plugins.toolkit.GradleVersionUtils.isCurrentGrad
 import static name.remal.gradle_plugins.toolkit.GradleVersionUtils.isCurrentGradleVersionLessThan;
 import static name.remal.gradle_plugins.toolkit.ObjectUtils.isEmpty;
 import static name.remal.gradle_plugins.toolkit.PredicateUtils.not;
-import static name.remal.gradle_plugins.toolkit.PredicateUtils.startsWithString;
 import static name.remal.gradle_plugins.toolkit.StringUtils.escapeGroovy;
+import static name.remal.gradle_plugins.toolkit.internal.Flags.IS_IN_FUNCTION_TEST_FLAG;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -170,27 +170,6 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
         new ArrayList<>(DEFAULT_SUPPRESSED_OPTIMIZATIONS_DISABLED_WARNINGS);
 
 
-    private static final List<String> DEFAULT_CONFIGURATION_CACHE_WARNINGS = ImmutableList.of(
-        "problem was found storing the configuration cache",
-        "problems were found storing the configuration cache"
-    );
-
-    @Getter(NONE)
-    private final List<String> configurationCacheWarnings =
-        new ArrayList<>(DEFAULT_CONFIGURATION_CACHE_WARNINGS);
-
-    private static final List<SuppressedMessage> DEFAULT_SUPPRESSED_CONFIGURATION_CACHE_WARNINGS = ImmutableList.of(
-        SuppressedMessage.builder()
-            .startsWith(true)
-            .message("0 problems were found storing the configuration cache")
-            .build()
-    );
-
-    @Getter(NONE)
-    private final List<SuppressedMessage> suppressedConfigurationCacheWarnings =
-        new ArrayList<>(DEFAULT_SUPPRESSED_CONFIGURATION_CACHE_WARNINGS);
-
-
     @Contract("_ -> this")
     @CanIgnoreReturnValue
     public final synchronized GradleProject addDeprecationMessage(String message) {
@@ -240,24 +219,6 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
     ) {
         assertIsNotBuilt();
         suppressedOptimizationsDisabledWarnings.add(suppressedMessage);
-        return this;
-    }
-
-    @Contract("_ -> this")
-    @CanIgnoreReturnValue
-    public final synchronized GradleProject addConfigurationCacheWarning(String message) {
-        assertIsNotBuilt();
-        configurationCacheWarnings.add(message);
-        return this;
-    }
-
-    @Contract("_ -> this")
-    @CanIgnoreReturnValue
-    public final synchronized GradleProject addSuppressedConfigurationCacheWarning(
-        SuppressedMessage suppressedMessage
-    ) {
-        assertIsNotBuilt();
-        suppressedConfigurationCacheWarnings.add(suppressedMessage);
         return this;
     }
 
@@ -347,7 +308,6 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
                 assertNoDeprecationMessages(outputLines);
                 assertNoMutableProjectStateWarnings(outputLines);
                 assertNoOptimizationsDisabledWarnings(outputLines);
-                assertNoConfigurationCacheWarnings(outputLines);
 
             } catch (Throwable e) {
                 buildException = e;
@@ -372,6 +332,7 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
             .forwardOutput()
             //.withDebug(isDebugEnabled())
             .withArguments(
+                format("-D%s=true", IS_IN_FUNCTION_TEST_FLAG),
                 "--stacktrace",
                 "--warning-mode=all",
                 "-Dorg.gradle.parallel=true",
@@ -396,7 +357,7 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
                     runner.getArguments().stream(),
                     Stream.of(
                         "--configuration-cache",
-                        "--configuration-cache-problems=warn"
+                        "--configuration-cache-problems=fail"
                     )
                 ).collect(toList()));
             }
@@ -493,21 +454,6 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
         if (!errors.isEmpty()) {
             val sb = new StringBuilder();
             sb.append("Optimizations disabled warnings were found:");
-            errors.forEach(it -> sb.append("\n  * ").append(it));
-            throw new AssertionError(sb.toString());
-        }
-    }
-
-    private void assertNoConfigurationCacheWarnings(List<String> outputLines) {
-        val errors = parseErrors(
-            outputLines,
-            configurationCacheWarnings,
-            suppressedConfigurationCacheWarnings,
-            startsWithString("See the complete report at ")
-        );
-        if (!errors.isEmpty()) {
-            val sb = new StringBuilder();
-            sb.append("Configuration cache warnings were found:");
             errors.forEach(it -> sb.append("\n  * ").append(it));
             throw new AssertionError(sb.toString());
         }

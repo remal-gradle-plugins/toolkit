@@ -24,6 +24,7 @@ allprojects {
         }
     }
 
+    gradle.startParameter.continueOnFailure = true
     //gradle.startParameter.showStacktrace = 'ALWAYS'
 
     tasks.create('downloadDependencies') {
