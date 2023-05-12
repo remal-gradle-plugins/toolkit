@@ -9,6 +9,10 @@ allprojects {
         apply plugin: 'name.remal.insert-null-checks'
 
         java {
+            toolchain {
+                languageVersion = JavaLanguageVersion.of(project.javaRuntimeVersion.majorVersion)
+            }
+
             sourceCompatibility = project.javaRuntimeMinVersion
             targetCompatibility = sourceCompatibility
 
@@ -41,13 +45,13 @@ allprojects {
             }
         }
 
-        Configuration indirectApiConf = configurations.create('indirectApi') { Configuration conf ->
+        configurations.create('indirectApi') { Configuration conf ->
             conf.canBeResolved = false
             conf.canBeConsumed = false
             conf.description = "Indirect API dependencies (form example: default dependencies for configurations that are created by the plugin)"
         }
 
-        Configuration compileOnlyAllConf = configurations.create('compileOnlyAll') { Configuration conf ->
+        configurations.create('compileOnlyAll') { Configuration conf ->
             conf.canBeResolved = false
             conf.canBeConsumed = false
             conf.description = "Compile-only dependencies for all source-sets"
@@ -56,7 +60,7 @@ allprojects {
             }
         }
 
-        Configuration optionalConf = configurations.create('optional') { Configuration conf ->
+        configurations.create('optional') { Configuration conf ->
             conf.canBeResolved = false
             conf.canBeConsumed = false
             conf.description = "Optional dependencies"
@@ -69,7 +73,7 @@ allprojects {
             }
         }
 
-        Configuration optionalHiddenConf = configurations.create('optionalHidden') { Configuration conf ->
+        configurations.create('optionalHidden') { Configuration conf ->
             conf.canBeResolved = true
             conf.canBeConsumed = false
             conf.description = "Optional dependencies hidden from IDE"
@@ -98,7 +102,7 @@ allprojects {
             project.createConfigurationResolveTask(conf)
         }
 
-        Configuration aptConf = configurations.create('apt') { Configuration conf ->
+        configurations.create('apt') { Configuration conf ->
             conf.canBeResolved = false
             conf.canBeConsumed = false
             conf.description = "Annotation processors and compile-only dependencies for all source-sets"
@@ -108,7 +112,7 @@ allprojects {
             }
         }
 
-        Configuration annotationProcessorAllConf = configurations.create('annotationProcessorAll') { Configuration conf ->
+        configurations.create('annotationProcessorAll') { Configuration conf ->
             conf.canBeResolved = false
             conf.canBeConsumed = false
             conf.description = "Annotation processors for all source-sets"
