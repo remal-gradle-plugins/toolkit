@@ -9,12 +9,7 @@ allprojects {
         apply plugin: 'name.remal.insert-null-checks'
 
         java {
-            toolchain {
-                languageVersion = JavaLanguageVersion.of(project.javaRuntimeVersion.majorVersion)
-            }
-
-            sourceCompatibility = project.javaRuntimeMinVersion
-            targetCompatibility = sourceCompatibility
+            sourceCompatibility = targetCompatibility = project.javaRuntimeMinVersion
 
             consistentResolution {
                 useCompileClasspathVersions()
