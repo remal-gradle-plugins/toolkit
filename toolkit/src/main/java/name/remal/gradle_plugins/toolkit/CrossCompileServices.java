@@ -13,6 +13,7 @@ import static name.remal.gradle_plugins.toolkit.CrossCompileVersionComparator.st
 import static name.remal.gradle_plugins.toolkit.CrossCompileVersionComparisonResult.DEPENDENCY_EQUALS_TO_CURRENT;
 import static name.remal.gradle_plugins.toolkit.CrossCompileVersionComparisonResult.DEPENDENCY_GREATER_THAN_CURRENT;
 import static name.remal.gradle_plugins.toolkit.CrossCompileVersionComparisonResult.DEPENDENCY_LESS_THAN_CURRENT;
+import static name.remal.gradle_plugins.toolkit.FunctionUtils.toSubstringedBefore;
 import static name.remal.gradle_plugins.toolkit.PredicateUtils.not;
 import static name.remal.gradle_plugins.toolkit.ResourceUtils.readResource;
 import static name.remal.gradle_plugins.toolkit.UrlUtils.readStringFromUrl;
@@ -161,15 +162,12 @@ public abstract class CrossCompileServices {
         Set<String> implClassNames = new LinkedHashSet<>();
 
         val resourceName = "META-INF/services/" + service.getName();
-        val resourceUrls = service.getClassLoader().getResources(resourceName);
+        val resourceUrls = requireNonNull(service.getClassLoader()).getResources(resourceName);
         while (resourceUrls.hasMoreElements()) {
             val resourceUrl = resourceUrls.nextElement();
             val content = readStringFromUrl(resourceUrl, UTF_8);
             Splitter.onPattern("[\\r\\n]+").splitToStream(content)
-                .map(line -> {
-                    val commentPos = line.indexOf('#');
-                    return commentPos >= 0 ? line.substring(0, commentPos) : line;
-                })
+                .map(toSubstringedBefore("#"))
                 .map(String::trim)
                 .filter(not(String::isEmpty))
                 .forEach(implClassNames::add);

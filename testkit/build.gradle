@@ -1,5 +1,6 @@
 apply plugin: 'java-library'
 apply plugin: 'maven-publish'
+apply plugin: 'name.remal.generate-sources'
 
 dependencies {
     optional 'name.remal.gradle-api:gradle-test-kit'
@@ -10,4 +11,43 @@ dependencies {
 
     testImplementation 'org.junit.jupiter:junit-jupiter-engine'
     testImplementation 'org.junit.platform:junit-platform-testkit'
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+tasks.named('generateJava') { Task it ->
+    Set<ResolvedDependency> settingsBuildscriptClasspathDependencies = project.settingsBuildscriptClasspathDependencies
+    Set<ResolvedArtifact> settingsBuildscriptClasspathArtifacts = project.settingsBuildscriptClasspathArtifacts
+    inputs.files(settingsBuildscriptClasspathArtifacts.collect { it.file })
+        .withPropertyName('settingsBuildscriptClasspathArtifacts')
+        .optional()
+    classFile("${project.calculateBaseJavaPackage()}.functional", 'GradleSettingsPluginVersions') {
+        it.writePackage()
+        it.println("")
+        it.writeStaticImport("lombok.AccessLevel", "PRIVATE")
+        it.println("")
+        it.writeImport("com.google.common.collect.ImmutableMap")
+        it.writeImport("java.util.Map")
+        it.writeImport("lombok.NoArgsConstructor")
+        it.writeImport("lombok.val")
+        it.println("")
+        it.println("@NoArgsConstructor(access = PRIVATE)")
+        it.writeBlock("abstract class ${it.simpleName}") {
+            it.println("")
+            it.println("private static final Map<String, String> VERSIONS = ImmutableMap.<String, String>builder()")
+            settingsBuildscriptClasspathDependencies.forEach { ResolvedDependency dep ->
+                it.println("    .put(\"${it.escapeJava("${dep.moduleGroup}:${dep.moduleName}")}\", \"${it.escapeJava(dep.moduleVersion)}\")")
+            }
+            it.println("    .build();")
+
+            it.println("")
+            it.writeBlock("public static String getSettingsBuildscriptClasspathDependencyVersion(String id)") {
+                it.println("val version = VERSIONS.get(id);")
+                it.writeBlock("if (version == null)") {
+                    it.println("throw new IllegalStateException(\"Settings buildscript dependency is not registered: \" + id);")
+                }
+                it.println("return version;")
+            }
+        }
+    }
 }

@@ -11,6 +11,7 @@ import static name.remal.gradle_plugins.toolkit.ObjectUtils.isEmpty;
 import static name.remal.gradle_plugins.toolkit.PredicateUtils.not;
 import static name.remal.gradle_plugins.toolkit.StringUtils.escapeGroovy;
 import static name.remal.gradle_plugins.toolkit.internal.Flags.IS_IN_FUNCTION_TEST_ENV_VAR;
+import static name.remal.gradle_plugins.toolkit.testkit.functional.GradleSettingsPluginVersions.getSettingsBuildscriptClasspathDependencyVersion;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -45,6 +46,7 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
     private static final Duration DEFAULT_TASK_TIMEOUT = Duration.ofMinutes(1);
 
     private static final GradleVersion MIN_GRADLE_VERSION_WITH_CONFIGURATION_CACHE = GradleVersion.version("6.6");
+    private static final GradleVersion MIN_GRADLE_VERSION_WITH_TOOLCHAIN_RESOLVER = GradleVersion.version("7.6");
 
 
     protected final Map<String, GradleChildProject> children = synchronizedMap(new LinkedHashMap<>());
@@ -104,11 +106,15 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
             .startsWith(true)
             .message("Java toolchain auto-provisioning enabled"
                 + ", but no java toolchain repositories declared by the build"
-                + ". Will rely on the built-in repository."
             )
-            .stackTracePrefix("org.gradle.jvm.toolchain.internal.JavaToolchainQueryService"
-                + ".warnIfAutoProvisioningOnWithoutRepositoryDefinitions("
+            .stackTracePrefix("org.gradle.jvm.toolchain.")
+            .build(),
+        SuppressedMessage.builder()
+            .startsWith(true)
+            .message("Using a toolchain installed via auto-provisioning"
+                + ", but having no toolchain repositories configured"
             )
+            .stackTracePrefix("org.gradle.jvm.toolchain.")
             .build(),
         SuppressedMessage.builder()
             .message("The DefaultSourceDirectorySet constructor has been deprecated")
@@ -224,6 +230,20 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
     }
 
 
+    private static final boolean IS_TOOLCHAINS_RESOLVER_AVAILABLE =
+        isCurrentGradleVersionGreaterThanOrEqualTo(MIN_GRADLE_VERSION_WITH_TOOLCHAIN_RESOLVER);
+
+    private boolean withToolchainsResolver = false;
+
+    @Contract("-> this")
+    @CanIgnoreReturnValue
+    public final synchronized GradleProject withToolchainsResolver() {
+        assertIsNotBuilt();
+        this.withToolchainsResolver = IS_TOOLCHAINS_RESOLVER_AVAILABLE;
+        return this;
+    }
+
+
     private boolean withPluginClasspath = true;
 
     @Contract("-> this")
@@ -289,8 +309,15 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
         if (buildResult == null) {
             final BuildResult currentBuildResult;
             try {
-                buildFile.writeToDisk();
+                if (withToolchainsResolver) {
+                    settingsFile.applyPlugin(
+                        "org.gradle.toolchains.foojay-resolver-convention",
+                        getSettingsBuildscriptClasspathDependencyVersion("org.gradle.toolchains:foojay-resolver")
+                    );
+                }
+
                 settingsFile.writeToDisk();
+                buildFile.writeToDisk();
                 children.values().forEach(child -> child.getBuildFile().writeToDisk());
 
                 val runner = createGradleRunner();

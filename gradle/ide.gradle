@@ -7,7 +7,7 @@ apply plugin: 'name.remal.idea-settings'
 
 idea.project {
     jdkName = '11'
-    targetBytecodeVersion = JavaVersion.VERSION_1_8
+    targetBytecodeVersion = JavaVersion.VERSION_17
     languageLevel = new IdeaLanguageLevel(targetBytecodeVersion.majorVersion)
 
     settings {

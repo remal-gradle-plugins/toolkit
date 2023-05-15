@@ -37,7 +37,7 @@ tasks.named('generateJava') { Task it ->
         it.writeImport("lombok.NoArgsConstructor")
         it.println("")
         it.println("@NoArgsConstructor(access = PRIVATE)")
-        it.writeBlock("abstract class ToolkitBuildInfo") {
+        it.writeBlock("abstract class ${it.simpleName}") {
             it.println("public static final String TOOLKIT_GROUP_ID = \"${it.escapeJava(project.group)}\";")
             it.println("public static final String TOOLKIT_ARTIFACT_IT = \"${it.escapeJava(project.name)}\";")
             it.println("public static final String TOOLKIT_VERSION = \"${it.escapeJava(project.version)}\";")
