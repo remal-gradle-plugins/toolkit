@@ -186,8 +186,19 @@ allprojects {
 
         TaskProvider reportTask = tasks.register('reportClassesRelyingOnInternalApi') { Task task ->
             task.dependsOn('classes')
+            dependsOn(
+                provider {
+                    projectsToCollectClassesRelyingOnInternalGradleApi.collect { currentProject ->
+                        [
+                            currentProject.tasks.named('classes'),
+                            currentProject.tasks.named('resolveMainSourceSetRuntimeClasspath'),
+                        ]
+                    }.flatten()
+                }
+            )
 
             ListProperty<String> classNamesRelyingOnInternalApi = project.objects.listProperty(String)
+            task.inputs.property('classNamesRelyingOnInternalApi', classNamesRelyingOnInternalApi)
             classNamesRelyingOnInternalApi.set(
                 provider {
                     lazyClassesRelyingOnInternalApi.get()
@@ -195,7 +206,6 @@ allprojects {
                         .toSorted()
                 }
             )
-            task.inputs.property('classNamesRelyingOnInternalApi', classNamesRelyingOnInternalApi)
 
             File reportFile = project.file("${project.reporting.baseDir}/${task.name}.txt")
             task.outputs.file(reportFile).withPropertyName('reportFile')

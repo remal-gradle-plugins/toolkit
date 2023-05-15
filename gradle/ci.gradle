@@ -27,6 +27,8 @@ allprojects {
     gradle.startParameter.continueOnFailure = true
     //gradle.startParameter.showStacktrace = 'ALWAYS'
 
+    project.ext.defaultJvmVendor = JvmVendorSpec.ADOPTIUM
+
     tasks.create('downloadDependencies') {
         doLast {
             project.configurations

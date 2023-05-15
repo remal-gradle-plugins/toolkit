@@ -219,6 +219,29 @@ allprojects {
             }
         }
 
+        tasks.withType(JavaCompile).configureEach {
+            onlyIf {
+                JavaVersion compatibilityVersion = JavaVersion.toVersion(targetCompatibility)
+                JavaCompiler compiler = javaToolchains.compilerFor {
+                    languageVersion = JavaLanguageVersion.of(compatibilityVersion.majorVersion)
+                    //vendor = project.defaultJvmVendor
+                }.get()
+                if (compatibilityVersion.isJava9Compatible()) {
+                    options.compilerArgs.addAll(
+                        [
+                            '--system',
+                            compiler.metadata.installationPath.asFile.getAbsolutePath()
+                        ]
+                    )
+                } else {
+                    options.bootstrapClasspath = project.files(
+                        compiler.metadata.installationPath.file("jre/lib/rt.jar")
+                    )
+                }
+                return true
+            }
+        }
+
         tasks.withType(Jar).named(sourceSets.main.jarTaskName).configure {
             manifest {
                 attributes(
@@ -230,6 +253,7 @@ allprojects {
         tasks.withType(Test).configureEach {
             javaLauncher = javaToolchains.launcherFor {
                 languageVersion = JavaLanguageVersion.of(project.javaRuntimeVersion.majorVersion)
+                //vendor = project.defaultJvmVendor
             }
 
             if (project.javaRuntimeVersion.isJava9Compatible()) {

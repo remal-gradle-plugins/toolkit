@@ -28,7 +28,6 @@ import org.immutables.value.Value.Style.ImplementationVisibility;
     typeBuilder = "*Builder",
     typeInnerBuilder = "BaseBuilder",
     allowedClasspathAnnotations = {
-        javax.annotation.processing.Generated.class,
         org.immutables.value.Generated.class,
         Nullable.class,
         Immutable.class,
@@ -37,6 +36,5 @@ import org.immutables.value.Value.Style.ImplementationVisibility;
     },
     depluralize = true
 )
-@SuppressWarnings("Since15")
 public @interface ToolkitValueStyle {
 }

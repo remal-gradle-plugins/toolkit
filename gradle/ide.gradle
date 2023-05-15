@@ -6,7 +6,7 @@ apply plugin: 'org.jetbrains.gradle.plugin.idea-ext'
 apply plugin: 'name.remal.idea-settings'
 
 idea.project {
-    jdkName = '11'
+    jdkName = '17'
     targetBytecodeVersion = JavaVersion.VERSION_17
     languageLevel = new IdeaLanguageLevel(targetBytecodeVersion.majorVersion)
 
