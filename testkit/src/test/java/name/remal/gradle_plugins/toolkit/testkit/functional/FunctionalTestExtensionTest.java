@@ -12,7 +12,7 @@ class FunctionalTestExtensionTest extends AbstractJupiterTestEngineTests {
 
     @ExtendWith(FunctionalTestExtension.class)
     @ExampleTests
-    @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
+    @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790", "NewClassNamingConvention"})
     static class SimpleExample {
 
         @Test

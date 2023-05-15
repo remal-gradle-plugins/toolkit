@@ -45,6 +45,7 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
 
     private static final Duration DEFAULT_TASK_TIMEOUT = Duration.ofMinutes(1);
 
+    private static final GradleVersion MIN_GRADLE_VERSION_WITH_RUNNER_ENVIRONMENT = GradleVersion.version("5.2");
     private static final GradleVersion MIN_GRADLE_VERSION_WITH_CONFIGURATION_CACHE = GradleVersion.version("6.6");
     private static final GradleVersion MIN_GRADLE_VERSION_WITH_TOOLCHAIN_RESOLVER = GradleVersion.version("7.6");
 
@@ -359,9 +360,6 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
             .withProjectDir(projectDir)
             .forwardOutput()
             //.withDebug(isDebugEnabled())
-            .withEnvironment(ImmutableMap.of(
-                IS_IN_FUNCTION_TEST_ENV_VAR, "true"
-            ))
             .withArguments(
                 "--stacktrace",
                 "--warning-mode=all",
@@ -376,6 +374,12 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
                 "-Djava.awt.headless=true",
                 "-Dorg.gradle.internal.launcher.welcomeMessageEnabled=false"
             );
+
+        if (isCurrentGradleVersionGreaterThanOrEqualTo(MIN_GRADLE_VERSION_WITH_RUNNER_ENVIRONMENT)) {
+            runner.withEnvironment(ImmutableMap.of(
+                IS_IN_FUNCTION_TEST_ENV_VAR, "true"
+            ));
+        }
 
         if (withPluginClasspath) {
             runner.withPluginClasspath();
