@@ -10,10 +10,11 @@ import static name.remal.gradle_plugins.toolkit.GradleVersionUtils.isCurrentGrad
 import static name.remal.gradle_plugins.toolkit.ObjectUtils.isEmpty;
 import static name.remal.gradle_plugins.toolkit.PredicateUtils.not;
 import static name.remal.gradle_plugins.toolkit.StringUtils.escapeGroovy;
-import static name.remal.gradle_plugins.toolkit.internal.Flags.IS_IN_FUNCTION_TEST_FLAG;
+import static name.remal.gradle_plugins.toolkit.internal.Flags.IS_IN_FUNCTION_TEST_ENV_VAR;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.io.File;
 import java.net.URI;
@@ -331,8 +332,10 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
             .withProjectDir(projectDir)
             .forwardOutput()
             //.withDebug(isDebugEnabled())
+            .withEnvironment(ImmutableMap.of(
+                IS_IN_FUNCTION_TEST_ENV_VAR, "true"
+            ))
             .withArguments(
-                format("-D%s=true", IS_IN_FUNCTION_TEST_FLAG),
                 "--stacktrace",
                 "--warning-mode=all",
                 "-Dorg.gradle.parallel=true",
