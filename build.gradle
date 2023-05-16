@@ -79,6 +79,7 @@ List<String> includedBuildScripts = [
     'gradle/checkstyle.gradle',
     'gradle/sonarlint.gradle',
     'gradle/javadoc.gradle',
+    'gradle/jacoco.gradle',
     'gradle/gradle-plugin.gradle',
     'gradle/gradle-plugin-collect-api-dependencies.gradle',
     'gradle/gradle-plugin-collect-classes-relying-on-internal-gradle-api.gradle',

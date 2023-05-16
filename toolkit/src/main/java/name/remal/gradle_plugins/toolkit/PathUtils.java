@@ -1,6 +1,7 @@
 package name.remal.gradle_plugins.toolkit;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
+import static java.nio.file.Files.copy;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.deleteIfExists;
 import static java.nio.file.Files.getLastModifiedTime;
@@ -10,6 +11,7 @@ import static lombok.AccessLevel.PRIVATE;
 import com.google.errorprone.annotations.CheckReturnValue;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.CopyOption;
 import java.nio.file.FileSystemException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.NoSuchFileException;
@@ -41,6 +43,25 @@ public abstract class PathUtils {
         }
 
         return file.getCanonicalFile().toPath();
+    }
+
+    @SneakyThrows
+    public static void copyRecursively(Path source, Path destination, CopyOption... options) {
+        val normalizedSource = normalizePath(source);
+        val normalizedDestination = normalizePath(destination);
+        walkFileTree(normalizedSource, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                createDirectories(normalizedDestination.resolve(normalizedSource.relativize(dir).toString()));
+                return CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                copy(file, normalizedDestination.resolve(normalizedSource.relativize(file).toString()), options);
+                return CONTINUE;
+            }
+        });
     }
 
     @Nullable

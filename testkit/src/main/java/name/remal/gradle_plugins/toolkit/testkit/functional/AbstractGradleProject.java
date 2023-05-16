@@ -1,14 +1,18 @@
 package name.remal.gradle_plugins.toolkit.testkit.functional;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.Files.newOutputStream;
 import static java.nio.file.Files.write;
+import static name.remal.gradle_plugins.toolkit.FileUtils.normalizeFile;
 import static name.remal.gradle_plugins.toolkit.PathUtils.createParentDirectories;
 import static name.remal.gradle_plugins.toolkit.PathUtils.normalizePath;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import com.google.errorprone.annotations.OverridingMethodsMustInvokeSuper;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
+import java.util.Properties;
 import java.util.function.Consumer;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -16,13 +20,14 @@ import lombok.val;
 import org.jetbrains.annotations.Contract;
 
 @Getter
-abstract class BaseGradleProject<Child extends BaseGradleProject<Child>> {
+abstract class AbstractGradleProject<Child extends AbstractGradleProject<Child>> {
 
     protected final File projectDir;
     protected final BuildFile buildFile;
+    protected final Properties gradleProperties = new Properties();
 
-    BaseGradleProject(File projectDir) {
-        this.projectDir = projectDir.getAbsoluteFile();
+    AbstractGradleProject(File projectDir) {
+        this.projectDir = normalizeFile(projectDir.getAbsoluteFile());
         this.buildFile = new BuildFile(this.projectDir);
     }
 
@@ -39,8 +44,30 @@ abstract class BaseGradleProject<Child extends BaseGradleProject<Child>> {
     @CanIgnoreReturnValue
     @SuppressWarnings("unchecked")
     public final Child forBuildFile(Consumer<BuildFile> buildFileConsumer) {
-        buildFileConsumer.accept(this.buildFile);
+        buildFileConsumer.accept(buildFile);
         return (Child) this;
+    }
+
+    @Contract("_ -> this")
+    @CanIgnoreReturnValue
+    @SuppressWarnings("unchecked")
+    public final synchronized Child forGradleProperties(Consumer<Properties> propertiesConsumer) {
+        propertiesConsumer.accept(gradleProperties);
+        return (Child) this;
+    }
+
+    @SneakyThrows
+    protected final void writeGradlePropertiesToDisk() {
+        val path = projectDir.toPath().resolve("gradle.properties");
+        try (val outputStream = newOutputStream(createParentDirectories(path))) {
+            gradleProperties.store(outputStream, null);
+        }
+    }
+
+    @OverridingMethodsMustInvokeSuper
+    protected void writeToDisk() {
+        buildFile.writeToDisk();
+        writeGradlePropertiesToDisk();
     }
 
     @Contract("_,_ -> this")

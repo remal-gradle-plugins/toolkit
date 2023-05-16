@@ -34,6 +34,7 @@ allprojects {
         }
 
         String errorproneVersion = '2.19.1'
+        String jacocoVersion = '0.8.10'
 
         conf.dependencies.addAll(
             [
@@ -70,6 +71,9 @@ allprojects {
                 // Test
                 "name.remal.gradle-api:gradle-test-kit:${project.gradleApiVersion.version}",
                 'org.assertj:assertj-core:3.24.2',
+                "org.jacoco:org.jacoco.agent:$jacocoVersion",
+                "org.jacoco:org.jacoco.ant:$jacocoVersion",
+                "org.jacoco:org.jacoco.core:$jacocoVersion",
             ].collect {
                 project.dependencies.constraints.create(it) { DependencyConstraint constraint ->
                     constraint.version { it.strictly(constraint.version) }

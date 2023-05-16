@@ -8,7 +8,7 @@ public class SettingsFile extends AbstractGradleFile<SettingsFile> {
 
     SettingsFile(File projectDir) {
         super(new File(projectDir, "settings.gradle"));
-        append("rootProject.name = '" + escapeGroovy(projectDir.getName()) + "'");
+        append("rootProject.name = '" + escapeGroovy(projectDir.getName().replace('.', '_')) + "'");
     }
 
 }

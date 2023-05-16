@@ -107,13 +107,11 @@ project.ext.disableTask = { Task task ->
 }
 
 project.ext.isVerificationTask = { Task task ->
-    if (task instanceof AbstractTestTask) {
-        return true
-    }
-    if (task instanceof VerificationTask) {
-        return true
-    }
-    if (task instanceof ValidatePlugins) {
+    if (task instanceof VerificationTask
+        || task instanceof AbstractTestTask
+        || task instanceof ValidatePlugins
+        || task instanceof JacocoCoverageVerification
+    ) {
         return true
     }
     return false

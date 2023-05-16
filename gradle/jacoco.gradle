@@ -1,0 +1,202 @@
+import static org.gradle.api.reporting.Report.OutputType
+
+import java.nio.channels.FileLock
+import java.nio.channels.OverlappingFileLockException
+import java.time.Duration
+
+if (project.isBuildSrcProject) return
+
+allprojects {
+    pluginManager.withPlugin('java') {
+        apply plugin: 'jacoco'
+    }
+
+    pluginManager.withPlugin('jacoco') {
+        jacoco {
+            toolVersion = project.configurations.projectDependencyConstraints
+                .allDependencyConstraints
+                .matching { it.group == 'org.jacoco' && it.name == 'org.jacoco.agent' }
+                .matching { it.version != null && !it.version.isEmpty() }
+                .first()
+                .version
+        }
+
+        tasks.withType(Test).configureEach { Test task ->
+            task.onlyIf {
+                JacocoTaskExtension jacocoTaskExtension = task.extensions.getByType(JacocoTaskExtension)
+                jacocoTaskExtension.excludes.add('org.gradle.*')
+                return true
+            }
+        }
+
+        tasks.withType(JacocoReport).configureEach {
+            reports.html.required = true
+            reports.xml.required = true
+        }
+
+        tasks.withType(Test).all { Test testTask ->
+            TaskCollection<JacocoReport> reportTasks = tasks.withType(JacocoReport).matching { it.name == "jacoco${name.capitalize()}Report" }
+            //testTask.finalizedBy(reportTasks)
+            reportTasks.all { JacocoReport reportTask ->
+                reportTask.dependsOn(testTask)
+            }
+        }
+
+        tasks.withType(Test).matching { it.name == 'testFunctional' }.configureEach { Test task ->
+            task.ignoreFailures = true
+
+            FailsCounterTestListener failsCounterTestListener = new FailsCounterTestListener()
+            task.addTestListener(failsCounterTestListener)
+
+            task.doLast {
+                JacocoTaskExtension jacocoTaskExtension = task.extensions.getByType(JacocoTaskExtension)
+                File execFile = jacocoTaskExtension.destinationFile
+                if (execFile == null) return
+
+                long startTime = System.nanoTime()
+                long maxTimeout = Duration.ofSeconds(30).toNanos()
+                long timeoutTime = startTime + maxTimeout
+                for (int attempt = 1; System.nanoTime() < timeoutTime; ++attempt) {
+                    if (attempt > 1) Thread.sleep(1_000)
+
+                    if (!execFile.exists()) continue
+
+                    boolean isLocked = false
+                    try {
+                        new RandomAccessFile(execFile, 'rw').withCloseable { randomAccessFile ->
+                            randomAccessFile.channel.withCloseable { channel ->
+                                FileLock fileLock = channel.tryLock()
+                                fileLock?.close()
+                                isLocked = fileLock == null
+                            }
+                        }
+                    } catch (IOException | OverlappingFileLockException ignored) {
+                        isLocked = true
+                    }
+
+                    if (!isLocked) break
+                }
+            }
+
+            task.doLast {
+                String exceptionMessage = failsCounterTestListener.createExceptionMessage()
+                if (exceptionMessage != null) {
+                    throw new GradleException(exceptionMessage)
+                }
+            }
+        }
+    }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+JacocoReport jacocoReportMerged = tasks.create('jacocoReportMerged', JacocoReport) { JacocoReport task ->
+    apply plugin: 'jacoco'
+
+    task.group = 'verification'
+    task.reports.all { ConfigurableReport report ->
+        DirectoryProperty reportsDir = project.jacoco.reportsDirectory
+        if (report.getOutputType() == OutputType.DIRECTORY) {
+            report.outputLocation.convention(reportsDir.dir("${task.name}/${report.name}"))
+        } else {
+            report.outputLocation.convention(reportsDir.file("${task.name}/${task.name}.${report.name}"))
+        }
+    }
+
+    allprojects {
+        pluginManager.withPlugin('jacoco') {
+            TaskCollection<Test> testTasks = tasks.withType(Test)
+            task.dependsOn(testTasks)
+
+            TaskCollection<JacocoReport> reportTasks = tasks.withType(JacocoReport).matching { it.name.matches(/jacoco[A-Z].*Report/) }
+            //task.dependsOn(reportTasks)
+
+            task.executionData(testTasks)
+            pluginManager.withPlugin('java') {
+                task.sourceSets(sourceSets.main)
+            }
+        }
+    }
+}
+
+tasks.register('displayTotalCodeCoverage') { Task task ->
+    task.dependsOn('jacocoReportMerged')
+    task.group = 'verification'
+
+    doLast {
+        File xmlReportFile = jacocoReportMerged.reports.xml.outputLocation.asFile.get()
+
+        Class XmlParser = Class.forName('groovy.xml.XmlParser')
+        def xmlParser = XmlParser.getConstructor(Boolean.TYPE, Boolean.TYPE, Boolean.TYPE).newInstance(false, false, true)
+        Closure setFeatureQuietly = { String feature, Object value ->
+            try {
+                xmlParser.setFeature(feature, value)
+            } catch (Exception ignored) {
+                // do nothing
+            }
+        }
+        setFeatureQuietly('http://apache.org/xml/features/disallow-doctype-decl', false)
+        setFeatureQuietly('http://apache.org/xml/features/nonvalidating/load-external-dtd', false)
+
+        Node reportNode = xmlParser.parse(xmlReportFile)
+        reportNode.counter?.forEach { Node counterNode ->
+            String type = counterNode['@type']
+            long missed = (counterNode['@missed'] ?: '0').toString().toLong()
+            long covered = (counterNode['@covered'] ?: '0').toString().toLong()
+            long total = missed + covered
+            double coverage = ((double) covered) / total
+            if ('LINE'.equalsIgnoreCase(type)) {
+                project.logger.quiet(String.format('Total code coverage: %.2f%% lines', coverage * 100.0))
+            }
+        }
+    }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+class FailsCounterTestListener implements TestListener {
+
+    private boolean failed = false
+
+    boolean isFailed() {
+        return failed
+    }
+
+    private void processTestResult(TestResult testResult) {
+        if (testResult.exception != null
+            || !testResult.exceptions.isEmpty()
+            || testResult.failedTestCount > 0
+        ) {
+            failed = true
+        }
+    }
+
+    String createExceptionMessage() {
+        if (!failed) {
+            return null
+        } else {
+            return "Some tests failed"
+        }
+    }
+
+    @Override
+    void beforeSuite(TestDescriptor testDescriptor) {
+        // do nothing
+    }
+
+    @Override
+    void afterSuite(TestDescriptor testDescriptor, TestResult testResult) {
+        processTestResult(testResult)
+    }
+
+    @Override
+    void beforeTest(TestDescriptor testDescriptor) {
+        // do nothing
+    }
+
+    @Override
+    void afterTest(TestDescriptor testDescriptor, TestResult testResult) {
+        processTestResult(testResult)
+    }
+
+}

@@ -25,7 +25,8 @@ import org.gradle.internal.classloader.ClassLoaderVisitor;
 @NoArgsConstructor(access = PRIVATE)
 public abstract class DebugUtils {
 
-    private static final boolean IS_DEBUG_ENABLED = getRuntimeMXBean().getInputArguments().toString().contains("jdwp");
+    private static final boolean IS_DEBUG_ENABLED = getRuntimeMXBean().getInputArguments().stream()
+        .anyMatch(arg -> arg.startsWith("-agentlib:jdwp="));
 
     @FunctionalInterface
     public interface IfDebugEnabled {

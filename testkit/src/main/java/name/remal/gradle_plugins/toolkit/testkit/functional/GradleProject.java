@@ -5,13 +5,19 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.synchronizedMap;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.NONE;
+import static name.remal.gradle_plugins.toolkit.FileUtils.normalizeFile;
 import static name.remal.gradle_plugins.toolkit.GradleVersionUtils.isCurrentGradleVersionGreaterThanOrEqualTo;
 import static name.remal.gradle_plugins.toolkit.GradleVersionUtils.isCurrentGradleVersionLessThan;
 import static name.remal.gradle_plugins.toolkit.ObjectUtils.isEmpty;
+import static name.remal.gradle_plugins.toolkit.PathUtils.copyRecursively;
 import static name.remal.gradle_plugins.toolkit.PredicateUtils.not;
 import static name.remal.gradle_plugins.toolkit.StringUtils.escapeGroovy;
+import static name.remal.gradle_plugins.toolkit.StringUtils.trimRightWith;
 import static name.remal.gradle_plugins.toolkit.internal.Flags.IS_IN_FUNCTION_TEST_ENV_VAR;
+import static name.remal.gradle_plugins.toolkit.testkit.functional.GradleRunnerUtils.withJvmArguments;
 import static name.remal.gradle_plugins.toolkit.testkit.functional.GradleSettingsPluginVersions.getSettingsBuildscriptClasspathDependencyVersion;
+import static name.remal.gradle_plugins.toolkit.testkit.functional.JacocoJvmArg.currentJvmArgsHaveJacocoJvmArg;
+import static name.remal.gradle_plugins.toolkit.testkit.functional.JacocoJvmArg.parseJacocoJvmArgFromCurrentJvmArgs;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -41,7 +47,7 @@ import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.Contract;
 
 @Getter
-public class GradleProject extends BaseGradleProject<GradleProject> {
+public class GradleProject extends AbstractGradleProject<GradleProject> {
 
     private static final Duration DEFAULT_TASK_TIMEOUT = Duration.ofMinutes(1);
 
@@ -57,13 +63,22 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
     public GradleProject(File projectDir) {
         super(projectDir.getAbsoluteFile());
         this.settingsFile = new SettingsFile(this.projectDir);
+        setTaskTimeout(DEFAULT_TASK_TIMEOUT);
     }
 
     @Contract("_ -> this")
     @CanIgnoreReturnValue
     public final synchronized GradleProject forSettingsFile(Consumer<SettingsFile> settingsFileConsumer) {
-        settingsFileConsumer.accept(this.settingsFile);
+        settingsFileConsumer.accept(settingsFile);
         return this;
+    }
+
+    @Override
+    protected void writeToDisk() {
+        super.writeToDisk();
+        settingsFile.writeToDisk();
+
+        children.values().forEach(AbstractGradleProject::writeToDisk);
     }
 
     public final synchronized GradleChildProject newChildProject(String name) {
@@ -240,7 +255,7 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
     @CanIgnoreReturnValue
     public final synchronized GradleProject withToolchainsResolver() {
         assertIsNotBuilt();
-        this.withToolchainsResolver = IS_TOOLCHAINS_RESOLVER_AVAILABLE;
+        withToolchainsResolver = IS_TOOLCHAINS_RESOLVER_AVAILABLE;
         return this;
     }
 
@@ -251,7 +266,7 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
     @CanIgnoreReturnValue
     public final synchronized GradleProject withoutPluginClasspath() {
         assertIsNotBuilt();
-        this.withPluginClasspath = false;
+        withPluginClasspath = false;
         return this;
     }
 
@@ -263,10 +278,9 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
     @CanIgnoreReturnValue
     public final synchronized GradleProject withoutConfigurationCache() {
         assertIsNotBuilt();
-        this.withConfigurationCache = false;
+        withConfigurationCache = false;
         return this;
     }
-
 
     @Nullable
     private Duration taskTimeout;
@@ -274,7 +288,7 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
     @Contract("_ -> this")
     @CanIgnoreReturnValue
     public final synchronized GradleProject setTaskTimeout(@Nullable Duration timeout) {
-        this.taskTimeout = timeout;
+        taskTimeout = timeout;
         buildFile.setTaskTimeout(taskTimeout);
         children.values().forEach(child -> {
             child.buildFile.setTaskTimeout(taskTimeout);
@@ -282,8 +296,14 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
         return this;
     }
 
-    {
-        setTaskTimeout(DEFAULT_TASK_TIMEOUT);
+    private boolean withJacoco = currentJvmArgsHaveJacocoJvmArg();
+
+    @Contract("-> this")
+    @CanIgnoreReturnValue
+    public final synchronized GradleProject withoutJacoco() {
+        assertIsNotBuilt();
+        withJacoco = false;
+        return this;
     }
 
 
@@ -301,7 +321,7 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
     private Throwable buildException;
 
     @SneakyThrows
-    @SuppressWarnings({"java:S106", "UnstableApiUsage"})
+    @SuppressWarnings({"java:S106", "java:S3776", "UnstableApiUsage"})
     private synchronized BuildResult build(boolean isExpectingSuccess) {
         if (buildException != null) {
             throw buildException;
@@ -317,11 +337,21 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
                     );
                 }
 
-                settingsFile.writeToDisk();
-                buildFile.writeToDisk();
-                children.values().forEach(child -> child.getBuildFile().writeToDisk());
 
-                val runner = createGradleRunner();
+                writeToDisk();
+
+
+                File jacocoProjectDir = null;
+                if (withConfigurationCache && withJacoco) {
+                    jacocoProjectDir = normalizeFile(new File(
+                        projectDir.getParentFile(),
+                        projectDir.getName() + ".jacoco"
+                    ));
+                    copyRecursively(projectDir.toPath(), jacocoProjectDir.toPath());
+                }
+
+
+                val runner = createGradleRunner(projectDir, withConfigurationCache);
 
                 if (isExpectingSuccess) {
                     currentBuildResult = runner.build();
@@ -338,6 +368,17 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
                 assertNoMutableProjectStateWarnings(outputLines);
                 assertNoOptimizationsDisabledWarnings(outputLines);
 
+
+                if (jacocoProjectDir != null) {
+                    val jacocoRunner = createGradleRunner(jacocoProjectDir, false);
+                    injectJacocoArgs(jacocoRunner);
+                    if (isExpectingSuccess) {
+                        jacocoRunner.build();
+                    } else {
+                        jacocoRunner.buildAndFail();
+                    }
+                }
+
             } catch (Throwable e) {
                 buildException = e;
                 throw e;
@@ -348,104 +389,12 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
         return buildResult;
     }
 
+    private static final String JVM_ARGS_GRADLE_PROPERTY = "org.gradle.jvmargs";
+
     private void assertIsNotBuilt() {
         if (buildException != null || buildResult != null) {
             throw new IllegalStateException("The project has already been built");
         }
-    }
-
-    @SneakyThrows
-    private GradleRunner createGradleRunner() {
-        val runner = GradleRunner.create()
-            .withProjectDir(projectDir)
-            .forwardOutput()
-            //.withDebug(isDebugEnabled())
-            .withArguments(
-                "--stacktrace",
-                "--warning-mode=all",
-                "-Dorg.gradle.parallel=true",
-                "-Dorg.gradle.workers.max=4",
-                "-Dorg.gradle.vfs.watch=false",
-                "-Dhttp.keepAlive=false",
-                "-Dsun.net.http.retryPost=false",
-                "-Dsun.io.useCanonCaches=false",
-                "-Dsun.net.client.defaultConnectTimeout=15000",
-                "-Dsun.net.client.defaultReadTimeout=600000",
-                "-Djava.awt.headless=true",
-                "-Dorg.gradle.internal.launcher.welcomeMessageEnabled=false"
-            );
-
-        if (isCurrentGradleVersionGreaterThanOrEqualTo(MIN_GRADLE_VERSION_WITH_RUNNER_ENVIRONMENT)) {
-            runner.withEnvironment(ImmutableMap.of(
-                IS_IN_FUNCTION_TEST_ENV_VAR, "true"
-            ));
-        }
-
-        if (withPluginClasspath) {
-            runner.withPluginClasspath();
-        }
-
-        if (withConfigurationCache) {
-            if (isConfigurationCacheSupportedWithAppliedPlugins()) {
-                runner.withArguments(Stream.concat(
-                    runner.getArguments().stream(),
-                    Stream.of(
-                        "--configuration-cache",
-                        "--configuration-cache-problems=fail"
-                    )
-                ).collect(toList()));
-            }
-        }
-
-        String gradleDistribMirror = System.getenv("GRADLE_DISTRIBUTIONS_MIRROR");
-        if (gradleDistribMirror == null || gradleDistribMirror.isEmpty()) {
-            runner.withGradleVersion(GradleVersion.current().getVersion());
-        } else {
-            while (gradleDistribMirror.endsWith("/")) {
-                gradleDistribMirror = gradleDistribMirror.substring(0, gradleDistribMirror.length() - 1);
-            }
-            val distributionUri = new URI(gradleDistribMirror + format(
-                "/gradle-%s-bin.zip",
-                GradleVersion.current().getVersion()
-            ));
-            runner.withGradleDistribution(distributionUri);
-        }
-
-        return runner;
-    }
-
-    private boolean isConfigurationCacheSupportedWithAppliedPlugins() {
-        if (isCurrentGradleVersionLessThan("7.2")) {
-            if (isPluginAppliedForAnyProject("groovy")
-                || isPluginAppliedForAnyProject("scala")
-            ) {
-                return false;
-            }
-        }
-
-        if (isCurrentGradleVersionLessThan("6.8")) {
-            if (isPluginAppliedForAnyProject("checkstyle")
-                || isPluginAppliedForAnyProject("pmd")
-                || isPluginAppliedForAnyProject("jacoco")
-                || isPluginAppliedForAnyProject("codenarc")
-            ) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private boolean isPluginAppliedForAnyProject(String pluginId) {
-        if (getSettingsFile().isPluginApplied(pluginId)
-            || getBuildFile().isPluginApplied(pluginId)
-        ) {
-            return true;
-        }
-
-        val isAppliedToChild = getChildren().values().stream()
-            .anyMatch(child -> child.getBuildFile().isPluginApplied(pluginId));
-        return isAppliedToChild;
     }
 
     private void assertNoDeprecationMessages(List<String> outputLines) {
@@ -552,6 +501,116 @@ public class GradleProject extends BaseGradleProject<GradleProject> {
         }
 
         return errors;
+    }
+
+
+    @SneakyThrows
+    private GradleRunner createGradleRunner(File projectDir, boolean withConfigurationCache) {
+        val runner = GradleRunner.create()
+            .withProjectDir(projectDir)
+            .forwardOutput()
+            //.withDebug(isDebugEnabled())
+            .withArguments(
+                "--stacktrace",
+                "--warning-mode=all",
+                "-Dorg.gradle.parallel=true",
+                "-Dorg.gradle.workers.max=4",
+                "-Dorg.gradle.vfs.watch=false",
+                "-Dorg.gradle.daemon=false",
+                "-Dhttp.keepAlive=false",
+                "-Dsun.net.http.retryPost=false",
+                "-Dsun.io.useCanonCaches=false",
+                "-Dsun.net.client.defaultConnectTimeout=15000",
+                "-Dsun.net.client.defaultReadTimeout=600000",
+                "-Djava.awt.headless=true",
+                "-Dorg.gradle.internal.launcher.welcomeMessageEnabled=false"
+            );
+
+        if (isCurrentGradleVersionGreaterThanOrEqualTo(MIN_GRADLE_VERSION_WITH_RUNNER_ENVIRONMENT)) {
+            runner.withEnvironment(ImmutableMap.of(
+                IS_IN_FUNCTION_TEST_ENV_VAR, "true"
+            ));
+        }
+
+        if (withPluginClasspath) {
+            runner.withPluginClasspath();
+        }
+
+        if (withConfigurationCache) {
+            if (isConfigurationCacheSupportedWithAppliedPlugins()) {
+                runner.withArguments(Stream.concat(
+                    runner.getArguments().stream(),
+                    Stream.of(
+                        "--configuration-cache",
+                        "--configuration-cache-problems=fail"
+                    )
+                ).collect(toList()));
+            }
+        }
+
+        String gradleDistribMirror = System.getenv("GRADLE_DISTRIBUTIONS_MIRROR");
+        if (isEmpty(gradleDistribMirror)) {
+            runner.withGradleVersion(GradleVersion.current().getVersion());
+        } else {
+            val distributionUri = new URI(trimRightWith(gradleDistribMirror, '/') + format(
+                "/gradle-%s-bin.zip",
+                GradleVersion.current().getVersion()
+            ));
+            runner.withGradleDistribution(distributionUri);
+        }
+
+        return runner;
+    }
+
+    private boolean isConfigurationCacheSupportedWithAppliedPlugins() {
+        if (isCurrentGradleVersionLessThan("7.2")) {
+            if (isPluginAppliedForAnyProject("groovy")
+                || isPluginAppliedForAnyProject("scala")
+            ) {
+                return false;
+            }
+        }
+
+        if (isCurrentGradleVersionLessThan("6.8")) {
+            if (isPluginAppliedForAnyProject("checkstyle")
+                || isPluginAppliedForAnyProject("pmd")
+                || isPluginAppliedForAnyProject("jacoco")
+                || isPluginAppliedForAnyProject("codenarc")
+            ) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean isPluginAppliedForAnyProject(String pluginId) {
+        if (getSettingsFile().isPluginApplied(pluginId)
+            || getBuildFile().isPluginApplied(pluginId)
+        ) {
+            return true;
+        }
+
+        val isAppliedToChild = getChildren().values().stream()
+            .anyMatch(child -> child.getBuildFile().isPluginApplied(pluginId));
+        return isAppliedToChild;
+    }
+
+    private static final Pattern JACOCO_ARG = Pattern.compile("^-javaagent:.*?[/\\\\]jacocoagent.jar=(.*)$");
+
+    private void injectJacocoArgs(GradleRunner runner) {
+        val jacocoJvmArg = parseJacocoJvmArgFromCurrentJvmArgs();
+        if (jacocoJvmArg == null) {
+            return;
+        }
+
+        jacocoJvmArg.computeParamIfPresent("destfile", destFilePath -> {
+            val currentDir = normalizeFile(new File("."));
+            return normalizeFile(new File(currentDir, destFilePath)).getAbsolutePath();
+        });
+        jacocoJvmArg.addParamElement("excludes", "org.gradle.*");
+
+        withJvmArguments(runner, jacocoJvmArg.toString());
     }
 
 }

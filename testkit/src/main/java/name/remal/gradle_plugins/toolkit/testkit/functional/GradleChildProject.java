@@ -4,7 +4,7 @@ import java.io.File;
 import lombok.Getter;
 
 @Getter
-public class GradleChildProject extends BaseGradleProject<GradleChildProject> {
+public class GradleChildProject extends AbstractGradleProject<GradleChildProject> {
 
     GradleChildProject(File projectDir) {
         super(projectDir);

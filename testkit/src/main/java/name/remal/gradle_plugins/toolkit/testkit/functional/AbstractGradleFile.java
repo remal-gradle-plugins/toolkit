@@ -1,12 +1,8 @@
 package name.remal.gradle_plugins.toolkit.testkit.functional;
 
 import static java.lang.String.format;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.Files.createDirectories;
-import static java.nio.file.Files.write;
 import static java.util.Arrays.asList;
 import static java.util.Collections.unmodifiableSet;
-import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 import static name.remal.gradle_plugins.toolkit.ObjectUtils.isNotEmpty;
 import static name.remal.gradle_plugins.toolkit.StringUtils.escapeGroovy;
@@ -20,19 +16,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.Getter;
-import lombok.SneakyThrows;
 import lombok.val;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.UnmodifiableView;
 
-abstract class AbstractGradleFile<Child extends AbstractGradleFile<Child>> {
+abstract class AbstractGradleFile<Child extends AbstractGradleFile<Child>> extends AbstractFile {
 
     protected final List<Object> chunks = new ArrayList<>();
 
-    protected final File file;
-
     protected AbstractGradleFile(File file) {
-        this.file = file.getAbsoluteFile();
+        super(file);
     }
 
 
@@ -103,22 +96,11 @@ abstract class AbstractGradleFile<Child extends AbstractGradleFile<Child>> {
     }
 
 
-    @SneakyThrows
-    public final void writeToDisk() {
-        createDirectories(requireNonNull(file.getParentFile()).toPath());
-        write(file.toPath(), getContent().getBytes(UTF_8));
-    }
-
-
+    @Override
     public final String getContent() {
         return chunks.stream()
             .map(Object::toString)
             .collect(joining("\n"));
-    }
-
-    @Override
-    public final String toString() {
-        return file.toString();
     }
 
 

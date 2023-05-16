@@ -10,7 +10,7 @@ import lombok.val;
 @NoArgsConstructor(access = PRIVATE)
 public abstract class StringUtils {
 
-    private static final Pattern NEW_LINE = Pattern.compile("\\r\\n|\\n\\r|\\r|\\n");
+    private static final Pattern NEW_LINE = Pattern.compile("(\\r\\n)|(\\n\\r)|(\\r)|(\\n)");
     private static final Pattern TRIM_LINE_END = Pattern.compile("[ \\t]+(?:\\n|$)");
     private static final Pattern TOO_MANY_NEW_LINES = Pattern.compile("\\n{3,}");
 
