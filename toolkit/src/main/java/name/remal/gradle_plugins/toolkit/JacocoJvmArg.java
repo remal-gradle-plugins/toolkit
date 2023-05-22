@@ -1,10 +1,14 @@
-package name.remal.gradle_plugins.toolkit.testkit.functional;
+package name.remal.gradle_plugins.toolkit;
 
 import static java.lang.management.ManagementFactory.getRuntimeMXBean;
+import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
+import static name.remal.gradle_plugins.toolkit.FileUtils.normalizeFile;
+import static name.remal.gradle_plugins.toolkit.ObjectUtils.isEmpty;
 import static name.remal.gradle_plugins.toolkit.ObjectUtils.isNotEmpty;
 
 import com.google.common.base.Splitter;
+import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -16,18 +20,28 @@ import javax.annotation.Nullable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.val;
+import org.gradle.process.CommandLineArgumentProvider;
 
 @Getter
 @EqualsAndHashCode
-class JacocoJvmArg {
+public class JacocoJvmArg implements CommandLineArgumentProvider {
 
-    private final String javaAgentPath;
+    private String javaAgentPath;
 
     private final Map<String, String> params;
 
     public JacocoJvmArg(String javaAgentPath, Map<String, String> params) {
         this.javaAgentPath = javaAgentPath;
         this.params = new LinkedHashMap<>(params);
+    }
+
+    public void makePathsAbsolute() {
+        this.javaAgentPath = absolutizePath(getJavaAgentPath());
+        computeParamIfPresent("destfile", JacocoJvmArg::absolutizePath);
+    }
+
+    public void excludeGradleClasses() {
+        addParamElement("excludes", "org.gradle.*");
     }
 
     @Nullable
@@ -87,6 +101,23 @@ class JacocoJvmArg {
         }
 
         return sb.toString();
+    }
+
+    @Override
+    public Iterable<String> asArguments() {
+        return singletonList(toString());
+    }
+
+
+    private static String absolutizePath(String path) {
+        if (isEmpty(path)) {
+            return path;
+        }
+
+        File file = new File(path);
+        file = file.getAbsoluteFile();
+        file = normalizeFile(file);
+        return file.getAbsolutePath();
     }
 
 

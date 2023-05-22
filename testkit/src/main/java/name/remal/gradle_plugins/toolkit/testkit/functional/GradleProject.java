@@ -8,6 +8,8 @@ import static lombok.AccessLevel.NONE;
 import static name.remal.gradle_plugins.toolkit.FileUtils.normalizeFile;
 import static name.remal.gradle_plugins.toolkit.GradleVersionUtils.isCurrentGradleVersionGreaterThanOrEqualTo;
 import static name.remal.gradle_plugins.toolkit.GradleVersionUtils.isCurrentGradleVersionLessThan;
+import static name.remal.gradle_plugins.toolkit.JacocoJvmArg.currentJvmArgsHaveJacocoJvmArg;
+import static name.remal.gradle_plugins.toolkit.JacocoJvmArg.parseJacocoJvmArgFromCurrentJvmArgs;
 import static name.remal.gradle_plugins.toolkit.ObjectUtils.isEmpty;
 import static name.remal.gradle_plugins.toolkit.PathUtils.copyRecursively;
 import static name.remal.gradle_plugins.toolkit.PredicateUtils.not;
@@ -16,8 +18,6 @@ import static name.remal.gradle_plugins.toolkit.StringUtils.trimRightWith;
 import static name.remal.gradle_plugins.toolkit.internal.Flags.IS_IN_FUNCTION_TEST_ENV_VAR;
 import static name.remal.gradle_plugins.toolkit.testkit.functional.GradleRunnerUtils.withJvmArguments;
 import static name.remal.gradle_plugins.toolkit.testkit.functional.GradleSettingsPluginVersions.getSettingsBuildscriptClasspathDependencyVersion;
-import static name.remal.gradle_plugins.toolkit.testkit.functional.JacocoJvmArg.currentJvmArgsHaveJacocoJvmArg;
-import static name.remal.gradle_plugins.toolkit.testkit.functional.JacocoJvmArg.parseJacocoJvmArgFromCurrentJvmArgs;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -389,8 +389,6 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
         return buildResult;
     }
 
-    private static final String JVM_ARGS_GRADLE_PROPERTY = "org.gradle.jvmargs";
-
     private void assertIsNotBuilt() {
         if (buildException != null || buildResult != null) {
             throw new IllegalStateException("The project has already been built");
@@ -596,19 +594,14 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
         return isAppliedToChild;
     }
 
-    private static final Pattern JACOCO_ARG = Pattern.compile("^-javaagent:.*?[/\\\\]jacocoagent.jar=(.*)$");
-
     private void injectJacocoArgs(GradleRunner runner) {
         val jacocoJvmArg = parseJacocoJvmArgFromCurrentJvmArgs();
         if (jacocoJvmArg == null) {
             return;
         }
 
-        jacocoJvmArg.computeParamIfPresent("destfile", destFilePath -> {
-            val currentDir = normalizeFile(new File("."));
-            return normalizeFile(new File(currentDir, destFilePath)).getAbsolutePath();
-        });
-        jacocoJvmArg.addParamElement("excludes", "org.gradle.*");
+        jacocoJvmArg.makePathsAbsolute();
+        jacocoJvmArg.excludeGradleClasses();
 
         withJvmArguments(runner, jacocoJvmArg.toString());
     }

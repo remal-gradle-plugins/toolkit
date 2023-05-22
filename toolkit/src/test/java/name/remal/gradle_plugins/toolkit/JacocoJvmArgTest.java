@@ -1,6 +1,6 @@
-package name.remal.gradle_plugins.toolkit.testkit.functional;
+package name.remal.gradle_plugins.toolkit;
 
-import static name.remal.gradle_plugins.toolkit.testkit.functional.JacocoJvmArg.parseJacocoJvmArgFromJvmArgs;
+import static name.remal.gradle_plugins.toolkit.JacocoJvmArg.parseJacocoJvmArgFromJvmArgs;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.common.collect.ImmutableList;
