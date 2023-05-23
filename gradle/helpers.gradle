@@ -87,14 +87,6 @@ project.ext.isInstanceOf = { Object object, String parentClassName ->
     return parentClass.isInstance(object)
 }
 
-allprojects {
-    project.ext.createConfigurationResolveTask = { Configuration conf ->
-        tasks.register("resolve${conf.name.capitalize()}Configuration") {
-            doLast { conf.resolve() }
-        }
-    }
-}
-
 project.ext.disableTask = { Task task ->
     task.enabled = false
     task.onlyIf { false }
@@ -233,6 +225,77 @@ allprojects {
     project.ext.calculateJavaModuleName = {
         return project.findProperty('javaModuleName') ?: project.calculateBaseJavaPackage()
     }.memoize()
+}
+
+
+allprojects {
+    Closure<TaskProvider> maybeRegisterTask = { String taskName, Closure configurer ->
+        try {
+            return tasks.named(taskName)
+        } catch (UnknownTaskException ignore) {
+            // do nothing
+        }
+        return tasks.register(taskName) { Task task -> configurer(task) }
+    }
+
+    Closure<SourceSet> findSourceSet = { String sourceSetName, boolean isRequired = true ->
+        if (isRequired) {
+            return project.sourceSets.getByName(sourceSetName)
+        } else {
+            return project.sourceSets.findByName(sourceSetName)
+        }
+    }
+    project.ext.registerResolveSourceSetCompileClasspathTask = { String sourceSetName, boolean isRequired = true ->
+        String taskName = "resolve${sourceSetName.capitalize()}SourceSetCompileClasspath"
+        TaskProvider taskProvider = maybeRegisterTask(taskName) { Task task ->
+            task.ext.isRequired = false
+            task.dependsOn(project.provider { findSourceSet(sourceSetName, task.isRequired)?.with { project.configurations[it.compileClasspathConfigurationName].allDependencies } ?: [] })
+            task.doLast { findSourceSet(sourceSetName, task.isRequired)?.compileClasspath?.files }
+        }
+        if (isRequired) {
+            taskProvider.configure { Task task ->
+                task.ext.isRequired = true
+            }
+        }
+        return taskProvider
+    }
+    project.ext.registerResolveSourceSetRuntimeClasspathTask = { String sourceSetName, boolean isRequired = true ->
+        String taskName = "resolve${sourceSetName.capitalize()}SourceSetRuntimeClasspath"
+        TaskProvider taskProvider = maybeRegisterTask(taskName) { Task task ->
+            task.ext.isRequired = false
+            task.dependsOn(project.provider { findSourceSet(sourceSetName, task.isRequired)?.with { project.configurations[it.runtimeClasspathConfigurationName].allDependencies } ?: [] })
+            task.dependsOn(project.provider { findSourceSet(sourceSetName, task.isRequired)?.classesTaskName ?: [] })
+            task.doLast { findSourceSet(sourceSetName, task.isRequired)?.runtimeClasspath?.files }
+        }
+        if (isRequired) {
+            taskProvider.configure { Task task ->
+                task.ext.isRequired = true
+            }
+        }
+        return taskProvider
+    }
+
+    Closure<Configuration> findConfiguration = { String configurationName, boolean isRequired = true ->
+        if (isRequired) {
+            return project.configurations.getByName(configurationName)
+        } else {
+            return project.configurations.findByName(configurationName)
+        }
+    }
+    project.ext.registerResolveConfigurationTask = { String configurationName, boolean isRequired = true ->
+        String taskName = "resolve${configurationName.capitalize()}Configuration"
+        TaskProvider taskProvider = maybeRegisterTask(taskName) { Task task ->
+            task.ext.isRequired = false
+            task.dependsOn(project.provider { findConfiguration(configurationName, task.isRequired)?.allDependencies ?: [] })
+            task.doLast { findConfiguration(configurationName, task.isRequired)?.resolve() }
+        }
+        if (isRequired) {
+            taskProvider.configure { Task task ->
+                task.ext.isRequired = true
+            }
+        }
+        return taskProvider
+    }
 }
 
 
@@ -434,7 +497,7 @@ allprojects {
         }
 
         tasks.withType(Javadoc).configureEach { Javadoc task ->
-            task.dependsOn(otherProject.tasks.matching { it.name == 'resolveOptionalHiddenConfiguration' })
+            task.dependsOn(project.provider { otherProject.registerResolveConfigurationTask('optionalHidden') })
 
             task.onlyIf {
                 task.classpath += otherProject.configurations.optionalHidden

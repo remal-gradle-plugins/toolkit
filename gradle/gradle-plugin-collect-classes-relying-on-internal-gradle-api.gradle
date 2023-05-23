@@ -51,16 +51,6 @@ Closure<Boolean> isNodeAnnotatedWithReliesOnInternalGradleApi = { node ->
 DomainObjectSet<Project> projectsToCollectClassesRelyingOnInternalGradleApi = project.objects.domainObjectSet(Project)
 project.ext.projectsToCollectClassesRelyingOnInternalGradleApi = projectsToCollectClassesRelyingOnInternalGradleApi
 
-projectsToCollectClassesRelyingOnInternalGradleApi.all { Project currentProject ->
-    currentProject.pluginManager.withPlugin('java') {
-        currentProject.tasks.register('resolveMainSourceSetRuntimeClasspath') {
-            doLast {
-                currentProject.sourceSets.main.runtimeClasspath.files
-            }
-        }
-    }
-}
-
 allprojects {
     pluginManager.withPlugin('java') {
         projectsToCollectClassesRelyingOnInternalGradleApi.add(project)
@@ -137,7 +127,7 @@ allprojects {
                     projectsToCollectClassesRelyingOnInternalGradleApi.collect { currentProject ->
                         [
                             currentProject.tasks.named('classes'),
-                            currentProject.tasks.named('resolveMainSourceSetRuntimeClasspath'),
+                            currentProject.registerResolveSourceSetRuntimeClasspathTask('main'),
                         ]
                     }.flatten()
                 }
@@ -191,7 +181,7 @@ allprojects {
                     projectsToCollectClassesRelyingOnInternalGradleApi.collect { currentProject ->
                         [
                             currentProject.tasks.named('classes'),
-                            currentProject.tasks.named('resolveMainSourceSetRuntimeClasspath'),
+                            currentProject.registerResolveSourceSetRuntimeClasspathTask('main'),
                         ]
                     }.flatten()
                 }

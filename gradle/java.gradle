@@ -93,8 +93,6 @@ allprojects {
                     return true
                 }
             }
-
-            project.createConfigurationResolveTask(conf)
         }
 
         configurations.create('apt') { Configuration conf ->
