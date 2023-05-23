@@ -55,7 +55,7 @@ allprojects {
 
                 // Annotation processing
                 'com.google.auto.service:auto-service:1.1.0',
-                'com.google.auto.service:auto-service-annotations:1.0.2',
+                'com.google.auto.service:auto-service-annotations:1.1.0',
 
                 // Compile-only
                 'name.remal:gradle-plugins-api:1.8.4',
