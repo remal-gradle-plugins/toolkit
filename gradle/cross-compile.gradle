@@ -168,15 +168,41 @@ allCrossCompileProjects.all { CrossCompileProjectInfo crossCompileProjectInfo ->
 
             Set<String> allDependencyNotations = (crossCompileDependencyInfo.transitiveDependencyNotations + crossCompileDependencyInfo.dependencyNotations).toSet()
 
-            crossCompileProject.configurations.matching { ![depsConf.name, transitiveDepsConf.name].contains(it.name) }.all { Configuration conf ->
-                conf.dependencies.all { Dependency dep ->
-                    allDependencyNotations.forEach { dependencyNotation ->
-                        conf.dependencies.removeIf {
-                            allDependencyNotations.contains("${dep.group}:${dep.name}")
-                        }
+            List<Map<String, String>> allDependencyExclusions = allDependencyNotations.collect { String notation ->
+                Dependency dep = crossCompileProject.dependencies.create(notation)
+                return [
+                    group: dep.group,
+                    module: dep.name,
+                ]
+            }
+
+            Closure removeCrossCompileDependenciesFrom = { Configuration conf ->
+                if (conf.state != Configuration.State.UNRESOLVED) return
+
+                conf.dependencies.all {
+                    conf.dependencies.removeIf { Dependency dep ->
+                        allDependencyNotations.any { it == "${dep.group}:${dep.name}" }
+                    }
+                }
+                conf.dependencyConstraints.all {
+                    conf.dependencyConstraints.removeIf { DependencyConstraint constraint ->
+                        allDependencyNotations.any { it == "${constraint.group}:${constraint.name}" }
+                    }
+                }
+
+                conf.dependencies.withType(ModuleDependency).all { ModuleDependency dep ->
+                    allDependencyExclusions.forEach { exclusion ->
+                        dep.exclude(exclusion)
                     }
                 }
             }
+
+            crossCompileProject.allSourceSetsConfigurations.all(removeCrossCompileDependenciesFrom)
+            [
+                crossCompileProject.configurations.optional,
+                crossCompileProject.configurations.projectDependencyConstraints,
+            ].forEach(removeCrossCompileDependenciesFrom)
+
 
             String dependencyVersion
             if (crossCompileProjectInfo.versionOperator == 'lt') {

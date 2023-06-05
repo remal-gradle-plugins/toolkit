@@ -75,21 +75,21 @@ allprojects {
 
             tasks.withType(AbstractCompile).configureEach { AbstractCompile task ->
                 onlyIf {
-                    task.classpath += project.files(project.provider { conf.files })
+                    task.classpath += conf
                     return true
                 }
             }
 
             tasks.withType(Javadoc).configureEach { Javadoc task ->
                 onlyIf {
-                    task.classpath += project.files(project.provider { conf.files })
+                    task.classpath += conf
                     return true
                 }
             }
 
             tasks.withType(Test).configureEach { Test task ->
                 onlyIf {
-                    task.classpath += project.files(project.provider { conf.files })
+                    task.classpath += conf
                     return true
                 }
             }

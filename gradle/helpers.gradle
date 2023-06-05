@@ -124,9 +124,16 @@ project.ext.getSourceSetConfigurationNames = { SourceSet sourceSet ->
 }
 
 allprojects {
-    project.ext.allSourceSetConfigurations = { SourceSet sourceSet, Closure action ->
+    project.ext.getAllSourceSetConfigurations = { SourceSet sourceSet ->
         Collection<String> sourceSetConfigurationNames = project.getSourceSetConfigurationNames(sourceSet)
-        project.configurations.matching { sourceSetConfigurationNames.contains(it.name) }.all { action(it) }
+        return project.configurations.matching { sourceSetConfigurationNames.contains(it.name) }
+    }.memoize()
+
+    DomainObjectSet<Configuration> allSourceSetsConfigurations = project.ext.allSourceSetsConfigurations = project.objects.domainObjectSet(Configuration)
+    project.pluginManager.withPlugin('java') {
+        project.sourceSets.all { SourceSet sourceSet ->
+            project.getAllSourceSetConfigurations(sourceSet).all { allSourceSetsConfigurations.add(it) }
+        }
     }
 }
 
