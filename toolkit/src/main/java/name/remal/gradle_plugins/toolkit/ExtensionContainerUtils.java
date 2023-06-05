@@ -8,7 +8,6 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.val;
-import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 
@@ -116,64 +115,27 @@ public abstract class ExtensionContainerUtils {
     @Nullable
     public static <T> T findExtension(Object object, Class<T> type) {
         val extensions = getExtensions(object);
-        val conventionPlugin = findConventionPlugin(extensions, type);
-        if (conventionPlugin != null) {
-            return conventionPlugin;
-        }
-
         return extensions.findByType(type);
     }
 
     @Nullable
     public static Object findExtension(Object object, String name) {
         val extensions = getExtensions(object);
-        val conventionPlugin = findConventionPlugin(extensions, name);
-        if (conventionPlugin != null) {
-            return conventionPlugin;
-        }
-
         return extensions.findByName(name);
     }
 
     public static <T> T getExtension(Object object, Class<T> type) {
         val extensions = getExtensions(object);
-        val conventionPlugin = findConventionPlugin(extensions, type);
-        if (conventionPlugin != null) {
-            return conventionPlugin;
-        }
-
         return extensions.getByType(type);
     }
 
     public static Object getExtension(Object object, String name) {
         val extensions = getExtensions(object);
-        val conventionPlugin = findConventionPlugin(extensions, name);
-        if (conventionPlugin != null) {
-            return conventionPlugin;
-        }
-
         return extensions.getByName(name);
     }
 
     public static <T> Optional<T> getOptionalExtension(Object object, Class<T> type) {
         return Optional.ofNullable(findExtension(object, type));
-    }
-
-
-    @Nullable
-    private static <T> T findConventionPlugin(ExtensionContainer extensions, Class<T> type) {
-        if (extensions instanceof Convention) {
-            return ((Convention) extensions).findPlugin(type);
-        }
-        return null;
-    }
-
-    @Nullable
-    private static Object findConventionPlugin(ExtensionContainer extensions, String name) {
-        if (extensions instanceof Convention) {
-            return ((Convention) extensions).getPlugins().get(name);
-        }
-        return null;
     }
 
 }
