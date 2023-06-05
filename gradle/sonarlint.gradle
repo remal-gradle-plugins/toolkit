@@ -32,6 +32,7 @@ allprojects {
                     'java:S1181', // Throwable and Error should not be caught
                     'java:S1874', // "@Deprecated" code should not be used
                     'java:S2259', // Null pointers should not be dereferenced
+                    'java:S2583', // Conditionally executed code should be reachable
                     'java:S3077', // Non-primitive fields should not be "volatile"
                     'java:S5976', // Similar tests should be grouped in a single Parameterized test
                     'java:S5993', // Constructors of an "abstract" class should not be declared "public"
