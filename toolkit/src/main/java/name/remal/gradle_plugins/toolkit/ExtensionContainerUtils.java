@@ -1,6 +1,7 @@
 package name.remal.gradle_plugins.toolkit;
 
 import static lombok.AccessLevel.PRIVATE;
+import static name.remal.gradle_plugins.toolkit.CrossCompileServices.loadCrossCompileService;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.unwrapGeneratedSubclass;
 
 import java.util.Locale;
@@ -8,12 +9,15 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.val;
-import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ExtensionContainerUtils {
+
+    private static final ExtensionContainerUtilsMethods METHODS =
+        loadCrossCompileService(ExtensionContainerUtilsMethods.class);
+
 
     public static ExtensionContainer getExtensions(Object object) {
         return ((ExtensionAware) object).getExtensions();
@@ -116,7 +120,7 @@ public abstract class ExtensionContainerUtils {
     @Nullable
     public static <T> T findExtension(Object object, Class<T> type) {
         val extensions = getExtensions(object);
-        val conventionPlugin = findConventionPlugin(extensions, type);
+        val conventionPlugin = METHODS.findConventionPlugin(extensions, type);
         if (conventionPlugin != null) {
             return conventionPlugin;
         }
@@ -127,7 +131,7 @@ public abstract class ExtensionContainerUtils {
     @Nullable
     public static Object findExtension(Object object, String name) {
         val extensions = getExtensions(object);
-        val conventionPlugin = findConventionPlugin(extensions, name);
+        val conventionPlugin = METHODS.findConventionPlugin(extensions, name);
         if (conventionPlugin != null) {
             return conventionPlugin;
         }
@@ -137,7 +141,7 @@ public abstract class ExtensionContainerUtils {
 
     public static <T> T getExtension(Object object, Class<T> type) {
         val extensions = getExtensions(object);
-        val conventionPlugin = findConventionPlugin(extensions, type);
+        val conventionPlugin = METHODS.findConventionPlugin(extensions, type);
         if (conventionPlugin != null) {
             return conventionPlugin;
         }
@@ -147,7 +151,7 @@ public abstract class ExtensionContainerUtils {
 
     public static Object getExtension(Object object, String name) {
         val extensions = getExtensions(object);
-        val conventionPlugin = findConventionPlugin(extensions, name);
+        val conventionPlugin = METHODS.findConventionPlugin(extensions, name);
         if (conventionPlugin != null) {
             return conventionPlugin;
         }
@@ -157,23 +161,6 @@ public abstract class ExtensionContainerUtils {
 
     public static <T> Optional<T> getOptionalExtension(Object object, Class<T> type) {
         return Optional.ofNullable(findExtension(object, type));
-    }
-
-
-    @Nullable
-    private static <T> T findConventionPlugin(ExtensionContainer extensions, Class<T> type) {
-        if (extensions instanceof Convention) {
-            return ((Convention) extensions).findPlugin(type);
-        }
-        return null;
-    }
-
-    @Nullable
-    private static Object findConventionPlugin(ExtensionContainer extensions, String name) {
-        if (extensions instanceof Convention) {
-            return ((Convention) extensions).getPlugins().get(name);
-        }
-        return null;
     }
 
 }

@@ -32,7 +32,7 @@ allCrossCompileDependencies.create('java') {
     configureCrossCompileProject = { Project crossCompileProject, CrossCompileProjectInfo crossCompileProjectInfo ->
         int majorVersion = Integer.parseInt(crossCompileProjectInfo.version)
         JavaVersion javaVersion = JavaVersion.toVersion(majorVersion)
-        crossCompileProject.sourceCompatibility = crossCompileProject.targetCompatibility = javaVersion.toString()
+        crossCompileProject.java.sourceCompatibility = crossCompileProject.java.targetCompatibility = javaVersion.toString()
     }
 }
 
