@@ -19,7 +19,7 @@ allprojects {
 
         SourceSet functionalSourceSet = testSourceSets.create('functional')
 
-        project.tasks.named(functionalSourceSet.testTaskName, Test) { Test task ->
+        project.tasks.named(functionalSourceSet.getTestTaskName(), Test) { Test task ->
             Closure<List<Task>> getPublishToBuildDirTasks = {
                 rootProject.allprojects
                     .collect { it.tasks.matching { it.name == 'publishToBuildDir' } }
