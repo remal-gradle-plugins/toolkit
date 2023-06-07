@@ -43,7 +43,7 @@ allprojects {
 
         Closure<String> getCorrespondingKotlinVersion = { project.getGradleApiDependencyVersion('org.jetbrains.kotlin:kotlin-stdlib') }.memoize()
 
-        tasks.matching { it instanceof JavaForkOptions }.configureEach {
+        tasks.withType(Test).configureEach {
             onlyIf {
                 String correspondingKotlinVersion = getCorrespondingKotlinVersion()
                 systemProperty('corresponding-kotlin.version', correspondingKotlinVersion ?: '')
