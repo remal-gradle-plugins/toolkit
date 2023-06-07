@@ -13,6 +13,7 @@ import org.gradle.api.Project;
 import org.junit.jupiter.api.Test;
 
 @RequiredArgsConstructor
+@SuppressWarnings("deprecation")
 class ConventionUtilsTest {
 
     private final Project project;
