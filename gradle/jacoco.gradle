@@ -42,7 +42,7 @@ allprojects {
             }
         }
 
-        tasks.withType(Test).matching { it.name == 'testFunctional' }.configureEach { Test task ->
+        tasks.withType(Test).matching { it.name == 'functionalTest' || it.name == 'testFunctional' }.configureEach { Test task ->
             task.ignoreFailures = true
 
             FailsCounterTestListener failsCounterTestListener = new FailsCounterTestListener()
