@@ -69,6 +69,7 @@ List<String> includedBuildScripts = [
     'gradle/common.gradle',
     'gradle/merge-resources.gradle',
     'gradle/dependencies.gradle',
+    'gradle/check-source-dirs.gradle',
     'gradle/base-package.gradle',
     'gradle/java.gradle',
     'gradle/lombok.gradle',
