@@ -133,6 +133,10 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
             .stackTracePrefix("org.gradle.jvm.toolchain.")
             .build(),
         SuppressedMessage.builder()
+            .message("The resolvable usage is already allowed on configuration")
+            .stackTracePrefix("org.jetbrains.kotlin.gradle.plugin.")
+            .build(),
+        SuppressedMessage.builder()
             .message("The DefaultSourceDirectorySet constructor has been deprecated")
             .stackTracePrefix("org.jetbrains.kotlin.gradle.plugin.")
             .build(),
