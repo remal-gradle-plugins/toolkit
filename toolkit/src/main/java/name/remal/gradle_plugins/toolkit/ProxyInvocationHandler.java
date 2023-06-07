@@ -44,16 +44,16 @@ public final class ProxyInvocationHandler implements InvocationHandler {
             }
         }
 
+        if (method.isDefault()) {
+            return invokeDefaultMethod(method, proxy, args);
+        }
+
         if (isEqualsMethod(method)) {
             return proxy == args[0];
         } else if (isHashCodeMethod(method)) {
             return identityHashCode(proxy);
         } else if (isToStringMethod(method)) {
             return proxy.getClass().getName() + '@' + toHexString(identityHashCode(proxy));
-        }
-
-        if (method.isDefault()) {
-            return invokeDefaultMethod(method, proxy, args);
         }
 
         throw new UnsupportedOperationException(method.toString());

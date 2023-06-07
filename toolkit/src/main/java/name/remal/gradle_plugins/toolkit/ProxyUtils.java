@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import lombok.NoArgsConstructor;
 import lombok.val;
+import org.gradle.api.Action;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ProxyUtils {
@@ -32,7 +33,18 @@ public abstract class ProxyUtils {
     }
 
 
-    public static <T> T toDynamicInterface(Object object, Class<T> interfaceClass) {
+    public static <T> T toDynamicInterface(
+        Object object,
+        Class<T> interfaceClass
+    ) {
+        return toDynamicInterface(object, interfaceClass, __ -> { });
+    }
+
+    public static <T> T toDynamicInterface(
+        Object object,
+        Class<T> interfaceClass,
+        Action<ProxyInvocationHandler> invocationHandlerConfigurer
+    ) {
         requireNonNull(object, "object");
         requireNonNull(interfaceClass, "interfaceClass");
         if (!interfaceClass.isInterface()) {
@@ -54,13 +66,17 @@ public abstract class ProxyUtils {
             interfaceToObjectMethods.put(interfaceMethod, objectMethod);
         }
 
+        val invocationHandler = new ProxyInvocationHandler();
+        invocationHandler.add(interfaceToObjectMethods::containsKey, (proxy, method, args) -> {
+            val objectMethod = requireNonNull(interfaceToObjectMethods.get(method));
+            return objectMethod.invoke(object, args);
+        });
+        invocationHandlerConfigurer.execute(invocationHandler);
+
         val proxyInstance = newProxyInstance(
             interfaceClass.getClassLoader(),
             new Class<?>[]{interfaceClass},
-            new ProxyInvocationHandler().add(interfaceToObjectMethods::containsKey, (proxy, method, args) -> {
-                val objectMethod = requireNonNull(interfaceToObjectMethods.get(method));
-                return objectMethod.invoke(object, args);
-            })
+            invocationHandler
         );
 
         return interfaceClass.cast(proxyInstance);
