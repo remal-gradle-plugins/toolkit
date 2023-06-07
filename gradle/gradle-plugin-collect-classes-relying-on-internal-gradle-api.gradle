@@ -138,6 +138,28 @@ allprojects {
             provider {
                 Map<String, ClassNode> classesRelyingOnInternalApi = lazyClassesRelyingOnInternalApi.get()
                 return classesRelyingOnInternalApi.collect { String className, ClassNode classNode ->
+                    classNode.visibleAnnotations = null
+                    classNode.invisibleAnnotations = null
+                    classNode.visibleTypeAnnotations = null
+                    classNode.invisibleTypeAnnotations = null
+
+                    classNode.fields?.forEach {
+                        it.visibleAnnotations = null
+                        it.invisibleAnnotations = null
+                        it.visibleTypeAnnotations = null
+                        it.invisibleTypeAnnotations = null
+                    }
+                    classNode.methods?.forEach {
+                        it.visibleAnnotations = null
+                        it.invisibleAnnotations = null
+                        it.visibleTypeAnnotations = null
+                        it.invisibleTypeAnnotations = null
+                        it.visibleLocalVariableAnnotations = null
+                        it.invisibleLocalVariableAnnotations = null
+                        it.visibleParameterAnnotations = null
+                        it.invisibleParameterAnnotations = null
+                    }
+
                     classNode.fields = classNode.fields?.toSorted(
                         Comparator.comparing((Function) { it.name })
                     )
