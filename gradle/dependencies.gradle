@@ -54,8 +54,8 @@ allprojects {
                 'com.github.spotbugs:spotbugs-annotations:4.7.3',
 
                 // Annotation processing
-                'com.google.auto.service:auto-service:1.1.0',
-                'com.google.auto.service:auto-service-annotations:1.1.0',
+                'com.google.auto.service:auto-service:1.1.1',
+                'com.google.auto.service:auto-service-annotations:1.1.1',
 
                 // Compile-only
                 'name.remal:gradle-plugins-api:1.8.4',
