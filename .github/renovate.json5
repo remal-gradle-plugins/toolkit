@@ -11,8 +11,8 @@
         "packagePatterns": [
           "^org\\.mockito[.:]"
         ],
-        "matchCurrentVersion": "<= 4.9999",
-        "allowedVersions": "<= 4.9999",
+        "matchCurrentVersion": "<5",
+        "allowedVersions": "<5",
       },
       {
         // JGit 6 requires Java 11
