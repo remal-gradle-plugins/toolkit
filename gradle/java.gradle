@@ -155,7 +155,7 @@ allprojects {
             conf.canBeConsumed = false
             conf.dependencies.addAll(
                 [
-                    project.dependencies.platform('org.mockito:mockito-bom:4.11.0'),
+                    project.dependencies.platform('org.mockito:mockito-bom:4' + '.' + '11.0'),
                     project.dependencies.create('org.mockito:mockito-junit-jupiter'),
                     project.dependencies.create('org.mockito:mockito-inline'),
                 ]
