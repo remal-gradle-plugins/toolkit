@@ -11,7 +11,7 @@ dependencies {
     relocateClasses 'io.github.classgraph:classgraph:4.8.160'
     relocateClasses 'org.ec4j.core:ec4j-core:0.3.0'
     relocateClasses 'net.htmlparser.jericho:jericho-html:3.4'
-    relocateClasses('org.eclipse.jgit:org.eclipse.jgit:5.13.1.202206130422-r') {
+    relocateClasses('org.eclipse.jgit:org.eclipse.jgit:5.13.2.202306221912-r') {
         exclude group: 'org.slf4j'
     }
 
