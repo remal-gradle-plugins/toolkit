@@ -2,9 +2,16 @@ apply plugin: 'java-library'
 apply plugin: 'maven-publish'
 apply plugin: 'name.remal.classes-relocation'
 apply plugin: 'name.remal.generate-sources'
-apply from: 'build-generate-MembersFinder.gradle'
-apply from: 'build-generate-SneakyThrowUtils.gradle'
-apply from: 'build-generate-checkstyle.xsl.gradle'
+
+; [
+    'build-generate-MembersFinder.gradle',
+    'build-generate-SneakyThrowUtils.gradle',
+    'build-generate-checkstyle.xsl.gradle',
+].forEach { fileName ->
+    apply from: fileName
+    tasks.named('generateJava').configure { it.inputs.file(fileName) }
+    tasks.named('generateResources').configure { it.inputs.file(fileName) }
+}
 
 dependencies {
     relocateClasses 'org.jdom:jdom2'
