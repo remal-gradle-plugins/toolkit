@@ -196,9 +196,9 @@ tasks.named('generateJava') {
             it.writePackage()
             it.println("")
             it.writeStaticImport('javax.annotation.meta.When', 'UNKNOWN')
+            it.writeStaticImport("${project.calculateBaseJavaPackage()}.ThrowableUtils", 'unwrapReflectionException')
             it.writeStaticImport("${project.calculateBaseJavaPackage()}.reflection.ReflectionUtils", 'isStatic')
             it.println("")
-            it.writeImport('java.lang.reflect.InvocationTargetException')
             it.writeImport('java.lang.reflect.Method')
             it.writeImport('javax.annotation.Nonnull')
             it.writeImport('lombok.SneakyThrows')
@@ -220,8 +220,8 @@ tasks.named('generateJava') {
                 it.writeBlock("public R invoke(T target${paramsCount == 0 ? '' : (1..paramsCount).collect { ", @Nonnull(when = UNKNOWN) P$it param$it" }.join("")})") {
                     it.println("try {")
                     it.println("    return (R) method.invoke(target${paramsCount == 0 ? '' : (1..paramsCount).collect { ", param$it" }.join("")});")
-                    it.println("} catch (InvocationTargetException e) {")
-                    it.println("    throw e.getCause();")
+                    it.println("} catch (Throwable e) {")
+                    it.println("    throw unwrapReflectionException(e);")
                     it.println("}")
                 }
             }
@@ -231,9 +231,9 @@ tasks.named('generateJava') {
             it.writePackage()
             it.println("")
             it.writeStaticImport('javax.annotation.meta.When', 'UNKNOWN')
+            it.writeStaticImport("${project.calculateBaseJavaPackage()}.ThrowableUtils", 'unwrapReflectionException')
             it.writeStaticImport("${project.calculateBaseJavaPackage()}.reflection.ReflectionUtils", 'isStatic')
             it.println("")
-            it.writeImport('java.lang.reflect.InvocationTargetException')
             it.writeImport('java.lang.reflect.Method')
             it.writeImport('javax.annotation.Nonnull')
             it.writeImport('lombok.SneakyThrows')
@@ -253,8 +253,8 @@ tasks.named('generateJava') {
                 it.writeBlock("public void invoke(T target${paramsCount == 0 ? '' : (1..paramsCount).collect { ", @Nonnull(when = UNKNOWN) P$it param$it" }.join("")})") {
                     it.println("try {")
                     it.println("    method.invoke(target${paramsCount == 0 ? '' : (1..paramsCount).collect { ", param$it" }.join("")});")
-                    it.println("} catch (InvocationTargetException e) {")
-                    it.println("    throw e.getCause();")
+                    it.println("} catch (Throwable e) {")
+                    it.println("    throw unwrapReflectionException(e);")
                     it.println("}")
                 }
             }
@@ -264,9 +264,9 @@ tasks.named('generateJava') {
             it.writePackage()
             it.println("")
             it.writeStaticImport('javax.annotation.meta.When', 'UNKNOWN')
+            it.writeStaticImport("${project.calculateBaseJavaPackage()}.ThrowableUtils", 'unwrapReflectionException')
             it.writeStaticImport("${project.calculateBaseJavaPackage()}.reflection.ReflectionUtils", 'isNotStatic')
             it.println("")
-            it.writeImport('java.lang.reflect.InvocationTargetException')
             it.writeImport('java.lang.reflect.Method')
             it.writeImport('javax.annotation.Nonnull')
             it.writeImport('lombok.SneakyThrows')
@@ -288,8 +288,8 @@ tasks.named('generateJava') {
                 it.writeBlock("public R invoke(${paramsCount == 0 ? '' : (1..paramsCount).collect { "@Nonnull(when = UNKNOWN) P$it param$it" }.join(", ")})") {
                     it.println("try {")
                     it.println("    return (R) method.invoke(null${paramsCount == 0 ? '' : (1..paramsCount).collect { ", param$it" }.join("")});")
-                    it.println("} catch (InvocationTargetException e) {")
-                    it.println("    throw e.getCause();")
+                    it.println("} catch (Throwable e) {")
+                    it.println("    throw unwrapReflectionException(e);")
                     it.println("}")
                 }
             }
@@ -299,9 +299,9 @@ tasks.named('generateJava') {
             it.writePackage()
             it.println("")
             it.writeStaticImport('javax.annotation.meta.When', 'UNKNOWN')
+            it.writeStaticImport("${project.calculateBaseJavaPackage()}.ThrowableUtils", 'unwrapReflectionException')
             it.writeStaticImport("${project.calculateBaseJavaPackage()}.reflection.ReflectionUtils", 'isNotStatic')
             it.println("")
-            it.writeImport('java.lang.reflect.InvocationTargetException')
             it.writeImport('java.lang.reflect.Method')
             it.writeImport('javax.annotation.Nonnull')
             it.writeImport('lombok.SneakyThrows')
@@ -321,8 +321,8 @@ tasks.named('generateJava') {
                 it.writeBlock("public void invoke(${paramsCount == 0 ? '' : (1..paramsCount).collect { "@Nonnull(when = UNKNOWN) P$it param$it" }.join(", ")})") {
                     it.println("try {")
                     it.println("    method.invoke(null${paramsCount == 0 ? '' : (1..paramsCount).collect { ", param$it" }.join("")});")
-                    it.println("} catch (InvocationTargetException e) {")
-                    it.println("    throw e.getCause();")
+                    it.println("} catch (Throwable e) {")
+                    it.println("    throw unwrapReflectionException(e);")
                     it.println("}")
                 }
             }

@@ -3,6 +3,7 @@ package name.remal.gradle_plugins.toolkit;
 import static java.lang.reflect.Proxy.newProxyInstance;
 import static java.util.Objects.requireNonNull;
 import static lombok.AccessLevel.PRIVATE;
+import static name.remal.gradle_plugins.toolkit.ThrowableUtils.unwrapReflectionException;
 
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
@@ -69,7 +70,11 @@ public abstract class ProxyUtils {
         val invocationHandler = new ProxyInvocationHandler();
         invocationHandler.add(interfaceToObjectMethods::containsKey, (proxy, method, args) -> {
             val objectMethod = requireNonNull(interfaceToObjectMethods.get(method));
-            return objectMethod.invoke(object, args);
+            try {
+                return objectMethod.invoke(object, args);
+            } catch (Throwable e) {
+                throw unwrapReflectionException(e);
+            }
         });
         invocationHandlerConfigurer.execute(invocationHandler);
 
