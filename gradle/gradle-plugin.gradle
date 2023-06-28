@@ -17,9 +17,15 @@ allprojects {
         }
 
 
-        SourceSet functionalSourceSet = testSourceSets.create('functional')
+        SourceSet functionalTestSourceSet = testSourceSets.create('functionalTest')
 
-        project.tasks.named(functionalSourceSet.getTestTaskName(), Test) { Test task ->
+        project.file('src/functional').with { dir ->
+            if (dir.exists()) {
+                throw new GradleException("$dir should be renamed to ${functionalTestSourceSet.name}")
+            }
+        }
+
+        project.tasks.named(functionalTestSourceSet.name, Test) { Test task ->
             Closure<List<Task>> getPublishToBuildDirTasks = {
                 rootProject.allprojects
                     .collect { it.tasks.matching { it.name == 'publishToBuildDir' } }
