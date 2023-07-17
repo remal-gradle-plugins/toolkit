@@ -58,7 +58,7 @@ allprojects {
                 'com.google.auto.service:auto-service-annotations:1.1.1',
 
                 // Compile-only
-                'name.remal:gradle-plugins-api:1.9.1',
+                'name.remal:gradle-plugins-api:1.9.2',
                 'org.apache.commons:commons-lang3:3.12.0',
                 'org.apache.commons:commons-text:1.10.0',
                 'com.google.guava:guava:32.1.1-jre',
