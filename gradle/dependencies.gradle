@@ -91,17 +91,6 @@ allprojects {
             .configureEach { extendsFrom(conf) }
     }
 
-    configurations.all { Configuration conf ->
-        conf.dependencies.all { Dependency dep ->
-            if ("${dep.group}:${dep.name}" == 'com.google.guava:guava') {
-                exclude group: 'com.google.code.findbugs'
-                exclude group: 'org.checkerframework'
-                exclude group: 'com.google.errorprone'
-                exclude group: 'com.google.j2objc', module: 'j2objc-annotations'
-            }
-        }
-    }
-
     dependencies {
         components.all(GradleApiAlignmentRule)
         components.all(ErrorproneAlignmentRule)
