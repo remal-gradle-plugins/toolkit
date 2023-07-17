@@ -8,8 +8,8 @@ name.remal.gradle-plugins.idea-settings:idea-settings:3.0.5
 name.remal.gradle-plugins.lombok:lombok:2.2.1
 name.remal.gradle-plugins.sonarlint:sonarlint:3.3.1
 name.remal.gradle-plugins.test-source-sets:test-source-sets:4.0.0
-name.remal:gradle-plugins-api:1.9.1
-name.remal:gradle-plugins:1.9.1
+name.remal:gradle-plugins-api:1.9.2
+name.remal:gradle-plugins:1.9.2
 net.ltgt.gradle:gradle-errorprone-plugin:3.1.0
 org.eclipse.jgit:org.eclipse.jgit:6.5.0.202303070854-r
 org.ow2.asm:asm-analysis:9.5
