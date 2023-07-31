@@ -4,6 +4,7 @@ import static lombok.AccessLevel.PRIVATE;
 
 import java.io.File;
 import java.net.URI;
+import java.net.URL;
 import java.nio.file.Path;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
@@ -14,6 +15,11 @@ public abstract class UriUtils {
     @SneakyThrows
     public static URI parseUri(String string) {
         return new URI(string);
+    }
+
+    @SneakyThrows
+    public static URI toUri(URL url) {
+        return url.toURI();
     }
 
     public static URI toUri(File file) {

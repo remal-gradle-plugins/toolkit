@@ -115,6 +115,7 @@ public abstract class DebugUtils {
 
 
     private static final long MAX_NANOS_TO_DISPLAY_IN_NANOS = Duration.ofMillis(1).toNanos();
+    private static final long MAX_NANOS_TO_DISPLAY_IN_MILLIS = Duration.ofMinutes(1).toNanos();
 
     @Nonnull(when = UNKNOWN)
     @SneakyThrows
@@ -127,8 +128,10 @@ public abstract class DebugUtils {
             val durationNanos = System.nanoTime() - startNanos;
             if (durationNanos <= MAX_NANOS_TO_DISPLAY_IN_NANOS) {
                 logger.quiet("{} took {} nanos", timerName, durationNanos);
-            } else {
+            } else if (durationNanos <= MAX_NANOS_TO_DISPLAY_IN_MILLIS) {
                 logger.quiet("{} took {} millis", timerName, NANOSECONDS.toMillis(durationNanos));
+            } else {
+                logger.quiet("{} took {} seconds", timerName, NANOSECONDS.toSeconds(durationNanos));
             }
         }
     }

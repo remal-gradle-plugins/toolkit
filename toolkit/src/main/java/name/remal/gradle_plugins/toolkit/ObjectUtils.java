@@ -50,6 +50,18 @@ public abstract class ObjectUtils {
     public static final char DEFAULT_CHAR = new PrimitiveDefaultValues().defaultChar;
     public static final boolean DEFAULT_BOOLEAN = new PrimitiveDefaultValues().defaultBoolean;
 
+    @SuppressWarnings("unused")
+    private static class PrimitiveDefaultValues {
+        private byte defaultByte;
+        private short defaultShort;
+        private int defaultInt;
+        private long defaultLong;
+        private float defaultFloat;
+        private double defaultDouble;
+        private char defaultChar;
+        private boolean defaultBoolean;
+    }
+
 
     @Contract(value = "_->param1", pure = true)
     public static <T> T doNotInline(T object) {
@@ -402,18 +414,6 @@ public abstract class ObjectUtils {
     @Contract(pure = true)
     public static boolean defaultFalse(@Nullable Boolean value) {
         return defaultValue(value, false);
-    }
-
-
-    private static class PrimitiveDefaultValues {
-        private byte defaultByte;
-        private short defaultShort;
-        private int defaultInt;
-        private long defaultLong;
-        private float defaultFloat;
-        private double defaultDouble;
-        private char defaultChar;
-        private boolean defaultBoolean;
     }
 
 }
