@@ -15,16 +15,4 @@ class CrossCompileServiceImpl {
         return getDependencyVersion().getVersion() == null;
     }
 
-    @Override
-    public String toString() {
-        return getClassName()
-            + " ("
-            + "dependency=" + getDependencyVersion().getDependency()
-            + ", version=" + getDependencyVersion().getVersion()
-            + ", earlierIncluded=" + getDependencyVersion().isEarlierIncluded()
-            + ", selfIncluded=" + getDependencyVersion().isSelfIncluded()
-            + ", laterIncluded=" + getDependencyVersion().isLaterIncluded()
-            + ')';
-    }
-
 }

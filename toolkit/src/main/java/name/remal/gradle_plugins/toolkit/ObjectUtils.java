@@ -171,7 +171,7 @@ public abstract class ObjectUtils {
     }
 
     @Contract(value = "null->true", pure = true)
-    @SuppressWarnings({"OptionalUsedAsFieldOrParameterType", "java:S2789"})
+    @SuppressWarnings({"OptionalUsedAsFieldOrParameterType", "NullableOptional", "java:S2789"})
     public static boolean isEmpty(@Nullable Optional<?> value) {
         return value == null || !value.isPresent();
     }
@@ -243,7 +243,7 @@ public abstract class ObjectUtils {
     }
 
     @Contract(value = "null->false", pure = true)
-    @SuppressWarnings({"OptionalUsedAsFieldOrParameterType", "java:S2789"})
+    @SuppressWarnings({"OptionalUsedAsFieldOrParameterType", "NullableOptional", "java:S2789"})
     public static boolean isNotEmpty(@Nullable Optional<?> value) {
         return !isEmpty(value);
     }
@@ -320,7 +320,7 @@ public abstract class ObjectUtils {
     }
 
     @Contract(pure = true)
-    @SuppressWarnings({"OptionalUsedAsFieldOrParameterType", "java:S2789"})
+    @SuppressWarnings({"OptionalUsedAsFieldOrParameterType", "NullableOptional", "java:S2789"})
     public static <T> Optional<T> defaultValue(@Nullable Optional<T> value) {
         return defaultValue(value, Optional.empty());
     }
