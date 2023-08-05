@@ -30,14 +30,6 @@ allprojects {
                     'BugPatternNaming', // too strict rule
                     'StringCaseLocaleUsage', // too strict rule
                 )
-
-                String errorProneVersion = project.configurations.errorprone.allDependencyConstraints
-                    .findAll { "${it.group}:${it.name}" == "com.google.errorprone:error_prone_core" }
-                    .first()
-                    .version
-                if (errorProneVersion == '2.21.0') {
-                    disable('NotJavadoc') // https://github.com/google/error-prone/issues/4040
-                }
             }
         }
     }
