@@ -9,7 +9,7 @@ buildscript {
         classpathPlugins 'name.remal.gradle-plugins.lombok:lombok:2.2.1'
         classpathPlugins 'name.remal.gradle-plugins.test-source-sets:test-source-sets:4.0.0'
         classpathPlugins 'name.remal.gradle-plugins.sonarlint:sonarlint:3.3.5'
-        classpathPlugins 'name.remal.gradle-plugins.idea-settings:idea-settings:3.0.5'
+        classpathPlugins 'name.remal.gradle-plugins.idea-settings:idea-settings:3.0.6'
         classpathPlugins 'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.1.7'
         classpathPlugins 'com.gradle.publish:plugin-publish-plugin:1.2.0'
         classpathPlugins 'name.remal:gradle-plugins:1.9.2'
