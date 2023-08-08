@@ -1,0 +1,47 @@
+package name.remal.gradle_plugins.toolkit;
+
+import static lombok.AccessLevel.PRIVATE;
+import static name.remal.gradle_plugins.toolkit.ExtensionContainerUtils.getExtension;
+import static name.remal.gradle_plugins.toolkit.reflection.MethodsInvoker.invokeMethod;
+
+import lombok.CustomLog;
+import lombok.NoArgsConstructor;
+import lombok.val;
+import org.gradle.api.Action;
+import org.gradle.api.Project;
+import org.gradle.api.artifacts.ResolutionStrategy;
+
+@NoArgsConstructor(access = PRIVATE)
+@CustomLog
+public abstract class ResolutionStrategyUtils {
+
+    public static void configureGlobalResolutionStrategy(Project project, Action<ResolutionStrategy> action) {
+        project.getConfigurations().configureEach(configuration -> {
+            configuration.resolutionStrategy(action);
+        });
+
+
+        Action<?> untypedAction = untypedResolutionStrategy -> {
+            ResolutionStrategy resolutionStrategy;
+            try {
+                resolutionStrategy = (ResolutionStrategy) untypedResolutionStrategy;
+            } catch (Throwable e) {
+                logger.warn(e.toString(), e);
+                return;
+            }
+
+            action.execute(resolutionStrategy);
+        };
+
+        project.getPluginManager().withPlugin("io.spring.dependency-management", __ -> {
+            try {
+                val dependencyManagement = getExtension(project, "dependencyManagement");
+                invokeMethod(dependencyManagement, "resolutionStrategy", Action.class, untypedAction);
+
+            } catch (Throwable e) {
+                logger.warn(e.toString(), e);
+            }
+        });
+    }
+
+}
