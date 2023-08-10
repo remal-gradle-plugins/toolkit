@@ -24,7 +24,7 @@ dependencies {
 
 
     testImplementation project(':testkit')
-    testImplementation 'io.spring.dependency-management:io.spring.dependency-management.gradle.plugin:1.1.2'
+    testImplementation 'io.spring.dependency-management:io.spring.dependency-management.gradle.plugin:1.1.3'
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
