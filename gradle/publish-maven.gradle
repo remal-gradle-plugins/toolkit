@@ -90,7 +90,7 @@ allprojects {
         dependsOn(tasks.withType(GenerateMavenPom))
     }
 
-    tasks.withType(AbstractPublishToMaven) {
+    tasks.withType(AbstractPublishToMaven).configureEach {
         mustRunAfter(
             project.provider {
                 project.rootProject.allprojects

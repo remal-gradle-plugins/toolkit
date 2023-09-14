@@ -37,7 +37,7 @@ allprojects {
             .matching { MavenArtifactRepository repo -> repo.url.scheme != 'file' && repo.url != mavenCentralUri }
             .configureEach { MavenArtifactRepository repo ->
                 repo.content { RepositoryContentDescriptor content ->
-                    configurations.all { Configuration conf ->
+                    configurations.configureEach { Configuration conf ->
                         if (startWithWord(conf.name, 'checkstyle')) {
                             content.notForConfigurations(conf.name)
                         }

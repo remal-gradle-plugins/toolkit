@@ -20,14 +20,14 @@ allprojects {
         tasks.withType(AbstractCompile).configureEach { AbstractCompile task ->
             task.inputs.property('relocatedClassesPackageName', classesRelocation.relocatedClassesPackageName)
             relocationConfNames.forEach { relocationConfName ->
-                task.dependsOn(configurations[relocationConfName])
-                task.inputs.files(configurations[relocationConfName])
+                task.dependsOn(configurations.named(relocationConfName))
+                task.inputs.files(configurations.named(relocationConfName))
                     .optional()
                     .withPropertyName("configuration-$relocationConfName")
             }
         }
 
-        configurations.matching { relocationConfNames.contains(it.name) }.all { Configuration conf ->
+        configurations.matching { relocationConfNames.contains(it.name) }.configureEach { Configuration conf ->
             conf.canBeConsumed = false
 
             conf.attributes {

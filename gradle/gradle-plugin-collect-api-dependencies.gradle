@@ -51,7 +51,7 @@ allprojects {
             )
             task.inputs.property('platformDependencyNotations', platformDependencyNotations)
 
-            File outputFile = project.file("${project.buildDir}/gradle-plugin-api-dependencies.txt")
+            File outputFile = project.file("${project.layout.buildDirectory.asFile.get()}/gradle-plugin-api-dependencies.txt")
             outputs.file(outputFile).withPropertyName('outputFile')
             task.ext.outputFile = outputFile
             task.doFirst { outputFile.delete() }

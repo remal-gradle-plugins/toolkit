@@ -123,7 +123,7 @@ allCrossCompileProjects.all { CrossCompileProjectInfo crossCompileProjectInfo ->
     }
 
     if (crossCompileProjectInfo.dependency == null) {
-        targetProject.configurations.matching { it.name == 'compileOnlyAll' }.all { Configuration conf ->
+        targetProject.configurations.matching { it.name == 'compileOnlyAll' }.configureEach { Configuration conf ->
             Dependency crossCompileDep = targetProject.dependencies.create(crossCompileProject)
             conf.dependencies.add(crossCompileDep)
         }

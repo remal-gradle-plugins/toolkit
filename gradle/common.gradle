@@ -6,7 +6,7 @@ import java.time.Duration
 allprojects {
     tasks.configureEach { timeout = Duration.ofMinutes(10) }
 
-    configurations.all { Configuration conf ->
+    configurations.configureEach { Configuration conf ->
         conf.resolutionStrategy.cacheDynamicVersionsFor(1, HOURS)
     }
 
