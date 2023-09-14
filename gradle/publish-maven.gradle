@@ -103,6 +103,7 @@ allprojects {
                                     || it.name == 'allTests'
                                     || it instanceof AbstractCompile
                                     || it instanceof Javadoc
+                                    || it instanceof Sign
                                     || project.isVerificationTask(it)
                             )
                         }
