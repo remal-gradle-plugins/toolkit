@@ -220,22 +220,7 @@ allprojects {
         tasks.withType(JavaCompile).configureEach {
             onlyIf {
                 JavaVersion compatibilityVersion = JavaVersion.toVersion(targetCompatibility)
-                JavaCompiler compiler = javaToolchains.compilerFor {
-                    languageVersion = JavaLanguageVersion.of(compatibilityVersion.majorVersion)
-                    //vendor = project.defaultJvmVendor
-                }.get()
-                if (compatibilityVersion.isJava9Compatible()) {
-                    options.compilerArgs.addAll(
-                        [
-                            '--system',
-                            compiler.metadata.installationPath.asFile.getAbsolutePath()
-                        ]
-                    )
-                } else {
-                    options.bootstrapClasspath = project.files(
-                        compiler.metadata.installationPath.file("jre/lib/rt.jar")
-                    )
-                }
+                options.release = Integer.parseInt(compatibilityVersion.majorVersion)
                 return true
             }
         }
