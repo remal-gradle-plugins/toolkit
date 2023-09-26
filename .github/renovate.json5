@@ -3,26 +3,5 @@
   extends: ["github>remal-gradle-plugins/plugins-renovate-config:base"],
 
   // $$$sync-with-template-modifiable: local $$$
-
-  java: {
-    packageRules: [
-      {
-        // Don't upgrade Mockito 4.x to 5.x, as Mockito 5 requires Java 11
-        "packagePatterns": [
-          "^org\\.mockito[.:]"
-        ],
-        "matchCurrentVersion": "(,4.9999)",
-        "allowedVersions": "(,4.9999)",
-      },
-      {
-        // JGit 6 requires Java 11
-        "packagePatterns": [
-          "^org\\.eclipse\\.jgit[.:]"
-        ],
-        "allowedVersions": "(,5.9999)",
-      },
-    ],
-  },
-
   // $$$sync-with-template-modifiable-end$$$
 }
