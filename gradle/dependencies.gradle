@@ -38,7 +38,7 @@ allprojects {
 
         conf.dependencies.addAll(
             [
-                'org.immutables:bom:2.9.3',
+                'org.immutables:bom:2.10.0',
                 'org.ow2.asm:asm-bom:9.6',
                 'org.junit:junit-bom:5.10.0',
             ].collect { project.dependencies.platform(it) }
