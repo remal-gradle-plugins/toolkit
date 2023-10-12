@@ -51,7 +51,7 @@ allprojects {
                 'org.jetbrains:annotations:24.0.1',
                 "com.google.errorprone:error_prone_annotations:$errorproneVersion",
                 "com.google.errorprone:error_prone_core:$errorproneVersion",
-                'com.github.spotbugs:spotbugs-annotations:4.7.3',
+                'com.github.spotbugs:spotbugs-annotations:4.8.0',
 
                 // Annotation processing
                 'com.google.auto.service:auto-service:1.1.1',
