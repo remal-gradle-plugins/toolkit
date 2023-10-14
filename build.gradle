@@ -23,7 +23,7 @@ buildscript {
         classpathLibs 'org.ow2.asm:asm-util'
         classpathLibs 'org.ow2.asm:asm-commons'
 
-        toolkitBuildLibs 'org.json:json:20230618'
+        toolkitBuildLibs 'org.json:json:20231013'
         toolkitBuildLibs 'com.vdurmont:semver4j:3.1.0'
         toolkitBuildLibs('com.google.guava:guava:32.1.3-jre') {
             exclude(group: 'com.google.code.findbugs')
@@ -113,7 +113,7 @@ allprojects {
             relocateClasses 'org.ow2.asm:asm-commons'
             relocateClasses 'org.ow2.asm:asm-tree'
             relocateClasses 'org.ow2.asm:asm-util'
-            relocateClasses 'org.json:json:20230618'
+            relocateClasses 'org.json:json:20231013'
 
 
             testImplementation 'org.ow2.asm:asm'
