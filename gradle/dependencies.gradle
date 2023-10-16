@@ -34,7 +34,7 @@ allprojects {
         }
 
         String errorproneVersion = '2.22.0'
-        String jacocoVersion = '0.8.10'
+        String jacocoVersion = '0.8.11'
 
         conf.dependencies.addAll(
             [
