@@ -17,7 +17,6 @@ import static name.remal.gradle_plugins.toolkit.StringUtils.escapeGroovy;
 import static name.remal.gradle_plugins.toolkit.StringUtils.trimRightWith;
 import static name.remal.gradle_plugins.toolkit.internal.Flags.IS_IN_FUNCTION_TEST_ENV_VAR;
 import static name.remal.gradle_plugins.toolkit.testkit.functional.GradleRunnerUtils.withJvmArguments;
-import static name.remal.gradle_plugins.toolkit.testkit.functional.GradleSettingsPluginVersions.getSettingsBuildscriptClasspathDependencyVersion;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -53,7 +52,6 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
 
     private static final GradleVersion MIN_GRADLE_VERSION_WITH_RUNNER_ENVIRONMENT = GradleVersion.version("5.2");
     private static final GradleVersion MIN_GRADLE_VERSION_WITH_CONFIGURATION_CACHE = GradleVersion.version("6.6");
-    private static final GradleVersion MIN_GRADLE_VERSION_WITH_TOOLCHAIN_RESOLVER = GradleVersion.version("7.6");
 
 
     protected final Map<String, GradleChildProject> children = synchronizedMap(new LinkedHashMap<>());
@@ -250,20 +248,6 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
     }
 
 
-    private static final boolean IS_TOOLCHAINS_RESOLVER_AVAILABLE =
-        isCurrentGradleVersionGreaterThanOrEqualTo(MIN_GRADLE_VERSION_WITH_TOOLCHAIN_RESOLVER);
-
-    private boolean withToolchainsResolver = false;
-
-    @Contract("-> this")
-    @CanIgnoreReturnValue
-    public final synchronized GradleProject withToolchainsResolver() {
-        assertIsNotBuilt();
-        withToolchainsResolver = IS_TOOLCHAINS_RESOLVER_AVAILABLE;
-        return this;
-    }
-
-
     private boolean withPluginClasspath = true;
 
     @Contract("-> this")
@@ -334,14 +318,6 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
         if (buildResult == null) {
             final BuildResult currentBuildResult;
             try {
-                if (withToolchainsResolver) {
-                    settingsFile.applyPlugin(
-                        "org.gradle.toolchains.foojay-resolver-convention",
-                        getSettingsBuildscriptClasspathDependencyVersion("org.gradle.toolchains:foojay-resolver")
-                    );
-                }
-
-
                 writeToDisk();
 
 

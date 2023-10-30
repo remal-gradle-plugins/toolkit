@@ -18,4 +18,5 @@ class BuildLogicPluginSimpleFunctionalTest {
         project.withoutConfigurationCache();
         project.assertBuildSuccessfully();
     }
+
 }
