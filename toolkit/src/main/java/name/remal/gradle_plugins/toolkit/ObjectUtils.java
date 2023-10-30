@@ -35,6 +35,12 @@ import kotlin.reflect.KCallable;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
+import name.remal.gradle_plugins.toolkit.SneakyThrowUtils.SneakyThrowsBooleanSupplier;
+import name.remal.gradle_plugins.toolkit.SneakyThrowUtils.SneakyThrowsCallable;
+import name.remal.gradle_plugins.toolkit.SneakyThrowUtils.SneakyThrowsDoubleSupplier;
+import name.remal.gradle_plugins.toolkit.SneakyThrowUtils.SneakyThrowsIntSupplier;
+import name.remal.gradle_plugins.toolkit.SneakyThrowUtils.SneakyThrowsLongSupplier;
+import name.remal.gradle_plugins.toolkit.SneakyThrowUtils.SneakyThrowsSupplier;
 import org.gradle.api.provider.Provider;
 import org.jetbrains.annotations.Contract;
 
@@ -112,6 +118,19 @@ public abstract class ObjectUtils {
         } else if (object instanceof DoubleSupplier) {
             return ((DoubleSupplier) object).getAsDouble();
 
+        } else if (object instanceof SneakyThrowsCallable) {
+            return unwrapProviders(((SneakyThrowsCallable<?>) object).call());
+        } else if (object instanceof SneakyThrowsSupplier) {
+            return unwrapProviders(((SneakyThrowsSupplier<?>) object).get());
+        } else if (object instanceof SneakyThrowsBooleanSupplier) {
+            return ((SneakyThrowsBooleanSupplier) object).getAsBoolean();
+        } else if (object instanceof SneakyThrowsIntSupplier) {
+            return ((SneakyThrowsIntSupplier) object).getAsInt();
+        } else if (object instanceof SneakyThrowsLongSupplier) {
+            return ((SneakyThrowsLongSupplier) object).getAsLong();
+        } else if (object instanceof SneakyThrowsDoubleSupplier) {
+            return ((SneakyThrowsDoubleSupplier) object).getAsDouble();
+
         } else if (object instanceof Future) {
             return unwrapProviders(((Future<?>) object).get(5, MINUTES));
         } else if (object instanceof CompletionStage) {
@@ -139,13 +158,18 @@ public abstract class ObjectUtils {
         } else if (object instanceof Provider) {
             return unwrapProviders(((Provider<?>) object).getOrNull());
 
-        } else if (('.' + object.getClass().getName()).endsWith(".com.google.common.base.Absent")) {
-            return null;
-        } else if (('.' + object.getClass().getName()).endsWith(".com.google.common.base.Present")) {
-            return unwrapProviders(invokeMethod(object, Object.class, "get"));
-
         } else {
-            return object;
+            val dotClassName = '.' + object.getClass().getName();
+            if (dotClassName.endsWith(".com.google.common.base.Absent")) {
+                return null;
+            } else if (dotClassName.endsWith(".com.google.common.base.Present")) {
+                return unwrapProviders(invokeMethod(object, Object.class, "get"));
+            } else if (dotClassName.endsWith(".com.google.common.util.concurrent.AtomicDouble")) {
+                return invokeMethod(object, Object.class, "get");
+
+            } else {
+                return object;
+            }
         }
     }
 
