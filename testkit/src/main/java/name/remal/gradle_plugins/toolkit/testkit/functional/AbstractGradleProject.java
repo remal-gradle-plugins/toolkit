@@ -2,6 +2,7 @@ package name.remal.gradle_plugins.toolkit.testkit.functional;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.Files.readAllBytes;
 import static java.nio.file.Files.write;
 import static java.util.Collections.synchronizedMap;
 import static name.remal.gradle_plugins.toolkit.FileUtils.normalizeFile;
@@ -14,6 +15,7 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import com.google.errorprone.annotations.OverridingMethodsMustInvokeSuper;
 import java.io.File;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -101,6 +103,7 @@ abstract class AbstractGradleProject<Child extends AbstractGradleProject<Child>>
         writeGradlePropertiesToDisk();
     }
 
+
     @Contract("_,_ -> this")
     @CanIgnoreReturnValue
     @SneakyThrows
@@ -113,19 +116,7 @@ abstract class AbstractGradleProject<Child extends AbstractGradleProject<Child>>
             ));
         }
 
-        val relativePath = Paths.get(relativeFilePath);
-        if (relativePath.isAbsolute()) {
-            throw new IllegalArgumentException("Not a relative path: " + relativeFilePath);
-        }
-
-        val projectPath = normalizePath(projectDir.toPath());
-        val destPath = normalizePath(projectPath.resolve(relativePath));
-        if (!destPath.startsWith(projectPath)) {
-            throw new IllegalArgumentException(
-                "Relative path refers to a file outside of the project dir: " + relativeFilePath
-            );
-        }
-
+        val destPath = resolveRelativePath(relativeFilePath);
         createParentDirectories(destPath);
         write(destPath, bytes);
 
@@ -142,6 +133,40 @@ abstract class AbstractGradleProject<Child extends AbstractGradleProject<Child>>
     @CanIgnoreReturnValue
     public final Child writeTextFile(String relativeFilePath, String content) {
         return writeTextFile(relativeFilePath, content, UTF_8);
+    }
+
+
+    @SneakyThrows
+    public final byte[] readBinaryFile(String relativeFilePath) {
+        val destPath = resolveRelativePath(relativeFilePath);
+        return readAllBytes(destPath);
+    }
+
+    public final String readTextFile(String relativeFilePath, Charset charset) {
+        val bytes = readBinaryFile(relativeFilePath);
+        return new String(bytes, charset);
+    }
+
+    public final String readTextFile(String relativeFilePath) {
+        return readTextFile(relativeFilePath, UTF_8);
+    }
+
+
+    private Path resolveRelativePath(String relativeFilePath) {
+        val relativePath = Paths.get(relativeFilePath);
+        if (relativePath.isAbsolute()) {
+            throw new IllegalArgumentException("Not a relative path: " + relativeFilePath);
+        }
+
+        val projectPath = normalizePath(projectDir.toPath());
+        val destPath = normalizePath(projectPath.resolve(relativePath));
+        if (!destPath.startsWith(projectPath)) {
+            throw new IllegalArgumentException(
+                "Relative path refers to a file outside of the project dir: " + relativeFilePath
+            );
+        }
+
+        return destPath;
     }
 
 }
