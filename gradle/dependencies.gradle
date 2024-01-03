@@ -70,7 +70,7 @@ allprojects {
 
                 // Test
                 "name.remal.gradle-api:gradle-test-kit:${project.gradleApiVersion.version}",
-                'org.assertj:assertj-core:3.25.0',
+                'org.assertj:assertj-core:3.25.1',
                 "org.jacoco:org.jacoco.agent:$jacocoVersion",
                 "org.jacoco:org.jacoco.ant:$jacocoVersion",
                 "org.jacoco:org.jacoco.core:$jacocoVersion",
