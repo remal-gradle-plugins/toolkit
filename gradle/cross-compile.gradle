@@ -234,6 +234,7 @@ allCrossCompileProjects.all { CrossCompileProjectInfo crossCompileProjectInfo ->
             doLast {
                 task.destinationDirectory.asFileTree
                     .matching { it.include('**/*.class') }
+                    .matching { it.exclude('**/package-info.class') }
                     .matching { it.exclude('module-info.class') }
                     .visit { FileVisitDetails details ->
                         if (details.directory) return
