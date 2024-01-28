@@ -6,7 +6,7 @@ allprojects {
 
     dependencies {
         constraints {
-            checkstyle 'com.puppycrawl.tools:checkstyle:10.12.7'
+            checkstyle 'com.puppycrawl.tools:checkstyle:10.13.0'
         }
     }
 
