@@ -5,6 +5,16 @@ apply plugin: 'idea'
 apply plugin: 'org.jetbrains.gradle.plugin.idea-ext'
 apply plugin: 'name.remal.idea-settings'
 
+allprojects {
+    apply plugin: 'idea'
+    idea {
+        module {
+            downloadJavadoc = true
+            downloadSources = true
+        }
+    }
+}
+
 idea.project {
     jdkName = '17'
     targetBytecodeVersion = JavaVersion.VERSION_17
