@@ -11,9 +11,48 @@ allprojects {
             }
         }
 
+        configurations.create('gradleApi') { Configuration conf ->
+            conf.canBeResolved = true
+            conf.canBeConsumed = false
+            conf.description = "Gradle API"
+            configurations.optional.extendsFrom(conf)
+        }
+
         dependencies {
-            optional 'name.remal.gradle-api:gradle-api'
+            gradleApi 'name.remal.gradle-api:gradle-api'
             testImplementation 'name.remal.gradle-api:gradle-test-kit'
+        }
+
+
+        List<Map<String, String>> loggingExclusions = [
+            [group: 'org.slf4j', module: '*'],
+            [group: 'log4j', module: 'log4j'],
+            [group: 'commons-logging', module: 'commons-logging'],
+            [group: 'org.springframework', module: 'spring-jcl'],
+        ]
+        sourceSets.configureEach { sourceSet ->
+            Collection<String> configurationNames = project.getSourceSetConfigurationNames(sourceSet)
+            configurations.matching { configurationNames.contains(it.name) }.configureEach { conf ->
+                conf.dependencies.withType(ExternalModuleDependency).configureEach { dep ->
+                    if (dep.group != 'name.remal.gradle-api') {
+                        loggingExclusions.forEach { dep.exclude(it) }
+                    }
+                }
+                conf.withDependencies { deps ->
+                    configurations.gradleApi
+                        .resolvedConfiguration
+                        .lenientConfiguration
+                        .allModuleDependencies
+                        .findAll { !it.moduleArtifacts.isEmpty() }
+                        .forEach { resolvedDep ->
+                            deps.withType(ExternalModuleDependency).configureEach { dep ->
+                                if (dep.group != 'name.remal.gradle-api') {
+                                    dep.exclude(group: resolvedDep.moduleGroup, module: resolvedDep.moduleName)
+                                }
+                            }
+                        }
+                }
+            }
         }
 
 

@@ -56,7 +56,7 @@ allprojects {
         }
 
         configurations.create('optional') { Configuration conf ->
-            conf.canBeResolved = false
+            conf.canBeResolved = true
             conf.canBeConsumed = false
             conf.description = "Optional dependencies"
             sourceSets.all { SourceSet sourceSet ->
