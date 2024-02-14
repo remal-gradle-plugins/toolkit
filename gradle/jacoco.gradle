@@ -36,9 +36,11 @@ allprojects {
 
         tasks.withType(Test).all { Test testTask ->
             TaskCollection<JacocoReport> reportTasks = tasks.withType(JacocoReport).matching { it.name == "jacoco${name.capitalize()}Report" }
-            //testTask.finalizedBy(reportTasks)
+            testTask.finalizedBy(reportTasks)
             reportTasks.all { JacocoReport reportTask ->
                 reportTask.dependsOn(testTask)
+                reportTask.dependsOn(sourceSets.main.allJava)
+                reportTask.dependsOn(tasks.matching { ['generateJava', 'generateGroovy', 'generateKotlin', 'generateResources'].contains(it.name) })
             }
         }
 
@@ -109,7 +111,7 @@ JacocoReport jacocoReportMerged = tasks.create('jacocoReportMerged', JacocoRepor
             task.dependsOn(testTasks)
 
             TaskCollection<JacocoReport> reportTasks = tasks.withType(JacocoReport).matching { it.name.matches(/jacoco[A-Z].*Report/) }
-            //task.dependsOn(reportTasks)
+            task.dependsOn(reportTasks)
 
             task.executionData(testTasks)
             pluginManager.withPlugin('java') {
