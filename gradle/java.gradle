@@ -163,6 +163,7 @@ allprojects {
             testImplementation 'com.google.guava:guava'
 
             testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+            testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
         }
 
         if (!rootProject.allprojects.any { it.group == 'name.remal.gradle-plugins.toolkit' }) {
