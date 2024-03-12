@@ -33,7 +33,7 @@ allprojects {
             }
         }
 
-        String errorproneVersion = '2.26.0'
+        String errorproneVersion = '2.26.1'
         String jacocoVersion = '0.8.11'
 
         conf.dependencies.addAll(
