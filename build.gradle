@@ -6,7 +6,7 @@ buildscript {
     configurations.create('classpathLibs') { configurations.classpathApi.extendsFrom(it) }
     configurations.create('toolkitBuildLibs') { configurations.classpath.extendsFrom(it) }
     dependencies {
-        classpathPlugins 'name.remal.gradle-plugins.lombok:lombok:2.2.4'
+        classpathPlugins 'name.remal.gradle-plugins.lombok:lombok:2.2.5'
         classpathPlugins 'name.remal.gradle-plugins.merge-resources:merge-resources:2.0.1'
         classpathPlugins 'name.remal.gradle-plugins.test-source-sets:test-source-sets:4.0.2'
         classpathPlugins 'name.remal.gradle-plugins.sonarlint:sonarlint:3.4.9'
