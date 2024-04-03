@@ -152,7 +152,7 @@ abstract class AbstractGradleProject<Child extends AbstractGradleProject<Child>>
     }
 
 
-    private Path resolveRelativePath(String relativeFilePath) {
+    public Path resolveRelativePath(String relativeFilePath) {
         val relativePath = Paths.get(relativeFilePath);
         if (relativePath.isAbsolute()) {
             throw new IllegalArgumentException("Not a relative path: " + relativeFilePath);
