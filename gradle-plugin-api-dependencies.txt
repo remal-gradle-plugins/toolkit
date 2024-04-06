@@ -3,7 +3,7 @@
 
 com.gradle.publish:plugin-publish-plugin:1.2.1
 gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.1.8
-io.github.gradle-nexus:publish-plugin:1.3.0
+io.github.gradle-nexus:publish-plugin:2.0.0
 name.remal.gradle-plugins.idea-settings:idea-settings:3.0.9
 name.remal.gradle-plugins.lombok:lombok:2.2.5
 name.remal.gradle-plugins.merge-resources:merge-resources:2.0.1
