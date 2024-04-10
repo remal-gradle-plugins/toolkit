@@ -31,6 +31,7 @@ import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import kotlin.Lazy;
+import kotlin.jvm.functions.Function0;
 import kotlin.reflect.KCallable;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
@@ -147,6 +148,8 @@ public abstract class ObjectUtils {
 
         } else if (object instanceof Lazy) {
             return unwrapProviders(((Lazy<?>) object).getValue());
+        } else if (object instanceof Function0) {
+            return unwrapProviders(((Function0<?>) object).invoke());
         } else if (object instanceof KCallable) {
             val typedObject = (KCallable<?>) object;
             if (isEmpty(typedObject.getTypeParameters())) {
