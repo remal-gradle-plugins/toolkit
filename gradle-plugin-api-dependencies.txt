@@ -7,7 +7,7 @@ io.github.gradle-nexus:publish-plugin:2.0.0
 name.remal.gradle-plugins.idea-settings:idea-settings:3.0.9
 name.remal.gradle-plugins.lombok:lombok:2.2.5
 name.remal.gradle-plugins.merge-resources:merge-resources:2.0.1
-name.remal.gradle-plugins.sonarlint:sonarlint:3.4.11
+name.remal.gradle-plugins.sonarlint:sonarlint:3.4.12
 name.remal.gradle-plugins.test-source-sets:test-source-sets:4.0.3
 name.remal:gradle-plugins-api:1.9.2
 name.remal:gradle-plugins:1.9.2
