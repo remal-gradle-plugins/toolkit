@@ -1,6 +1,7 @@
 package name.remal.gradle_plugins.toolkit;
 
 import static com.google.common.io.ByteStreams.toByteArray;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static lombok.AccessLevel.PRIVATE;
 
 import java.io.FilterInputStream;
@@ -45,6 +46,9 @@ public abstract class InputOutputStreamUtils {
         return new String(bytes, charset);
     }
 
+    public static String readStringFromStream(InputStream inputStream) {
+        return readStringFromStream(inputStream, UTF_8);
+    }
 
     @FunctionalInterface
     public interface OutputStreamOnClose {
