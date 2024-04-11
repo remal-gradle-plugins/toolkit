@@ -2,6 +2,7 @@ package name.remal.gradle_plugins.toolkit.issues;
 
 import static javax.xml.XMLConstants.ACCESS_EXTERNAL_DTD;
 import static javax.xml.XMLConstants.ACCESS_EXTERNAL_STYLESHEET;
+import static javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING;
 import static name.remal.gradle_plugins.toolkit.ResourceUtils.getResourceUrl;
 import static name.remal.gradle_plugins.toolkit.UrlUtils.openInputStreamForUrl;
 
@@ -32,6 +33,7 @@ public class CheckstyleHtmlIssuesRenderer implements IssuesRenderer {
             val factory = TransformerFactory.newInstance();
             tryToSetAttribute(factory, ACCESS_EXTERNAL_DTD, "");
             tryToSetAttribute(factory, ACCESS_EXTERNAL_STYLESHEET, "");
+            tryToSetAttribute(factory, FEATURE_SECURE_PROCESSING, "");
 
             val transformer = factory.newTransformer(xslt);
             transformer.transform(source, new StreamResult(outputWriter));
