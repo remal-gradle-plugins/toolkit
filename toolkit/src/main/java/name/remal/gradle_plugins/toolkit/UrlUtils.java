@@ -1,6 +1,7 @@
 package name.remal.gradle_plugins.toolkit;
 
 import static com.google.common.io.ByteStreams.toByteArray;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.InputOutputStreamUtils.withOnClose;
 import static name.remal.gradle_plugins.toolkit.UriUtils.toUri;
@@ -62,6 +63,10 @@ public abstract class UrlUtils {
     public static String readStringFromUrl(URL url, Charset charset) {
         val bytes = readBytesFromUrl(url);
         return new String(bytes, charset);
+    }
+
+    public static String readStringFromUrl(URL url) {
+        return readStringFromUrl(url, UTF_8);
     }
 
 }
