@@ -15,7 +15,8 @@ import static name.remal.gradle_plugins.toolkit.PathUtils.copyRecursively;
 import static name.remal.gradle_plugins.toolkit.PredicateUtils.not;
 import static name.remal.gradle_plugins.toolkit.StringUtils.escapeGroovy;
 import static name.remal.gradle_plugins.toolkit.StringUtils.trimRightWith;
-import static name.remal.gradle_plugins.toolkit.internal.Flags.IS_IN_FUNCTION_TEST_ENV_VAR;
+import static name.remal.gradle_plugins.toolkit.internal.Flags.IS_IN_FUNCTIONAL_TEST_ENV_VAR;
+import static name.remal.gradle_plugins.toolkit.internal.Flags.IS_IN_TEST_ENV_VAR;
 import static name.remal.gradle_plugins.toolkit.testkit.functional.GradleRunnerUtils.withJvmArguments;
 
 import com.google.common.base.Splitter;
@@ -506,7 +507,8 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
 
         if (isCurrentGradleVersionGreaterThanOrEqualTo(MIN_GRADLE_VERSION_WITH_RUNNER_ENVIRONMENT)) {
             runner.withEnvironment(ImmutableMap.of(
-                IS_IN_FUNCTION_TEST_ENV_VAR, "true"
+                IS_IN_TEST_ENV_VAR, "true",
+                IS_IN_FUNCTIONAL_TEST_ENV_VAR, "true"
             ));
         }
 

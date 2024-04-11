@@ -315,6 +315,10 @@ allprojects {
             }
 
             useJUnitPlatform()
+            environment('NAME_REMAL_GRADLE_PLUGINS_TEST', 'true')
+            if (name == 'functionalTest') {
+                environment('NAME_REMAL_GRADLE_PLUGINS_TEST_FUNCTIONAL', 'true')
+            }
             systemProperty('junit.jupiter.extensions.autodetection.enabled', 'true')
             enableAssertions = true
 
