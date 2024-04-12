@@ -1,7 +1,7 @@
 package name.remal.gradle_plugins.toolkit;
 
 import static lombok.AccessLevel.PRIVATE;
-import static name.remal.gradle_plugins.toolkit.internal.Flags.isInTest;
+import static name.remal.gradle_plugins.toolkit.InTestFlags.isInTest;
 
 import java.util.Optional;
 import java.util.ServiceLoader;

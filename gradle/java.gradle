@@ -315,10 +315,6 @@ allprojects {
             }
 
             useJUnitPlatform()
-            environment('NAME_REMAL_GRADLE_PLUGINS_TEST', 'true')
-            if (name == 'functionalTest') {
-                environment('NAME_REMAL_GRADLE_PLUGINS_TEST_FUNCTIONAL', 'true')
-            }
             systemProperty('junit.jupiter.extensions.autodetection.enabled', 'true')
             enableAssertions = true
 
@@ -350,6 +346,17 @@ allprojects {
                         testMessages.forEach { print(" > $it") }
                     }
                 }
+            }
+        }
+
+        project.testSourceSets.all { SourceSet sourceSet ->
+            String testType = sourceSet.name.replaceFirst(/Test$/, '')
+            if (sourceSet.name == 'test') {
+                testType = 'unit'
+            }
+            tasks.named(sourceSet.name, Test).configure {
+                environment('NAME_REMAL_GRADLE_PLUGINS_TEST', 'true')
+                environment("NAME_REMAL_GRADLE_PLUGINS_TEST_${testType.toUpperCase()}", 'true')
             }
         }
 

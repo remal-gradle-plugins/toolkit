@@ -8,6 +8,8 @@ import static lombok.AccessLevel.NONE;
 import static name.remal.gradle_plugins.toolkit.FileUtils.normalizeFile;
 import static name.remal.gradle_plugins.toolkit.GradleVersionUtils.isCurrentGradleVersionGreaterThanOrEqualTo;
 import static name.remal.gradle_plugins.toolkit.GradleVersionUtils.isCurrentGradleVersionLessThan;
+import static name.remal.gradle_plugins.toolkit.InTestFlags.IS_IN_FUNCTIONAL_TEST_ENV_VAR;
+import static name.remal.gradle_plugins.toolkit.InTestFlags.IS_IN_TEST_ENV_VAR;
 import static name.remal.gradle_plugins.toolkit.JacocoJvmArg.currentJvmArgsHaveJacocoJvmArg;
 import static name.remal.gradle_plugins.toolkit.JacocoJvmArg.parseJacocoJvmArgFromCurrentJvmArgs;
 import static name.remal.gradle_plugins.toolkit.ObjectUtils.isEmpty;
@@ -15,8 +17,6 @@ import static name.remal.gradle_plugins.toolkit.PathUtils.copyRecursively;
 import static name.remal.gradle_plugins.toolkit.PredicateUtils.not;
 import static name.remal.gradle_plugins.toolkit.StringUtils.escapeGroovy;
 import static name.remal.gradle_plugins.toolkit.StringUtils.trimRightWith;
-import static name.remal.gradle_plugins.toolkit.internal.Flags.IS_IN_FUNCTIONAL_TEST_ENV_VAR;
-import static name.remal.gradle_plugins.toolkit.internal.Flags.IS_IN_TEST_ENV_VAR;
 import static name.remal.gradle_plugins.toolkit.testkit.functional.GradleRunnerUtils.withJvmArguments;
 
 import com.google.common.base.Splitter;
