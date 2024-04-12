@@ -104,7 +104,11 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
     }
 
 
-    private static final Pattern STACK_TRACE_LINE = Pattern.compile("^\\s+at ");
+    @Getter(NONE)
+    private final List<String> forbiddenMessages = new ArrayList<>();
+
+    @Getter(NONE)
+    private final List<SuppressedMessage> suppressedForbiddenMessages = new ArrayList<>();
 
     private static final List<String> DEFAULT_DEPRECATION_MESSAGES = ImmutableList.of(
         "has been deprecated and is scheduled to be removed in Gradle",
@@ -195,6 +199,22 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
     private final List<SuppressedMessage> suppressedOptimizationsDisabledWarnings =
         new ArrayList<>(DEFAULT_SUPPRESSED_OPTIMIZATIONS_DISABLED_WARNINGS);
 
+
+    @Contract("_ -> this")
+    @CanIgnoreReturnValue
+    public final synchronized GradleProject addForbiddenMessage(String message) {
+        assertIsNotBuilt();
+        forbiddenMessages.add(message);
+        return this;
+    }
+
+    @Contract("_ -> this")
+    @CanIgnoreReturnValue
+    public final synchronized GradleProject addSuppressedForbiddenMessage(SuppressedMessage suppressedMessage) {
+        assertIsNotBuilt();
+        suppressedForbiddenMessages.add(suppressedMessage);
+        return this;
+    }
 
     @Contract("_ -> this")
     @CanIgnoreReturnValue
@@ -345,6 +365,7 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
                     .map(StringUtils::trimRight)
                     .filter(not(String::isEmpty))
                     .collect(toList());
+                assertNoForbiddenMessages(outputLines);
                 assertNoDeprecationMessages(outputLines);
                 assertNoMutableProjectStateWarnings(outputLines);
                 assertNoOptimizationsDisabledWarnings(outputLines);
@@ -373,6 +394,21 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
     private void assertIsNotBuilt() {
         if (buildException != null || buildResult != null) {
             throw new IllegalStateException("The project has already been built");
+        }
+    }
+
+    private void assertNoForbiddenMessages(List<String> outputLines) {
+        val errors = parseErrors(
+            outputLines,
+            forbiddenMessages,
+            suppressedForbiddenMessages,
+            null
+        );
+        if (!errors.isEmpty()) {
+            val sb = new StringBuilder();
+            sb.append("Forbidden warnings were found:");
+            errors.forEach(it -> sb.append("\n  * ").append(it));
+            throw new AssertionError(sb.toString());
         }
     }
 
@@ -420,6 +456,8 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
             throw new AssertionError(sb.toString());
         }
     }
+
+    private static final Pattern STACK_TRACE_LINE = Pattern.compile("^\\s+at ");
 
     @SuppressWarnings({"java:S3776", "java:S127"})
     private Collection<String> parseErrors(
