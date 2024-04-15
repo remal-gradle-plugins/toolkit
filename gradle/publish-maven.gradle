@@ -50,10 +50,16 @@ allprojects {
                 withXml { XmlProvider xml ->
                     Node rootNode = xml.asNode()
 
-                    NodeList dependencyManagementDeps = rootNode.dependencyManagement.dependencies
-                    dependencyManagementDeps.dependency.forEach { Node dependency ->
-                        String groupId = dependency.groupId?.text()?.trim()
-                        if (groupId == 'name.remal.gradle-api') {
+                    Collection<String> groupIdsToRemove = [
+                        'name.remal.gradle-api',
+                    ]
+                    rootNode.dependencyManagement?.dependencies?.dependency?.forEach { Node dependency ->
+                        if (groupIdsToRemove.contains(dependency.groupId?.text()?.trim() ?: '')) {
+                            dependency.replaceNode {}
+                        }
+                    }
+                    rootNode.dependencies?.dependency?.forEach { Node dependency ->
+                        if (groupIdsToRemove.contains(dependency.groupId?.text()?.trim() ?: '')) {
                             dependency.replaceNode {}
                         }
                     }
@@ -81,6 +87,13 @@ allprojects {
         pluginManager.withPlugin('signing') {
             signing {
                 sign publishing.publications
+            }
+        }
+
+        pluginManager.withPlugin('java-test-fixtures') {
+            publishing.publications.withType(MavenPublication).configureEach {
+                suppressPomMetadataWarningsFor('testFixturesApiElements')
+                suppressPomMetadataWarningsFor('testFixturesRuntimeElements')
             }
         }
     }
