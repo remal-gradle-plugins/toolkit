@@ -9,6 +9,7 @@ import static name.remal.gradle_plugins.toolkit.reflection.MethodsInvoker.invoke
 
 import groovy.lang.Closure;
 import groovy.lang.GString;
+import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -178,18 +179,40 @@ public abstract class ObjectUtils {
 
 
     @Contract(value = "null->true", pure = true)
+    @SuppressWarnings("java:S3776")
+    public static boolean isEmpty(@Nullable Object value) {
+        if (value == null) {
+            return true;
+        } else if (value instanceof CharSequence) {
+            return isEmpty((CharSequence) value);
+        } else if (value instanceof Collection<?>) {
+            return isEmpty((Collection<?>) value);
+        } else if (value instanceof Iterable<?>) {
+            return isEmpty((Iterable<?>) value);
+        } else if (value instanceof Map<?, ?>) {
+            return isEmpty((Map<?, ?>) value);
+        } else if (value instanceof Optional<?>) {
+            return isEmpty((Optional<?>) value);
+        } else if (value.getClass().isArray()) {
+            return Array.getLength(value) == 0;
+        } else {
+            return false;
+        }
+    }
+
+    @Contract(value = "null->true", pure = true)
     public static boolean isEmpty(@Nullable CharSequence value) {
         return value == null || value.length() == 0;
     }
 
     @Contract(value = "null->true", pure = true)
-    public static boolean isEmpty(@Nullable Iterable<?> value) {
-        return value == null || value.iterator().hasNext();
+    public static boolean isEmpty(@Nullable Collection<?> value) {
+        return value == null || value.isEmpty();
     }
 
     @Contract(value = "null->true", pure = true)
-    public static boolean isEmpty(@Nullable Collection<?> value) {
-        return value == null || value.isEmpty();
+    public static boolean isEmpty(@Nullable Iterable<?> value) {
+        return value == null || value.iterator().hasNext();
     }
 
     @Contract(value = "null->true", pure = true)
@@ -250,17 +273,22 @@ public abstract class ObjectUtils {
 
 
     @Contract(value = "null->false", pure = true)
+    public static boolean isNotEmpty(@Nullable Object value) {
+        return !isEmpty(value);
+    }
+
+    @Contract(value = "null->false", pure = true)
     public static boolean isNotEmpty(@Nullable CharSequence value) {
         return !isEmpty(value);
     }
 
     @Contract(value = "null->false", pure = true)
-    public static boolean isNotEmpty(@Nullable Iterable<?> value) {
+    public static boolean isNotEmpty(@Nullable Collection<?> value) {
         return !isEmpty(value);
     }
 
     @Contract(value = "null->false", pure = true)
-    public static boolean isNotEmpty(@Nullable Collection<?> value) {
+    public static boolean isNotEmpty(@Nullable Iterable<?> value) {
         return !isEmpty(value);
     }
 
@@ -318,6 +346,98 @@ public abstract class ObjectUtils {
     @Contract(value = "null->false", pure = true)
     public static boolean isNotEmpty(@Nullable boolean[] value) {
         return !isEmpty(value);
+    }
+
+
+    @Nullable
+    @Contract(pure = true)
+    public static <T> T nullIfEmpty(@Nullable T value) {
+        return isEmpty(value) ? null : value;
+    }
+
+    @Nullable
+    @Contract(pure = true)
+    public static <T extends CharSequence> T nullIfEmpty(@Nullable T value) {
+        return isEmpty(value) ? null : value;
+    }
+
+    @Nullable
+    @Contract(pure = true)
+    public static <T extends Collection<?>> T nullIfEmpty(@Nullable T value) {
+        return isEmpty(value) ? null : value;
+    }
+
+    @Nullable
+    @Contract(pure = true)
+    public static <T extends Iterable<?>> T nullIfEmpty(@Nullable T value) {
+        return isEmpty(value) ? null : value;
+    }
+
+    @Nullable
+    @Contract(pure = true)
+    public static <T extends Map<?, ?>> T nullIfEmpty(@Nullable T value) {
+        return isEmpty(value) ? null : value;
+    }
+
+    @Nullable
+    @Contract(pure = true)
+    @SuppressWarnings({"NullableOptional", "java:S2789", "java:S4968"})
+    public static <T extends Optional<?>> T nullIfEmpty(@Nullable T value) {
+        return isEmpty(value) ? null : value;
+    }
+
+    @Nullable
+    @Contract(pure = true)
+    public static Object[] nullIfEmpty(@Nullable Object[] value) {
+        return isEmpty(value) ? null : value;
+    }
+
+    @Nullable
+    @Contract(pure = true)
+    public static byte[] nullIfEmpty(@Nullable byte[] value) {
+        return isEmpty(value) ? null : value;
+    }
+
+    @Nullable
+    @Contract(pure = true)
+    public static short[] nullIfEmpty(@Nullable short[] value) {
+        return isEmpty(value) ? null : value;
+    }
+
+    @Nullable
+    @Contract(pure = true)
+    public static int[] nullIfEmpty(@Nullable int[] value) {
+        return isEmpty(value) ? null : value;
+    }
+
+    @Nullable
+    @Contract(pure = true)
+    public static long[] nullIfEmpty(@Nullable long[] value) {
+        return isEmpty(value) ? null : value;
+    }
+
+    @Nullable
+    @Contract(pure = true)
+    public static float[] nullIfEmpty(@Nullable float[] value) {
+        return isEmpty(value) ? null : value;
+    }
+
+    @Nullable
+    @Contract(pure = true)
+    public static double[] nullIfEmpty(@Nullable double[] value) {
+        return isEmpty(value) ? null : value;
+    }
+
+    @Nullable
+    @Contract(pure = true)
+    public static char[] nullIfEmpty(@Nullable char[] value) {
+        return isEmpty(value) ? null : value;
+    }
+
+    @Nullable
+    @Contract(pure = true)
+    public static boolean[] nullIfEmpty(@Nullable boolean[] value) {
+        return isEmpty(value) ? null : value;
     }
 
 
