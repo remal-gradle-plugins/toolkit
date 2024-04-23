@@ -1,5 +1,6 @@
 package name.remal.gradle_plugins.toolkit;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.newOutputStream;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.PathUtils.createParentDirectories;
@@ -10,6 +11,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FilterOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URL;
@@ -26,7 +28,9 @@ public abstract class PropertiesUtils {
     public static Properties loadProperties(URL url) {
         val properties = new Properties();
         try (val inputStream = openInputStreamForUrl(url)) {
-            properties.load(inputStream);
+            try (val reader = new InputStreamReader(inputStream, UTF_8)) {
+                properties.load(reader);
+            }
         }
         return properties;
     }
