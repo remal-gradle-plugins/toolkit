@@ -88,7 +88,7 @@ tasks.named('generateJava') {
         ]).sort().findAll { !it.matches(/^java\.lang\.[^.]+$/) }.forEach { name -> it.writeImport(name) }
         it.println("")
         it.println("@NoArgsConstructor(access = PRIVATE)")
-        it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "overloads", "java:S1611", "java:S6539")
+        it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "checkstyle:OverloadMethodsDeclarationOrder", "overloads", "java:S1611", "java:S6539")
         it.writeBlock("public abstract class ${it.simpleName}") {
             it.println("")
             it.println("/**")
