@@ -13,6 +13,7 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import lombok.SneakyThrows;
 import lombok.val;
+import org.gradle.util.GradleVersion;
 
 public class CheckstyleHtmlIssuesRenderer implements IssuesRenderer {
 
@@ -36,6 +37,7 @@ public class CheckstyleHtmlIssuesRenderer implements IssuesRenderer {
             tryToSetAttribute(factory, FEATURE_SECURE_PROCESSING, "true");
 
             val transformer = factory.newTransformer(xslt);
+            transformer.setParameter("gradleVersion", GradleVersion.current().getVersion());
             transformer.transform(source, new StreamResult(outputWriter));
 
             return outputWriter.toString();
