@@ -33,7 +33,7 @@ public class CheckstyleHtmlIssuesRenderer implements IssuesRenderer {
             val factory = TransformerFactory.newInstance();
             tryToSetAttribute(factory, ACCESS_EXTERNAL_DTD, "");
             tryToSetAttribute(factory, ACCESS_EXTERNAL_STYLESHEET, "");
-            tryToSetAttribute(factory, FEATURE_SECURE_PROCESSING, "");
+            tryToSetAttribute(factory, FEATURE_SECURE_PROCESSING, "true");
 
             val transformer = factory.newTransformer(xslt);
             transformer.transform(source, new StreamResult(outputWriter));
