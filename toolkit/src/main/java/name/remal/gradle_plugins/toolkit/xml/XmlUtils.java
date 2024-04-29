@@ -1,6 +1,7 @@
 package name.remal.gradle_plugins.toolkit.xml;
 
 import static java.nio.file.Files.newInputStream;
+import static javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.PathUtils.normalizePath;
 import static name.remal.gradle_plugins.toolkit.internal.JdomUtils.newNonValidatingSaxBuilder;
@@ -430,11 +431,18 @@ public abstract class XmlUtils {
 
     private static final DOMBuilder DOM_BUILDER = new DOMBuilder();
 
+    private static final DocumentBuilderFactory NON_VALIDATING_DOCUMENT_BUILDER_FACTORY;
+
+    static {
+        val factory = DocumentBuilderFactory.newInstance();
+        factory.setValidating(false);
+        tryToSetAttribute(factory, FEATURE_SECURE_PROCESSING, "true");
+        NON_VALIDATING_DOCUMENT_BUILDER_FACTORY = factory;
+    }
+
     @SneakyThrows
     private static DocumentBuilder newNonValidatingDocumentBuilder() {
-        val documentBuilderFactory = DocumentBuilderFactory.newInstance();
-        documentBuilderFactory.setValidating(false);
-        val documentBuilder = documentBuilderFactory.newDocumentBuilder();
+        val documentBuilder = NON_VALIDATING_DOCUMENT_BUILDER_FACTORY.newDocumentBuilder();
         documentBuilder.setEntityResolver((publicId, systemId) -> new InputSource(new StringReader("")));
         return documentBuilder;
     }
@@ -477,6 +485,14 @@ public abstract class XmlUtils {
             } finally {
                 removeExtraSpace = true;
             }
+        }
+    }
+
+    private static void tryToSetAttribute(DocumentBuilderFactory factory, String name, Object value) {
+        try {
+            factory.setAttribute(name, value);
+        } catch (IllegalArgumentException ignored) {
+            // do nothing
         }
     }
 

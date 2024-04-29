@@ -139,6 +139,7 @@ tasks.register('displayTotalCodeCoverage') { Task task ->
         }
         setFeatureQuietly('http://apache.org/xml/features/disallow-doctype-decl', false)
         setFeatureQuietly('http://apache.org/xml/features/nonvalidating/load-external-dtd', false)
+        setFeatureQuietly('http://javax.xml.XMLConstants/feature/secure-processing', true)
 
         Node reportNode = xmlParser.parse(xmlReportFile)
         reportNode.counter?.forEach { Node counterNode ->
