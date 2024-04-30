@@ -22,6 +22,11 @@ import java.util.function.BiFunction;
 import javax.annotation.Nullable;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.xpath.XPathFactory;
+import javax.xml.xpath.XPathFactoryConfigurationException;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -429,6 +434,78 @@ public abstract class XmlUtils {
 
     //#region utilities
 
+    public static void tryToSetXmlSetting(DocumentBuilderFactory factory, String name, @Nullable Object value) {
+        tryToSetXmlSetting(factory::setAttribute, factory::setFeature, name, value);
+    }
+
+    public static void tryToSetXmlSetting(TransformerFactory factory, String name, @Nullable Object value) {
+        tryToSetXmlSetting(factory::setAttribute, factory::setFeature, name, value);
+    }
+
+    public static void tryToSetXmlSetting(XPathFactory factory, String name, @Nullable Object value) {
+        tryToSetXmlSetting(null, factory::setFeature, name, value);
+    }
+
+    @SuppressWarnings("java:S3776")
+    private static void tryToSetXmlSetting(
+        @Nullable XmlAttributeSetter attributeSetter,
+        @Nullable XmlFeatureSetter featureSetter,
+        String name,
+        @Nullable Object value
+    ) {
+        if (attributeSetter != null) {
+            try {
+                attributeSetter.set(name, value);
+            } catch (IllegalArgumentException ignored) {
+                // do nothing
+            }
+        }
+
+
+        if (featureSetter != null) {
+            Boolean booleanValue = null;
+            if (value instanceof Boolean) {
+                booleanValue = (Boolean) value;
+            } else if (value instanceof CharSequence) {
+                if ("true".equalsIgnoreCase(value.toString())) {
+                    booleanValue = true;
+                } else if ("false".equalsIgnoreCase(value.toString())) {
+                    booleanValue = false;
+                }
+            }
+
+            if (booleanValue != null) {
+                try {
+                    featureSetter.set(name, booleanValue);
+                } catch (TransformerConfigurationException
+                         | ParserConfigurationException
+                         | XPathFactoryConfigurationException
+                    ignored
+                ) {
+                    // do nothing
+                }
+            }
+        }
+    }
+
+    @FunctionalInterface
+    private interface XmlAttributeSetter {
+        void set(String name, @Nullable Object value);
+    }
+
+    @FunctionalInterface
+    private interface XmlFeatureSetter {
+        void set(String name, boolean value) throws
+            TransformerConfigurationException,
+            ParserConfigurationException,
+            XPathFactoryConfigurationException;
+    }
+
+    //#endregion
+
+
+    //#region utilities
+
     private static final DOMBuilder DOM_BUILDER = new DOMBuilder();
 
     private static final DocumentBuilderFactory NON_VALIDATING_DOCUMENT_BUILDER_FACTORY;
@@ -436,7 +513,7 @@ public abstract class XmlUtils {
     static {
         val factory = DocumentBuilderFactory.newInstance();
         factory.setValidating(false);
-        tryToSetAttribute(factory, FEATURE_SECURE_PROCESSING, "true");
+        tryToSetXmlSetting(factory, FEATURE_SECURE_PROCESSING, true);
         NON_VALIDATING_DOCUMENT_BUILDER_FACTORY = factory;
     }
 
@@ -485,14 +562,6 @@ public abstract class XmlUtils {
             } finally {
                 removeExtraSpace = true;
             }
-        }
-    }
-
-    private static void tryToSetAttribute(DocumentBuilderFactory factory, String name, Object value) {
-        try {
-            factory.setAttribute(name, value);
-        } catch (IllegalArgumentException ignored) {
-            // do nothing
         }
     }
 

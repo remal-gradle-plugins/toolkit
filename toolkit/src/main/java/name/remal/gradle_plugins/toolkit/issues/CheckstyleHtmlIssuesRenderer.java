@@ -5,6 +5,7 @@ import static javax.xml.XMLConstants.ACCESS_EXTERNAL_STYLESHEET;
 import static javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING;
 import static name.remal.gradle_plugins.toolkit.ResourceUtils.getResourceUrl;
 import static name.remal.gradle_plugins.toolkit.UrlUtils.openInputStreamForUrl;
+import static name.remal.gradle_plugins.toolkit.xml.XmlUtils.tryToSetXmlSetting;
 
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -32,23 +33,15 @@ public class CheckstyleHtmlIssuesRenderer implements IssuesRenderer {
             val outputWriter = new StringWriter();
 
             val factory = TransformerFactory.newInstance();
-            tryToSetAttribute(factory, ACCESS_EXTERNAL_DTD, "");
-            tryToSetAttribute(factory, ACCESS_EXTERNAL_STYLESHEET, "");
-            tryToSetAttribute(factory, FEATURE_SECURE_PROCESSING, "true");
+            tryToSetXmlSetting(factory, ACCESS_EXTERNAL_DTD, "");
+            tryToSetXmlSetting(factory, ACCESS_EXTERNAL_STYLESHEET, "");
+            tryToSetXmlSetting(factory, FEATURE_SECURE_PROCESSING, true);
 
             val transformer = factory.newTransformer(xslt);
             transformer.setParameter("gradleVersion", GradleVersion.current().getVersion());
             transformer.transform(source, new StreamResult(outputWriter));
 
             return outputWriter.toString();
-        }
-    }
-
-    private static void tryToSetAttribute(TransformerFactory factory, String name, Object value) {
-        try {
-            factory.setAttribute(name, value);
-        } catch (IllegalArgumentException ignored) {
-            // do nothing
         }
     }
 
