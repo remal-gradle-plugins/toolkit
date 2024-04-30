@@ -357,6 +357,19 @@ allprojects {
             tasks.named(sourceSet.name, Test).configure {
                 environment('NAME_REMAL_GRADLE_PLUGINS_TEST', 'true')
                 environment("NAME_REMAL_GRADLE_PLUGINS_TEST_${testType.toUpperCase()}", 'true')
+
+                onlyIf {
+                    Configuration runtimeClasspathConf = configurations[sourceSet.runtimeClasspathConfigurationName]
+                    String junitVersion = runtimeClasspathConf.resolvedConfiguration
+                        .lenientConfiguration
+                        .allModuleDependencies
+                        .find { ResolvedDependency dep ->
+                            "${dep.moduleGroup}:${dep.moduleName}" == 'org.junit.jupiter:junit-jupiter-api'
+                        }
+                        ?.moduleVersion
+                    systemProperty('junit.version', junitVersion ?: '')
+                    return true
+                }
             }
         }
 

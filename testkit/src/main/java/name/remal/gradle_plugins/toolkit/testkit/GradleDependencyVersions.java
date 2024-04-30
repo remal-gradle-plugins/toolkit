@@ -21,6 +21,16 @@ public abstract class GradleDependencyVersions {
             )));
     }
 
+    public static String getJUnitVersion() {
+        val propertyName = "junit.version";
+
+        return getNotEmptySystemProperty(propertyName)
+            .orElseThrow(() -> new AssertionError(format(
+                "%s system property is not set or empty",
+                propertyName
+            )));
+    }
+
     public static String getExternalPluginToTestVersion(String pluginId) {
         val propertyName = "external-plugin-version-" + pluginId;
 
