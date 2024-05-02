@@ -13,7 +13,7 @@ class GradleUtilsTest {
     private final Gradle gradle;
 
     @Test
-    void onGradleBuildFinished_doe_not_throw_exception() {
+    void onGradleBuildFinished_does_not_throw_exception() {
         Action<? super Gradle> action = __ -> { };
         assertDoesNotThrow(() -> GradleUtils.onGradleBuildFinished(gradle, action));
     }

@@ -72,6 +72,12 @@ public abstract class JavaLikeScriptFileContent<
 
     @Contract("_,_->this")
     @CanIgnoreReturnValue
+    public final Child addStaticImport(Class<?> clazz, String member) {
+        return addStaticImport(clazz.getCanonicalName(), member);
+    }
+
+    @Contract("_,_->this")
+    @CanIgnoreReturnValue
     public final Child addStaticImport(String className, String member) {
         staticImports.add(className + '.' + member);
         return getSelf();
@@ -99,6 +105,12 @@ public abstract class JavaLikeScriptFileContent<
 
     public final Set<String> getImports() {
         return imports;
+    }
+
+    @Contract("_->this")
+    @CanIgnoreReturnValue
+    public final Child addImport(Class<?> clazz) {
+        return addImport(clazz.getCanonicalName());
     }
 
     @Contract("_->this")

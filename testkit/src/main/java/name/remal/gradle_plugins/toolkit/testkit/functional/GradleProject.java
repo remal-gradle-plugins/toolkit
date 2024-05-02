@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.io.File;
+import java.lang.management.ManagementFactory;
 import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -38,11 +39,14 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.val;
 import name.remal.gradle_plugins.toolkit.ConfigurationCacheUtils;
 import name.remal.gradle_plugins.toolkit.StringUtils;
+import name.remal.gradle_plugins.toolkit.generators.GroovyFileContent;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
 import org.gradle.util.GradleVersion;
@@ -341,11 +345,16 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
         if (buildResult == null) {
             final BuildResult currentBuildResult;
             try {
+                if (withJacoco) {
+                    injectJacocoDumper();
+                }
+
+
                 writeToDisk();
 
 
                 File jacocoProjectDir = null;
-                if (withConfigurationCache && withJacoco) {
+                if (withJacoco && withConfigurationCache) {
                     jacocoProjectDir = normalizeFile(new File(
                         projectDir.getParentFile(),
                         projectDir.getName() + ".jacoco"
@@ -355,6 +364,9 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
 
 
                 val runner = createGradleRunner(projectDir, withConfigurationCache);
+                if (withJacoco && jacocoProjectDir == null) {
+                    injectJacocoArgs(runner);
+                }
 
                 if (isExpectingSuccess) {
                     currentBuildResult = runner.build();
@@ -542,6 +554,7 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
                 "-Dsun.net.client.defaultConnectTimeout=15000",
                 "-Dsun.net.client.defaultReadTimeout=600000",
                 "-Djava.awt.headless=true",
+                "-Dorg.gradle.daemon.performance.disable-logging=true",
                 "-Dorg.gradle.internal.launcher.welcomeMessageEnabled=false"
             );
 
@@ -608,8 +621,67 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
 
         jacocoJvmArg.makePathsAbsolute();
         jacocoJvmArg.excludeGradleClasses();
+        jacocoJvmArg.append(true);
+        jacocoJvmArg.dumpOnExit(false);
+        jacocoJvmArg.jmx(true);
 
         withJvmArguments(runner, jacocoJvmArg.toString());
+    }
+
+    /**
+     * See <a href="https://discuss.gradle.org/t/jacoco-gradle-test-kit-with-java/36603/9">https://discuss.gradle.org/t/jacoco-gradle-test-kit-with-java/36603/9</a>.
+     */
+    private void injectJacocoDumper() {
+        val settingsFile = getSettingsFile();
+        settingsFile.addImport(MBeanServer.class);
+        settingsFile.addImport(ManagementFactory.class);
+        settingsFile.addImport(ObjectName.class);
+
+        settingsFile.append(
+            "\n",
+            "/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */",
+            "// Jacoco dumper logic:"
+        );
+
+        Consumer<GroovyFileContent> jacocoBumperLogicBlock = rootBlock -> {
+            rootBlock.append("MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer()");
+            rootBlock.append("ObjectName jacocoObjectName = ObjectName.getInstance(\"org.jacoco:type=Runtime\")");
+            rootBlock.appendBlock("if (mbeanServer.isRegistered(jacocoObjectName))", ifBlock -> {
+                //ifBlock.append("println '!!! dumping jacoco data !!!'");
+                ifBlock.append(
+                    "mbeanServer.invoke(",
+                    "    jacocoObjectName,",
+                    "    \"dump\",",
+                    "    [ true ].toArray(new Object[0]),",
+                    "    [ \"boolean\" ].toArray(new String[0])",
+                    ")"
+                );
+                //ifBlock.append("println '!!! dumped jacoco data !!!'");
+            });
+        };
+
+        if (isCurrentGradleVersionGreaterThanOrEqualTo("6.1")) {
+            settingsFile.addImport("org.gradle.api.services.BuildService");
+            settingsFile.addImport("org.gradle.api.services.BuildServiceParameters");
+
+            settingsFile.appendBlock(
+                "abstract class JacocoDumper implements BuildService<BuildServiceParameters.None>, AutoCloseable",
+                classBlock -> {
+                    classBlock.appendBlock("void close()", jacocoBumperLogicBlock);
+                }
+            );
+
+            settingsFile.append(
+                "gradle.sharedServices.registerIfAbsent(",
+                "    \"" + escapeGroovy(GradleProject.class.getName() + ":jacocoDumper") + "\",",
+                "    JacocoDumper,",
+                "    { }",
+                ").get()"
+            );
+
+        } else {
+            settingsFile.appendBlock("gradle.buildFinished", jacocoBumperLogicBlock);
+        }
     }
 
 }

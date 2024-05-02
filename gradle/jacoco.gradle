@@ -1,6 +1,8 @@
+import static java.nio.file.StandardOpenOption.READ
+import static java.nio.file.StandardOpenOption.WRITE
 import static org.gradle.api.reporting.Report.OutputType
 
-import java.nio.channels.FileLock
+import java.nio.channels.FileChannel
 import java.nio.channels.OverlappingFileLockException
 import java.time.Duration
 
@@ -52,31 +54,27 @@ allprojects {
 
             task.doLast {
                 JacocoTaskExtension jacocoTaskExtension = task.extensions.getByType(JacocoTaskExtension)
-                File execFile = jacocoTaskExtension.destinationFile
+                File execFile = jacocoTaskExtension.destinationFile?.absoluteFile
                 if (execFile == null) return
 
                 long startTime = System.nanoTime()
-                long maxTimeout = Duration.ofSeconds(30).toNanos()
+                long maxTimeout = Duration.ofSeconds(10).toNanos()
                 long timeoutTime = startTime + maxTimeout
                 for (int attempt = 1; System.nanoTime() < timeoutTime; ++attempt) {
                     if (attempt > 1) Thread.sleep(1_000)
 
                     if (!execFile.exists()) continue
 
-                    boolean isLocked = false
                     try {
-                        new RandomAccessFile(execFile, 'rw').withCloseable { randomAccessFile ->
-                            randomAccessFile.channel.withCloseable { channel ->
-                                FileLock fileLock = channel.tryLock()
-                                fileLock?.close()
-                                isLocked = fileLock == null
-                            }
+                        FileChannel.open(execFile.toPath(), READ, WRITE).withCloseable { FileChannel channel ->
+                            channel.lock(0, Long.MAX_VALUE, true).close()
                         }
+
                     } catch (IOException | OverlappingFileLockException ignored) {
-                        isLocked = true
+                        continue
                     }
 
-                    if (!isLocked) break
+                    break
                 }
             }
 

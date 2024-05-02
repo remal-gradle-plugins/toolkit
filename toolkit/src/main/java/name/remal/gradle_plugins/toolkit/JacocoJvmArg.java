@@ -44,6 +44,18 @@ public class JacocoJvmArg implements CommandLineArgumentProvider {
         addParamElement("excludes", "org.gradle.*");
     }
 
+    public void append(@Nullable Boolean value) {
+        setParam("append", value);
+    }
+
+    public void dumpOnExit(@Nullable Boolean value) {
+        setParam("dumponexit", value);
+    }
+
+    public void jmx(@Nullable Boolean value) {
+        setParam("jmx", value);
+    }
+
     @Nullable
     public String getParam(String key) {
         return getParams().get(key);
@@ -62,6 +74,10 @@ public class JacocoJvmArg implements CommandLineArgumentProvider {
         } else {
             params.put(key, value);
         }
+    }
+
+    public void setParam(String key, @Nullable Boolean value) {
+        setParam(key, value != null ? value.toString() : null);
     }
 
     public void addParamElement(String key, String value) {
@@ -115,7 +131,6 @@ public class JacocoJvmArg implements CommandLineArgumentProvider {
         }
 
         File file = new File(path);
-        file = file.getAbsoluteFile();
         file = normalizeFile(file);
         return file.getAbsolutePath();
     }
