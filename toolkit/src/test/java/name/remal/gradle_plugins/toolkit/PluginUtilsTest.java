@@ -40,4 +40,22 @@ class PluginUtilsTest {
             .isNull();
     }
 
+    @Test
+    void getPluginIdWithoutCorePrefix() {
+        assertThat(PluginUtils.getPluginIdWithoutCorePrefix("org.gradle.java"))
+            .isEqualTo("java");
+        assertThat(PluginUtils.getPluginIdWithoutCorePrefix("java"))
+            .isEqualTo("java");
+        assertThat(PluginUtils.getPluginIdWithoutCorePrefix("asd.java"))
+            .isEqualTo("asd.java");
+    }
+
+    @Test
+    void isCorePluginId() {
+        assertThat(PluginUtils.isCorePluginId("org.gradle.java"))
+            .isTrue();
+        assertThat(PluginUtils.isCorePluginId("java"))
+            .isTrue();
+    }
+
 }

@@ -20,6 +20,7 @@ import com.google.errorprone.annotations.MustBeClosed;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -297,30 +298,33 @@ abstract class ClasspathFileBase implements ClasspathFileMethods {
             @Override
             @SuppressWarnings({"UnstableApiUsage", "InjectedReferences"})
             protected Map<String, Set<String>> create() throws Throwable {
-                try (InputStream inputStream = openStream("META-INF/spring.factories")) {
+                final Properties properties;
+                try (val inputStream = openStream("META-INF/spring.factories")) {
                     if (inputStream == null) {
                         return emptyMap();
                     }
 
-                    Properties properties = new Properties();
-                    properties.load(inputStream);
-
-                    Map<String, Set<String>> allFactories = new LinkedHashMap<>();
-                    properties.stringPropertyNames().forEach(factoryName -> {
-                        String implNamesString = properties.getProperty(factoryName, "");
-                        Splitter.on(',').splitToStream(implNamesString)
-                            .map(String::trim)
-                            .filter(ObjectUtils::isNotEmpty)
-                            .forEach(implName -> {
-                                Collection<String> implNames = allFactories.computeIfAbsent(
-                                    factoryName,
-                                    __ -> new LinkedHashSet<>()
-                                );
-                                implNames.add(implName);
-                            });
-                    });
-                    return toDeepImmutableSetMap(allFactories);
+                    properties = new Properties();
+                    try (val reader = new InputStreamReader(inputStream, UTF_8)) {
+                        properties.load(reader);
+                    }
                 }
+
+                Map<String, Set<String>> allFactories = new LinkedHashMap<>();
+                properties.stringPropertyNames().forEach(factoryName -> {
+                    String implNamesString = properties.getProperty(factoryName, "");
+                    Splitter.on(',').splitToStream(implNamesString)
+                        .map(String::trim)
+                        .filter(ObjectUtils::isNotEmpty)
+                        .forEach(implName -> {
+                            Collection<String> implNames = allFactories.computeIfAbsent(
+                                factoryName,
+                                __ -> new LinkedHashSet<>()
+                            );
+                            implNames.add(implName);
+                        });
+                });
+                return toDeepImmutableSetMap(allFactories);
             }
         };
 

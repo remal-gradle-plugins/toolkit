@@ -9,8 +9,11 @@ import org.gradle.util.GradleVersion;
 @NoArgsConstructor(access = PRIVATE)
 public abstract class GradleVersionUtils {
 
+    private static final GradleVersion CURRENT = GradleVersion.current();
+
+
     public static boolean isCurrentGradleVersionLessThan(GradleVersion version) {
-        return GradleVersion.current().compareTo(version) < 0;
+        return CURRENT.compareTo(version) < 0;
     }
 
     public static boolean isCurrentGradleVersionLessThan(String versionString) {
@@ -20,7 +23,7 @@ public abstract class GradleVersionUtils {
 
 
     public static boolean isCurrentGradleVersionLessThanOrEqualTo(GradleVersion version) {
-        return GradleVersion.current().compareTo(version) <= 0;
+        return CURRENT.compareTo(version) <= 0;
     }
 
     public static boolean isCurrentGradleVersionLessThanOrEqualTo(String versionString) {
@@ -30,7 +33,7 @@ public abstract class GradleVersionUtils {
 
 
     public static boolean isCurrentGradleVersionEqualTo(GradleVersion version) {
-        return GradleVersion.current().compareTo(version) == 0;
+        return CURRENT.compareTo(version) == 0;
     }
 
     public static boolean isCurrentGradleVersionEqualTo(String versionString) {
@@ -40,7 +43,7 @@ public abstract class GradleVersionUtils {
 
 
     public static boolean isCurrentGradleVersionGreaterThanOrEqualTo(GradleVersion version) {
-        return GradleVersion.current().compareTo(version) >= 0;
+        return CURRENT.compareTo(version) >= 0;
     }
 
     public static boolean isCurrentGradleVersionGreaterThanOrEqualTo(String versionString) {
@@ -50,13 +53,12 @@ public abstract class GradleVersionUtils {
 
 
     public static boolean isCurrentGradleVersionGreaterThan(GradleVersion version) {
-        return GradleVersion.current().compareTo(version) > 0;
+        return CURRENT.compareTo(version) > 0;
     }
 
     public static boolean isCurrentGradleVersionGreaterThan(String versionString) {
         val version = GradleVersion.version(versionString);
         return isCurrentGradleVersionGreaterThan(version);
     }
-
 
 }

@@ -3,11 +3,12 @@ package name.remal.gradle_plugins.toolkit.testkit.functional;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.synchronizedMap;
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.NONE;
+import static name.remal.gradle_plugins.toolkit.ConfigurationCachePluginSupport.SUPPORTED;
 import static name.remal.gradle_plugins.toolkit.FileUtils.normalizeFile;
 import static name.remal.gradle_plugins.toolkit.GradleVersionUtils.isCurrentGradleVersionGreaterThanOrEqualTo;
-import static name.remal.gradle_plugins.toolkit.GradleVersionUtils.isCurrentGradleVersionLessThan;
 import static name.remal.gradle_plugins.toolkit.InTestFlags.IS_IN_FUNCTIONAL_TEST_ENV_VAR;
 import static name.remal.gradle_plugins.toolkit.InTestFlags.IS_IN_TEST_ENV_VAR;
 import static name.remal.gradle_plugins.toolkit.JacocoJvmArg.currentJvmArgsHaveJacocoJvmArg;
@@ -40,6 +41,7 @@ import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.val;
+import name.remal.gradle_plugins.toolkit.ConfigurationCacheUtils;
 import name.remal.gradle_plugins.toolkit.StringUtils;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
@@ -581,37 +583,21 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
     }
 
     private boolean isConfigurationCacheSupportedWithAppliedPlugins() {
-        if (isCurrentGradleVersionLessThan("7.2")) {
-            if (isPluginAppliedForAnyProject("groovy")
-                || isPluginAppliedForAnyProject("scala")
-            ) {
-                return false;
-            }
-        }
-
-        if (isCurrentGradleVersionLessThan("6.8")) {
-            if (isPluginAppliedForAnyProject("checkstyle")
-                || isPluginAppliedForAnyProject("pmd")
-                || isPluginAppliedForAnyProject("jacoco")
-                || isPluginAppliedForAnyProject("codenarc")
-            ) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private boolean isPluginAppliedForAnyProject(String pluginId) {
-        if (getSettingsFile().isPluginApplied(pluginId)
-            || getBuildFile().isPluginApplied(pluginId)
-        ) {
+        val allAppliedPlugins = Stream.of(
+                getSettingsFile().getAppliedPlugins().stream(),
+                getBuildFile().getAppliedPlugins().stream(),
+                getChildren().values().stream().flatMap(project -> project.getBuildFile().getAppliedPlugins().stream())
+            )
+            .flatMap(identity())
+            .distinct()
+            .collect(toList());
+        if (allAppliedPlugins.isEmpty()) {
             return true;
         }
 
-        val isAppliedToChild = getChildren().values().stream()
-            .anyMatch(child -> child.getBuildFile().isPluginApplied(pluginId));
-        return isAppliedToChild;
+        return allAppliedPlugins.stream()
+            .map(ConfigurationCacheUtils::getCorePluginConfigurationCacheSupport)
+            .allMatch(SUPPORTED::equals);
     }
 
     private void injectJacocoArgs(GradleRunner runner) {

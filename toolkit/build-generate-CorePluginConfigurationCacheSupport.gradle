@@ -1,0 +1,120 @@
+import org.gradle.util.GradleVersion
+
+class ResourceLoader {}
+
+tasks.named('generateJava') {
+    classFile(project.calculateBaseJavaPackage(), 'CorePluginConfigurationCacheSupport') {
+        it.writePackage()
+        it.println("")
+        it.writeStaticImport('lombok.AccessLevel', 'PRIVATE')
+        it.writeStaticImport("${project.calculateBaseJavaPackage()}.ConfigurationCachePluginSupport", 'PARTIALLY_SUPPORTED')
+        it.writeStaticImport("${project.calculateBaseJavaPackage()}.ConfigurationCachePluginSupport", 'SUPPORTED')
+        it.writeStaticImport("${project.calculateBaseJavaPackage()}.ConfigurationCachePluginSupport", 'UNSUPPORTED')
+        it.println("")
+        it.writeImport("lombok.NoArgsConstructor")
+        it.writeImport("org.gradle.util.GradleVersion")
+        it.println("")
+        it.println("@NoArgsConstructor(access = PRIVATE)")
+        it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "checkstyle:MissingSwitchDefault", "java:S3776", "java:S131", "java:S1479", "DuplicateBranchesInSwitch")
+        it.writeBlock("abstract class ${it.simpleName}") {
+            Collection<GradleVersion> gradleVersions = project.getMinorGradleVersions()
+                .findAll { it >= GradleVersion.version('6.6') }
+                .sort()
+                .reverse()
+            it.println("")
+            gradleVersions.forEach { GradleVersion gradleVersion ->
+                it.println("private static final GradleVersion V_${gradleVersion.version.replace('.', '_')} = GradleVersion.version(\"${gradleVersion.version}\");")
+            }
+
+            it.println("")
+            it.writeBlock("public static ConfigurationCachePluginSupport get(GradleVersion gradleVersion, String pluginId)") {
+                it.println("gradleVersion = gradleVersion.getBaseVersion();")
+                gradleVersions.forEach { GradleVersion gradleVersion ->
+                    def documentationDocument = project.loadHtmlFromUrl("https://docs.gradle.org/${gradleVersion.version}/userguide/configuration_cache.html")
+                    def tableElements = documentationDocument.select('#config_cache\\:plugins + .sectionbody table:not(.tableblock)')
+                    if (tableElements.isEmpty()) {
+                        throw new GradleException("Table node can't be found for $gradleVersion")
+                    }
+                    def trElements = tableElements.select('tr')
+                    Map<String, String> plugins = [:]
+                    trElements.forEach { trElement ->
+                        def pluginLinkElements = trElement.select('a[href*=_plugin], a[href*=publishing]')
+                        if (pluginLinkElements.isEmpty()) return
+
+                        String pluginHref = pluginLinkElements.first().attr('href')
+                            .replaceFirst(/^(.*\/)?([^\/]+)$/, '$2')
+                            .replaceFirst(/#.*$/, '')
+                        String pluginId
+                        if (pluginHref.matches(/^(publishing_maven)\.html$/)) {
+                            pluginId = 'maven-publish'
+                        } else if (pluginHref.matches(/^(publishing_ivy)\.html$/)) {
+                            pluginId = 'ivy-publish'
+                        } else {
+                            pluginId = pluginHref.replaceFirst(/^([a-z_]+)_plugin\.html$/, '$1')
+                        }
+                        if (pluginId == pluginHref) return
+                        pluginId = pluginId.replace('_', '-')
+
+                        if (pluginId == 'java-gradle') pluginId = 'java-gradle-plugin'
+
+                        String status
+                        String text = trElement.text()
+                        if (text.contains('✓')) {
+                            status = 'SUPPORTED'
+                        } else if (text.contains('⚠')) {
+                            status = 'PARTIALLY_SUPPORTED'
+                        } else if (text.contains('✖')) {
+                            status = 'UNSUPPORTED'
+                        } else if (text.contains('🚫')) {
+                            status = 'UNSUPPORTED'
+                        } else {
+                            throw new GradleException("Unknown support status for $gradleVersion: $trElement")
+                        }
+
+                        plugins[pluginId] = status
+                    }
+                    plugins.keySet().forEach { pluginId ->
+                        if (gradleVersion < GradleVersion.version('6.9.9999')) {
+                            if (pluginId == 'maven') return
+                        }
+                        if (ResourceLoader.getResource("/META-INF/gradle-plugins/org.gradle.${pluginId}.properties") == null) {
+                            throw new GradleException("Unknown plugin ID for $gradleVersion: $pluginId")
+                        }
+                    }
+                    ; [
+                        'java',
+                        'java-library',
+                        'java-platform',
+                        'groovy',
+                        'scala',
+                        'application',
+                        'war',
+                        'ear',
+                        'maven-publish',
+                        'ivy-publish',
+                        'signing',
+                        'jacoco',
+                        'checkstyle',
+                        'pmd',
+                        'idea',
+                        'eclipse',
+                        'visual-studio',
+                        'xcode',
+                    ].forEach { requiredPluginId ->
+                        if (!plugins.containsKey(requiredPluginId)) {
+                            throw new GradleException("Plugin is missing for $gradleVersion: $requiredPluginId")
+                        }
+                    }
+                    it.writeBlock("if (gradleVersion.compareTo(V_${gradleVersion.version.replace('.', '_')}) >= 0)") {
+                        it.writeBlock("switch (pluginId)") {
+                            plugins.forEach { pluginId, status ->
+                                it.println("case \"${pluginId}\": return ${status};")
+                            }
+                        }
+                    }
+                }
+                it.println('return UNSUPPORTED;')
+            }
+        }
+    }
+}

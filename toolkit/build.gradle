@@ -4,9 +4,10 @@ apply plugin: 'name.remal.classes-relocation'
 apply plugin: 'name.remal.generate-sources'
 
 ; [
+    'build-generate-checkstyle.xsl.gradle',
+    'build-generate-CorePluginConfigurationCacheSupport.gradle',
     'build-generate-MembersFinder.gradle',
     'build-generate-SneakyThrowUtils.gradle',
-    'build-generate-checkstyle.xsl.gradle',
 ].forEach { fileName ->
     apply from: fileName
     tasks.named('generateJava').configure { it.inputs.file(fileName) }

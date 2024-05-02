@@ -1,6 +1,8 @@
 package name.remal.gradle_plugins.toolkit;
 
 import static java.lang.ClassLoader.getSystemClassLoader;
+import static java.lang.String.format;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.synchronizedMap;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.ObjectUtils.isEmpty;
@@ -8,6 +10,7 @@ import static name.remal.gradle_plugins.toolkit.reflection.WhoCalledUtils.getCal
 
 import com.google.common.collect.ImmutableMap;
 import io.github.classgraph.ClassGraph;
+import java.io.InputStreamReader;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
@@ -21,7 +24,7 @@ import org.gradle.api.Plugin;
 @NoArgsConstructor(access = PRIVATE)
 public abstract class PluginUtils {
 
-    private static final String PLUGIN_ID_PREFIX_TO_REMOVE = "org.gradle.";
+    private static final String CORE_PLUGIN_ID_PREFIX = "org.gradle.";
 
     private static final Map<ClassLoader, Map<String, String>> PLUGIN_CLASS_NAMES = synchronizedMap(
         new WeakHashMap<>()
@@ -56,16 +59,14 @@ public abstract class PluginUtils {
             for (val resource : scanResult.getAllResources()) {
                 val path = resource.getPath();
                 String pluginId = path.substring(pathPrefix.length(), path.length() - pathSuffix.length());
-                if (pluginId.startsWith(PLUGIN_ID_PREFIX_TO_REMOVE)) {
-                    pluginId = pluginId.substring(PLUGIN_ID_PREFIX_TO_REMOVE.length());
-                }
+                pluginId = getPluginIdWithoutCorePrefix(pluginId);
                 if (isEmpty(pluginId)) {
                     continue;
                 }
 
                 val properties = new Properties();
-                try (val inputStream = resource.open()) {
-                    properties.load(inputStream);
+                try (val reader = new InputStreamReader(resource.open(), UTF_8)) {
+                    properties.load(reader);
                 }
                 val implementationClassName = properties.getProperty("implementation-class");
                 if (isEmpty(implementationClassName)) {
@@ -90,6 +91,24 @@ public abstract class PluginUtils {
         }
 
         return null;
+    }
+
+
+    public static String getPluginIdWithoutCorePrefix(String pluginId) {
+        if (pluginId.startsWith(CORE_PLUGIN_ID_PREFIX)) {
+            return pluginId.substring(CORE_PLUGIN_ID_PREFIX.length());
+        } else {
+            return pluginId;
+        }
+    }
+
+    public static boolean isCorePluginId(String pluginId) {
+        pluginId = getPluginIdWithoutCorePrefix(pluginId);
+        return PluginUtils.class.getResource(format(
+            "/META-INF/gradle-plugins/%s%s.properties",
+            CORE_PLUGIN_ID_PREFIX,
+            pluginId
+        )) != null;
     }
 
 }
