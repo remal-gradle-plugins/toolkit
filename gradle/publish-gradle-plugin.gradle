@@ -11,17 +11,22 @@ allprojects {
         apply plugin: 'com.gradle.plugin-publish'
 
         gradlePlugin {
-            it.website = property('repository-html-url')
-            it.vcsUrl = property('repository-html-url')
-            it.plugins.all {
-                it.tags.convention(
-                    project.provider {
-                        property('repository-topics').toString().split(/,/)
-                            .collect { it.trim().toLowerCase() }
-                            .findAll { !it.isEmpty() }
-                            .findAll { it != 'gradle' && it != 'plugin' && it != 'gradle-plugin' }
-                    }
+            website = property('repository-html-url')
+            vcsUrl = property('repository-html-url')
+            plugins.all {
+                tags.set(
+                    property('repository-topics').toString().split(/,/)
+                        .collect { it.trim().toLowerCase() }
+                        .findAll { !it.isEmpty() }
+                        .findAll { it != 'gradle' && it != 'plugin' && it != 'gradle-plugin' }
                 )
+            }
+            if (project.isRunningOnCi) {
+                if (website.orNull?.isEmpty() != false) throw new GradleException("Website can't be empty for Gradle plugins")
+                if (vcsUrl.orNull?.isEmpty() != false) throw new GradleException("VCS URL can't be empty for Gradle plugins")
+                plugins.forEach { plugin ->
+                    if (plugin.tags.orNull?.isEmpty() != false) throw new GradleException("Gradle plugin `${plugin.id}` has empty tags")
+                }
             }
         }
 
@@ -58,7 +63,7 @@ allprojects {
 }
 
 
-File flagFile = project.file("${rootProject.buildDir}/publish-gradle-plugin.flag")
+File flagFile = project.layout.buildDirectory.file('publish-gradle-plugin.flag').get().asFile
 flagFile.delete()
 allprojects {
     pluginManager.withPlugin('com.gradle.plugin-publish') {

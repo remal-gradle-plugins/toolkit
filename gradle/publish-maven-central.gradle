@@ -15,7 +15,7 @@ allprojects {
 }
 
 
-File flagFile = project.file("${rootProject.buildDir}/publish-maven-central.flag")
+File flagFile = project.layout.buildDirectory.file('publish-maven-central.flag').get().asFile
 flagFile.delete()
 allprojects {
     pluginManager.withPlugin('io.github.gradle-nexus.publish-plugin') {
