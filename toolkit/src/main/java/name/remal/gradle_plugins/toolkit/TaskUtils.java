@@ -12,27 +12,44 @@ import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.unwra
 
 import java.io.File;
 import java.util.Optional;
+import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
+import name.remal.gradle_plugins.toolkit.reflection.TypedVoidMethod2;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskInputs;
 import org.jetbrains.annotations.VisibleForTesting;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class TaskUtils {
 
+    @Nullable
+    @SuppressWarnings("rawtypes")
+    private static final TypedVoidMethod2<Task, String, Spec> ONLY_IF_WITH_REASON_METHOD =
+        findMethod(Task.class, "onlyIf", String.class, Spec.class);
+
+    public static <T extends Task> void onlyIfWithReason(T task, String reason, Spec<? super T> spec) {
+        if (ONLY_IF_WITH_REASON_METHOD != null) {
+            ONLY_IF_WITH_REASON_METHOD.invoke(task, reason, spec);
+
+        } else {
+            @SuppressWarnings("unchecked") val typedSpec = (Spec<Task>) spec;
+            task.onlyIf(typedSpec);
+        }
+    }
+
     /**
      * Execute {@code action} before task cache state is calculated, and any task action is executed.
      */
-    @SuppressWarnings("unchecked")
     public static <T extends Task> void doBeforeTaskExecution(T task, Action<? super T> action) {
-        task.onlyIf(new DescribableSpec<>("Before task execution", currentTask -> {
-            action.execute((T) currentTask);
+        onlyIfWithReason(task, "Before task execution", currentTask -> {
+            action.execute(currentTask);
             return true;
-        }));
+        });
     }
 
 
