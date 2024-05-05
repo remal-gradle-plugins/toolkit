@@ -416,6 +416,36 @@ Closure<List<GradleVersion>> getMinorGradleVersions = project.ext.getMinorGradle
 }
 
 
+Closure<List<Integer>> getFilteredJavaRuntimeVersions = { Closure<Boolean> filter ->
+    List<Integer> result = []
+
+    JSONArray versionObjects = loadJsonFromUrl('https://api.foojay.io/disco/v3.0/major_versions?ea=false&ga=true&discovery_scope_id=public&include_versions=false')['result']
+    for (JSONObject versionObject : versionObjects) {
+        if (versionObject.optBoolean('early_access_only')) continue
+        if (versionObject.optString('release_status') == 'ea') continue
+        if (!filter(versionObject)) continue
+
+        int version = versionObject.getInt('major_version')
+        if (version < 8) continue
+
+        result.add(version)
+    }
+
+    result.sort(Comparator.reverseOrder())
+    return result
+}
+
+Closure<List<Integer>> getAllJavaRuntimeVersions = project.ext.getAllJavaRuntimeVersions = {
+    return getFilteredJavaRuntimeVersions { true }
+}.memoize()
+
+Closure<List<Integer>> getLtsJavaRuntimeVersions = project.ext.getLtsJavaRuntimeVersions = {
+    return getFilteredJavaRuntimeVersions { JSONObject versionObject ->
+        versionObject.getString('term_of_support') == 'LTS'
+    }
+}.memoize()
+
+
 ConcurrentMap<String, String> getGradleApiDependencyVersionCache = new ConcurrentHashMap<>()
 allprojects {
     project.ext.getGradleApiDependencyVersion = { String notation ->
