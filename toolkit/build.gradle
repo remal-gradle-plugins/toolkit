@@ -26,6 +26,13 @@ dependencies {
 
     testImplementation project(':testkit')
     testImplementation 'io.spring.dependency-management:io.spring.dependency-management.gradle.plugin:1.1.5'
+    testImplementation 'com.softeq.gradle.itest:com.softeq.gradle.itest.gradle.plugin:1.0.4'
+    testImplementation 'org.unbroken-dome.test-sets:org.unbroken-dome.test-sets.gradle.plugin:4.1.0'
+
+
+    components {
+        withModule('org.unbroken-dome.gradle-plugins:gradle-testsets-plugin', TargetJvmVersionRule) { params(8) }
+    }
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -52,4 +59,31 @@ tasks.named('generateJava') { Task it ->
             it.println("public static final String TOOLKIT_VERSION = \"${it.escapeJava(project.version)}\";")
         }
     }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+@CacheableRule
+abstract class TargetJvmVersionRule implements ComponentMetadataRule {
+
+    final Integer jvmVersion
+
+    @Inject
+    TargetJvmVersionRule(Integer jvmVersion) {
+        this.jvmVersion = jvmVersion
+    }
+
+    void execute(ComponentMetadataContext context) {
+        context.details.allVariants {
+            attributes {
+                attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, jvmVersion)
+            }
+        }
+    }
+
+    @Override
+    String toString() {
+        return "${getClass().simpleName}[$jvmVersion]"
+    }
+
 }
