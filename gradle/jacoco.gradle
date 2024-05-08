@@ -5,6 +5,7 @@ import static org.gradle.api.reporting.Report.OutputType
 import java.nio.channels.FileChannel
 import java.nio.channels.OverlappingFileLockException
 import java.time.Duration
+import javax.annotation.Nullable
 
 if (project.isBuildSrcProject) return
 
@@ -79,6 +80,11 @@ allprojects {
             }
 
             task.doLast {
+                Throwable exception = failsCounterTestListener.exception
+                if (exception != null) {
+                    throw exception
+                }
+
                 String exceptionMessage = failsCounterTestListener.createExceptionMessage()
                 if (exceptionMessage != null) {
                     throw new GradleException(exceptionMessage)
@@ -159,6 +165,8 @@ class FailsCounterTestListener implements TestListener {
 
     private boolean failed = false
 
+    private Throwable exception
+
     boolean isFailed() {
         return failed
     }
@@ -170,14 +178,24 @@ class FailsCounterTestListener implements TestListener {
         ) {
             failed = true
         }
+
+        if (testResult.exceptions.size() == 1) {
+            exception = testResult.exceptions.get(0)
+        }
     }
 
+    @Nullable
     String createExceptionMessage() {
         if (!failed) {
             return null
-        } else {
-            return "Some tests failed"
         }
+
+        return "Some tests failed"
+    }
+
+    @Nullable
+    Throwable getException() {
+        return exception
     }
 
     @Override
