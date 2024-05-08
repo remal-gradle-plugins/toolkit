@@ -6,6 +6,7 @@ import static name.remal.gradle_plugins.toolkit.reflection.MethodsInvoker.invoke
 import com.google.auto.service.AutoService;
 import lombok.val;
 import org.gradle.api.Action;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.SourceSet;
@@ -15,6 +16,10 @@ final class WhenTestSourceSetRegisteredUnbrokenDomeTestSets implements WhenTestS
 
     @Override
     public void registerAction(Project project, Action<SourceSet> action) {
+        if (!JavaVersion.current().isJava11Compatible()) {
+            return;
+        }
+
         project.getPluginManager().withPlugin("org.unbroken-dome.test-sets", __ -> {
             val testSetsExtension = getExtension(project, "testSets");
             @SuppressWarnings("unchecked")

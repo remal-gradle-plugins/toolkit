@@ -9,11 +9,13 @@ import com.softeq.gradle.itest.ItestSourceSetExtension;
 import java.util.LinkedHashSet;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
+import name.remal.gradle_plugins.toolkit.testkit.MinSupportedGradleVersion;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.SourceSet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+@MinSupportedGradleVersion("7.0")
 @RequiredArgsConstructor
 class WhenTestSourceSetRegisteredSofteqITestTest {
 

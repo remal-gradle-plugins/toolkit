@@ -68,16 +68,14 @@ Configuration saxonConf = configurations.create('saxon') {
 }
 
 TaskProvider testXsltWithSaxon = tasks.register('testXsltWithSaxon', Test) {
-    // Resolve `test` task to avoid "Relying on conventions for custom Test tasks" error
-    // see https://docs.gradle.org/8.7/userguide/upgrading_version_8.html#test_task_default_classpath
+    TaskProvider<Test> testProvider = tasks.named('test', Test)
+    dependsOn(testProvider)
 
-    Test test = tasks.named('test', Test).get()
-    dependsOn(test)
-
-    classpath = saxonConf + test.classpath
-    testClassesDirs = test.testClassesDirs
+    classpath = saxonConf + files(testProvider.map { it.classpath })
+    testClassesDirs = files(testProvider.map { it.testClassesDirs })
 
     onlyIf {
+        Test test = testProvider.get()
         includes = test.includes
         excludes = test.excludes
         environment = test.environment

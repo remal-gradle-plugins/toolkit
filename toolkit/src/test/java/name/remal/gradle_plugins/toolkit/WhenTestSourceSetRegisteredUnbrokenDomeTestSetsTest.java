@@ -7,6 +7,7 @@ import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
 import java.util.LinkedHashSet;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
+import name.remal.gradle_plugins.toolkit.testkit.MinSupportedGradleVersion;
 import name.remal.gradle_plugins.toolkit.testkit.MinSupportedJavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.SourceSet;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.unbrokendome.gradle.plugins.testsets.dsl.TestSetContainer;
 
 @MinSupportedJavaVersion(11)
+@MinSupportedGradleVersion("7.0")
 @RequiredArgsConstructor
 class WhenTestSourceSetRegisteredUnbrokenDomeTestSetsTest {
 
