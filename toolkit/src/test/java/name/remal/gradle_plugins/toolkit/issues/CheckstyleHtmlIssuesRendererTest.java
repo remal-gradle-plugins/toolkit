@@ -7,11 +7,13 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import java.io.File;
 import lombok.val;
+import name.remal.gradle_plugins.toolkit.TagXslt;
 import org.junit.jupiter.api.Test;
 
+@TagXslt
 class CheckstyleHtmlIssuesRendererTest {
 
-    private final CheckstyleXmlIssuesRenderer renderer = new CheckstyleXmlIssuesRenderer();
+    private final CheckstyleHtmlIssuesRenderer renderer = new CheckstyleHtmlIssuesRenderer();
 
     @Test
     void does_not_throw_exception() {

@@ -63,6 +63,37 @@ tasks.named('generateJava') { Task it ->
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+Configuration saxonConf = configurations.create('saxon') {
+    dependencies.add(project.dependencies.create('net.sf.saxon:Saxon-HE:12.4'))
+}
+
+TaskProvider testXsltWithSaxon = tasks.register('testXsltWithSaxon', Test) {
+    // Resolve `test` task to avoid "Relying on conventions for custom Test tasks" error
+    // see https://docs.gradle.org/8.7/userguide/upgrading_version_8.html#test_task_default_classpath
+
+    Test test = tasks.named('test', Test).get()
+    dependsOn(test)
+
+    classpath = saxonConf + test.classpath
+    testClassesDirs = test.testClassesDirs
+
+    onlyIf {
+        includes = test.includes
+        excludes = test.excludes
+        environment = test.environment
+        systemProperties = test.systemProperties
+        return true
+    }
+
+    useJUnitPlatform {
+        includeTags = ['xslt']
+    }
+}
+
+tasks.named('check').configure { dependsOn(testXsltWithSaxon) }
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 @CacheableRule
 abstract class TargetJvmVersionRule implements ComponentMetadataRule {
 

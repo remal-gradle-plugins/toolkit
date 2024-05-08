@@ -8,8 +8,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.stream.IntStream;
 import lombok.val;
+import name.remal.gradle_plugins.toolkit.TagXslt;
 import org.junit.jupiter.api.Test;
 
+@TagXslt
+@SuppressWarnings("CheckTagEmptyBody")
 class XmlUtilsTest {
 
     @Test
