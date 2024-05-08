@@ -1,3 +1,5 @@
+import org.gradle.work.DisableCachingByDefault
+
 if (project.isBuildSrcProject) return
 
 allprojects {
@@ -21,13 +23,11 @@ allprojects {
                         .findAll { it != 'gradle' && it != 'plugin' && it != 'gradle-plugin' }
                 )
             }
-            if (project.isRunningOnCi) {
-                if (website.orNull?.isEmpty() != false) throw new GradleException("Website can't be empty for Gradle plugins")
-                if (vcsUrl.orNull?.isEmpty() != false) throw new GradleException("VCS URL can't be empty for Gradle plugins")
-                plugins.forEach { plugin ->
-                    if (plugin.tags.orNull?.isEmpty() != false) throw new GradleException("Gradle plugin `${plugin.id}` has empty tags")
-                }
-            }
+        }
+
+        if (project.isRunningOnCi) {
+            TaskProvider validatePluginProperties = tasks.register('validatePluginProperties', ValidatePluginProperties)
+            tasks.named('check').configure { dependsOn(validatePluginProperties) }
         }
 
         pluginManager.withPlugin('maven-publish') {
@@ -70,4 +70,41 @@ allprojects {
         flagFile.parentFile.mkdirs()
         flagFile.text = ''
     }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+@DisableCachingByDefault(because = "Should not be cached")
+class ValidatePluginProperties extends DefaultTask implements VerificationTask {
+
+    ValidatePluginProperties() {
+        outputs.upToDateWhen { false }
+        group = "Plugin development"
+    }
+
+    @TaskAction
+    void execute() {
+        if (project.gradlePlugin.website.orNull?.isEmpty() != false) {
+            throw new GradleException("Website can't be empty for Gradle plugins")
+        }
+        if (project.gradlePlugin.vcsUrl.orNull?.isEmpty() != false) {
+            throw new GradleException("VCS URL can't be empty for Gradle plugins")
+        }
+        project.gradlePlugin.plugins.forEach { plugin ->
+            if (plugin.tags.orNull?.isEmpty() != false) {
+                throw new GradleException("Gradle plugin `${plugin.id}` has empty tags")
+            }
+        }
+    }
+
+    @Override
+    void setIgnoreFailures(boolean ignoreFailures) {
+        // do nothing
+    }
+
+    @Override
+    boolean getIgnoreFailures() {
+        return false
+    }
+
 }
