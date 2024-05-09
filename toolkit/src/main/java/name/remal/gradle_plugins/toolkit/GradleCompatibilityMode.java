@@ -1,6 +1,6 @@
 package name.remal.gradle_plugins.toolkit;
 
-public enum ConfigurationCachePluginSupport {
+public enum GradleCompatibilityMode {
     SUPPORTED,
     PARTIALLY_SUPPORTED,
     UNSUPPORTED,

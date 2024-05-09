@@ -6,6 +6,7 @@ apply plugin: 'name.remal.generate-sources'
 ; [
     'build-generate-checkstyle.xsl.gradle',
     'build-generate-CorePluginConfigurationCacheSupport.gradle',
+    'build-generate-GradleCompatibilityJava.gradle',
     'build-generate-MembersFinder.gradle',
     'build-generate-SneakyThrowUtils.gradle',
 ].forEach { fileName ->

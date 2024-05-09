@@ -411,8 +411,12 @@ Closure<List<GradleVersion>> getAllGradleVersions = project.ext.getAllGradleVers
     return result
 }.memoize()
 
+Closure<List<GradleVersion>> getStableGradleVersions = project.ext.getStableGradleVersions = {
+    return getAllGradleVersions().findAll { it.baseVersion == it }
+}.memoize()
+
 Closure<List<GradleVersion>> getMinorGradleVersions = project.ext.getMinorGradleVersions = {
-    return getAllGradleVersions().findAll { it.version.count('.') == 1 }
+    return getStableGradleVersions().findAll { it.version.count('.') == 1 }
 }
 
 

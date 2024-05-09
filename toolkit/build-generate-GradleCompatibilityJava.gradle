@@ -1,0 +1,91 @@
+import org.gradle.util.GradleVersion
+
+class ResourceLoader {}
+
+tasks.named('generateJava') {
+    classFile(project.calculateBaseJavaPackage(), 'GradleCompatibilityJava') {
+        SortedMap<GradleVersion, Integer> compatibility = new TreeMap<>(Comparator.reverseOrder())
+        def documentationDocument = project.loadHtmlFromUrl("https://docs.gradle.org/current/userguide/compatibility.html")
+        def tableElements = documentationDocument.select('h2#java + .sectionbody table.tableblock')
+        if (tableElements.isEmpty()) {
+            throw new GradleException("Table node can't be found")
+        }
+        def trElements = tableElements.select('tr')
+        trElements.forEach { trElement ->
+            if (!trElement.select('th').isEmpty()) {
+                return
+            }
+
+            String javaVersion = trElement.select('td:eq(0)').text()
+            if (javaVersion.isEmpty()) {
+                throw new GradleException("Java version is empty: $trElement")
+            }
+
+            String gradleVersion = trElement.select('td:eq(2)').text()
+            if (gradleVersion == 'N/A') {
+                return
+            } else if (gradleVersion.isEmpty()) {
+                throw new GradleException("Gradle version is empty: $trElement")
+            }
+
+            compatibility[GradleVersion.version(gradleVersion)] = javaVersion.toInteger()
+        }
+
+        ; [
+            "2.0": 8,
+            "5.0": 11,
+            "7.3": 17,
+            "8.5": 21,
+        ].forEach { String gradleVersion, Integer javaVersion ->
+            Integer retrievedJavaVersion = compatibility.get(GradleVersion.version(gradleVersion))
+            if (retrievedJavaVersion != javaVersion) {
+                throw new GradleException("Unexpected Java version for Gradle $gradleVersion: $retrievedJavaVersion")
+            }
+        }
+
+        it.writePackage()
+        it.println("")
+        it.writeStaticImport('lombok.AccessLevel', 'PRIVATE')
+        it.writeStaticImport("${project.calculateBaseJavaPackage()}.GradleCompatibilityMode", 'SUPPORTED')
+        it.writeStaticImport("${project.calculateBaseJavaPackage()}.GradleCompatibilityMode", 'UNKNOWN')
+        it.writeStaticImport("${project.calculateBaseJavaPackage()}.GradleCompatibilityMode", 'UNSUPPORTED')
+        it.println("")
+        it.writeImport("lombok.NoArgsConstructor")
+        it.writeImport("org.gradle.util.GradleVersion")
+        it.println("")
+        it.println("@NoArgsConstructor(access = PRIVATE)")
+        it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "checkstyle:RightCurly", "java:S3776", "java:S131", "java:S1479")
+        it.writeBlock("abstract class ${it.simpleName}") {
+            compatibility.keySet().forEach { GradleVersion gradleVersion ->
+                it.println("private static final GradleVersion GRADLE_${gradleVersion.version.replace('.', '_')} = GradleVersion.version(\"${gradleVersion.version}\");")
+            }
+
+            it.println("")
+            it.writeBlock("public static GradleCompatibilityMode get(GradleVersion gradleVersion, int javaVersion)") {
+                it.println("gradleVersion = gradleVersion.getBaseVersion();")
+
+                Map.Entry<GradleVersion, Integer> firstEntry = compatibility.firstEntry()
+                it.writeBlock("if (gradleVersion.compareTo(GRADLE_${firstEntry.key.version.replace('.', '_')}) > 0)") {
+                    it.writeBlock("if (javaVersion <= ${firstEntry.value})") {
+                        it.println("return SUPPORTED;")
+                    }
+                    it.println("return UNKNOWN;")
+                }
+
+                compatibility.forEach { GradleVersion gradleVersion, Integer javaVersion ->
+                    it.writeBlock("else if (gradleVersion.compareTo(GRADLE_${gradleVersion.version.replace('.', '_')}) >= 0)") {
+                        it.writeBlock("if (javaVersion <= ${javaVersion})") {
+                            it.println("return SUPPORTED;")
+                        }
+                    }
+                }
+
+                it.writeBlock("else") {
+                    it.println("return UNKNOWN;")
+                }
+
+                it.println("return UNSUPPORTED;")
+            }
+        }
+    }
+}

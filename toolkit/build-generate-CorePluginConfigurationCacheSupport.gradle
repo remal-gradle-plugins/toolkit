@@ -7,9 +7,9 @@ tasks.named('generateJava') {
         it.writePackage()
         it.println("")
         it.writeStaticImport('lombok.AccessLevel', 'PRIVATE')
-        it.writeStaticImport("${project.calculateBaseJavaPackage()}.ConfigurationCachePluginSupport", 'PARTIALLY_SUPPORTED')
-        it.writeStaticImport("${project.calculateBaseJavaPackage()}.ConfigurationCachePluginSupport", 'SUPPORTED')
-        it.writeStaticImport("${project.calculateBaseJavaPackage()}.ConfigurationCachePluginSupport", 'UNSUPPORTED')
+        it.writeStaticImport("${project.calculateBaseJavaPackage()}.GradleCompatibilityMode", 'PARTIALLY_SUPPORTED')
+        it.writeStaticImport("${project.calculateBaseJavaPackage()}.GradleCompatibilityMode", 'SUPPORTED')
+        it.writeStaticImport("${project.calculateBaseJavaPackage()}.GradleCompatibilityMode", 'UNSUPPORTED')
         it.println("")
         it.writeImport("lombok.NoArgsConstructor")
         it.writeImport("org.gradle.util.GradleVersion")
@@ -23,15 +23,15 @@ tasks.named('generateJava') {
                 .reverse()
             it.println("")
             gradleVersions.forEach { GradleVersion gradleVersion ->
-                it.println("private static final GradleVersion V_${gradleVersion.version.replace('.', '_')} = GradleVersion.version(\"${gradleVersion.version}\");")
+                it.println("private static final GradleVersion GRADLE_${gradleVersion.version.replace('.', '_')} = GradleVersion.version(\"${gradleVersion.version}\");")
             }
 
             it.println("")
-            it.writeBlock("public static ConfigurationCachePluginSupport get(GradleVersion gradleVersion, String pluginId)") {
+            it.writeBlock("public static GradleCompatibilityMode get(GradleVersion gradleVersion, String pluginId)") {
                 it.println("gradleVersion = gradleVersion.getBaseVersion();")
                 gradleVersions.forEach { GradleVersion gradleVersion ->
                     def documentationDocument = project.loadHtmlFromUrl("https://docs.gradle.org/${gradleVersion.version}/userguide/configuration_cache.html")
-                    def tableElements = documentationDocument.select('#config_cache\\:plugins + .sectionbody table:not(.tableblock)')
+                    def tableElements = documentationDocument.select('h2#config_cache\\:plugins + .sectionbody table:not(.tableblock)')
                     if (tableElements.isEmpty()) {
                         throw new GradleException("Table node can't be found for $gradleVersion")
                     }
@@ -105,7 +105,7 @@ tasks.named('generateJava') {
                             throw new GradleException("Plugin is missing for $gradleVersion: $requiredPluginId")
                         }
                     }
-                    it.writeBlock("if (gradleVersion.compareTo(V_${gradleVersion.version.replace('.', '_')}) >= 0)") {
+                    it.writeBlock("if (gradleVersion.compareTo(GRADLE_${gradleVersion.version.replace('.', '_')}) >= 0)") {
                         it.writeBlock("switch (pluginId)") {
                             plugins.forEach { pluginId, status ->
                                 it.println("case \"${pluginId}\": return ${status};")

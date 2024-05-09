@@ -1,8 +1,8 @@
 package name.remal.gradle_plugins.toolkit;
 
-import static name.remal.gradle_plugins.toolkit.ConfigurationCachePluginSupport.PARTIALLY_SUPPORTED;
-import static name.remal.gradle_plugins.toolkit.ConfigurationCachePluginSupport.SUPPORTED;
-import static name.remal.gradle_plugins.toolkit.ConfigurationCachePluginSupport.UNSUPPORTED;
+import static name.remal.gradle_plugins.toolkit.GradleCompatibilityMode.PARTIALLY_SUPPORTED;
+import static name.remal.gradle_plugins.toolkit.GradleCompatibilityMode.SUPPORTED;
+import static name.remal.gradle_plugins.toolkit.GradleCompatibilityMode.UNSUPPORTED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import name.remal.gradle_plugins.toolkit.testkit.MaxSupportedGradleVersion;
@@ -111,7 +111,7 @@ class CorePluginConfigurationCacheSupportTest {
     }
 
 
-    private static ConfigurationCachePluginSupport getSupportOf(String pluginId) {
+    private static GradleCompatibilityMode getSupportOf(String pluginId) {
         return CorePluginConfigurationCacheSupport.get(GradleVersion.current(), pluginId);
     }
 

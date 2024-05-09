@@ -6,8 +6,10 @@ import static java.util.Collections.synchronizedMap;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.NONE;
-import static name.remal.gradle_plugins.toolkit.ConfigurationCachePluginSupport.SUPPORTED;
 import static name.remal.gradle_plugins.toolkit.FileUtils.normalizeFile;
+import static name.remal.gradle_plugins.toolkit.GradleCompatibilityMode.SUPPORTED;
+import static name.remal.gradle_plugins.toolkit.GradleCompatibilityMode.UNSUPPORTED;
+import static name.remal.gradle_plugins.toolkit.GradleCompatibilityUtils.getGradleJavaCompatibility;
 import static name.remal.gradle_plugins.toolkit.GradleVersionUtils.isCurrentGradleVersionGreaterThanOrEqualTo;
 import static name.remal.gradle_plugins.toolkit.InTestFlags.IS_IN_FUNCTIONAL_TEST_ENV_VAR;
 import static name.remal.gradle_plugins.toolkit.InTestFlags.IS_IN_TEST_ENV_VAR;
@@ -47,6 +49,7 @@ import lombok.val;
 import name.remal.gradle_plugins.toolkit.ConfigurationCacheUtils;
 import name.remal.gradle_plugins.toolkit.StringUtils;
 import name.remal.gradle_plugins.toolkit.generators.GroovyFileContent;
+import org.gradle.api.JavaVersion;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
 import org.gradle.util.GradleVersion;
@@ -537,6 +540,15 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
 
     @SneakyThrows
     private GradleRunner createGradleRunner(File projectDir, boolean withConfigurationCache) {
+        val gradleJavaCompatibility = getGradleJavaCompatibility();
+        if (gradleJavaCompatibility == UNSUPPORTED) {
+            throw new AssertionError(format(
+                "Gradle %s does NOT support Java %s",
+                GradleVersion.current().getVersion(),
+                JavaVersion.current().getMajorVersion()
+            ));
+        }
+
         val runner = GradleRunner.create()
             .withProjectDir(projectDir)
             .forwardOutput()
