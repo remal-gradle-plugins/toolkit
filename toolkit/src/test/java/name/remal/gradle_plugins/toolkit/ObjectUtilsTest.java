@@ -14,7 +14,7 @@ class ObjectUtilsTest {
     class UnwrapProviders {
 
         @Test
-        @SuppressWarnings("Guava")
+        @SuppressWarnings({"Guava", "java:S4738"})
         void guavaOptional() {
             assertNull(unwrapProviders(com.google.common.base.Optional.absent()));
             assertEquals("asd", unwrapProviders(com.google.common.base.Optional.of(
