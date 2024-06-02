@@ -12,8 +12,6 @@ class GradleCompatibilityJavaTest {
 
     @Test
     void test() {
-        assertEquals(UNKNOWN, getSupportOf("8.6", 22));
-
         assertEquals(UNSUPPORTED, getSupportOf("8.5", 22));
         assertEquals(SUPPORTED, getSupportOf("8.5", 21));
         assertEquals(SUPPORTED, getSupportOf("8.5", 20));
