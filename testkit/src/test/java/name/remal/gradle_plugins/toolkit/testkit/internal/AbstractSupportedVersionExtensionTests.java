@@ -17,7 +17,7 @@ public abstract class AbstractSupportedVersionExtensionTests extends AbstractJup
         public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
             context.getStore(NAMESPACE).put(
                 ModuleVersionStringRetriever.class,
-                (ModuleVersionStringRetriever) this::getModuleVersionString
+                this
             );
             return enabled(this.getClass().getName());
         }
