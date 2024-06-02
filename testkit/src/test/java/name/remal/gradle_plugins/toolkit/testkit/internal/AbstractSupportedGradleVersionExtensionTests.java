@@ -17,7 +17,7 @@ public abstract class AbstractSupportedGradleVersionExtensionTests extends Abstr
         public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
             context.getStore(NAMESPACE).put(
                 CurrentGradleVersionRetriever.class,
-                (CurrentGradleVersionRetriever) this::getCurrentGradleVersion
+                this
             );
             return enabled(this.getClass().getName());
         }
