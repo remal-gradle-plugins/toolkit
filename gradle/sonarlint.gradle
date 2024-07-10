@@ -10,6 +10,8 @@ allprojects {
         sonarLint {
             rules {
                 disable(
+                    // see https://rules.sonarsource.com/
+
                     'java:S110',  // Inheritance tree of classes should not be too deep
                     'java:S112',  // Generic exceptions should never be thrown
                     'java:S125',  // Sections of code should not be commented out
@@ -22,6 +24,7 @@ allprojects {
                     'java:S1134', // Track uses of "FIXME" tags
                     'java:S1135', // Track uses of "TODO" tags
                     'java:S1171', // Only static class initializers should be used
+                    'java:S1186', // Methods should not be empty
                     'java:S1192', // String literals should not be duplicated
                     'java:S1199', // Nested code blocks should not be used
                     'java:S1214', // Constants should not be defined in interfaces
