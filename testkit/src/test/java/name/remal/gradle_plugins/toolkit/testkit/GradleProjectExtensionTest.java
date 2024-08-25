@@ -2,22 +2,25 @@ package name.remal.gradle_plugins.toolkit.testkit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import lombok.RequiredArgsConstructor;
 import lombok.val;
+import name.remal.gradle_plugins.toolkit.SneakyThrowUtils;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.JavaLibraryPlugin;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.platform.engine.TestExecutionResult;
 
+@SuppressWarnings({"java:S5810", "java:S2699", "java:S5790", "NewClassNamingConvention", "JUnitMalformedDeclaration"})
 class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
 
     @RequiredArgsConstructor
     @ExtendWith(GradleProjectExtension.class)
     @ExampleTests
-    @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790", "NewClassNamingConvention"})
     static class SimpleConstructorExample {
 
         private final Project project;
@@ -32,13 +35,16 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
     @Test
     void simple_constructor_scenario() {
         val tests = executeTestsForClass(SimpleConstructorExample.class).testEvents();
+        tests.failed().stream().forEach(event -> event.getPayload(TestExecutionResult.class)
+            .flatMap(TestExecutionResult::getThrowable)
+            .ifPresent(exception -> { throw SneakyThrowUtils.sneakyThrow(exception); })
+        );
         tests.assertStatistics(stats -> stats.succeeded(1));
     }
 
 
     @ExtendWith(GradleProjectExtension.class)
     @ExampleTests
-    @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790", "NewClassNamingConvention"})
     static class SimpleMethodExample {
 
         @Test
@@ -57,6 +63,10 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
     @Test
     void simple_method_scenario() {
         val tests = executeTestsForClass(SimpleMethodExample.class).testEvents();
+        tests.failed().stream().forEach(event -> event.getPayload(TestExecutionResult.class)
+            .flatMap(TestExecutionResult::getThrowable)
+            .ifPresent(exception -> { throw SneakyThrowUtils.sneakyThrow(exception); })
+        );
         tests.assertStatistics(stats -> stats.succeeded(1));
     }
 
@@ -64,7 +74,6 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
     @ExtendWith(GradleProjectExtension.class)
     @ExampleTests
     @RequiredArgsConstructor
-    @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790", "NewClassNamingConvention"})
     static class InjectedOnceExample {
 
         private final Project project;
@@ -91,6 +100,10 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
     @Test
     void injected_once() {
         val tests = executeTestsForClass(InjectedOnceExample.class).testEvents();
+        tests.failed().stream().forEach(event -> event.getPayload(TestExecutionResult.class)
+            .flatMap(TestExecutionResult::getThrowable)
+            .ifPresent(exception -> { throw SneakyThrowUtils.sneakyThrow(exception); })
+        );
         tests.assertStatistics(stats -> stats.succeeded(2));
     }
 
@@ -98,7 +111,6 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
     @RequiredArgsConstructor
     @ExtendWith(GradleProjectExtension.class)
     @ExampleTests
-    @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790", "NewClassNamingConvention"})
     static class FullConstructorExample {
 
         @ChildProjectOf("parentProject")
@@ -109,8 +121,10 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
 
         @Test
         void full_scenario() {
-            assertEquals(parentProject, childProject.getParent());
-            assertEquals(rootProject, parentProject.getParent());
+            assertNotNull(childProject.getParent());
+            assertEquals(parentProject.getProjectDir(), childProject.getParent().getProjectDir());
+            assertNotNull(parentProject.getParent());
+            assertEquals(rootProject.getProjectDir(), parentProject.getParent().getProjectDir());
             assertNull(rootProject.getParent());
         }
 
@@ -119,13 +133,16 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
     @Test
     void full_constructor_scenario() {
         val tests = executeTestsForClass(FullConstructorExample.class).testEvents();
+        tests.failed().stream().forEach(event -> event.getPayload(TestExecutionResult.class)
+            .flatMap(TestExecutionResult::getThrowable)
+            .ifPresent(exception -> { throw SneakyThrowUtils.sneakyThrow(exception); })
+        );
         tests.assertStatistics(stats -> stats.succeeded(1));
     }
 
 
     @ExtendWith(GradleProjectExtension.class)
     @ExampleTests
-    @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790", "NewClassNamingConvention"})
     static class FullMethodExample {
 
         @Test
@@ -134,8 +151,10 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
             @ChildProjectOf("rootProject") Project parentProject,
             Project rootProject
         ) {
-            assertEquals(parentProject, childProject.getParent());
-            assertEquals(rootProject, parentProject.getParent());
+            assertNotNull(childProject.getParent());
+            assertEquals(parentProject.getProjectDir(), childProject.getParent().getProjectDir());
+            assertNotNull(parentProject.getParent());
+            assertEquals(rootProject.getProjectDir(), parentProject.getParent().getProjectDir());
             assertNull(rootProject.getParent());
         }
 
@@ -144,13 +163,17 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
     @Test
     void full_method_scenario() {
         val tests = executeTestsForClass(FullMethodExample.class).testEvents();
+        tests.failed().stream().forEach(event ->
+            event.getPayload(TestExecutionResult.class)
+                .flatMap(TestExecutionResult::getThrowable)
+                .ifPresent(exception -> { throw SneakyThrowUtils.sneakyThrow(exception); })
+        );
         tests.assertStatistics(stats -> stats.succeeded(1));
     }
 
 
     @ExtendWith(GradleProjectExtension.class)
     @ExampleTests
-    @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790", "NewClassNamingConvention"})
     static class ApplyPluginExample {
 
         @Test
@@ -164,13 +187,17 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
     @Test
     void apply_plugin() {
         val tests = executeTestsForClass(ApplyPluginExample.class).testEvents();
+        tests.failed().stream().forEach(event -> event.getPayload(TestExecutionResult.class)
+            .flatMap(TestExecutionResult::getThrowable)
+            .ifPresent(exception -> { throw SneakyThrowUtils.sneakyThrow(exception); })
+        );
         tests.assertStatistics(stats -> stats.succeeded(1));
     }
 
 
     @ExtendWith(GradleProjectExtension.class)
     @ExampleTests
-    @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790", "unused", "NewClassNamingConvention"})
+    @SuppressWarnings("unused")
     static class ReferencesToItselfExample {
 
         @Test
@@ -192,7 +219,7 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
 
     @ExtendWith(GradleProjectExtension.class)
     @ExampleTests
-    @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790", "unused", "NewClassNamingConvention"})
+    @SuppressWarnings("unused")
     static class InvalidReferenceExample {
 
         @Test

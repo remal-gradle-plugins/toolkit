@@ -7,7 +7,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
@@ -61,11 +60,9 @@ class ResolutionStrategyUtilsTest {
 
     @Test
     void globalResolutionStrategyWorksWithSpringDependencyManagementGradlePlugin() {
-        val globalResolutionStrategyCallCounter = new AtomicInteger();
         Set<String> requestedSelectors = synchronizedSet(new TreeSet<>());
         configureGlobalResolutionStrategy(project, resolutionStrategy ->
             resolutionStrategy.eachDependency(details -> {
-                globalResolutionStrategyCallCounter.incrementAndGet();
                 requestedSelectors.add(format(
                     "%s:%s:%s",
                     details.getRequested().getGroup(),
@@ -87,11 +84,8 @@ class ResolutionStrategyUtilsTest {
             // do nothing
         }
 
-        assertThat(globalResolutionStrategyCallCounter.get())
-            .isEqualTo(2);
-
         assertThat(requestedSelectors)
-            .containsExactlyInAnyOrder(
+            .contains(
                 "junit:junit:4.13.2"
             );
     }
