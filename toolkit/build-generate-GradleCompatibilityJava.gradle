@@ -1,12 +1,13 @@
 import org.gradle.util.GradleVersion
 
-class ResourceLoader {}
-
 tasks.named('generateJava') {
+    String documentationUrl = 'https://docs.gradle.org/current/userguide/compatibility.html'
+    outputs.file(project.getCacheFileForDownloadedUrl(documentationUrl)).optional()
+
     classFile(project.calculateBaseJavaPackage(), 'GradleCompatibilityJava') {
         SortedMap<GradleVersion, Integer> compatibility = new TreeMap<>(Comparator.reverseOrder())
-        def documentationDocument = project.loadHtmlFromUrl("https://docs.gradle.org/current/userguide/compatibility.html")
-        def tableElements = documentationDocument.select('h2#java + .sectionbody table.tableblock')
+        def documentationDocument = project.loadHtmlFromUrl(documentationUrl)
+        def tableElements = documentationDocument.select('h2#java_runtime + .sectionbody table.tableblock')
         if (tableElements.isEmpty()) {
             throw new GradleException("Table node can't be found")
         }

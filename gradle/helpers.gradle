@@ -330,21 +330,28 @@ Closure<String> sha512hex = project.ext.sha512hex = { Object content ->
 
 File downloadedContentCacheDir = project.layout.buildDirectory.dir('downloaded-content-cache').get().asFile
 
+Closure<File> getCacheFileForDownloadedUrl = project.ext.getCacheFileForDownloadedUrl = { Object untypedUrl, String cacheFileNameSuffix = null ->
+    URL url = project.uri(untypedUrl).toURL()
+
+    if (cacheFileNameSuffix == null) {
+        cacheFileNameSuffix = url.path.with { String path ->
+            path = new File(path).getName()
+            int dotPos = path.lastIndexOf('.')
+            return dotPos >= 0 ? path.substring(dotPos) : ''
+        }
+    }
+
+    return new File(downloadedContentCacheDir, sha512hex(url.toString()) + cacheFileNameSuffix)
+}
+
 Closure<byte[]> loadUrlContent = project.ext.loadUrlContent = { Object untypedUrl, String cacheFileNameSuffix = null ->
     synchronized (MUTEX) {
-        URL url = project.uri(untypedUrl).toURL()
-        if (cacheFileNameSuffix == null) {
-            cacheFileNameSuffix = url.path.with { String path ->
-                path = new File(path).getName()
-                int dotPos = path.lastIndexOf('.')
-                return dotPos >= 0 ? path.substring(dotPos) : ''
-            }
-        }
-        File cacheFile = new File(downloadedContentCacheDir, sha512hex(url.toString()) + cacheFileNameSuffix)
+        File cacheFile = getCacheFileForDownloadedUrl(untypedUrl, cacheFileNameSuffix)
         if (cacheFile.exists()) {
             return cacheFile.bytes
         }
 
+        URL url = project.uri(untypedUrl).toURL()
         URLConnection connection = url.openConnection()
         connection.connectTimeout = 5000
         connection.readTimeout = 15000

@@ -73,6 +73,9 @@ tasks.named('generateJava') {
         Class.forName('java.util.function.ToLongFunction'),
         Class.forName('java.util.function.UnaryOperator'),
     ].sort { it.name }
+
+    inputs.files(lambdaClasses.collect { it.protectionDomain?.codeSource?.location }.findAll { it != null }.toSet()).optional()
+
     classFile(project.calculateBaseJavaPackage(), 'SneakyThrowUtils') {
         it.writePackage()
         it.println("")

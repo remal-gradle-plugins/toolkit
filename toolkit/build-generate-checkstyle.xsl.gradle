@@ -1,4 +1,6 @@
 tasks.named('generateResources') {
+    inputs.files([Checkstyle].collect { it.protectionDomain?.codeSource?.location }.findAll { it != null }.toSet()).optional()
+
     binaryFile("${project.calculateBaseJavaPackage().replace('.', '/')}/issues/checkstyle.xsl") { OutputStream outputStream ->
         String resourceName = 'checkstyle-noframes-sorted.xsl'
         InputStream inputStream = Checkstyle.getClassLoader().getResourceAsStream(resourceName)

@@ -3,6 +3,27 @@ import org.gradle.util.GradleVersion
 class ResourceLoader {}
 
 tasks.named('generateJava') {
+    ListProperty<GradleVersion> gradleVersions = project.objects.listProperty(GradleVersion).convention(
+        provider {
+            project.getMinorGradleVersions()
+                .findAll { it >= GradleVersion.version('6.6') }
+                .sort()
+                .reverse()
+        }
+    )
+
+    Closure<String> getDocumentationUrl = { GradleVersion gradleVersion ->
+        "https://docs.gradle.org/${gradleVersion.version}/userguide/configuration_cache.html"
+    }
+
+    outputs.files(
+        files(
+            gradleVersions.map { versions ->
+                versions.collect { project.getCacheFileForDownloadedUrl(getDocumentationUrl(it)) }
+            }
+        )
+    ).optional()
+
     classFile(project.calculateBaseJavaPackage(), 'CorePluginConfigurationCacheSupport') {
         it.writePackage()
         it.println("")
@@ -17,20 +38,16 @@ tasks.named('generateJava') {
         it.println("@NoArgsConstructor(access = PRIVATE)")
         it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "checkstyle:MissingSwitchDefault", "java:S3776", "java:S131", "java:S1479", "DuplicateBranchesInSwitch")
         it.writeBlock("abstract class ${it.simpleName}") {
-            Collection<GradleVersion> gradleVersions = project.getMinorGradleVersions()
-                .findAll { it >= GradleVersion.version('6.6') }
-                .sort()
-                .reverse()
             it.println("")
-            gradleVersions.forEach { GradleVersion gradleVersion ->
+            gradleVersions.get().forEach { GradleVersion gradleVersion ->
                 it.println("private static final GradleVersion GRADLE_${gradleVersion.version.replace('.', '_')} = GradleVersion.version(\"${gradleVersion.version}\");")
             }
 
             it.println("")
             it.writeBlock("public static GradleCompatibilityMode get(GradleVersion gradleVersion, String pluginId)") {
                 it.println("gradleVersion = gradleVersion.getBaseVersion();")
-                gradleVersions.forEach { GradleVersion gradleVersion ->
-                    def documentationDocument = project.loadHtmlFromUrl("https://docs.gradle.org/${gradleVersion.version}/userguide/configuration_cache.html")
+                gradleVersions.get().forEach { GradleVersion gradleVersion ->
+                    def documentationDocument = project.loadHtmlFromUrl(getDocumentationUrl(gradleVersion))
                     def tableElements = documentationDocument.select('h2#config_cache\\:plugins + .sectionbody table:not(.tableblock)')
                     if (tableElements.isEmpty()) {
                         throw new GradleException("Table node can't be found for $gradleVersion")
