@@ -1,5 +1,6 @@
 package name.remal.gradle_plugins.toolkit.testkit;
 
+import static name.remal.gradle_plugins.toolkit.SneakyThrowUtils.sneakyThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -8,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import lombok.RequiredArgsConstructor;
 import lombok.val;
-import name.remal.gradle_plugins.toolkit.SneakyThrowUtils;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.JavaLibraryPlugin;
 import org.junit.jupiter.api.Test;
@@ -37,7 +37,9 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
         val tests = executeTestsForClass(SimpleConstructorExample.class).testEvents();
         tests.failed().stream().forEach(event -> event.getPayload(TestExecutionResult.class)
             .flatMap(TestExecutionResult::getThrowable)
-            .ifPresent(exception -> { throw SneakyThrowUtils.sneakyThrow(exception); })
+            .ifPresent(exception -> {
+                throw sneakyThrow(exception);
+            })
         );
         tests.assertStatistics(stats -> stats.succeeded(1));
     }
@@ -65,7 +67,9 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
         val tests = executeTestsForClass(SimpleMethodExample.class).testEvents();
         tests.failed().stream().forEach(event -> event.getPayload(TestExecutionResult.class)
             .flatMap(TestExecutionResult::getThrowable)
-            .ifPresent(exception -> { throw SneakyThrowUtils.sneakyThrow(exception); })
+            .ifPresent(exception -> {
+                throw sneakyThrow(exception);
+            })
         );
         tests.assertStatistics(stats -> stats.succeeded(1));
     }
@@ -102,7 +106,9 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
         val tests = executeTestsForClass(InjectedOnceExample.class).testEvents();
         tests.failed().stream().forEach(event -> event.getPayload(TestExecutionResult.class)
             .flatMap(TestExecutionResult::getThrowable)
-            .ifPresent(exception -> { throw SneakyThrowUtils.sneakyThrow(exception); })
+            .ifPresent(exception -> {
+                throw sneakyThrow(exception);
+            })
         );
         tests.assertStatistics(stats -> stats.succeeded(2));
     }
@@ -135,7 +141,9 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
         val tests = executeTestsForClass(FullConstructorExample.class).testEvents();
         tests.failed().stream().forEach(event -> event.getPayload(TestExecutionResult.class)
             .flatMap(TestExecutionResult::getThrowable)
-            .ifPresent(exception -> { throw SneakyThrowUtils.sneakyThrow(exception); })
+            .ifPresent(exception -> {
+                throw sneakyThrow(exception);
+            })
         );
         tests.assertStatistics(stats -> stats.succeeded(1));
     }
@@ -166,7 +174,9 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
         tests.failed().stream().forEach(event ->
             event.getPayload(TestExecutionResult.class)
                 .flatMap(TestExecutionResult::getThrowable)
-                .ifPresent(exception -> { throw SneakyThrowUtils.sneakyThrow(exception); })
+                .ifPresent(exception -> {
+                    throw sneakyThrow(exception);
+                })
         );
         tests.assertStatistics(stats -> stats.succeeded(1));
     }
@@ -189,7 +199,9 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
         val tests = executeTestsForClass(ApplyPluginExample.class).testEvents();
         tests.failed().stream().forEach(event -> event.getPayload(TestExecutionResult.class)
             .flatMap(TestExecutionResult::getThrowable)
-            .ifPresent(exception -> { throw SneakyThrowUtils.sneakyThrow(exception); })
+            .ifPresent(exception -> {
+                throw sneakyThrow(exception);
+            })
         );
         tests.assertStatistics(stats -> stats.succeeded(1));
     }
