@@ -173,7 +173,9 @@ allprojects {
             }
         }
 
+
         Configuration mockito4Conf = configurations.create('mockito4') { Configuration conf ->
+            conf.canBeResolved = false
             conf.canBeConsumed = false
             conf.dependencies.addAll(
                 [
@@ -184,6 +186,7 @@ allprojects {
             )
         }
         Configuration mockito5Conf = configurations.create('mockito5') { Configuration conf ->
+            conf.canBeResolved = false
             conf.canBeConsumed = false
             conf.dependencies.addAll(
                 [
@@ -204,6 +207,21 @@ allprojects {
             }
             configurations.testImplementation.extendsFrom(conf)
         }
+        tasks.withType(Test).configureEach {
+            onlyIf {
+                Collection<File> bytebuddyAgentFiles = configurations.testRuntimeClasspath.resolvedConfiguration
+                    .lenientConfiguration
+                    .allModuleDependencies
+                    .findAll { "${it.moduleGroup}:${it.moduleName}" == 'net.bytebuddy:byte-buddy-agent' }
+                    .collect { it.allModuleArtifacts.findAll { it.type === 'jar' }.collect { it.file } }
+                    .flatten()
+                bytebuddyAgentFiles.forEach {
+                    jvmArgs("-javaagent:${it.absolutePath}")
+                }
+                return true
+            }
+        }
+
 
         sourceSets.all { SourceSet sourceSet ->
             project.configurations[sourceSet.compileClasspathConfigurationName].attributes { attrs ->
