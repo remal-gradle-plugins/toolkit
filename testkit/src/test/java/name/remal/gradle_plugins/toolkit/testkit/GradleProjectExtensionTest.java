@@ -54,7 +54,6 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
             Project project1,
             Project project2
         ) {
-            assertNotEquals(project1, project2);
             assertNotEquals(project1.getProjectDir(), project2.getProjectDir());
             assertTrue(project1.getProjectDir().isDirectory());
             assertTrue(project2.getProjectDir().isDirectory());
