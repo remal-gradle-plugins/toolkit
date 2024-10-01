@@ -35,7 +35,8 @@ class CheckstyleHtmlIssuesRendererTest {
             .message(textMessageOf("message"))
             .build();
         val renderedContent = renderer.renderIssues(singletonList(issue));
-        assertThat(renderedContent).doesNotContainIgnoringCase("checkstyle");
+        assertThat(renderedContent)
+            .doesNotContainIgnoringCase("checkstyle");
     }
 
     @Test
@@ -45,7 +46,8 @@ class CheckstyleHtmlIssuesRendererTest {
             .message(textMessageOf("message"))
             .build();
         val renderedContent = renderer.renderIssues(singletonList(issue));
-        assertThat(renderedContent).contains(TOOL_NAME);
+        assertThat(renderedContent)
+            .contains(TOOL_NAME);
     }
 
     @Test
@@ -56,8 +58,9 @@ class CheckstyleHtmlIssuesRendererTest {
             .rule(RULE_NAME)
             .build();
         val renderedContent = renderer.renderIssues(singletonList(issue));
-        assertThat(renderedContent).matches("[\\s\\S]*<th[^>]*>\\s*Rule\\s*</th>[\\s\\S]*");
-        assertThat(renderedContent).contains(RULE_NAME);
+        assertThat(renderedContent)
+            .matches("[\\s\\S]*<th[^>]*>\\s*Rule\\s*</th>[\\s\\S]*")
+            .contains(RULE_NAME);
     }
 
 }
