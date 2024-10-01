@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 class CheckstyleHtmlIssuesRendererTest {
 
     private static final String TOOL_NAME = "asdiuhAZDXUHZADklhjcAd";
+    private static final String RULE_NAME = "XxkajdSSaz";
 
     private final CheckstyleHtmlIssuesRenderer renderer = new CheckstyleHtmlIssuesRenderer(TOOL_NAME);
 
@@ -45,6 +46,18 @@ class CheckstyleHtmlIssuesRendererTest {
             .build();
         val renderedContent = renderer.renderIssues(singletonList(issue));
         assertThat(renderedContent).contains(TOOL_NAME);
+    }
+
+    @Test
+    void includes_rule() {
+        val issue = newIssueBuilder()
+            .sourceFile(new File("source"))
+            .message(textMessageOf("message"))
+            .rule(RULE_NAME)
+            .build();
+        val renderedContent = renderer.renderIssues(singletonList(issue));
+        assertThat(renderedContent).matches("[\\s\\S]*<th[^>]*>\\s*Rule\\s*</th>[\\s\\S]*");
+        assertThat(renderedContent).contains(RULE_NAME);
     }
 
 }

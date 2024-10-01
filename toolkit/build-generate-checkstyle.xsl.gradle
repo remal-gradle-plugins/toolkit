@@ -14,6 +14,9 @@ tasks.named('generateResources') {
 
         content = content.replaceAll(/(<xsl:number\s+)level="[^"]*"\s+(value=[^>]+>)/, '$1$2')
 
+        content = content.replaceAll(/(\s*<th[^>]*>\s*)Line Number(\s*<\/th>)/, '$0$1Rule$2')
+        content = content.replaceAll(/(\s*<td[^>]*>\s*)<xsl:value-of select="@line"\/>(\s*<\/td>)/, '$0$1<xsl:value-of select="@source"/>$2')
+
         content = content.replaceAll(/(<xsl:output[^>]*\/>)/, '$1<xsl:param name="toolName"/>')
         content = content.replaceAll(/(?i)(>[^<]*)\bCheckstyle\b(\s*[^<]*<)/, '$1<xsl:value-of select="\\$toolName"/>$2')
 
