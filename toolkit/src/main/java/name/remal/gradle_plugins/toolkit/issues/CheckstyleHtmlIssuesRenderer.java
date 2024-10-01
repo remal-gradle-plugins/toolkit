@@ -20,6 +20,17 @@ public class CheckstyleHtmlIssuesRenderer implements IssuesRenderer {
 
     private static final CheckstyleXmlIssuesRenderer XML_RENDERER = new CheckstyleXmlIssuesRenderer();
 
+
+    private final String toolName;
+
+    public CheckstyleHtmlIssuesRenderer(String toolName) {
+        this.toolName = toolName;
+    }
+
+    public CheckstyleHtmlIssuesRenderer() {
+        this("");
+    }
+
     @Override
     @SneakyThrows
     public String renderIssues(Iterable<? extends Issue> issues) {
@@ -27,18 +38,18 @@ public class CheckstyleHtmlIssuesRenderer implements IssuesRenderer {
         try (val xsltInputStream = openInputStreamForUrl(xsltUrl)) {
             val xslt = new StreamSource(xsltInputStream, xsltUrl.toString());
 
-            val xmlContent = XML_RENDERER.renderIssues(issues);
-            val source = new StreamSource(new StringReader(xmlContent));
-
-            val outputWriter = new StringWriter();
-
             val factory = TransformerFactory.newInstance();
             tryToSetXmlSetting(factory, ACCESS_EXTERNAL_DTD, "");
             tryToSetXmlSetting(factory, ACCESS_EXTERNAL_STYLESHEET, "");
             tryToSetXmlSetting(factory, FEATURE_SECURE_PROCESSING, true);
 
             val transformer = factory.newTransformer(xslt);
+            transformer.setParameter("toolName", toolName);
             transformer.setParameter("gradleVersion", GradleVersion.current().getVersion());
+
+            val xmlContent = XML_RENDERER.renderIssues(issues);
+            val source = new StreamSource(new StringReader(xmlContent));
+            val outputWriter = new StringWriter();
             transformer.transform(source, new StreamResult(outputWriter));
 
             return outputWriter.toString();

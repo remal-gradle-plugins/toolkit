@@ -548,3 +548,28 @@ allprojects {
         }
     }
 }
+
+Closure<File> getClassLocationFile = project.ext.getClassLocationFile = { Class clazz ->
+    URL location = clazz?.protectionDomain?.codeSource?.location
+    if (location == null) {
+        return null
+    }
+
+    try {
+        return project.file(location)
+
+    } catch (IllegalArgumentException ignored) {
+        return null
+    }
+}
+
+Closure<File> addClassLocationFileToInputs = project.ext.addClassLocationFileToInputs = { Class clazz, TaskInputs inputs ->
+    File file = getClassLocationFile(clazz)
+    if (file == null) {
+        // do nothing
+    } else if (file.isDirectory()) {
+        inputs.dir(file).optional()
+    } else {
+        inputs.file(file).optional()
+    }
+}
