@@ -38,6 +38,7 @@ allCrossCompileDependencies.create('java') {
 
 allCrossCompileDependencies.create('gradle') {
     maxVersionNumbers = 3
+    includeRc = true
     transitiveDependencyNotations.add('name.remal.gradle-api:local-groovy')
     dependencyNotations.add('name.remal.gradle-api:gradle-api')
     dependencyNotations.add('name.remal.gradle-api:gradle-test-kit')
@@ -47,6 +48,8 @@ allCrossCompileDependencies.create('gradle') {
 class CrossCompileDependencyInfo implements Named {
 
     int maxVersionNumbers = Integer.MAX_VALUE
+
+    boolean includeRc
 
     Collection<String> transitiveDependencyNotations = [].toSet()
     Collection<String> dependencyNotations = [].toSet()
@@ -212,7 +215,7 @@ allCrossCompileProjects.all { CrossCompileProjectInfo crossCompileProjectInfo ->
             } else if (crossCompileProjectInfo.versionOperator == 'gt') {
                 dependencyVersion = "[${crossCompileProjectInfo.nextVersion},${crossCompileProjectInfo.nextVersion}.9999)"
             } else {
-                dependencyVersion = "[${crossCompileProjectInfo.version},${crossCompileProjectInfo.version}.9999)"
+                dependencyVersion = "[${crossCompileProjectInfo.version}${crossCompileDependencyInfo.includeRc ? '-rc' : ''},${crossCompileProjectInfo.version}.9999)"
             }
             allDependencyNotations.forEach { dependencyNotation ->
                 Dependency dep = crossCompileProject.dependencies.create(dependencyNotation) {

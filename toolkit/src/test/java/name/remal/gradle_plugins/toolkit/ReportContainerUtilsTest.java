@@ -1,5 +1,6 @@
 package name.remal.gradle_plugins.toolkit;
 
+import static lombok.AccessLevel.PUBLIC;
 import static name.remal.gradle_plugins.toolkit.ReportContainerUtils.createReportContainerFor;
 import static name.remal.gradle_plugins.toolkit.ReportUtils.getReportDestination;
 import static name.remal.gradle_plugins.toolkit.ReportUtils.isReportEnabled;
@@ -9,7 +10,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import groovy.lang.Closure;
 import java.io.File;
+import javax.inject.Inject;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import org.gradle.api.Action;
@@ -21,6 +24,7 @@ import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.ReportContainer;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.reporting.SingleFileReport;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.junit.jupiter.api.Test;
 
@@ -55,6 +59,10 @@ class ReportContainerUtilsTest {
             new File(baseReportsDir, "directory"),
             getReportDestination(task.reports.getDirectory())
         );
+        assertEquals(
+            new File(baseReportsDir, "directory/index.html"),
+            task.reports.getDirectory().getEntryPoint()
+        );
 
         assertNotNull(task.reports.getJunitXml());
         assertTrue(isReportEnabled(task.reports.getJunitXml()));
@@ -67,17 +75,23 @@ class ReportContainerUtilsTest {
 
     interface TestReportsContainer extends ReportContainer<ConfigurableReport> {
 
+        @Internal
         SingleFileReport getFileXml();
 
+        @Internal
         CustomizableHtmlReport getHtml();
 
+        @Internal
+        @DirectoryReportRelativeEntryPath("index.html")
         DirectoryReport getDirectory();
 
+        @Internal
         JUnitXmlReport getJunitXml();
 
     }
 
-    public static class TestReportsTask extends DefaultTask implements Reporting<TestReportsContainer> {
+    @NoArgsConstructor(access = PUBLIC, onConstructor_ = {@Inject})
+    static class TestReportsTask extends DefaultTask implements Reporting<TestReportsContainer> {
 
         @Getter
         private final TestReportsContainer reports = createReportContainerFor(this);

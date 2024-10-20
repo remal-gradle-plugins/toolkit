@@ -36,7 +36,7 @@ public interface CrossCompileVersionComparator {
         String dependency,
         String currentDependencyVersionString
     ) {
-        val currentDependencyVersion = Version.parse(currentDependencyVersionString);
+        val currentDependencyVersion = Version.parse(currentDependencyVersionString).withoutSuffix();
         return (dependencyToCheck, dependencyVersionToCheckString) -> {
             if (dependency.equals(dependencyToCheck)) {
                 val dependencyVersionToCheck = Version.parse(dependencyVersionToCheckString).withoutSuffix();

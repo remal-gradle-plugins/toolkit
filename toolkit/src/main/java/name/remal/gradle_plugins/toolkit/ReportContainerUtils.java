@@ -3,111 +3,58 @@ package name.remal.gradle_plugins.toolkit;
 import static com.google.common.base.CaseFormat.LOWER_CAMEL;
 import static com.google.common.base.CaseFormat.LOWER_HYPHEN;
 import static com.google.common.base.CaseFormat.UPPER_CAMEL;
-import static java.lang.String.format;
+import static java.lang.Character.isLowerCase;
+import static java.lang.Character.toLowerCase;
 import static java.util.Arrays.stream;
-import static java.util.Collections.singletonList;
-import static java.util.Comparator.comparingInt;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
-import static name.remal.gradle_plugins.api.BuildTimeConstants.getClassDescriptor;
+import static name.remal.gradle_plugins.toolkit.CrossCompileServices.loadCrossCompileService;
 import static name.remal.gradle_plugins.toolkit.ExtensionContainerUtils.getExtension;
+import static name.remal.gradle_plugins.toolkit.ProxyUtils.areMethodsSimilar;
+import static name.remal.gradle_plugins.toolkit.ProxyUtils.toDynamicInterface;
 import static name.remal.gradle_plugins.toolkit.ReportUtils.setReportDestination;
 import static name.remal.gradle_plugins.toolkit.ReportUtils.setReportEnabled;
-import static name.remal.gradle_plugins.toolkit.ServiceRegistryUtils.getService;
 import static name.remal.gradle_plugins.toolkit.StringUtils.trimWith;
-import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.defineClass;
-import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.getClassHierarchy;
-import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.tryLoadClass;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.unwrapGeneratedSubclass;
 import static org.gradle.api.reporting.Report.OutputType.DIRECTORY;
-import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
-import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
-import static org.objectweb.asm.Opcodes.AASTORE;
-import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
-import static org.objectweb.asm.Opcodes.ALOAD;
-import static org.objectweb.asm.Opcodes.ANEWARRAY;
-import static org.objectweb.asm.Opcodes.ARETURN;
-import static org.objectweb.asm.Opcodes.CHECKCAST;
-import static org.objectweb.asm.Opcodes.DUP;
-import static org.objectweb.asm.Opcodes.ICONST_0;
-import static org.objectweb.asm.Opcodes.ICONST_1;
-import static org.objectweb.asm.Opcodes.ICONST_2;
-import static org.objectweb.asm.Opcodes.ICONST_3;
-import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
-import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
-import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
-import static org.objectweb.asm.Opcodes.POP;
-import static org.objectweb.asm.Opcodes.RETURN;
-import static org.objectweb.asm.Opcodes.V1_8;
-import static org.objectweb.asm.Type.VOID_TYPE;
-import static org.objectweb.asm.Type.getInternalName;
-import static org.objectweb.asm.Type.getMethodDescriptor;
-import static org.objectweb.asm.Type.getType;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 import javax.annotation.Nullable;
-import javax.inject.Inject;
-import lombok.Builder;
 import lombok.CustomLog;
 import lombok.NoArgsConstructor;
-import lombok.SneakyThrows;
-import lombok.Value;
 import lombok.val;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils;
-import org.gradle.api.GradleException;
-import org.gradle.api.Project;
+import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ReportingBasePlugin;
 import org.gradle.api.reporting.ConfigurableReport;
+import org.gradle.api.reporting.CustomizableHtmlReport;
+import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportContainer;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.reporting.ReportingExtension;
-import org.gradle.api.reporting.internal.TaskReportContainer;
-import org.gradle.api.tasks.Internal;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.tree.AnnotationNode;
-import org.objectweb.asm.tree.ClassNode;
-import org.objectweb.asm.tree.InsnList;
-import org.objectweb.asm.tree.InsnNode;
-import org.objectweb.asm.tree.LabelNode;
-import org.objectweb.asm.tree.LdcInsnNode;
-import org.objectweb.asm.tree.MethodInsnNode;
-import org.objectweb.asm.tree.MethodNode;
-import org.objectweb.asm.tree.TypeInsnNode;
-import org.objectweb.asm.tree.VarInsnNode;
-import org.objectweb.asm.util.CheckClassAdapter;
+import org.gradle.api.reporting.SingleFileReport;
+import org.gradle.api.tasks.testing.JUnitXmlReport;
 
 @ReliesOnInternalGradleApi
 @NoArgsConstructor(access = PRIVATE)
 @CustomLog
 public abstract class ReportContainerUtils {
 
-    @Nullable
-    private static final Class<?> COLLECTION_CALLBACK_ACTION_DECORATOR_CLASS = tryLoadClass(
-        "org.gradle.api.internal.CollectionCallbackActionDecorator",
-        Task.class.getClassLoader()
-    );
-
+    private static final ReportContainerUtilsMethods METHODS =
+        loadCrossCompileService(ReportContainerUtilsMethods.class);
 
     public static <
         C extends ReportContainer<?>,
@@ -119,379 +66,36 @@ public abstract class ReportContainerUtils {
         return createReportContainerFor(task, reportContainerType);
     }
 
-    @SuppressWarnings("unchecked")
     public static <C extends ReportContainer<?>> C createReportContainerFor(
         Task task,
         Class<C> reportContainerType
-    ) {
-        val reportContainerImplClass = generateReportContainerImplClass(reportContainerType);
-        val objectFactory = task.getProject().getObjects();
-        final C reportContainer;
-        if (COLLECTION_CALLBACK_ACTION_DECORATOR_CLASS != null) {
-            val collectionCallbackActionDecorator = getService(
-                task.getProject(),
-                COLLECTION_CALLBACK_ACTION_DECORATOR_CLASS
-            );
-            reportContainer = (C) objectFactory.newInstance(
-                reportContainerImplClass,
-                task,
-                collectionCallbackActionDecorator
-            );
-        } else {
-            reportContainer = (C) objectFactory.newInstance(reportContainerImplClass, task);
-        }
-
-        enableAllTaskReports(reportContainer);
-        setTaskReportDestinationsAutomatically(task, reportContainer);
-
-        return reportContainer;
-    }
-
-    private static final Map<Class<? extends ReportContainer<?>>, Class<?>> REPORT_CONTAINER_IMPL_CLASSES_CACHE
-        = new ConcurrentHashMap<>();
-
-    private static Class<?> generateReportContainerImplClass(Class<? extends ReportContainer<?>> reportContainerType) {
-        return REPORT_CONTAINER_IMPL_CLASSES_CACHE.computeIfAbsent(
-            reportContainerType,
-            ReportContainerUtils::generateReportContainerImplClassImpl
-        );
-    }
-
-    @SneakyThrows
-    @SuppressWarnings("ReturnValueIgnored")
-    private static Class<?> generateReportContainerImplClassImpl(
-        Class<? extends ReportContainer<?>> reportContainerType
     ) {
         if (!reportContainerType.isInterface()) {
             throw new AssertionError("Not an interface: " + reportContainerType);
         }
 
-        val reportInfos = collectReportInfos(reportContainerType);
-
-        val classNode = new ClassNode();
-        classNode.version = V1_8;
-        classNode.access = ACC_PUBLIC;
-        classNode.name = getInternalName(reportContainerType) + "$$" + TaskReportContainer.class.getSimpleName();
-        classNode.superName = getInternalName(TaskReportContainer.class);
-        classNode.interfaces = singletonList(getInternalName(reportContainerType));
-        classNode.methods = new ArrayList<>();
-
-        {
-            val methodNode = new MethodNode(
-                ACC_PUBLIC,
-                "<init>",
-                getMethodDescriptor(
-                    VOID_TYPE,
-                    Stream.of(
-                            Task.class,
-                            COLLECTION_CALLBACK_ACTION_DECORATOR_CLASS
-                        )
-                        .filter(Objects::nonNull)
-                        .map(Type::getType)
-                        .toArray(Type[]::new)
-                ),
-                null,
-                null
-            );
-            methodNode.maxLocals = 1;
-            methodNode.maxStack = 1;
-            classNode.methods.add(methodNode);
-
-            methodNode.visibleAnnotations = singletonList(new AnnotationNode(getClassDescriptor(Inject.class)));
-
-            val instructions = methodNode.instructions = new InsnList();
-            instructions.add(new LabelNode());
-
-            instructions.add(new VarInsnNode(ALOAD, 0));
-            instructions.add(new LdcInsnNode(getType(getReportClassFor(reportContainerType))));
-            instructions.add(new VarInsnNode(ALOAD, 1));
-            if (COLLECTION_CALLBACK_ACTION_DECORATOR_CLASS != null) {
-                instructions.add(new VarInsnNode(ALOAD, 2));
-            }
-            instructions.add(new MethodInsnNode(
-                INVOKESPECIAL,
-                classNode.superName,
-                methodNode.name,
-                getMethodDescriptor(
-                    VOID_TYPE,
-                    Stream.of(
-                            Class.class,
-                            Task.class,
-                            COLLECTION_CALLBACK_ACTION_DECORATOR_CLASS
-                        )
-                        .filter(Objects::nonNull)
-                        .map(Type::getType)
-                        .toArray(Type[]::new)
-                ),
-                false
-            ));
-
-            for (val reportInfo : reportInfos) {
-                val reportImplClass = reportInfo.getReportImplClass();
-
-                instructions.add(new VarInsnNode(ALOAD, 0));
-                instructions.add(new LdcInsnNode(getType(reportImplClass)));
-
-                if (
-                    reportImplClass.getName().equals(
-                        "org.gradle.api.internal.tasks.testing.DefaultJUnitXmlReport"
-                    ) && hasConstructor(reportImplClass, String.class, Task.class, ObjectFactory.class)
-                ) {
-                    //noinspection ResultOfMethodCallIgnored
-                    reportImplClass.getConstructor(String.class, Task.class, ObjectFactory.class);
-
-                    instructions.add(new InsnNode(ICONST_3));
-                    instructions.add(new TypeInsnNode(ANEWARRAY, getInternalName(Object.class)));
-                    instructions.add(new InsnNode(DUP));
-
-                    instructions.add(new InsnNode(ICONST_0));
-                    instructions.add(new LdcInsnNode(reportInfo.getReportName()));
-                    instructions.add(new InsnNode(AASTORE));
-
-                    instructions.add(new InsnNode(DUP));
-                    instructions.add(new InsnNode(ICONST_1));
-                    instructions.add(new VarInsnNode(ALOAD, 1));
-                    instructions.add(new InsnNode(AASTORE));
-
-                    instructions.add(new InsnNode(DUP));
-                    instructions.add(new InsnNode(ICONST_2));
-                    instructions.add(new VarInsnNode(ALOAD, 1));
-                    instructions.add(new MethodInsnNode(
-                        INVOKEINTERFACE,
-                        getInternalName(Task.class),
-                        "getProject",
-                        getMethodDescriptor(getType(Project.class)),
-                        true
-                    ));
-                    instructions.add(new MethodInsnNode(
-                        INVOKEINTERFACE,
-                        getInternalName(Project.class),
-                        "getObjects",
-                        getMethodDescriptor(getType(ObjectFactory.class)),
-                        true
-                    ));
-                    instructions.add(new InsnNode(AASTORE));
-
-                } else if (
-                    reportImplClass.getName().equals(
-                        "org.gradle.api.reporting.internal.TaskGeneratedSingleDirectoryReport"
-                    ) && hasConstructor(reportImplClass, String.class, Task.class, String.class)
-                ) {
-                    instructions.add(new InsnNode(ICONST_3));
-                    instructions.add(new TypeInsnNode(ANEWARRAY, getInternalName(Object.class)));
-                    instructions.add(new InsnNode(DUP));
-
-                    instructions.add(new InsnNode(ICONST_0));
-                    instructions.add(new LdcInsnNode(reportInfo.getReportName()));
-                    instructions.add(new InsnNode(AASTORE));
-
-                    instructions.add(new InsnNode(DUP));
-                    instructions.add(new InsnNode(ICONST_1));
-                    instructions.add(new VarInsnNode(ALOAD, 1));
-                    instructions.add(new InsnNode(AASTORE));
-
-                    instructions.add(new InsnNode(DUP));
-                    instructions.add(new InsnNode(ICONST_2));
-                    instructions.add(new LdcInsnNode("index.html"));
-                    instructions.add(new InsnNode(AASTORE));
-
-                } else {
-                    //noinspection ResultOfMethodCallIgnored
-                    reportImplClass.getConstructor(String.class, Task.class);
-
-                    instructions.add(new InsnNode(ICONST_2));
-                    instructions.add(new TypeInsnNode(ANEWARRAY, getInternalName(Object.class)));
-                    instructions.add(new InsnNode(DUP));
-
-                    instructions.add(new InsnNode(ICONST_0));
-                    instructions.add(new LdcInsnNode(reportInfo.getReportName()));
-                    instructions.add(new InsnNode(AASTORE));
-
-                    instructions.add(new InsnNode(DUP));
-                    instructions.add(new InsnNode(ICONST_1));
-                    instructions.add(new VarInsnNode(ALOAD, 1));
-                    instructions.add(new InsnNode(AASTORE));
-                }
-
-                instructions.add(new MethodInsnNode(
-                    INVOKEVIRTUAL,
-                    classNode.name,
-                    "add",
-                    getMethodDescriptor(getType(Report.class), getType(Class.class), getType(Object[].class)),
-                    false
-                ));
-                instructions.add(new InsnNode(POP));
-            }
-
-            instructions.add(new InsnNode(RETURN));
-        }
-
-        for (val reportInfo : reportInfos) {
-            val methodNode = new MethodNode(
-                ACC_PUBLIC,
-                reportInfo.getMethod().getName(),
-                getMethodDescriptor(reportInfo.getMethod()),
-                null,
-                null
-            );
-            methodNode.maxLocals = 1;
-            methodNode.maxStack = 1;
-            classNode.methods.add(methodNode);
-
-            methodNode.visibleAnnotations = singletonList(new AnnotationNode(getClassDescriptor(Internal.class)));
-
-            val instructions = methodNode.instructions = new InsnList();
-            instructions.add(new LabelNode());
-
-            instructions.add(new VarInsnNode(ALOAD, 0));
-            instructions.add(new LdcInsnNode(reportInfo.getReportName()));
-            instructions.add(new MethodInsnNode(
-                INVOKEVIRTUAL,
-                classNode.name,
-                "getByName",
-                getMethodDescriptor(getType(Object.class), getType(String.class)),
-                false
-            ));
-            instructions.add(new TypeInsnNode(CHECKCAST, getInternalName(reportInfo.getMethod().getReturnType())));
-            instructions.add(new InsnNode(ARETURN));
-        }
-
-        val classWriter = new ClassWriter(COMPUTE_MAXS | COMPUTE_FRAMES);
-        classNode.accept(new CheckClassAdapter(classWriter));
-        val bytecode = classWriter.toByteArray();
-        return defineClass(reportContainerType.getClassLoader(), bytecode);
-    }
-
-    @SuppressWarnings("ReturnValueIgnored")
-    private static boolean hasConstructor(Class<?> clazz, Class<?>... parameterTypes) {
-        try {
-            clazz.getConstructor(parameterTypes);
-            return true;
-        } catch (NoSuchMethodException e) {
-            return false;
-        }
-    }
-
-    @SuppressWarnings("UnstableApiUsage")
-    @SneakyThrows
-    private static List<ReportInfo> collectReportInfos(Class<? extends ReportContainer<?>> reportContainerType) {
-        List<ReportInfo> reportInfos = new ArrayList<>();
-        val reportMethods = stream(reportContainerType.getMethods())
-            .filter(ReflectionUtils::isAbstract)
-            .filter(method -> Report.class.isAssignableFrom(method.getReturnType()))
-            .filter(method -> method.getParameterCount() == 0)
-            .collect(toList());
-        val reportContainerTypeToken = TypeToken.of(reportContainerType);
-        for (val reportMethod : reportMethods) {
-            String reportName = reportMethod.getName();
-            val reportNameMatcher = GETTER.matcher(reportName);
-            if (reportNameMatcher.matches()) {
-                reportName = reportNameMatcher.group(1);
-                reportName = reportName.substring(0, 1).toLowerCase() + reportName.substring(1);
-            }
-
-            val reportClass = (Class<?>) reportContainerTypeToken.method(reportMethod).getReturnType().getRawType();
-            if (reportClass.isAssignableFrom(ConfigurableReport.class)) {
-                throw new GradleException(format(
-                    "Too generic report type: %s. Use one of: %s.",
-                    reportMethod,
-                    REPORT_IMPL_CLASSES.keySet().stream().map(Class::getName).collect(joining(", "))
-                ));
-            }
-
-            Class<?> reportImplClass = null;
-            for (val entry : REPORT_IMPL_CLASSES.entrySet()) {
-                if (reportClass.isAssignableFrom(entry.getKey())) {
-                    reportImplClass = entry.getValue();
-                    break;
-                }
-            }
-            if (reportImplClass == null) {
-                throw new GradleException("Report implementation type can't be found for " + reportMethod);
-            }
-
-            reportInfos.add(ReportInfo.builder()
-                .method(reportMethod)
-                .reportName(reportName)
-                .reportClass(reportClass)
-                .reportImplClass(reportImplClass)
-                .build()
-            );
-        }
-        return reportInfos;
-    }
-
-    @Value
-    @Builder
-    private static class ReportInfo {
-        String reportName;
-        Class<?> reportClass;
-        Class<?> reportImplClass;
-        Method method;
-    }
-
-    private static final Pattern GETTER = Pattern.compile("(?:get|is)([^\\p{Ll}].+)");
-
-    private static final Map<Class<?>, Class<?>> REPORT_IMPL_CLASSES = collectReportImplClasses();
-
-    private static Map<Class<?>, Class<?>> collectReportImplClasses() {
-        val mapping = ImmutableMap.<String, List<String>>builder()
-            .put(
-                "org.gradle.api.reporting.SingleFileReport",
-                ImmutableList.of(
-                    "org.gradle.api.reporting.internal.TaskGeneratedSingleFileReport"
-                )
-            )
-            .put(
-                "org.gradle.api.reporting.CustomizableHtmlReport",
-                ImmutableList.of(
-                    "org.gradle.api.reporting.internal.CustomizableHtmlReportImpl"
-                )
-            )
-            .put(
-                "org.gradle.api.reporting.DirectoryReport",
-                ImmutableList.of(
-                    "org.gradle.api.reporting.internal.TaskGeneratedSingleDirectoryReport"
-                )
-            )
-            .put(
-                "org.gradle.api.tasks.testing.JUnitXmlReport",
-                ImmutableList.of(
-                    "org.gradle.api.internal.tasks.testing.DefaultJUnitXmlReport"
-                )
-            )
-            .build();
+        val reportGetters = collectReportGetters(reportContainerType);
+        val reportContainerDelegate = METHODS.createReportContainer(
+            task,
+            getReportClassFor(reportContainerType),
+            createReportContainerConfigureAction(reportGetters)
+        );
 
 
-        Map<Class<?>, Class<?>> reportImplClasses = new LinkedHashMap<>();
-        forEachMappingEntry:
-        for (val mappingEntry : mapping.entrySet()) {
-            val interfaceClass = tryLoadClass(mappingEntry.getKey(), ReportContainerUtils.class.getClassLoader());
-            if (interfaceClass == null) {
-                logger.debug("Class not found: {}", mappingEntry.getKey());
-                continue;
-            }
-
-            for (val implClassName : mappingEntry.getValue()) {
-                val implClass = tryLoadClass(implClassName, ReportContainerUtils.class.getClassLoader());
-                if (implClass == null) {
-                    logger.debug("Class not found: {}", mappingEntry.getKey());
-                    continue;
-                }
-
-                reportImplClasses.put(interfaceClass, implClass);
-                continue forEachMappingEntry;
-            }
-        }
-
-
-        Map<Class<?>, Class<?>> sortedReportImplClasses = new LinkedHashMap<>();
-        reportImplClasses.entrySet().stream()
-            .sorted(comparingInt(
-                entry -> getClassHierarchy(entry.getKey()).size()
+        val reportContainer = toDynamicInterface(
+            reportContainerDelegate,
+            reportContainerType,
+            handlers -> reportGetters.forEach((reportName, reportGetter) -> handlers.addFirst(
+                method -> areMethodsSimilar(reportGetter, method),
+                (proxy, method, args) -> reportContainerDelegate.getByName(reportName)
             ))
-            .forEach(entry -> sortedReportImplClasses.put(entry.getKey(), entry.getValue()));
-        return ImmutableMap.copyOf(sortedReportImplClasses);
+        );
+
+
+        enableAllTaskReports(reportContainer);
+        setTaskReportDestinationsAutomatically(task, reportContainer);
+
+        return reportContainer;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -527,6 +131,67 @@ public abstract class ReportContainerUtils {
         } else {
             throw new AssertionError("Not a ParameterizedType: " + type);
         }
+    }
+
+    private static Map<String, Method> collectReportGetters(Class<? extends ReportContainer<?>> reportContainerType) {
+        Map<String, Method> reportGetters = new LinkedHashMap<>();
+        stream(reportContainerType.getMethods())
+            .filter(ReflectionUtils::isAbstract)
+            .filter(method -> Report.class.isAssignableFrom(method.getReturnType()))
+            .filter(method -> method.getParameterCount() == 0)
+            .forEach(getter -> {
+                val reportName = getterNameToReportName(getter.getName());
+                if (reportName != null) {
+                    reportGetters.put(reportName, getter);
+                }
+            });
+        return reportGetters;
+    }
+
+    private static final String REPORT_GETTER_NAME_PREFIX = "get";
+
+    @Nullable
+    private static String getterNameToReportName(String getterName) {
+        if (!getterName.startsWith(REPORT_GETTER_NAME_PREFIX)) {
+            return null;
+        }
+
+        String reportName = getterName.substring(REPORT_GETTER_NAME_PREFIX.length());
+        if (reportName.isEmpty() || isLowerCase(reportName.charAt(0))) {
+            return null;
+        }
+
+        reportName = toLowerCase(reportName.charAt(0)) + reportName.substring(1);
+        return reportName;
+    }
+
+    private static Action<ReportContainerConfigurer> createReportContainerConfigureAction(
+        Map<String, Method> reportGetters
+    ) {
+        return container -> reportGetters.forEach((reportName, getter) -> {
+            val reportType = getter.getReturnType();
+            if (reportType == SingleFileReport.class) {
+                container.addSingleFileReport(reportName);
+
+            } else if (reportType == DirectoryReport.class) {
+                container.addDirectoryReport(reportName, getRelativeEntryPath(getter));
+
+            } else if (reportType == CustomizableHtmlReport.class) {
+                container.addCustomizableHtmlReport(reportName);
+
+            } else if (reportType == JUnitXmlReport.class) {
+                container.addJUnitXmlReport(reportName);
+
+            } else {
+                throw new AssertionError("Unsupported report type: " + reportType);
+            }
+        });
+    }
+
+    @Nullable
+    private static String getRelativeEntryPath(Method getter) {
+        val annotation = getter.getAnnotation(DirectoryReportRelativeEntryPath.class);
+        return annotation != null ? annotation.value() : null;
     }
 
 

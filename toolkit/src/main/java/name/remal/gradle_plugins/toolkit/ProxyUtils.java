@@ -6,34 +6,53 @@ import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.ThrowableUtils.unwrapReflectionException;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.val;
+import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.Action;
+import org.gradle.api.internal.GeneratedSubclass;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ProxyUtils {
 
-    public static boolean isEqualsMethod(Method method) {
-        return boolean.class == method.getReturnType()
-            && method.getParameterCount() == 1
-            && method.getName().equals("equals");
+    @SuppressWarnings("ReferenceEquality")
+    public static boolean areMethodsSimilar(@Nullable Method method1, @Nullable Method method2) {
+        if (method1 == method2) {
+            return true;
+        } else if (method1 == null || method2 == null) {
+            return false;
+        }
+
+        return Arrays.equals(method1.getParameterTypes(), method2.getParameterTypes())
+            && method1.getName().equals(method2.getName());
     }
+
+
+    private static final Method EQUALS_METHOD = getMethod(Object.class, "equals", Object.class);
+
+    public static boolean isEqualsMethod(Method method) {
+        return areMethodsSimilar(method, EQUALS_METHOD);
+    }
+
+    private static final Method HASH_CODE_METHOD = getMethod(Object.class, "hashCode");
 
     public static boolean isHashCodeMethod(Method method) {
-        return int.class == method.getReturnType()
-            && method.getParameterCount() == 0
-            && method.getName().equals("hashCode");
+        return areMethodsSimilar(method, HASH_CODE_METHOD);
     }
+
+    private static final Method TO_STRING_METHOD = getMethod(Object.class, "toString");
 
     public static boolean isToStringMethod(Method method) {
-        return String.class == method.getReturnType()
-            && method.getParameterCount() == 0
-            && method.getName().equals("toString");
+        return areMethodsSimilar(method, TO_STRING_METHOD);
     }
 
 
+    @ReliesOnInternalGradleApi
     public static <T> T toDynamicInterface(
         Object object,
         Class<T> interfaceClass
@@ -46,8 +65,6 @@ public abstract class ProxyUtils {
         Class<T> interfaceClass,
         Action<ProxyInvocationHandler> invocationHandlerConfigurer
     ) {
-        requireNonNull(object, "object");
-        requireNonNull(interfaceClass, "interfaceClass");
         if (!interfaceClass.isInterface()) {
             throw new IllegalArgumentException("Not an interface:" + interfaceClass);
         }
@@ -76,15 +93,45 @@ public abstract class ProxyUtils {
                 throw unwrapReflectionException(e);
             }
         });
+
+        if (PUBLIC_TYPE_METHOD != null) {
+            invocationHandler.add(
+                method -> areMethodsSimilar(method, PUBLIC_TYPE_METHOD),
+                (proxy, method, args) -> interfaceClass
+            );
+        }
+
         invocationHandlerConfigurer.execute(invocationHandler);
 
         val proxyInstance = newProxyInstance(
             interfaceClass.getClassLoader(),
-            new Class<?>[]{interfaceClass},
+            new Class<?>[]{
+                interfaceClass,
+                GeneratedSubclass.class
+            },
             invocationHandler
         );
 
         return interfaceClass.cast(proxyInstance);
+    }
+
+    @Nullable
+    @ReliesOnInternalGradleApi
+    private static final Method PUBLIC_TYPE_METHOD = findMethod(GeneratedSubclass.class, "publicType");
+
+
+    @SneakyThrows
+    private static Method getMethod(Class<?> clazz, String name, Class<?>... parameterTypes) {
+        return clazz.getMethod(name, parameterTypes);
+    }
+
+    @Nullable
+    private static Method findMethod(Class<?> clazz, String name, Class<?>... parameterTypes) {
+        try {
+            return clazz.getMethod(name, parameterTypes);
+        } catch (NoSuchMethodException e) {
+            return null;
+        }
     }
 
 }
