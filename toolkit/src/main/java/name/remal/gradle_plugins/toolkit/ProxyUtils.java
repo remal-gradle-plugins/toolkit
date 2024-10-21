@@ -13,9 +13,7 @@ import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
-import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.Action;
-import org.gradle.api.internal.GeneratedSubclass;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ProxyUtils {
@@ -52,7 +50,6 @@ public abstract class ProxyUtils {
     }
 
 
-    @ReliesOnInternalGradleApi
     public static <T> T toDynamicInterface(
         Object object,
         Class<T> interfaceClass
@@ -94,44 +91,21 @@ public abstract class ProxyUtils {
             }
         });
 
-        if (PUBLIC_TYPE_METHOD != null) {
-            invocationHandler.add(
-                method -> areMethodsSimilar(method, PUBLIC_TYPE_METHOD),
-                (proxy, method, args) -> interfaceClass
-            );
-        }
-
         invocationHandlerConfigurer.execute(invocationHandler);
 
         val proxyInstance = newProxyInstance(
             interfaceClass.getClassLoader(),
-            new Class<?>[]{
-                interfaceClass,
-                GeneratedSubclass.class
-            },
+            new Class<?>[]{interfaceClass},
             invocationHandler
         );
 
         return interfaceClass.cast(proxyInstance);
     }
 
-    @Nullable
-    @ReliesOnInternalGradleApi
-    private static final Method PUBLIC_TYPE_METHOD = findMethod(GeneratedSubclass.class, "publicType");
-
 
     @SneakyThrows
     private static Method getMethod(Class<?> clazz, String name, Class<?>... parameterTypes) {
         return clazz.getMethod(name, parameterTypes);
-    }
-
-    @Nullable
-    private static Method findMethod(Class<?> clazz, String name, Class<?>... parameterTypes) {
-        try {
-            return clazz.getMethod(name, parameterTypes);
-        } catch (NoSuchMethodException e) {
-            return null;
-        }
     }
 
 }
