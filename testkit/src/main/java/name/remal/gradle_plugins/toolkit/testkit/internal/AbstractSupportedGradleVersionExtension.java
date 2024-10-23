@@ -35,7 +35,7 @@ abstract class AbstractSupportedGradleVersionExtension implements ExecutionCondi
     private static class DefaultCurrentGradleVersionRetriever implements CurrentGradleVersionRetriever {
         @Override
         public GradleVersion getCurrentGradleVersion() {
-            return GradleVersion.current();
+            return GradleVersion.current().getBaseVersion();
         }
     }
 
