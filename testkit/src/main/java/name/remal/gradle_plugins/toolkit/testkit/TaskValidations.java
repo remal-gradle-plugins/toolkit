@@ -3,6 +3,7 @@ package name.remal.gradle_plugins.toolkit.testkit;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
 import static lombok.AccessLevel.PRIVATE;
+import static name.remal.gradle_plugins.toolkit.GradleVersionUtils.isCurrentGradleVersionGreaterThanOrEqualTo;
 import static name.remal.gradle_plugins.toolkit.ObjectUtils.isNotEmpty;
 import static name.remal.gradle_plugins.toolkit.reflection.MethodsInvoker.invokeMethod;
 import static name.remal.gradle_plugins.toolkit.reflection.MethodsInvoker.invokeStaticMethod;
@@ -14,18 +15,20 @@ import lombok.SneakyThrows;
 import lombok.val;
 import name.remal.gradle_plugins.toolkit.StringUtils;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
+import name.remal.gradle_plugins.toolkit.reflection.MembersFinder;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.plan.LocalTaskNode;
+import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 
 @NoArgsConstructor(access = PRIVATE)
+@ReliesOnInternalGradleApi
 public abstract class TaskValidations {
 
-    @ReliesOnInternalGradleApi
     @SuppressWarnings("unchecked")
     public static boolean executeOnlyIfSpecs(Task task) {
         val taskInternal = (TaskInternal) task;
@@ -40,10 +43,14 @@ public abstract class TaskValidations {
         }
     }
 
-    @ReliesOnInternalGradleApi
     public static void assertNoTaskPropertiesProblems(Task task) {
-        val taskNodeFactory = ((ProjectInternal) task.getProject()).getServices().get(TaskNodeFactory.class);
-        val taskNode = (LocalTaskNode) taskNodeFactory.getOrCreateNode(task);
+        if (isCurrentGradleVersionGreaterThanOrEqualTo("7.0")) {
+            assertNoTaskPropertiesProblemsImpl(task);
+        }
+    }
+
+    private static void assertNoTaskPropertiesProblemsImpl(Task task) {
+        val taskNode = getLocalTaskNode(task);
         taskNode.resolveMutations();
 
         val taskType = unwrapGeneratedSubclass(task.getClass());
@@ -67,8 +74,29 @@ public abstract class TaskValidations {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    private static LocalTaskNode getLocalTaskNode(Task task) {
+        val taskNodeFactory = ((ProjectInternal) task.getProject()).getServices().get(TaskNodeFactory.class);
+
+        val getOrCreateNodeWithOrdinal = MembersFinder.findMethod(
+            (Class<TaskNodeFactory>) taskNodeFactory.getClass(),
+            TaskNode.class,
+            "getOrCreateNode",
+            Task.class,
+            int.class
+        );
+        if (getOrCreateNodeWithOrdinal != null) {
+            return (LocalTaskNode) getOrCreateNodeWithOrdinal.invoke(taskNodeFactory, task, -1);
+        }
+
+        return (LocalTaskNode) invokeStaticMethod(
+            taskNodeFactory.getClass(),
+            TaskNode.class, "getOrCreateNode",
+            Task.class, task
+        );
+    }
+
     @SneakyThrows
-    @ReliesOnInternalGradleApi
     private static String renderProblem(Object problem) {
         return invokeStaticMethod(
             TypeValidationProblemRenderer.class,

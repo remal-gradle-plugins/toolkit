@@ -83,7 +83,7 @@ class TaskValidationsTest {
     }
 
     @Test
-    @MinSupportedGradleVersion("8.2")
+    @MinSupportedGradleVersion("7.0")
     void assertNoTaskPropertiesProblems_without_problems() {
         val task = project.getTasks().create("task", TestTaskWithoutPropertyProblems.class);
         assertDoesNotThrow(() -> TaskValidations.assertNoTaskPropertiesProblems(task));
@@ -101,6 +101,7 @@ class TaskValidationsTest {
     }
 
     @Test
+    @MinSupportedGradleVersion("7.0")
     void assertNoTaskPropertiesProblems_with_problems() {
         val task = project.getTasks().create("task", TestTaskWithPropertyProblems.class);
         assertThrows(AssertionError.class, () -> TaskValidations.assertNoTaskPropertiesProblems(task));

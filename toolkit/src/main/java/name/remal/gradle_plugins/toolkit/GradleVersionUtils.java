@@ -9,7 +9,7 @@ import org.gradle.util.GradleVersion;
 @NoArgsConstructor(access = PRIVATE)
 public abstract class GradleVersionUtils {
 
-    private static final GradleVersion CURRENT = GradleVersion.current();
+    private static final GradleVersion CURRENT = GradleVersion.current().getBaseVersion();
 
 
     public static boolean isCurrentGradleVersionLessThan(GradleVersion version) {
