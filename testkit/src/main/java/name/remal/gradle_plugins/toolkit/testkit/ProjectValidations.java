@@ -14,7 +14,7 @@ import org.gradle.configuration.project.LifecycleProjectEvaluator;
 
 @ReliesOnInternalGradleApi
 @NoArgsConstructor(access = PRIVATE)
-public abstract class ProjectAfterEvaluateActionsExecutor {
+public abstract class ProjectValidations {
 
     /**
      * See {@link LifecycleProjectEvaluator#evaluate}
@@ -42,7 +42,7 @@ public abstract class ProjectAfterEvaluateActionsExecutor {
     }
 
     public static void executeAfterEvaluateActionsForAllProjects(Project project) {
-        project.allprojects(ProjectAfterEvaluateActionsExecutor::executeAfterEvaluateActions);
+        project.allprojects(ProjectValidations::executeAfterEvaluateActions);
     }
 
 }

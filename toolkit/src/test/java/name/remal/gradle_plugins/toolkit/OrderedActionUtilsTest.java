@@ -1,7 +1,7 @@
 package name.remal.gradle_plugins.toolkit;
 
-import static name.remal.gradle_plugins.toolkit.testkit.TaskActionsExecutor.executeActions;
-import static name.remal.gradle_plugins.toolkit.testkit.TaskActionsExecutor.executeOnlyIfSpecs;
+import static name.remal.gradle_plugins.toolkit.testkit.TaskValidations.executeActions;
+import static name.remal.gradle_plugins.toolkit.testkit.TaskValidations.executeOnlyIfSpecs;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.common.collect.ImmutableList;

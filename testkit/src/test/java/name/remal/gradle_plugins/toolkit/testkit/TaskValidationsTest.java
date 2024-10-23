@@ -2,19 +2,27 @@ package name.remal.gradle_plugins.toolkit.testkit;
 
 import static lombok.AccessLevel.PUBLIC;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import javax.inject.Inject;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.junit.jupiter.api.Test;
 
 @RequiredArgsConstructor
-class TaskActionsExecutorTest {
+class TaskValidationsTest {
 
     private final Project project;
 
@@ -36,14 +44,14 @@ class TaskActionsExecutorTest {
             return true;
         });
 
-        val result = TaskActionsExecutor.executeOnlyIfSpecs(task);
+        val result = TaskValidations.executeOnlyIfSpecs(task);
         assertThat(result).isFalse();
         assertThat(executedOnlyIfSpecs.get()).isEqualTo(2);
     }
 
     @Test
     void executeActions() {
-        val task = project.getTasks().create("test", TestTask.class);
+        val task = project.getTasks().create("test", TestTaskForExecuteActions.class);
 
         val isDoFirstExecuted = new AtomicBoolean(false);
         task.doFirst(__ -> isDoFirstExecuted.set(true));
@@ -55,21 +63,59 @@ class TaskActionsExecutorTest {
         assertThat(isDoFirstExecuted.get()).isFalse();
         assertThat(isDoLastExecuted.get()).isFalse();
 
-        TaskActionsExecutor.executeActions(task);
+        TaskValidations.executeActions(task);
 
         assertThat(task.isExecuted.get()).isTrue();
         assertThat(isDoFirstExecuted.get()).isTrue();
         assertThat(isDoLastExecuted.get()).isTrue();
     }
 
-    @NoArgsConstructor(access = PUBLIC)
-    static class TestTask extends DefaultTask {
+    @NoArgsConstructor(access = PUBLIC, onConstructor_ = {@Inject})
+    static class TestTaskForExecuteActions extends DefaultTask {
+
         public final AtomicBoolean isExecuted = new AtomicBoolean(false);
 
         @TaskAction
         public void execute() {
             isExecuted.set(true);
         }
+
+    }
+
+    @Test
+    @MinSupportedGradleVersion("8.2")
+    void assertNoTaskPropertiesProblems_without_problems() {
+        val task = project.getTasks().create("task", TestTaskWithoutPropertyProblems.class);
+        assertDoesNotThrow(() -> TaskValidations.assertNoTaskPropertiesProblems(task));
+    }
+
+    @NoArgsConstructor(access = PUBLIC, onConstructor_ = {@Inject})
+    static class TestTaskWithoutPropertyProblems extends DefaultTask {
+
+        @Getter(onMethod_ = {@Nested})
+        private final Map<String, String> map = new LinkedHashMap<>();
+
+        @Getter(onMethod_ = {@Input})
+        private int number;
+
+    }
+
+    @Test
+    void assertNoTaskPropertiesProblems_with_problems() {
+        val task = project.getTasks().create("task", TestTaskWithPropertyProblems.class);
+        assertThrows(AssertionError.class, () -> TaskValidations.assertNoTaskPropertiesProblems(task));
+    }
+
+    @NoArgsConstructor(access = PUBLIC, onConstructor_ = {@Inject})
+    static class TestTaskWithPropertyProblems extends DefaultTask {
+
+        @Getter(onMethod_ = {@Nested})
+        @SuppressWarnings("rawtypes")
+        private final Map map = new LinkedHashMap();
+
+        @Getter(onMethod_ = {@Input, @org.gradle.api.tasks.Optional})
+        private int number;
+
     }
 
 }

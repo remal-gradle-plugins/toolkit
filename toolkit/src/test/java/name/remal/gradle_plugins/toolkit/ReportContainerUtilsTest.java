@@ -4,6 +4,7 @@ import static lombok.AccessLevel.PUBLIC;
 import static name.remal.gradle_plugins.toolkit.ReportContainerUtils.createReportContainerFor;
 import static name.remal.gradle_plugins.toolkit.ReportUtils.getReportDestination;
 import static name.remal.gradle_plugins.toolkit.ReportUtils.isReportEnabled;
+import static name.remal.gradle_plugins.toolkit.testkit.TaskValidations.assertNoTaskPropertiesProblems;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -25,6 +26,7 @@ import org.gradle.api.reporting.ReportContainer;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.junit.jupiter.api.Test;
 
@@ -34,7 +36,13 @@ class ReportContainerUtilsTest {
     private final Project project;
 
     @Test
-    void test() {
+    void noTaskPropertiesProblems() {
+        val task = project.getTasks().create(TestReportsTask.class.getSimpleName(), TestReportsTask.class);
+        assertNoTaskPropertiesProblems(task);
+    }
+
+    @Test
+    void reportsCorrectlyConfigured() {
         val task = project.getTasks().create(TestReportsTask.class.getSimpleName(), TestReportsTask.class);
 
         val baseReportsDir = project.file("build/reports/testReports/TestReportsTask");
@@ -93,7 +101,7 @@ class ReportContainerUtilsTest {
     @NoArgsConstructor(access = PUBLIC, onConstructor_ = {@Inject})
     static class TestReportsTask extends DefaultTask implements Reporting<TestReportsContainer> {
 
-        @Getter
+        @Getter(onMethod_ = {@Nested})
         private final TestReportsContainer reports = createReportContainerFor(this);
 
         @Override

@@ -564,7 +564,7 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
                 "-Dsun.net.http.retryPost=false",
                 "-Dsun.io.useCanonCaches=false",
                 "-Dsun.net.client.defaultConnectTimeout=15000",
-                "-Dsun.net.client.defaultReadTimeout=600000",
+                "-Dsun.net.client.defaultReadTimeout=300000",
                 "-Djava.awt.headless=true",
                 "-Dorg.gradle.daemon.performance.disable-logging=true",
                 "-Dorg.gradle.internal.launcher.welcomeMessageEnabled=false"

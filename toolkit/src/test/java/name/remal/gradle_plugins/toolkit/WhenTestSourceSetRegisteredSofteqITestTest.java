@@ -1,7 +1,7 @@
 package name.remal.gradle_plugins.toolkit;
 
 import static name.remal.gradle_plugins.toolkit.ExtensionContainerUtils.getExtension;
-import static name.remal.gradle_plugins.toolkit.testkit.ProjectAfterEvaluateActionsExecutor.executeAfterEvaluateActions;
+import static name.remal.gradle_plugins.toolkit.testkit.ProjectValidations.executeAfterEvaluateActions;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
 

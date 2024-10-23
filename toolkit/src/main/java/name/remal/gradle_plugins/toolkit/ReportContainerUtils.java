@@ -6,32 +6,61 @@ import static com.google.common.base.CaseFormat.UPPER_CAMEL;
 import static java.lang.Character.isLowerCase;
 import static java.lang.Character.toLowerCase;
 import static java.util.Arrays.stream;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.synchronizedMap;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
+import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.CrossCompileServices.loadCrossCompileService;
 import static name.remal.gradle_plugins.toolkit.ExtensionContainerUtils.getExtension;
-import static name.remal.gradle_plugins.toolkit.ProxyUtils.areMethodsSimilar;
-import static name.remal.gradle_plugins.toolkit.ProxyUtils.toDynamicInterface;
 import static name.remal.gradle_plugins.toolkit.ReportUtils.setReportDestination;
 import static name.remal.gradle_plugins.toolkit.ReportUtils.setReportEnabled;
 import static name.remal.gradle_plugins.toolkit.StringUtils.trimWith;
+import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.defineClass;
+import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.isAbstract;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.unwrapGeneratedSubclass;
 import static org.gradle.api.reporting.Report.OutputType.DIRECTORY;
+import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
+import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
+import static org.objectweb.asm.Opcodes.ACC_FINAL;
+import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
+import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
+import static org.objectweb.asm.Opcodes.ALOAD;
+import static org.objectweb.asm.Opcodes.GETFIELD;
+import static org.objectweb.asm.Opcodes.ILOAD;
+import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
+import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
+import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
+import static org.objectweb.asm.Opcodes.IRETURN;
+import static org.objectweb.asm.Opcodes.PUTFIELD;
+import static org.objectweb.asm.Opcodes.RETURN;
+import static org.objectweb.asm.Opcodes.V1_8;
+import static org.objectweb.asm.Type.VOID_TYPE;
+import static org.objectweb.asm.Type.getDescriptor;
+import static org.objectweb.asm.Type.getInternalName;
+import static org.objectweb.asm.Type.getMethodDescriptor;
+import static org.objectweb.asm.Type.getType;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import java.io.File;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.WeakHashMap;
 import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.CustomLog;
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.val;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils;
@@ -47,11 +76,27 @@ import org.gradle.api.reporting.Reporting;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
+import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.FieldInsnNode;
+import org.objectweb.asm.tree.FieldNode;
+import org.objectweb.asm.tree.InsnList;
+import org.objectweb.asm.tree.InsnNode;
+import org.objectweb.asm.tree.LabelNode;
+import org.objectweb.asm.tree.LdcInsnNode;
+import org.objectweb.asm.tree.MethodInsnNode;
+import org.objectweb.asm.tree.MethodNode;
+import org.objectweb.asm.tree.ParameterNode;
+import org.objectweb.asm.tree.VarInsnNode;
+import org.objectweb.asm.util.CheckClassAdapter;
 
 @ReliesOnInternalGradleApi
 @NoArgsConstructor(access = PRIVATE)
 @CustomLog
 public abstract class ReportContainerUtils {
+
+    private static final boolean COPY_SIGNATURES_TO_DELEGATING_CLASS = false;
 
     private static final ReportContainerUtilsMethods METHODS =
         loadCrossCompileService(ReportContainerUtilsMethods.class);
@@ -71,7 +116,14 @@ public abstract class ReportContainerUtils {
         Class<C> reportContainerType
     ) {
         if (!reportContainerType.isInterface()) {
-            throw new AssertionError("Not an interface: " + reportContainerType);
+            throw new IllegalArgumentException(
+                "Not an interface: " + reportContainerType
+            );
+        }
+        if (reportContainerType.getTypeParameters().length > 0) {
+            throw new IllegalStateException(
+                "Report container interface has generic type parameters: " + reportContainerType
+            );
         }
 
         val reportGetters = collectReportGetters(reportContainerType);
@@ -82,13 +134,9 @@ public abstract class ReportContainerUtils {
         );
 
 
-        val reportContainer = toDynamicInterface(
-            reportContainerDelegate,
+        val reportContainer = withReportGetters(
             reportContainerType,
-            handlers -> reportGetters.forEach((reportName, reportGetter) -> handlers.addFirst(
-                method -> areMethodsSimilar(reportGetter, method),
-                (proxy, method, args) -> reportContainerDelegate.getByName(reportName)
-            ))
+            reportContainerDelegate
         );
 
 
@@ -133,7 +181,7 @@ public abstract class ReportContainerUtils {
         }
     }
 
-    private static Map<String, Method> collectReportGetters(Class<? extends ReportContainer<?>> reportContainerType) {
+    private static Map<String, Method> collectReportGetters(Class<?> reportContainerType) {
         Map<String, Method> reportGetters = new LinkedHashMap<>();
         stream(reportContainerType.getMethods())
             .filter(ReflectionUtils::isAbstract)
@@ -192,6 +240,203 @@ public abstract class ReportContainerUtils {
     private static String getRelativeEntryPath(Method getter) {
         val annotation = getter.getAnnotation(DirectoryReportRelativeEntryPath.class);
         return annotation != null ? annotation.value() : null;
+    }
+
+
+    @SneakyThrows
+    @SuppressWarnings("unchecked")
+    private static <C extends ReportContainer<?>> C withReportGetters(
+        Class<C> reportContainerType,
+        ReportContainer<?> reportContainerDelegate
+    ) {
+        val withReportGettersClass = getWithReportGettersClass(reportContainerType);
+        val withReportGettersCtor = withReportGettersClass.getConstructor(ReportContainer.class);
+        return (C) withReportGettersCtor.newInstance(reportContainerDelegate);
+    }
+
+    private static Class<?> getWithReportGettersClass(Class<?> reportContainerType) {
+        return WITH_REPORT_GETTERS_CLASSES.computeIfAbsent(
+            reportContainerType,
+            ReportContainerUtils::generateWithReportGettersClass
+        );
+    }
+
+    private static final Map<Class<?>, Class<?>> WITH_REPORT_GETTERS_CLASSES =
+        synchronizedMap(new WeakHashMap<>());
+
+    @SneakyThrows
+    private static Class<?> generateWithReportGettersClass(Class<?> reportContainerType) {
+        val classNode = new ClassNode();
+        classNode.version = V1_8;
+        classNode.access = ACC_PUBLIC | ACC_SYNTHETIC;
+        classNode.name = getInternalName(reportContainerType) + "$$Delegating";
+        classNode.superName = getInternalName(Object.class);
+        classNode.interfaces = singletonList(getInternalName(reportContainerType));
+        classNode.fields = new ArrayList<>();
+        classNode.methods = new ArrayList<>();
+
+        val delegateField = new FieldNode(
+            ACC_PRIVATE | ACC_FINAL,
+            "delegate",
+            getDescriptor(ReportContainer.class),
+            null,
+            null
+        );
+        classNode.fields.add(delegateField);
+
+        {
+            val methodNode = new MethodNode(
+                ACC_PUBLIC,
+                "<init>",
+                getMethodDescriptor(
+                    VOID_TYPE,
+                    getType(ReportContainer.class)
+                ),
+                null,
+                null
+            );
+            classNode.methods.add(methodNode);
+
+            val instructions = methodNode.instructions = new InsnList();
+            instructions.add(new LabelNode());
+
+            instructions.add(new VarInsnNode(ALOAD, 0));
+            instructions.add(new MethodInsnNode(
+                INVOKESPECIAL,
+                classNode.superName,
+                "<init>",
+                getMethodDescriptor(
+                    VOID_TYPE
+                )
+            ));
+
+            instructions.add(new VarInsnNode(ALOAD, 0));
+            instructions.add(new VarInsnNode(ALOAD, 1));
+            instructions.add(new FieldInsnNode(
+                PUTFIELD,
+                classNode.name,
+                delegateField.name,
+                delegateField.desc
+            ));
+
+            instructions.add(new InsnNode(RETURN));
+        }
+
+        val reportGetters = collectReportGetters(reportContainerType);
+        val getByNameMethod = reportContainerType.getMethod("getByName", String.class);
+        reportGetters.forEach((reportName, reportGetter) -> {
+            val methodNode = new MethodNode(
+                ACC_PUBLIC,
+                reportGetter.getName(),
+                getMethodDescriptor(reportGetter),
+                getMethodSignature(reportGetter),
+                null
+            );
+            classNode.methods.add(methodNode);
+
+            val instructions = methodNode.instructions = new InsnList();
+            instructions.add(new LabelNode());
+
+            instructions.add(new VarInsnNode(ALOAD, 0));
+            instructions.add(new FieldInsnNode(
+                GETFIELD,
+                classNode.name,
+                delegateField.name,
+                delegateField.desc
+            ));
+            instructions.add(new LdcInsnNode(reportName));
+            instructions.add(new MethodInsnNode(
+                getByNameMethod.getDeclaringClass().isInterface()
+                    ? INVOKEINTERFACE
+                    : INVOKEVIRTUAL,
+                getInternalName(getByNameMethod.getDeclaringClass()),
+                getByNameMethod.getName(),
+                getMethodDescriptor(getByNameMethod)
+            ));
+
+            instructions.add(new InsnNode(getType(getByNameMethod.getReturnType()).getOpcode(IRETURN)));
+        });
+
+        for (val method : reportContainerType.getMethods()) {
+            if (!isAbstract(method)) {
+                continue;
+            }
+
+            val methodNode = new MethodNode(
+                ACC_PUBLIC,
+                method.getName(),
+                getMethodDescriptor(method),
+                getMethodSignature(method),
+                null
+            );
+            val isAlreadyImplemented = classNode.methods.stream().anyMatch(other ->
+                other.name.equals(methodNode.name)
+                    && other.desc.equals(methodNode.desc)
+            );
+            if (isAlreadyImplemented) {
+                continue;
+            }
+            classNode.methods.add(methodNode);
+
+            methodNode.parameters = stream(method.getParameters())
+                .map(Parameter::getName)
+                .map(name -> new ParameterNode(name, ACC_FINAL))
+                .collect(toList());
+
+            val instructions = methodNode.instructions = new InsnList();
+            instructions.add(new LabelNode());
+
+            instructions.add(new VarInsnNode(ALOAD, 0));
+            instructions.add(new FieldInsnNode(
+                GETFIELD,
+                classNode.name,
+                delegateField.name,
+                delegateField.desc
+            ));
+
+            for (int paramIndex = 0; paramIndex < method.getParameterCount(); ++paramIndex) {
+                val paramClass = method.getParameterTypes()[paramIndex];
+                instructions.add(new VarInsnNode(getType(paramClass).getOpcode(ILOAD), paramIndex + 1));
+            }
+
+            instructions.add(new MethodInsnNode(
+                method.getDeclaringClass().isInterface()
+                    ? INVOKEINTERFACE
+                    : INVOKEVIRTUAL,
+                getInternalName(method.getDeclaringClass()),
+                method.getName(),
+                getMethodDescriptor(method)
+            ));
+
+            instructions.add(new InsnNode(getType(method.getReturnType()).getOpcode(IRETURN)));
+        }
+
+        classNode.methods.forEach(methodNode -> {
+            methodNode.maxLocals = 1;
+            methodNode.maxStack = 1;
+        });
+
+        val classWriter = new ClassWriter(COMPUTE_MAXS | COMPUTE_FRAMES);
+        classNode.accept(new CheckClassAdapter(classWriter));
+        val bytecode = classWriter.toByteArray();
+        return defineClass(reportContainerType.getClassLoader(), bytecode);
+    }
+
+    @Nullable
+    private static String getMethodSignature(Method method) {
+        if (!COPY_SIGNATURES_TO_DELEGATING_CLASS) {
+            return null;
+        }
+
+        val isNotGeneric = Stream.concat(
+            Stream.of(method.getGenericReturnType()),
+            stream(method.getGenericParameterTypes())
+        ).allMatch(Class.class::isInstance);
+        if (isNotGeneric) {
+            return null;
+        }
+
+        return AsmClassGeneratorUtils.signature(method);
     }
 
 

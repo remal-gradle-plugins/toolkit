@@ -11,7 +11,7 @@ import org.gradle.api.Project;
 import org.junit.jupiter.api.Test;
 
 @RequiredArgsConstructor
-class ProjectAfterEvaluateActionsExecutorTest {
+class ProjectValidationsTest {
 
     private final Project project;
 
@@ -21,11 +21,11 @@ class ProjectAfterEvaluateActionsExecutorTest {
         project.afterEvaluate(evaluatedProject::set);
         assertNull(evaluatedProject.get());
 
-        ProjectAfterEvaluateActionsExecutor.executeAfterEvaluateActions(project);
+        ProjectValidations.executeAfterEvaluateActions(project);
         assertEquals(project, evaluatedProject.get());
 
         assertThrows(IllegalStateException.class, () ->
-            ProjectAfterEvaluateActionsExecutor.executeAfterEvaluateActions(project)
+            ProjectValidations.executeAfterEvaluateActions(project)
         );
     }
 
