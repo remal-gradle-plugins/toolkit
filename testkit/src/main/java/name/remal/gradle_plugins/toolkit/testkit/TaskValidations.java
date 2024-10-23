@@ -89,11 +89,7 @@ public abstract class TaskValidations {
             return (LocalTaskNode) getOrCreateNodeWithOrdinal.invoke(taskNodeFactory, task, -1);
         }
 
-        return (LocalTaskNode) invokeStaticMethod(
-            taskNodeFactory.getClass(),
-            TaskNode.class, "getOrCreateNode",
-            Task.class, task
-        );
+        return (LocalTaskNode) taskNodeFactory.getOrCreateNode(task);
     }
 
     @SneakyThrows
