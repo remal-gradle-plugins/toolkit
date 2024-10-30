@@ -15,8 +15,10 @@ import name.remal.gradle_plugins.toolkit.testkit.ApplyPlugin.ApplyPlugins;
 import org.gradle.api.Plugin;
 
 /**
- * <p>Applies Gradle plugins for projects injected by {@link GradleProjectExtension}.</p>
+ * Applies Gradle plugins for projects injected by {@link GradleProjectExtension}.
+ *
  * <p>&nbsp;</p>
+ *
  * <p><small>This annotation is supposed to be used only on parameters. {@link ElementType#FIELD} target is added to
  * simplify Lombok's @{@link RequiredArgsConstructor} and @{@link AllArgsConstructor} annotations usage if
  * <code>lombok.copyableAnnotations += {@link ApplyPlugin}</code></small>

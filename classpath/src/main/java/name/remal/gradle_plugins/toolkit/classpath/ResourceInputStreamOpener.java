@@ -8,8 +8,10 @@ import java.io.InputStream;
 public interface ResourceInputStreamOpener {
 
     /**
-     * <p>Opens {@link InputStream} for the resource.</p>
+     * Opens {@link InputStream} for the resource.
+     *
      * <p>{@link InputStream} can be opened only once.</p>
+     *
      * <p>Can't be used outside of {@link ClassProcessor#process(File, String, ResourceInputStreamOpener)} and
      * {@link ResourceProcessor#process(File, String, ResourceInputStreamOpener)}.</p>
      */

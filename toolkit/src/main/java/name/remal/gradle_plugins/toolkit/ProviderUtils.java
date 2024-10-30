@@ -23,7 +23,7 @@ public abstract class ProviderUtils {
     }
 
     /**
-     * <p>{@code noll} value is treated as missing value. See {@link Provider#get()}.</p>
+     * {@code noll} value is treated as missing value. See {@link Provider#get()}.
      */
     public static <T> Provider<T> newFixedProvider(@Nullable T value) {
         return METHODS.newFixedProvider(value);

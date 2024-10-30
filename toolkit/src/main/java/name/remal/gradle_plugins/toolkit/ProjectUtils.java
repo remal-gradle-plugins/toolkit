@@ -47,7 +47,8 @@ public abstract class ProjectUtils {
 
 
     /**
-     * <p>Gradle configuration cache doesn't allow using {@link Project} at execution time.</p>
+     * Gradle configuration cache doesn't allow using {@link Project} at execution time.
+     *
      * <p>Usage:</p>
      * <pre>{@code
      * classpathFileTree(
