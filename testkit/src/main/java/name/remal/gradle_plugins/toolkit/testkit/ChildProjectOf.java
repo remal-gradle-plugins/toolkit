@@ -12,10 +12,11 @@ import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 /**
- * <p><small>This annotation is supposed to be used only on parameters. {@link ElementType#FIELD} target is added to
+ * This annotation is supposed to be used only on parameters.
+ *
+ * <p>{@link ElementType#FIELD} target is added to
  * simplify Lombok's @{@link RequiredArgsConstructor} and @{@link AllArgsConstructor} annotations usage if
- * <code>lombok.copyableAnnotations += {@link ChildProjectOf}</code></small>
- * is set in <code>lombokj.config</code> file.</p>
+ * <code>lombok.copyableAnnotations += {@link ChildProjectOf}</code> is set in <code>lombokj.config</code> file.</p>
  */
 @Target({PARAMETER, FIELD})
 @Retention(RUNTIME)
@@ -23,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 public @interface ChildProjectOf {
 
     /**
-     * Parameter name with parent Gradle project
+     * Parameter name with the injected parent Gradle project
      */
     String value();
 

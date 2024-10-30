@@ -35,16 +35,18 @@ interface ClasspathFileMethods {
     InputStream openStream(@Language("file-reference") String resourceName);
 
     /**
-     * <p>Process each resource.</p>
+     * Process each resource.
+     *
      * <p>Using this method is must faster for JAR files, than using {@link #getResourceNames()} with
      * {@link #openStream(String)}.</p>
+     *
      * <p>The performance boot is gained by using {@link ZipInputStream} instead of
      * {@link ZipFile#getInputStream(ZipEntry)}.</p>
      */
     void forEachResource(ResourceProcessor processor);
 
     /**
-     * <p>Find all resource with specific resource name (handle duplicates) and process them.</p>
+     * Find all resource with specific resource name (handle duplicates) and process them.
      */
     void forEachResource(@Language("file-reference") String resourceName, ResourceProcessor processor);
 
@@ -93,9 +95,11 @@ interface ClasspathFileMethods {
     }
 
     /**
-     * <p>Process each class resource.</p>
+     * Process each class resource.
+     *
      * <p>Using this method is must faster for JAR files, than using {@link #getResourceNames()} with
      * {@link #openClassStream(String)}.</p>
+     *
      * <p>The performance boot is gained by using {@link ZipInputStream} instead of
      * {@link ZipFile#getInputStream(ZipEntry)}.</p>
      */

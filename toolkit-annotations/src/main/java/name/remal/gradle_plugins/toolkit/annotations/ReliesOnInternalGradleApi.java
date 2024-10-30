@@ -7,8 +7,9 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 
 /**
- * <p>This code relies on Gradle's internal API. Use it with caution, as it can become broken in the future Gradle
- * versions.</p>
+ * This code relies on Gradle's internal API. Use it with caution, as it can become broken in the future Gradle
+ * versions.
+ *
  * <p>Use alternative public API approaches whenever possible.</p>
  */
 @Retention(CLASS)
