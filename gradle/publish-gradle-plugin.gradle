@@ -16,7 +16,7 @@ allprojects {
             website = property('repository-html-url')
             vcsUrl = property('repository-html-url')
             plugins.all {
-                tags.set(
+                tags.addAll(
                     property('repository-topics').toString().split(/,/)
                         .collect { it.trim().toLowerCase() }
                         .findAll { !it.isEmpty() }
@@ -91,6 +91,18 @@ class ValidatePluginProperties extends DefaultTask implements VerificationTask {
             throw new GradleException("VCS URL can't be empty for Gradle plugins")
         }
         project.gradlePlugin.plugins.forEach { plugin ->
+            if (plugin.id?.isEmpty() != false) {
+                throw new GradleException("Gradle plugin `${plugin.id}` has empty id")
+            }
+            if (plugin.implementationClass?.isEmpty() != false) {
+                throw new GradleException("Gradle plugin `${plugin.id}` has empty implementationClass")
+            }
+            if (plugin.displayName?.isEmpty() != false) {
+                throw new GradleException("Gradle plugin `${plugin.id}` has empty displayName")
+            }
+            if (plugin.description?.isEmpty() != false) {
+                throw new GradleException("Gradle plugin `${plugin.id}` has empty description")
+            }
             if (plugin.tags.orNull?.isEmpty() != false) {
                 throw new GradleException("Gradle plugin `${plugin.id}` has empty tags")
             }
