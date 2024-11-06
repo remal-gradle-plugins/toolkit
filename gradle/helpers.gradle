@@ -199,24 +199,45 @@ project.ext.calculateBaseJavaPackageFor = { Project project ->
 
     List<String> baseJavaPackageTokens = "${rootProject.group}:${rootProject.name}${project.path}".split(/[.:]+/)
         .findAll { !it.isEmpty() }
+
     int hiddenTokenPos = baseJavaPackageTokens.findIndexOf { it.contains('--') }
     if (hiddenTokenPos >= 0) {
         baseJavaPackageTokens = baseJavaPackageTokens.subList(0, hiddenTokenPos)
     }
-    for (int index = 0; index < baseJavaPackageTokens.size() - 1; ++index) {
-        String token = baseJavaPackageTokens.get(index)
-        String nextToken = baseJavaPackageTokens.get(index + 1)
-        if (token == nextToken) {
-            baseJavaPackageTokens.remove(index)
-            --index
-        } else if ("${token}-root" == nextToken) {
-            baseJavaPackageTokens.remove(index + 1)
-            --index
-        } else if (token == "${nextToken}-root") {
-            baseJavaPackageTokens.remove(index)
-            --index
+
+    for (int window = 1; window <= baseJavaPackageTokens.size() / 2; ++window) {
+        int index = -1
+        while (true) {
+            ++index
+            int start = index
+            int end = start + window
+            int nextStart = end
+            int nextEnd = nextStart + window
+            if (nextEnd > baseJavaPackageTokens.size()) {
+                break
+            }
+
+            String token = baseJavaPackageTokens.subList(start, end).join('.')
+            String nextToken = baseJavaPackageTokens.subList(nextStart, nextEnd).join('.')
+            if (token == nextToken) {
+                for (int n = 1; n <= window; ++n) {
+                    baseJavaPackageTokens.remove(index)
+                }
+                --index
+            } else if ("${token}-root" == nextToken) {
+                for (int n = 1; n <= window; ++n) {
+                    baseJavaPackageTokens.remove(index + 1)
+                }
+                --index
+            } else if (token == "${nextToken}-root") {
+                for (int n = 1; n <= window; ++n) {
+                    baseJavaPackageTokens.remove(index)
+                }
+                --index
+            }
         }
     }
+
     return baseJavaPackageTokens.join('.')
         .replaceAll(/[^\w.]+/, '_')
         .replaceAll(/_{2,}/, '_')
