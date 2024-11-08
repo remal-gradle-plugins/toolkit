@@ -39,7 +39,7 @@ allprojects {
                 .findAll { !it.moduleArtifacts.isEmpty() }
         }.memoize()
 
-        sourceSets.configureEach { sourceSet ->
+        sourceSets.all { sourceSet ->
             Collection<String> configurationNames = project.getSourceSetConfigurationNames(sourceSet) + [
                 'excludeFromClassesRelocation',
             ]

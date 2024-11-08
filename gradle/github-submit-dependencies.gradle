@@ -38,9 +38,17 @@ allprojects {
                 return isPlatformDependency(resolvedDependency) || isDocumentationDependency(resolvedDependency) || isVerificationDependency(resolvedDependency)
             }
 
+            Collection<String> configurationsNotToTrack = [
+                'excludeFromClassesRelocation',
+                'excludeFromForcedClassesRelocation',
+            ]
             Closure processConfiguration = { Configuration conf, boolean isBuildscript = false ->
                 lazyDependenciesToSubmitSet.addAll(
                     provider {
+                        if (configurationsNotToTrack.contains(conf.name)) {
+                            return []
+                        }
+
                         if (!conf.canSafelyBeResolved()) return []
 
                         Collection<ResolvedArtifact> resolvedArtifacts = conf.resolvedConfiguration.resolvedArtifacts
