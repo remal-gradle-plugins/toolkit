@@ -98,7 +98,6 @@ List<String> includedBuildScripts = [
 ].toUnique()
 project.ext['includedBuildScripts'] = includedBuildScripts
 includedBuildScripts.forEach { apply from: it }
-allprojects { tasks.configureEach { inputs.files(project.rootProject.files(includedBuildScripts)).optional() } }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

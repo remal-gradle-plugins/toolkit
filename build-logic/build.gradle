@@ -52,7 +52,13 @@ dependencies {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-configurations.all { attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.LIBRARY)) }
+configurations.configureEach { Configuration conf ->
+    try {
+        conf.attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.LIBRARY))
+    } catch (IllegalStateException e) {
+        logger.debug(e.toString(), e)
+    }
+}
 
 rootProject.buildscript.configurations.classpathApi.allDependencies.forEach { Dependency dep ->
     project.configurations.api.dependencies.add(dep.copy())
