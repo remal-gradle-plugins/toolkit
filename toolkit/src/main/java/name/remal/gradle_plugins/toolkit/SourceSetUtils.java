@@ -13,7 +13,6 @@ import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.isGet
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.isNotStatic;
 
 import com.google.common.collect.ImmutableList;
-import java.lang.ref.SoftReference;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.IdentityHashMap;
@@ -203,15 +202,10 @@ public abstract class SourceSetUtils {
         };
 
     public static void whenTestSourceSetRegistered(Project project, Action<SourceSet> action) {
-        val actionRef = new SoftReference<>(action);
-
         Set<SourceSet> processedSourceSets = newSetFromMap(new IdentityHashMap<>());
         Action<SourceSet> wrappedAction = sourceSet -> {
             if (processedSourceSets.add(sourceSet)) {
-                val currentAction = actionRef.get();
-                if (currentAction != null) {
-                    action.execute(sourceSet);
-                }
+                action.execute(sourceSet);
             }
         };
 

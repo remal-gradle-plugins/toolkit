@@ -1,0 +1,298 @@
+import static org.objectweb.asm.ClassReader.SKIP_DEBUG
+import static org.objectweb.asm.ClassReader.SKIP_FRAMES
+
+import java.security.MessageDigest
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.function.Function
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.commons.ClassRemapper
+import org.objectweb.asm.commons.Remapper
+import org.objectweb.asm.tree.AbstractInsnNode
+import org.objectweb.asm.tree.AnnotationNode
+import org.objectweb.asm.tree.ClassNode
+import org.objectweb.asm.tree.LineNumberNode
+import org.objectweb.asm.tree.MethodNode
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+buildscript {
+    dependencies {
+        classpath platform("org.ow2.asm:asm-bom:${rootBuildscriptClasspathVersionOf('org.ow2.asm:asm-bom')}")
+        classpath 'org.ow2.asm:asm-tree'
+        classpath 'org.ow2.asm:asm-commons'
+    }
+    repositories {
+        mavenCentral()
+    }
+}
+
+if (project.isBuildSrcProject) return
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+Closure<String> relativePathToClassName = { String relativePath ->
+    relativePath = relativePath.replace('\\', '/').replaceFirst('^/+', '')
+    if (relativePath.endsWith(".class")) {
+        relativePath = relativePath.substring(0, relativePath.length() - ".class".length())
+    }
+    relativePath = relativePath.replaceFirst(/^META-INF\/versions\/\d+\//, '')
+    return relativePath.replace('/', '.')
+}
+
+Closure<Boolean> isNodeAnnotatedWith = { node, simpleClassName ->
+    if (node.visibleAnnotations?.any { it.desc.endsWith("/$simpleClassName;") }
+        || node.invisibleAnnotations?.any { it.desc.endsWith("/$simpleClassName;") }
+    ) {
+        return true
+    }
+    return false
+}
+
+DomainObjectSet<Project> projectsToCollectClassesRelyingOnDependency = project.objects.domainObjectSet(Project)
+project.ext.projectsToCollectClassesRelyingOnDependency = projectsToCollectClassesRelyingOnDependency
+
+allprojects {
+    pluginManager.withPlugin('java') {
+        projectsToCollectClassesRelyingOnDependency.add(project)
+
+        tasks.withType(AbstractCompile).configureEach { AbstractCompile task ->
+            task.doLast {
+                project.fileTree(task.destinationDirectory)
+                    .matching { include('**/*.class') }
+                    .visit { FileVisitDetails details ->
+                        if (details.isDirectory()) {
+                            return
+                        }
+
+                        ClassNode classNode = new ClassNode()
+
+                        AtomicBoolean isGradleInternalApiUsed = new AtomicBoolean()
+                        Remapper gradleInternalApiRemapper = new Remapper() {
+                            @Override
+                            String map(String internalName) {
+                                if (internalName.startsWith('org/gradle/') && internalName.contains('/internal/')) {
+                                    isGradleInternalApiUsed.set(true)
+                                }
+                                return super.map(internalName)
+                            }
+                        }
+                        ClassRemapper gradleInternalApiClassRemapper = new ClassRemapper(classNode, gradleInternalApiRemapper)
+
+                        details.open().withCloseable {
+                            new ClassReader(it).accept(gradleInternalApiClassRemapper, 0)
+                        }
+
+                        if (!isGradleInternalApiUsed.get()
+                            || isNodeAnnotatedWith(classNode, 'ReliesOnInternalGradleApi')
+                        ) {
+                            return
+                        }
+
+                        classNode.invisibleAnnotations = classNode.invisibleAnnotations ?: []
+                        classNode.invisibleAnnotations.add(
+                            new AnnotationNode(
+                                'Lname/remal/gradle_plugins/toolkit/annotations/ReliesOnInternalGradleApi;'
+                            )
+                        )
+
+                        ClassWriter classWriter = new ClassWriter(0)
+                        classNode.accept(classWriter)
+                        details.file.bytes = classWriter.toByteArray()
+                    }
+            }
+        }
+    }
+
+    pluginManager.withPlugin('java-gradle-plugin') {
+        Closure<MapProperty<String, ClassNode>> createClassesRelyingOnDependency = { String annotationSimpleName ->
+            return project.objects.mapProperty(String, ClassNode).value(
+                provider {
+                    FileTree classesFileTree = project.files().asFileTree
+                    projectsToCollectClassesRelyingOnDependency.forEach { currentProject ->
+                        for (File runtimeClasspathFile : currentProject.sourceSets.main.runtimeClasspath.files) {
+                            if (runtimeClasspathFile.isDirectory()) {
+                                classesFileTree += project.fileTree(runtimeClasspathFile)
+                            } else if (runtimeClasspathFile.isFile()) {
+                                classesFileTree += project.zipTree(runtimeClasspathFile)
+                            }
+                        }
+                    }
+
+                    classesFileTree = classesFileTree
+                        .matching { include('**/*.class') }
+                        .matching { exclude("**/${annotationSimpleName}.class") }
+
+                    Map<String, ClassNode> result = new TreeMap<>()
+                    classesFileTree.visit { FileTreeElement fileTreeElement ->
+                        if (fileTreeElement.directory) return
+
+                        ClassNode classNode = new ClassNode()
+                        fileTreeElement.open().withCloseable {
+                            new ClassReader(it).accept(classNode, SKIP_DEBUG | SKIP_FRAMES)
+                        }
+
+                        if (isNodeAnnotatedWith(classNode, annotationSimpleName)
+                            || classNode.fields?.any { isNodeAnnotatedWith(it, annotationSimpleName) }
+                            || classNode.methods?.any { isNodeAnnotatedWith(it, annotationSimpleName) }
+                        ) {
+                            String className = relativePathToClassName(fileTreeElement.path)
+                            result.put(className, classNode)
+                        }
+                    }
+
+                    if (!result.isEmpty()) {
+                        classesFileTree
+                            .matching {
+                                for (String className : result.keySet()) {
+                                    include(className.replace('.', '/') + '*.class')
+                                }
+                            }
+                            .visit { FileTreeElement fileTreeElement ->
+                                if (fileTreeElement.directory) return
+
+                                String className = relativePathToClassName(fileTreeElement.path)
+                                result.computeIfAbsent(className) {
+                                    ClassNode classNode = new ClassNode()
+                                    fileTreeElement.open().withCloseable {
+                                        new ClassReader(it).accept(classNode, SKIP_DEBUG | SKIP_FRAMES)
+                                    }
+                                    return classNode
+                                }
+                            }
+                    }
+
+                    return result
+                }
+            ).with { it.finalizeValueOnRead(); it }
+        }
+
+        MapProperty<String, ClassNode> classesRelyingOnInternalGradleApi = createClassesRelyingOnDependency('ReliesOnInternalGradleApi')
+        MapProperty<String, ClassNode> classesRelyingOnExternalDependency = createClassesRelyingOnDependency('ReliesOnExternalDependency')
+
+
+        tasks.named('collectGradlePluginApiDependencies').configure {
+            dependsOn('classes')
+            dependsOn(
+                provider {
+                    projectsToCollectClassesRelyingOnDependency.collect { currentProject ->
+                        [
+                            currentProject.tasks.named('classes'),
+                            currentProject.registerResolveSourceSetRuntimeClasspathTask('main'),
+                        ]
+                    }.flatten()
+                }
+            )
+        }
+
+        ; [
+            'zzzz-classes-relying-on-gradle-internal-api': classesRelyingOnInternalGradleApi,
+            'zzzz-classes-relying-on-external-dependency': classesRelyingOnExternalDependency,
+        ].forEach { String group, MapProperty<String, ClassNode> classesRelyingOnDependency ->
+            project.nonJavaApiDependencies.addAll(
+                provider {
+                    return classesRelyingOnDependency.get().collect { String className, ClassNode classNode ->
+                        classNode.visibleAnnotations = null
+                        classNode.invisibleAnnotations = null
+                        classNode.visibleTypeAnnotations = null
+                        classNode.invisibleTypeAnnotations = null
+
+                        classNode.fields?.forEach {
+                            it.visibleAnnotations = null
+                            it.invisibleAnnotations = null
+                            it.visibleTypeAnnotations = null
+                            it.invisibleTypeAnnotations = null
+                        }
+                        classNode.methods?.forEach {
+                            it.visibleAnnotations = null
+                            it.invisibleAnnotations = null
+                            it.visibleTypeAnnotations = null
+                            it.invisibleTypeAnnotations = null
+                            it.visibleLocalVariableAnnotations = null
+                            it.invisibleLocalVariableAnnotations = null
+                            it.visibleParameterAnnotations = null
+                            it.invisibleParameterAnnotations = null
+                        }
+
+                        classNode.fields = classNode.fields?.toSorted(
+                            Comparator.comparing((Function) { it.name })
+                        )
+                        classNode.methods = classNode.methods?.toSorted(
+                            Comparator.comparing((Function) { it.name })
+                                .thenComparing((Function) { it.desc })
+                        )
+
+                        classNode.methods?.forEach { MethodNode methodNode ->
+                            Iterator<AbstractInsnNode> instructions = (methodNode.instructions ?: []).iterator()
+                            while (instructions.hasNext()) {
+                                def instruction = instructions.next()
+                                if (instruction instanceof LineNumberNode) {
+                                    instructions.remove()
+                                }
+                            }
+                        }
+
+                        ClassWriter classWriter = new ClassWriter(classNode.api)
+                        classNode.accept(classWriter)
+
+                        byte[] bytes = classWriter.toByteArray()
+                        MessageDigest messageDigest = MessageDigest.getInstance('SHA-256')
+                        messageDigest.update(className.getBytes('UTF-8'))
+                        messageDigest.update(bytes)
+                        messageDigest.update('\n'.getBytes('UTF-8'))
+                        String hash = new BigInteger(1, messageDigest.digest()).toString(16)
+
+                        return "$group:$className:$hash"
+                    }
+                }
+            )
+        }
+
+
+        project.apply plugin: 'reporting-base'
+
+        ; [
+            'reportClassesRelyingOnInternalGradleApi': classesRelyingOnInternalGradleApi,
+            'reportClassesRelyingOnExternalDependency': classesRelyingOnExternalDependency,
+        ].forEach { String taskName, MapProperty<String, ClassNode> classesRelyingOnDependency ->
+            TaskProvider reportTask = tasks.register(taskName) { Task task ->
+                task.dependsOn('classes')
+                dependsOn(
+                    provider {
+                        projectsToCollectClassesRelyingOnDependency.collect { currentProject ->
+                            [
+                                currentProject.tasks.named('classes'),
+                                currentProject.registerResolveSourceSetRuntimeClasspathTask('main'),
+                            ]
+                        }.flatten()
+                    }
+                )
+
+                ListProperty<String> classNamesRelyingOnDependency = project.objects.listProperty(String).value(
+                    provider {
+                        classesRelyingOnDependency.get()
+                            .keySet()
+                            .toSorted()
+                    }
+                )
+                classNamesRelyingOnDependency.finalizeValueOnRead()
+                task.inputs.property('classNamesRelyingOnDependency', classNamesRelyingOnDependency)
+
+                File reportFile = project.file("${project.reporting.baseDir}/${task.name}.txt")
+                task.outputs.file(reportFile).withPropertyName('reportFile')
+                doFirst { reportFile.delete() }
+
+                doLast {
+                    reportFile.parentFile.mkdirs()
+                    reportFile.setText(
+                        classNamesRelyingOnDependency.get().join('\n'),
+                        'UTF-8'
+                    )
+                }
+            }
+
+            tasks.named('assemble').configure { dependsOn(reportTask) }
+            tasks.named('build').configure { dependsOn(reportTask) }
+        }
+    }
+}

@@ -85,7 +85,7 @@ List<String> includedBuildScripts = [
     'gradle/jacoco.gradle',
     'gradle/gradle-plugin.gradle',
     'gradle/gradle-plugin-collect-api-dependencies.gradle',
-    'gradle/gradle-plugin-collect-classes-relying-on-internal-gradle-api.gradle',
+    'gradle/gradle-plugin-collect-classes-relying-on-dependencies.gradle',
     'gradle/publish-gradle-plugin.gradle',
     'gradle/publish-maven.gradle',
     'gradle/publish-maven-bom.gradle',

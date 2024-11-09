@@ -5,12 +5,14 @@ import static name.remal.gradle_plugins.toolkit.reflection.MethodsInvoker.invoke
 
 import com.google.auto.service.AutoService;
 import lombok.val;
+import name.remal.gradle_plugins.toolkit.annotations.ReliesOnExternalDependency;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 
 @AutoService(WhenTestSourceSetRegistered.class)
+@ReliesOnExternalDependency
 final class WhenTestSourceSetRegisteredSofteqITest implements WhenTestSourceSetRegistered {
 
     @Override
