@@ -23,7 +23,7 @@ import org.gradle.internal.Describables;
 
 @AutoService(ReportContainerUtilsMethods.class)
 @ReliesOnInternalGradleApi
-class ReportContainerUtilsMethods_8_11_gte implements ReportContainerUtilsMethods {
+class ReportContainerUtilsMethodsDefault implements ReportContainerUtilsMethods {
 
     @Override
     @SuppressWarnings({"unchecked", "java:S1854"})
