@@ -4,7 +4,7 @@ import org.gradle.util.GradleVersion
 
 buildscript {
     dependencies {
-        classpath platform("org.ow2.asm:asm-bom:${rootBuildscriptClasspathVersionOf('org.ow2.asm:asm-bom')}")
+        classpath platform("org.ow2.asm:asm-bom:9.7.1")
         classpath 'org.ow2.asm:asm-tree'
     }
     repositories {
@@ -60,7 +60,7 @@ configurations.configureEach { Configuration conf ->
     }
 }
 
-rootProject.buildscript.configurations.classpathApi.allDependencies.forEach { Dependency dep ->
+rootProject.buildscript.configurations.classpath.allDependencies.forEach { Dependency dep ->
     project.configurations.api.dependencies.add(dep.copy())
 }
 
@@ -87,13 +87,6 @@ tasks.named('generateResources') {
         inputs.file(includedBuildScriptFile)
         binaryFile(resource) { OutputStream outputStream ->
             String content = includedBuildScriptFile.getText('UTF-8')
-
-            content = content.replaceAll(/\$\{\s*(?:project\s*\.\s*)?(rootBuildscriptClasspathVersionOf)\s*\(\s*('|")(.+?)\2\s*\)\s*\}/) { matcher ->
-                project.property(matcher[1])(matcher[3])
-            }
-            content = content.replaceAll(/\b(?:project\s*\.\s*)?(rootBuildscriptClasspathVersionOf)\s*\(\s*('|")(.+?)\2\s*\)/) { matcher ->
-                '\'' + project.property(matcher[1])(matcher[3]) + '\''
-            }
 
             content = content.replaceAll(/\$\{\s*(?:project\s*\.\s*)?(tookitGroup|tookitVersion)\s*\(\s*\)\s*\}/) { matcher ->
                 project.property(matcher[1])()

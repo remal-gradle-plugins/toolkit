@@ -18,7 +18,7 @@ import org.objectweb.asm.tree.MethodNode
 
 buildscript {
     dependencies {
-        classpath platform("org.ow2.asm:asm-bom:${rootBuildscriptClasspathVersionOf('org.ow2.asm:asm-bom')}")
+        classpath platform("org.ow2.asm:asm-bom:9.7.1")
         classpath 'org.ow2.asm:asm-tree'
         classpath 'org.ow2.asm:asm-commons'
     }
