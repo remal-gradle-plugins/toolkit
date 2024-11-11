@@ -4,15 +4,23 @@ allprojects {
     pluginManager.withPlugin('java-gradle-plugin') {
         project.ext.nonJavaApiDependencies = project.objects.setProperty(String)
 
-        configurations.indirectApi.dependencies.addAllLater(
-            project.provider {
-                Dependency asmBomDependency = configurations.projectDependencyConstraints.allDependencies
-                    .findAll { isPlatformDependency(it) }
-                    .find { "${it.group}:${it.name}" == 'org.ow2.asm:asm-bom' }
-                if (asmBomDependency == null) throw new GradleException("asm-bom platform dependency can't be found")
-                return [project.dependencies.create("${asmBomDependency.group}:${asmBomDependency.name}:${asmBomDependency.version}:@pom")]
+        configurations.indirectApi.withDependencies { deps ->
+            Collection<String> mainConfNames = project.getSourceSetConfigurationNames(sourceSets.main)
+            configurations.matching { mainConfNames.contains(it.name) }.forEach { Configuration conf ->
+                conf.allDependencies
+                    .findAll { it.group == 'org.ow2.asm' }
+                    .collect { Dependency dep ->
+                        if (isPlatformDependency(dep)) {
+                            return "${dep.group}:${dep.name}:${dep.version}:@pom"
+                        } else {
+                            return dep.copy()
+                        }
+                    }
+                    .forEach { Object notation ->
+                        deps.add(project.dependencies.create(notation))
+                    }
             }
-        )
+        }
 
         Configuration gradlePluginApiDependenciesConf = configurations.create('gradlePluginApiDependencies') { Configuration conf ->
             conf.canBeResolved = true

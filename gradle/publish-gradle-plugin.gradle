@@ -68,7 +68,7 @@ flagFile.delete()
 allprojects {
     pluginManager.withPlugin('com.gradle.plugin-publish') {
         flagFile.parentFile.mkdirs()
-        flagFile.text = ''
+        flagFile.createNewFile()
     }
 }
 

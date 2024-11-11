@@ -23,18 +23,10 @@ apply plugin: 'name.remal.generate-sources'
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 afterEvaluate {
-    tasks.matching { isVerificationTask(it) }.all {
-        boolean shouldBeDisabled = false
-
-        if (project.javaRuntimeVersion != JavaVersion.current()) {
-            shouldBeDisabled = true
-        }
-
-        if (project.gradleApiVersion != GradleVersion.current()) {
-            shouldBeDisabled = true
-        }
-
-        if (shouldBeDisabled) {
+    tasks.matching { isVerificationTask(it) }.configureEach {
+        if (project.javaRuntimeVersion != JavaVersion.current()
+            || project.gradleApiVersion != GradleVersion.current()
+        ) {
             disableTask(it)
         }
     }
@@ -60,8 +52,12 @@ configurations.configureEach { Configuration conf ->
     }
 }
 
-rootProject.buildscript.configurations.classpath.allDependencies.forEach { Dependency dep ->
+rootProject.rootBuildscriptPluginDependencies.all { Dependency dep ->
     project.configurations.api.dependencies.add(dep.copy())
+}
+
+rootProject.rootBuildscriptLibraryDependencies.all { Dependency dep ->
+    project.configurations.indirectApi.dependencies.add(dep.copy())
 }
 
 configurations.gradlePluginApiDependencies {

@@ -2,21 +2,55 @@
 
 buildscript {
     dependencies {
-        classpath 'name.remal.gradle-plugins.lombok:lombok:2.2.9'
-        classpath 'name.remal.gradle-plugins.merge-resources:merge-resources:2.0.3'
-        classpath 'name.remal.gradle-plugins.test-source-sets:test-source-sets:4.1.2'
-        classpath 'name.remal.gradle-plugins.sonarlint:sonarlint:4.2.14'
-        classpath 'name.remal.gradle-plugins.idea-settings:idea-settings:3.0.10'
-        classpath 'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.1.9'
-        classpath 'com.gradle.publish:plugin-publish-plugin:1.3.0'
-        classpath 'name.remal:gradle-plugins:1.9.2'
-        classpath 'io.github.gradle-nexus:publish-plugin:2.0.0'
-        classpath 'net.ltgt.gradle:gradle-errorprone-plugin:4.1.0'
     }
     repositories {
         mavenCentral()
         gradlePluginPortal()
     }
+
+    Closure addRootBuildscriptDependencies = { String propertyName, Collection<Object> notations ->
+        DomainObjectSet<Dependency> dependenciesSet = project.ext[propertyName] = project.objects.domainObjectSet(Dependency)
+        dependenciesSet.whenObjectAdded { configurations.classpath.dependencies.add(it) }
+        dependenciesSet.whenObjectRemoved { configurations.classpath.dependencies.remove(it) }
+        notations.forEach { notation -> dependenciesSet.add(dependencies.create(notation)) }
+    }
+
+    addRootBuildscriptDependencies(
+        'rootBuildscriptPluginDependencies',
+        [
+            'name.remal.gradle-plugins.lombok:lombok:2.2.9',
+            'name.remal.gradle-plugins.merge-resources:merge-resources:2.0.3',
+            'name.remal.gradle-plugins.test-source-sets:test-source-sets:4.1.2',
+            'name.remal.gradle-plugins.sonarlint:sonarlint:4.2.14',
+            'name.remal.gradle-plugins.idea-settings:idea-settings:3.0.10',
+            'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.1.9',
+            'com.gradle.publish:plugin-publish-plugin:1.3.0',
+            'name.remal:gradle-plugins:1.9.2',
+            'io.github.gradle-nexus:publish-plugin:2.0.0',
+            'net.ltgt.gradle:gradle-errorprone-plugin:4.1.0',
+        ]
+    )
+
+    addRootBuildscriptDependencies(
+        'rootBuildscriptLibraryDependencies',
+        [
+            dependencies.platform('org.ow2.asm:asm-bom:9.7.1'),
+            'org.ow2.asm:asm',
+            'org.ow2.asm:asm-tree',
+            'org.ow2.asm:asm-analysis',
+            'org.ow2.asm:asm-util',
+            'org.ow2.asm:asm-commons',
+        ]
+    )
+
+    addRootBuildscriptDependencies(
+        'rootBuildscriptBuildDependencies',
+        [
+            'org.json:json:20240303',
+            'org.jsoup:jsoup:1.17.2',
+            'com.vdurmont:semver4j:3.1.0',
+        ]
+    )
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -57,6 +91,7 @@ List<String> includedBuildScripts = [
     'gradle/publish-maven-bom.gradle',
     'gradle/publish-maven-central.gradle',
     'gradle/publish-maven-to-build-dir.gradle',
+    'gradle/publish-maven-push-back.gradle',
     'gradle/signing.gradle',
     'gradle/process-readme.gradle',
     'gradle/ide.gradle',

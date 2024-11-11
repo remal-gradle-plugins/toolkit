@@ -20,6 +20,6 @@ flagFile.delete()
 allprojects {
     pluginManager.withPlugin('io.github.gradle-nexus.publish-plugin') {
         flagFile.parentFile.mkdirs()
-        flagFile.text = ''
+        flagFile.createNewFile()
     }
 }
