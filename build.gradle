@@ -47,7 +47,7 @@ buildscript {
         'rootBuildscriptBuildDependencies',
         [
             'org.json:json:20240303',
-            'org.jsoup:jsoup:1.17.2',
+            'org.jsoup:jsoup:1.18.1',
             'com.vdurmont:semver4j:3.1.0',
         ]
     )
