@@ -41,6 +41,9 @@ allprojects {
 
         sourceSets.all { sourceSet ->
             Collection<String> configurationNames = project.getSourceSetConfigurationNames(sourceSet) + [
+                'compileOnlyAll',
+                'optional',
+                'optionalHidden',
                 'excludeFromClassesRelocation',
             ]
 

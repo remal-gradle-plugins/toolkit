@@ -45,7 +45,8 @@ tasks.register('pushBackPublishedVersions') { Task task ->
                     }
 
                     try {
-                        Map putResponse = project.sendGitHubRestApiRequest(
+                        logger.quiet("Reporting version {} to {}", currentVersion, versionFilePath)
+                        project.sendGitHubRestApiRequest(
                             "contents/${URLDecoder.decode(versionFilePath, 'UTF-8')}",
                             'PUT',
                             [
@@ -54,7 +55,6 @@ tasks.register('pushBackPublishedVersions') { Task task ->
                                 sha: getResponse?.sha
                             ],
                         )
-                        println putResponse
 
                     } catch (HttpErrorStatusCodeException e) {
                         if (e.statusCode != 409 || attempt >= maxAttempts) {
