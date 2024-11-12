@@ -1,0 +1,67 @@
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
+import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException
+
+if (project.isBuildSrcProject) return
+
+tasks.register('pushBackPublishedVersions') { Task task ->
+    task.group = 'documentation'
+    task.outputs.upToDateWhen { false }
+
+    doLast {
+        Collection<String> versionFilePaths = new LinkedHashSet<>()
+        allprojects.stream()
+            .filter { it.pluginManager.hasPlugin('maven-publish') }
+            .flatMap { it.publishing.publications.withType(MavenPublication).stream() }
+            .forEach { MavenPublication publication ->
+                String versionFilePath = ".published/${publication.groupId}/${publication.artifactId}.version"
+                if (!versionFilePaths.add(versionFilePath)) {
+                    return
+                }
+
+                int maxAttempts = 3
+                for (int attempt = 1; attempt <= maxAttempts; ++attempt) {
+                    Map getResponse = project.sendGitHubRestApiRequest(
+                        "contents/${URLDecoder.decode(versionFilePath, 'UTF-8')}",
+                    )
+
+                    String previouslyPublishedVersion = getResponse?.content?.with {
+                        new String(Base64.decoder.decode(it.trim()), "UTF-8").trim()
+                    }
+                    String currentVersion = publication.version
+                    if (previouslyPublishedVersion?.length()) {
+                        VersionParser parser = new VersionParser()
+                        def prevVer = parser.transform(previouslyPublishedVersion)
+                        def curVer = parser.transform(currentVersion)
+                        Comparator comparator = new DefaultVersionComparator().asVersionComparator()
+                        int comparisonResult = comparator.compare(prevVer, curVer)
+                        if (comparisonResult == 0) {
+                            logger.quiet("Version {} has been already reported to {}", currentVersion, versionFilePath)
+                            return
+                        } else if (comparisonResult > 0) {
+                            logger.quiet("Version {} is less than what was already reported to {}: {}", currentVersion, versionFilePath, previouslyPublishedVersion)
+                            return
+                        }
+                    }
+
+                    try {
+                        Map putResponse = project.sendGitHubRestApiRequest(
+                            "contents/${URLDecoder.decode(versionFilePath, 'UTF-8')}",
+                            'PUT',
+                            [
+                                message: "[push-back] Update $versionFilePath",
+                                content: Base64.encoder.encodeToString(currentVersion.getBytes('UTF-8')),
+                                sha: getResponse?.sha
+                            ],
+                        )
+                        println putResponse
+
+                    } catch (HttpErrorStatusCodeException e) {
+                        if (e.statusCode != 409 || attempt >= maxAttempts) {
+                            throw e
+                        }
+                    }
+                }
+            }
+    }
+}

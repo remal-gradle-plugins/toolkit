@@ -2,13 +2,9 @@ import static java.nio.charset.StandardCharsets.UTF_8
 
 import groovy.json.JsonGenerator
 import groovy.json.JsonOutput
-import groovy.json.JsonSlurper
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.TupleConstructor
-import java.net.http.HttpClient
 import java.net.http.HttpRequest
-import java.net.http.HttpResponse
-import java.time.Duration
 
 allprojects {
     pluginManager.withPlugin('java') {
@@ -224,44 +220,15 @@ allprojects {
                 reportFile.setText(JsonOutput.prettyPrint(jsonContent), 'UTF-8')
 
 
-                int maxAttempts = 3
-                int attempt = 0
-                while (true) {
-                    ++attempt
-
-                    HttpRequest httpRequest = HttpRequest.newBuilder()
-                        .timeout(Duration.ofMinutes(1))
-                        .uri(new URI("${project.property('repository-api-url')}/dependency-graph/snapshots"))
-                        .header('Authorization', "token ${project.property('github-actions-token')}")
-                        .header('Accept', 'application/vnd.github+json')
-                        .header('Content-Type', 'application/json;charset=UTF-8')
-                        .POST(HttpRequest.BodyPublishers.ofString(jsonContent, UTF_8))
-                        .build()
-
-                    HttpResponse<String> httpResponse = HttpClient.newHttpClient().send(httpRequest, HttpResponse.BodyHandlers.ofString(UTF_8))
-                    int statusCode = httpResponse.statusCode()
-                    if (statusCode >= 400) {
-                        if (statusCode == 429
-                            || statusCode >= 500
-                        ) {
-                            if (attempt < maxAttempts) {
-                                Thread.sleep(5_000)
-                                continue
-                            }
-                        }
-
-                        throw new GradleException("Dependencies submitting REST API call returned ${httpResponse.statusCode()} error:\n${httpResponse.body()}")
-                    }
-
-                    String responseBodyJson = httpResponse.body()
-                    Map responseBody = new JsonSlurper().parseText(responseBodyJson)
-                    if (responseBody.message) {
-                        println responseBody.message
-                    } else {
-                        println responseBodyJson
-                    }
-
-                    break
+                Map responseJson = project.sendGitHubRestApiRequest(
+                    "dependency-graph/snapshots",
+                    'POST',
+                    HttpRequest.BodyPublishers.ofString(jsonContent, UTF_8)
+                )
+                if (responseJson.message) {
+                    println responseJson.message
+                } else {
+                    println responseBodyJson
                 }
             }
         }

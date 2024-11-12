@@ -1,4 +1,27 @@
+import java.util.concurrent.Callable
+import java.util.function.Supplier
+import java.util.stream.Stream
+import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.lib.Constants
+import org.eclipse.jgit.lib.Repository
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder
+import org.eclipse.jgit.transport.URIish
 import org.gradle.util.GradleVersion
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+buildscript {
+    dependencies {
+        classpath('org.eclipse.jgit:org.eclipse.jgit:5.13.3.202401111512-r') {
+            exclude(group: 'org.slf4j')
+        }
+    }
+    repositories {
+        mavenCentral()
+    }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 allprojects {
     File rootProjectDir = project.rootDir
@@ -29,22 +52,22 @@ allprojects {
         }
     }
 
-    def getCiProperty = { String name, String defaultValue, boolean storeValue = false ->
+    Closure<String> getCiProperty = project.ext.getCiProperty = { String name, Object defaultValue = null, boolean storeValue = false ->
         Properties ciProperties = rootProject.ext['ciProperties']
-        String value = ciProperties.getProperty(name)
-        if (value == null) {
-            value = project.findProperty(name)?.toString()
-        }
-        if (value == null) {
-            value = rootProject.findProperty(name)?.toString()
-        }
-        if (value == null) {
-            value = System.getProperty(name)
-        }
-        if (value == null) {
-            String envName = name.replaceAll(/\W/, '_').toUpperCase(Locale.ROOT)
-            value = System.getenv(envName)
-        }
+
+        String value = Stream.of(name)
+            .flatMap { Stream.of(it, 'remal-gradle-plugins.' + it) }
+            .flatMap {
+                Stream.of(
+                    ciProperties.getProperty(name),
+                    project.findProperty(it)?.toString(),
+                    System.getProperty(it),
+                    System.getenv(it.replaceAll(/\W/, '_').toUpperCase()),
+                )
+            }
+            .filter { it != null }
+            .findFirst()
+            .orElse(null)
 
         if (value != null) {
             if (storeValue) {
@@ -57,8 +80,58 @@ allprojects {
             return value
         }
 
-        return defaultValue
+        while (true) {
+            if (defaultValue instanceof Provider) {
+                defaultValue = defaultValue.get()
+            } else if (defaultValue instanceof Supplier) {
+                defaultValue = defaultValue.get()
+            } else if (defaultValue instanceof Callable) {
+                defaultValue = defaultValue.call()
+            } else {
+                break
+            }
+        }
+
+        return defaultValue?.toString()
     }
+
+    Closure withGitRepository = { Closure action ->
+        File gitDir = new File(rootProjectDir, Constants.DOT_GIT)
+        if (!gitDir.exists()) {
+            return null
+        }
+
+        FileRepositoryBuilder.create(gitDir).withCloseable { Repository repository ->
+            return action(repository)
+        }
+    }
+    Closure withGit = { Closure action ->
+        withGitRepository { Repository repository ->
+            new Git(repository).withCloseable { Git git ->
+                return action(git)
+            }
+        }
+    }
+    Closure<URIish> getGitRemoteUri = { String remoteName = Constants.DEFAULT_REMOTE_NAME ->
+        withGit { Git git ->
+            return git.remoteList().call().stream()
+                .filter { it.name == remoteName }
+                .flatMap { it.getURIs().stream() }
+                .filter { it != null }
+                .findFirst()
+                .orElse(null)
+        }
+    }
+    Closure<String> getRepositoryFullNameFromGitRemote = { String remoteName = Constants.DEFAULT_REMOTE_NAME ->
+        URIish uri = getGitRemoteUri(remoteName)
+        if (uri == null) {
+            return null
+        }
+        String fullName = uri.path
+        fullName = fullName.replaceFirst(/\.git$/, '')
+        return fullName
+    }
+
 
     if (rootProject.findProperty('isJavaRuntimeVersionSet') == null) {
         rootProject.ext.isJavaRuntimeVersionSet = getCiProperty('java-runtime.version', null) != null
@@ -80,7 +153,9 @@ allprojects {
     project.ext['git-ref'] = getCiProperty('git-ref', '')
     project.ext['git-sha'] = getCiProperty('git-sha', '')
 
-    project.ext['github-actions-token'] = getCiProperty('github-actions-token', '')
+    project.ext['github-server-url'] = getCiProperty('github-server-url', 'https://github.com/')
+    project.ext['github-api-url'] = getCiProperty('github-api-url', 'https://api.github.com/')
+    project.ext['github-actions-token'] = getCiProperty('push-back-token', { getCiProperty('github-actions-token', '') })
     project.ext['github-actions-run-id'] = getCiProperty('github-actions-run-id', '')
     project.ext['github-actions-run-attempt'] = getCiProperty('github-actions-run-attempt', '')
     project.ext['github-actions-job'] = getCiProperty('github-actions-job', '')
@@ -91,14 +166,14 @@ allprojects {
     project.ext['disable-verification'] = getCiProperty('disable-verification', 'false')
     project.ext['disable-verification-except-tests'] = getCiProperty('disable-verification-except-tests', 'false')
 
-    project.ext['repository-name'] = getCiProperty('repository-name', '', true)
-    project.ext['repository-full-name'] = getCiProperty('repository-full-name', '', true)
-    project.ext['repository-api-url'] = getCiProperty('repository-api-url', '', true)
-    project.ext['repository-html-url'] = getCiProperty('repository-html-url', '', true)
+    project.ext['repository-full-name'] = getCiProperty('repository-full-name', { getRepositoryFullNameFromGitRemote() ?: '' }, true)
+    project.ext['repository-name'] = getCiProperty('repository-name', { project.ext['repository-full-name'].replaceFirst('^.*/', '') }, true)
+    project.ext['repository-api-url'] = getCiProperty('repository-api-url', { project.ext['github-api-url'].replaceFirst('/+$', '') + '/repos/' + project.ext['repository-full-name'].replaceFirst('^/+', '') }, true)
+    project.ext['repository-html-url'] = getCiProperty('repository-html-url', { project.ext['github-server-url'].replaceFirst('/+$', '') + '/' + project.ext['repository-full-name'].replaceFirst('^/+', '') }, true)
     project.ext['repository-description'] = getCiProperty('repository-description', '', true)
     project.ext['repository-topics'] = getCiProperty('repository-topics', '', true)
     project.ext['repository-is-template'] = getCiProperty('repository-is-template', '', true)
-    project.ext['repository-owner-name'] = getCiProperty('repository-owner-name', '', true)
+    project.ext['repository-owner-name'] = getCiProperty('repository-name', { project.ext['repository-full-name'].replaceFirst('/.*$', '') }, true)
     project.ext['repository-license-name'] = getCiProperty('repository-license-name', '', true)
     project.ext['repository-license-html-url'] = getCiProperty('repository-license-html-url', '', true)
 
