@@ -39,43 +39,41 @@ allprojects {
                 .findAll { !it.moduleArtifacts.isEmpty() }
         }.memoize()
 
-        sourceSets.all { sourceSet ->
-            Collection<String> configurationNames = project.getSourceSetConfigurationNames(sourceSet) + [
+        sourceSets.all { SourceSet sourceSet ->
+            Collection<String> includedConfigurationNames = project.getSourceSetConfigurationNames(sourceSet) + [
                 'compileOnlyAll',
                 'optional',
                 'optionalHidden',
-                'excludeFromClassesRelocation',
             ]
 
-            configurations.matching { configurationNames.contains(it.name) }.configureEach { conf ->
-                conf.dependencies.withType(ExternalModuleDependency).configureEach { dep ->
-                    if (dep.group != 'name.remal.gradle-api') {
-                        loggingExclusions.forEach { dep.exclude(it) }
-                    }
-                }
+            Collection<String> excludedConfigurationNames = [
+                sourceSet.annotationProcessorConfigurationName,
+            ]
 
-                conf.withDependencies { deps ->
-                    Collection<ResolvedDependency> resolvedDeps = getGradleApiResolvedDependencies()
-                    deps.withType(ExternalModuleDependency).forEach { dep ->
+            configurations
+                .matching { includedConfigurationNames.contains(it.name) }
+                .matching { !excludedConfigurationNames.contains(it.name) }
+                .configureEach { Configuration conf ->
+                    conf.dependencies.withType(ExternalModuleDependency).configureEach { dep ->
                         if (dep.group != 'name.remal.gradle-api') {
-                            resolvedDeps.forEach { resolvedDep ->
+                            loggingExclusions.forEach { dep.exclude(it) }
+                            getGradleApiResolvedDependencies().forEach { resolvedDep ->
                                 dep.exclude(group: resolvedDep.moduleGroup, module: resolvedDep.moduleName)
                             }
                         }
                     }
                 }
-            }
+        }
 
-            configurations.matching { it.name == 'excludeFromClassesRelocation' }.configureEach { conf ->
-                conf.dependencies.addAllLater(
-                    provider {
-                        Collection<ResolvedDependency> resolvedDeps = getGradleApiResolvedDependencies()
-                        return resolvedDeps.collect {
-                            project.dependencies.create("${it.moduleGroup}:${it.moduleName}:${it.moduleVersion}")
-                        }
+        configurations.matching { it.name == 'excludeFromClassesRelocation' }.configureEach { conf ->
+            conf.dependencies.addAllLater(
+                provider {
+                    Collection<ResolvedDependency> resolvedDeps = getGradleApiResolvedDependencies()
+                    return resolvedDeps.collect {
+                        project.dependencies.create("${it.moduleGroup}:${it.moduleName}:${it.moduleVersion}")
                     }
-                )
-            }
+                }
+            )
         }
 
 
