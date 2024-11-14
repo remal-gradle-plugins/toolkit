@@ -25,16 +25,41 @@ allprojects {
                 String content = readmeFile.getText('UTF-8')
 
                 content = content.replaceAll(
-                    /<!--\s*(property)\s*:\s*([^>]+?)\s*-->[\s\S]*?<!--\s*\/\s*\1\s*-->/
+                    /<!--\s*((?:code-)?property)\s*:\s*([^>]+?)\s*-->[\s\S]*?<!--\s*\/\s*\1\s*-->/
                 ) {
                     String tag = it[1]
                     String property = it[2]
                     logger.lifecycle('  Handling {}: {}', tag, property)
-                    Object propertyValueObj = project.property(property)
-                    if (propertyValueObj instanceof Provider) {
-                        propertyValueObj = propertyValueObj.getOrNull()
+                    Object propertyValueObj = project.unwrapProviders(project.property(property))
+                    String propertyValue = "$propertyValueObj"
+                    if (tag.contains('code-')) {
+                        propertyValue = "`$propertyValue`"
                     }
-                    String propertyValue = propertyValueObj?.toString()
+                    return "<!--$tag:$property-->$propertyValue<!--/$tag-->"
+                }
+
+                readmeFile.setText(content, 'UTF-8')
+            }
+        )
+
+        readmeFileProcessors.add(
+            { File readmeFile ->
+                String content = readmeFile.getText('UTF-8')
+
+                content = content.replaceAll(
+                    /<!--\s*(iterable-(?:code-)?property)\s*:\s*([^>]+?)\s*-->[\s\S]*?<!--\s*\/\s*\1\s*-->/
+                ) {
+                    String tag = it[1]
+                    String property = it[2]
+                    logger.lifecycle('  Handling {}: {}', tag, property)
+                    Object propertyValueObj = project.unwrapProviders(project.property(property))
+                    if (!(propertyValueObj instanceof Iterable)) {
+                        throw new GradleException("`$property` property is not iterable: ${propertyValueObj?.class}")
+                    }
+                    if (tag.contains('code-')) {
+                        propertyValueObj = propertyValueObj.collect { "`$it`" }
+                    }
+                    String propertyValue = propertyValueObj.collect { "\n* $it" }.join('') + '\n'
                     return "<!--$tag:$property-->$propertyValue<!--/$tag-->"
                 }
 

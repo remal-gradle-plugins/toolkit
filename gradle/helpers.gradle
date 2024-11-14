@@ -14,8 +14,10 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.security.MessageDigest
 import java.time.Duration
+import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
+import java.util.function.Supplier
 import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException
 import org.gradle.util.GradleVersion
 import org.json.JSONArray
@@ -42,6 +44,20 @@ buildscript {
 Object MUTEX = new Object[0]
 
 project.ext.isBuildSrcProject = rootProject.name == 'buildSrc'
+
+project.ext.unwrapProviders = { object ->
+    while (true) {
+        if (object instanceof Provider) {
+            object = object.get()
+        } else if (object instanceof Supplier) {
+            object = object.get()
+        } else if (object instanceof Callable) {
+            object = object.call()
+        } else {
+            return object
+        }
+    }
+}
 
 allprojects {
     project.ext.afterEvaluateOrNow = { Closure action ->

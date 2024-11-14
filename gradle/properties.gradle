@@ -1,5 +1,3 @@
-import java.util.concurrent.Callable
-import java.util.function.Supplier
 import java.util.stream.Stream
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Constants
@@ -80,18 +78,7 @@ allprojects {
             return value
         }
 
-        while (true) {
-            if (defaultValue instanceof Provider) {
-                defaultValue = defaultValue.get()
-            } else if (defaultValue instanceof Supplier) {
-                defaultValue = defaultValue.get()
-            } else if (defaultValue instanceof Callable) {
-                defaultValue = defaultValue.call()
-            } else {
-                break
-            }
-        }
-
+        defaultValue = project.unwrapProviders(defaultValue)
         return defaultValue?.toString()
     }
 
