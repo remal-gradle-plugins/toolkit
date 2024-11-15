@@ -14,6 +14,11 @@ allprojects {
         task.duplicatesStrategy = DuplicatesStrategy.FAIL
     }
 
+    tasks.withType(AbstractArchiveTask).configureEach {
+        preserveFileTimestamps = false
+        reproducibleFileOrder = true
+    }
+
     tasks.matching { project.isVerificationTask(it) }.configureEach { group = VERIFICATION_GROUP }
 
     tasks.matching { it instanceof ProcessForkOptions }.configureEach { ProcessForkOptions task ->
