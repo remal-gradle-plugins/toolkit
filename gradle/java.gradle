@@ -25,9 +25,9 @@ buildscript {
 
 allprojects {
     pluginManager.withPlugin('java') {
-        apply plugin: 'name.remal.test-source-sets'
         apply plugin: 'name.remal.classes-relocation'
         apply plugin: 'name.remal.insert-null-checks'
+        apply plugin: 'name.remal.test-source-sets'
 
         java {
             sourceCompatibility = targetCompatibility = project.javaRuntimeMinVersion
@@ -77,7 +77,7 @@ allprojects {
         }
 
         configurations.create('optional') { Configuration conf ->
-            conf.canBeResolved = true
+            conf.canBeResolved = false
             conf.canBeConsumed = false
             conf.description = "Optional dependencies"
             sourceSets.all { SourceSet sourceSet ->
@@ -135,18 +135,42 @@ allprojects {
             }
         }
 
+        configurations.create('compileConstraints') { Configuration conf ->
+            conf.canBeResolved = false
+            conf.canBeConsumed = false
+            conf.description = "Constraints for compile-time dependencies"
+            sourceSets.all { SourceSet sourceSet ->
+                configurations[sourceSet.annotationProcessorConfigurationName].extendsFrom(conf)
+                configurations[sourceSet.compileOnlyConfigurationName].extendsFrom(conf)
+            }
+            configurations.optionalHidden.extendsFrom(conf)
+        }
+
+        configurations.create('testConstraints') { Configuration conf ->
+            conf.canBeResolved = false
+            conf.canBeConsumed = false
+            conf.description = "Constraints for test dependencies"
+            testSourceSets.all { SourceSet sourceSet ->
+                configurations[sourceSet.compileClasspathConfigurationName].extendsFrom(conf)
+                configurations[sourceSet.runtimeClasspathConfigurationName].extendsFrom(conf)
+            }
+        }
+
+        String autoService = '1.1.1'
+
         dependencies {
+            compileConstraints platform('org.immutables:bom:2.10.1')
+
             relocateClasses 'org.apache.commons:commons-lang3'
             relocateClasses 'org.apache.commons:commons-text'
             relocateClasses 'com.google.guava:guava'
 
-            compileOnlyAll 'com.google.code.findbugs:jsr305'
-            compileOnlyAll 'org.jetbrains:annotations'
-            compileOnlyAll 'name.remal:gradle-plugins-api'
-            optionalHidden 'com.github.spotbugs:spotbugs-annotations'
+            compileOnlyAll 'com.google.code.findbugs:jsr305:3.0.2'
+            compileOnlyAll 'org.jetbrains:annotations:26.0.1'
+            optionalHidden 'com.github.spotbugs:spotbugs-annotations:4.8.6'
 
-            annotationProcessorAll 'com.google.auto.service:auto-service'
-            compileOnlyAll 'com.google.auto.service:auto-service-annotations'
+            annotationProcessorAll "com.google.auto.service:auto-service:$autoService"
+            compileOnlyAll "com.google.auto.service:auto-service-annotations:$autoService"
             annotationProcessorAll 'org.immutables:value'
             compileOnlyAll 'org.immutables:value-annotations'
             compileOnlyAll 'org.immutables:builder'
@@ -156,9 +180,11 @@ allprojects {
             optionalHidden 'org.immutables:gson'
 
 
+            testConstraints platform('org.junit:junit-bom:5.11.3')
+
             testImplementation 'org.junit.jupiter:junit-jupiter-api'
             testImplementation 'org.junit.jupiter:junit-jupiter-params'
-            testImplementation 'org.assertj:assertj-core'
+            testImplementation 'org.assertj:assertj-core:3.26.3'
             testImplementation 'org.apache.commons:commons-lang3'
             testImplementation 'com.google.guava:guava'
 

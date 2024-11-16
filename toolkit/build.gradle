@@ -1,6 +1,5 @@
 apply plugin: 'java-library'
 apply plugin: 'maven-publish'
-apply plugin: 'name.remal.classes-relocation'
 apply plugin: 'name.remal.generate-sources'
 
 ; [
@@ -16,7 +15,6 @@ apply plugin: 'name.remal.generate-sources'
 }
 
 dependencies {
-    relocateClasses 'org.jdom:jdom2'
     relocateClasses 'io.github.classgraph:classgraph:4.8.179'
     relocateClasses 'org.ec4j.core:ec4j-core:1.1.0'
     relocateClasses 'net.htmlparser.jericho:jericho-html:3.4'

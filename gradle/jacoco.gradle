@@ -15,8 +15,26 @@ allprojects {
     }
 
     pluginManager.withPlugin('jacoco') {
+        configurations.create('jacocoConstraints') { Configuration conf ->
+            conf.canBeResolved = false
+            conf.canBeConsumed = false
+            conf.description = "Constraints for Jacoco dependencies"
+            configurations.jacocoAgent.extendsFrom(conf)
+            configurations.jacocoAnt.extendsFrom(conf)
+        }
+
+        String jacocoVersion = '0.8.12'
+
+        dependencies {
+            constraints {
+                jacocoConstraints "org.jacoco:org.jacoco.agent:$jacocoVersion"
+                jacocoConstraints "org.jacoco:org.jacoco.ant:$jacocoVersion"
+                jacocoConstraints "org.jacoco:org.jacoco.core:$jacocoVersion"
+            }
+        }
+
         jacoco {
-            toolVersion = project.configurations.projectDependencyConstraints
+            toolVersion = project.configurations.jacocoConstraints
                 .allDependencyConstraints
                 .matching { it.group == 'org.jacoco' && it.name == 'org.jacoco.agent' }
                 .matching { it.version != null && !it.version.isEmpty() }

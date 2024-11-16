@@ -44,6 +44,7 @@ allprojects {
                 'compileOnlyAll',
                 'optional',
                 'optionalHidden',
+                'shadow',
             ]
 
             Collection<String> excludedConfigurationNames = [
@@ -65,7 +66,7 @@ allprojects {
                 }
         }
 
-        configurations.matching { it.name == 'excludeFromClassesRelocation' }.configureEach { conf ->
+        configurations.matching { ['shadow', 'excludeFromClassesRelocation'].contains(it.name) }.configureEach { conf ->
             conf.dependencies.addAllLater(
                 provider {
                     Collection<ResolvedDependency> resolvedDeps = getGradleApiResolvedDependencies()

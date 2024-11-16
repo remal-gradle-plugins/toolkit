@@ -33,36 +33,18 @@ allprojects {
             }
         }
 
-        String errorproneVersion = '2.35.1'
-        String jacocoVersion = '0.8.12'
-
         conf.dependencies.addAll(
             [
-                'org.immutables:bom:2.10.1',
                 'org.ow2.asm:asm-bom:9.7.1',
-                'org.junit:junit-bom:5.11.3',
             ].collect { project.dependencies.platform(it) }
         )
 
         conf.dependencyConstraints.addAll(
             [
-                // Static analysis
-                'com.google.code.findbugs:jsr305:3.0.2',
-                'org.jetbrains:annotations:26.0.1',
-                "com.google.errorprone:error_prone_annotations:$errorproneVersion",
-                "com.google.errorprone:error_prone_core:$errorproneVersion",
-                'com.github.spotbugs:spotbugs-annotations:4.8.6',
-
-                // Annotation processing
-                'com.google.auto.service:auto-service:1.1.1',
-                'com.google.auto.service:auto-service-annotations:1.1.1',
-
                 // Compile-only
-                'name.remal:gradle-plugins-api:1.9.2',
                 'org.apache.commons:commons-lang3:3.17.0',
                 'org.apache.commons:commons-text:1.12.0',
                 'com.google.guava:guava:33.3.1-jre',
-                'org.jdom:jdom2:2.0.6.1',
 
                 // Compile
                 "name.remal.gradle-api:local-groovy:${project.gradleApiVersion.version}",
@@ -70,10 +52,6 @@ allprojects {
 
                 // Test
                 "name.remal.gradle-api:gradle-test-kit:${project.gradleApiVersion.version}",
-                'org.assertj:assertj-core:3.26.3',
-                "org.jacoco:org.jacoco.agent:$jacocoVersion",
-                "org.jacoco:org.jacoco.ant:$jacocoVersion",
-                "org.jacoco:org.jacoco.core:$jacocoVersion",
             ].collect {
                 project.dependencies.constraints.create(it) { DependencyConstraint constraint ->
                     constraint.version { it.strictly(constraint.version) }
@@ -113,8 +91,15 @@ class ErrorproneAlignmentRule implements ComponentMetadataRule {
     void execute(ComponentMetadataContext context) {
         context.details.with {
             if (id.group == 'com.google.errorprone') {
-                if (id.name == 'error_prone_core'
+                if (id.name == 'error_prone_check_api'
+                    || id.name == 'error_prone_test_helpers'
+                    || id.name == 'error_prone_core'
+                    || id.name == 'error_prone_annotation'
                     || id.name == 'error_prone_annotations'
+                    || id.name == 'error_prone_type_annotations'
+                    || id.name == 'error_prone_docgen'
+                    || id.name == 'error_prone_docgen_processor'
+                    || id.name == 'error_prone_refaster'
                 ) {
                     belongsTo("${id.group}:bom:${id.version}")
                 }

@@ -4,10 +4,13 @@ allprojects {
     }
 
     pluginManager.withPlugin('net.ltgt.errorprone') {
-        dependencies {
-            errorprone 'com.google.errorprone:error_prone_core'
+        String errorproneVersion = '2.35.1'
 
-            compileOnlyAll 'com.google.errorprone:error_prone_annotations'
+        dependencies {
+            errorprone "com.google.errorprone:error_prone_core:$errorproneVersion"
+            errorprone 'jp.skypencil.errorprone.slf4j:errorprone-slf4j:0.1.20'
+
+            compileOnlyAll "com.google.errorprone:error_prone_annotations:$errorproneVersion"
         }
 
         configurations.errorprone.extendsFrom(configurations.mockito)
