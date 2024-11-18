@@ -8,6 +8,7 @@ allprojects {
 
         dependencies {
             errorprone "com.google.errorprone:error_prone_core:$errorproneVersion"
+            errorprone 'jp.skypencil.errorprone.slf4j:errorprone-slf4j:0.1.28'
 
             compileOnlyAll "com.google.errorprone:error_prone_annotations:$errorproneVersion"
         }
