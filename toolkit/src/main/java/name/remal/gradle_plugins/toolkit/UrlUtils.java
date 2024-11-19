@@ -50,6 +50,9 @@ public abstract class UrlUtils {
             if (connection instanceof HttpURLConnection) {
                 ((HttpURLConnection) connection).disconnect();
             }
+            if (connection instanceof AutoCloseable) {
+                ((AutoCloseable) connection).close();
+            }
         });
     }
 
