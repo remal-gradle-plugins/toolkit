@@ -7,7 +7,7 @@ io.github.gradle-nexus:publish-plugin:2.0.0
 name.remal.gradle-plugins.idea-settings:idea-settings:3.0.10
 name.remal.gradle-plugins.lombok:lombok:2.2.11
 name.remal.gradle-plugins.merge-resources:merge-resources:4.0.0
-name.remal.gradle-plugins.sonarlint:sonarlint:4.2.15
+name.remal.gradle-plugins.sonarlint:sonarlint:4.2.16
 name.remal.gradle-plugins.test-source-sets:test-source-sets:4.1.3
 name.remal:gradle-plugins:1.9.2
 net.ltgt.gradle:gradle-errorprone-plugin:4.1.0
@@ -63,7 +63,7 @@ zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.SonarLintPlugin$OutputDirsAndLibraries$OutputDirsAndLibrariesBuilder:d4a11acc9c3aa85ffb7cee13be4a18e71cf164a4b6166c91e887a336843c118c
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.SonarLintPlugin$OutputDirsAndLibraries:9d3d2a54d55df830245d8574ffd130251a282deb446416daaad208942125e2eb
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.SonarLintPlugin:19e78129e99a005d22c4e31af4f3eb0935dbc75b6e2a7364302520446ad64203
-zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.SonarLintPluginBuildInfo:b0111e9af889c3029e46d58c4a372b1ca6e6f326138a80995f69bca38408d459
+zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.SonarLintPluginBuildInfo:f6d86e66623f4d519800757cf95004763562c1de507e6a9e2a2030915f2d90bc
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.ClosureUtils:6f8c425f05c5e8ceebf0151172e6f84858d4f283505a389204c452650fa558a4
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils$1:c2e62d142a6d7eb391507658fe0156a169ecc53e1ead07cdfc86de446524cfd9
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils$IfDebugEnabled:1e65ea35cd065a9ecb8a9e9f69b369934f53564ad309f86b653ff0c7371b10a4
