@@ -78,12 +78,20 @@ allprojects {
 }
 
 project.ext.startWithWord = { CharSequence untypedString, CharSequence untypedNeedle ->
-    if (untypedString == null || untypedNeedle == null) return false
-    if (untypedNeedle.length() == 0) return true
-    if (untypedString.length() == 0) return false
+    if (untypedString == null || untypedNeedle == null) {
+        return false
+    }
+    if (untypedNeedle.length() == 0) {
+        return true
+    }
+    if (untypedString.length() == 0) {
+        return false
+    }
     String string = untypedString.toString()
     String needle = untypedNeedle.toString()
-    if (string == needle) return true
+    if (string == needle) {
+        return true
+    }
     if (string.startsWith(needle)) {
         String remaining = string.substring(needle.length())
         char firstRemainingChar = remaining.charAt(0)
@@ -108,7 +116,9 @@ project.ext.startWithWord = { CharSequence untypedString, CharSequence untypedNe
 }
 
 project.ext.isInstanceOf = { Object object, String parentClassName ->
-    if (object == null) return false
+    if (object == null) {
+        return false
+    }
 
     Class<?> parentClass = Class.forName(parentClassName, true, object.class.classLoader)
     return parentClass.isInstance(object)
@@ -219,7 +229,9 @@ project.ext.isVerificationDependency = { Object dep ->
 
 project.ext.calculateBaseJavaPackageFor = { Project project ->
     String baseJavaPackage = project.ext.find('baseJavaPackage')
-    if (baseJavaPackage != null) return baseJavaPackage
+    if (baseJavaPackage != null) {
+        return baseJavaPackage
+    }
 
     List<String> baseJavaPackageTokens = "${rootProject.group}:${rootProject.name}${project.path}".split(/[.:]+/)
         .findAll { !it.isEmpty() }
@@ -441,16 +453,32 @@ Closure<List<GradleVersion>> getAllGradleVersions = project.ext.getAllGradleVers
 
     JSONArray versionObjects = loadJsonFromUrl('https://services.gradle.org/versions/all')
     for (JSONObject versionObject : versionObjects) {
-        if (versionObject.optBoolean('snapshot')) continue
-        if (versionObject.optBoolean('nightly')) continue
-        if (versionObject.optBoolean('releaseNightly')) continue
-        if (versionObject.optBoolean('broken')) continue
-        if (!versionObject.optString('milestoneFor').isEmpty()) continue
-        if (!versionObject.optBoolean('activeRc') && !versionObject.optString('rcFor').isEmpty()) continue
+        if (versionObject.optBoolean('snapshot')) {
+            continue
+        }
+        if (versionObject.optBoolean('nightly')) {
+            continue
+        }
+        if (versionObject.optBoolean('releaseNightly')) {
+            continue
+        }
+        if (versionObject.optBoolean('broken')) {
+            continue
+        }
+        if (!versionObject.optString('milestoneFor').isEmpty()) {
+            continue
+        }
+        if (!versionObject.optBoolean('activeRc') && !versionObject.optString('rcFor').isEmpty()) {
+            continue
+        }
 
         String version = versionObject.getString('version')
-        if (version.containsIgnoreCase('milestone')) continue
-        if (version.startsWith('0.')) continue
+        if (version.containsIgnoreCase('milestone')) {
+            continue
+        }
+        if (version.startsWith('0.')) {
+            continue
+        }
 
         GradleVersion gradleVersion = GradleVersion.version(version)
         if (gradleVersion.baseVersion == gradleVersion) {
@@ -477,12 +505,20 @@ Closure<List<Integer>> getFilteredJavaRuntimeVersions = { Closure<Boolean> filte
 
     JSONArray versionObjects = loadJsonFromUrl('https://api.foojay.io/disco/v3.0/major_versions?ea=false&ga=true&discovery_scope_id=public&include_versions=false')['result']
     for (JSONObject versionObject : versionObjects) {
-        if (versionObject.optBoolean('early_access_only')) continue
-        if (versionObject.optString('release_status') == 'ea') continue
-        if (!filter(versionObject)) continue
+        if (versionObject.optBoolean('early_access_only')) {
+            continue
+        }
+        if (versionObject.optString('release_status') == 'ea') {
+            continue
+        }
+        if (!filter(versionObject)) {
+            continue
+        }
 
         int version = versionObject.getInt('major_version')
-        if (version < 8) continue
+        if (version < 8) {
+            continue
+        }
 
         result.add(version)
     }
@@ -510,7 +546,9 @@ allprojects {
                 .allDependencyConstraints
                 .find { "${it.group}:${it.name}" == 'name.remal.gradle-api:gradle-api' }
                 ?.version
-            if (gradleApiVersion == null) throw new GradleException('Unknown Gradle API version')
+            if (gradleApiVersion == null) {
+                throw new GradleException('Unknown Gradle API version')
+            }
 
             Configuration tempConf = project.configurations.detachedConfiguration(
                 project.dependencies.create("name.remal.gradle-api:gradle-api:$gradleApiVersion")
@@ -522,7 +560,9 @@ allprojects {
                 .collect { it.id }
                 .find { "${it.group}:*" == notation || "${it.group}:${it.name}" == notation }
                 ?.version
-            if (version == null) throw new GradleException("Gradle API dependency not found: $notation")
+            if (version == null) {
+                throw new GradleException("Gradle API dependency not found: $notation")
+            }
             return version
         }
     }
@@ -585,7 +625,9 @@ allprojects {
 
     Set<Project> fatJarWithProjects = new LinkedHashSet<>()
     project.ext.fatJarWith = { Project otherProject ->
-        if (!fatJarWithProjects.add(otherProject)) return
+        if (!fatJarWithProjects.add(otherProject)) {
+            return
+        }
         project.withPluginAfterEvaluateOrNow('java') {
             otherProject.withPluginAfterEvaluateOrNow('java') {
                 fatJarWithImpl(otherProject)
@@ -703,4 +745,39 @@ project.ext.sendGitHubRestApiRequest = { String uriString, String method = null,
 
         return responseBody
     }
+}
+
+allprojects {
+    project.ext.redefineDependencyTargetJvmVersion = { String moduleNotation, int jvmVersion ->
+        allprojects {
+            dependencies.components {
+                withModule(moduleNotation, TargetJvmVersionRule) { params(jvmVersion) }
+            }
+        }
+    }
+}
+
+@CacheableRule
+abstract class TargetJvmVersionRule implements ComponentMetadataRule {
+
+    final Integer jvmVersion
+
+    @Inject
+    TargetJvmVersionRule(Integer jvmVersion) {
+        this.jvmVersion = jvmVersion
+    }
+
+    void execute(ComponentMetadataContext context) {
+        context.details.allVariants {
+            attributes {
+                attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, jvmVersion)
+            }
+        }
+    }
+
+    @Override
+    String toString() {
+        return "${getClass().simpleName}[$jvmVersion]"
+    }
+
 }
