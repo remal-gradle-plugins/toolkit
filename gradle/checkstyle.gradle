@@ -14,12 +14,6 @@ allprojects {
         conf.extendsFrom = conf.extendsFrom.findAll { it.name != 'projectDependencyConstraints' }
     }
 
-    configurations.checkstyle {
-        resolutionStrategy.capabilitiesResolution.withCapability("com.google.collections:google-collections") {
-            select("com.google.guava:guava:0")
-        }
-    }
-    
     checkstyle {
         ignoreFailures = false
         configFile = project.file("${project.rootProjectDir}/checkstyle.xml")
