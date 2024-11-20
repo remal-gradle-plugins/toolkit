@@ -587,7 +587,8 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
                     runner.getArguments().stream(),
                     Stream.of(
                         "--configuration-cache",
-                        "--configuration-cache-problems=fail"
+                        "--configuration-cache-problems=fail",
+                        "-Dorg.gradle.configuration-cache.stable=true"
                     )
                 ).collect(toList()));
             }
