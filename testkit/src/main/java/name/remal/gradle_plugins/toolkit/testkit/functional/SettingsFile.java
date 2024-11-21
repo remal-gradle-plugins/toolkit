@@ -23,7 +23,7 @@ public class SettingsFile extends AbstractGradleFile<SettingsFile> {
         isCurrentGradleVersionGreaterThanOrEqualTo(MIN_GRADLE_VERSION_WITH_TOOLCHAIN_RESOLVER);
 
     @Setter
-    private boolean withFoojayToolchainsResolver;
+    private boolean withFoojayToolchainsResolver = true;
 
     {
         applyPlugin("org.gradle.toolchains.foojay-resolver-convention", () -> {
