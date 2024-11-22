@@ -10,7 +10,9 @@ buildscript {
 apply plugin: 'org.gradle.toolchains.foojay-resolver-convention'
 
 gradle.beforeProject { Project project ->
-    if (project.parent != null) return
+    if (project.parent != null) {
+        return
+    }
 
     project.ext.settingsBuildscriptClasspathDependencies = settings.buildscript.configurations.classpath
         .resolvedConfiguration
@@ -30,9 +32,6 @@ include(
     ':toolkit',
     ':toolkit:cross-compile--common',
     ':toolkit:cross-compile--java-9-gte',
-    ':toolkit:cross-compile--gradle-5.0-lte',
-    ':toolkit:cross-compile--gradle-5.5-lte',
-    ':toolkit:cross-compile--gradle-5.9999-lt',
     ':toolkit:cross-compile--gradle-6.0-lte',
     ':toolkit:cross-compile--gradle-6.2-lte',
     ':toolkit:cross-compile--gradle-6.3-lte',
