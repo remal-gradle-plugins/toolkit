@@ -66,6 +66,39 @@ public abstract class ReflectionUtils {
         return isClassPresent(name, callingClass.getClassLoader());
     }
 
+
+    @Nullable
+    private static final Class<?> RECORD_CLASS = tryLoadClass("java.lang.Record");
+
+    public static boolean isRecord(Class<?> clazz) {
+        return RECORD_CLASS != null && RECORD_CLASS.isAssignableFrom(clazz);
+    }
+
+    public static boolean isIndependentClass(Class<?> clazz) {
+        if (clazz.isAnonymousClass()
+            || clazz.isLocalClass()
+        ) {
+            return false;
+        }
+
+        if (clazz.isPrimitive()
+            || clazz.isArray()
+            || clazz.isInterface()
+            || clazz.isAnnotation()
+            || clazz.isEnum()
+            || isRecord(clazz)
+        ) {
+            return true;
+        }
+
+        if (clazz.getEnclosingClass() == null) {
+            return true;
+        }
+
+        return clazz.getDeclaringClass() != null && isStatic(clazz);
+    }
+
+
     @SneakyThrows
     public static Class<?> defineClass(ClassLoader classLoader, byte[] bytecode) {
         ifDebugEnabled(() -> {
@@ -85,7 +118,7 @@ public abstract class ReflectionUtils {
             makeAccessible(defineClassMethod);
             return (Class<?>) defineClassMethod.invoke(classLoader, null, bytecode, 0, bytecode.length);
 
-        } catch (Exception exception) {
+        } catch (Throwable exception) {
             val className = new ClassReader(bytecode).getClassName().replace('/', '.');
             throw new RuntimeException("Class defining error: " + className, exception);
         }
@@ -199,6 +232,18 @@ public abstract class ReflectionUtils {
         return Modifier.isPublic(member.getModifiers());
     }
 
+    public static boolean isPrivate(Class<?> type) {
+        return Modifier.isPrivate(type.getModifiers());
+    }
+
+    public static boolean isPrivate(Member member) {
+        return Modifier.isPrivate(member.getModifiers());
+    }
+
+    public static boolean isStatic(Class<?> clazz) {
+        return Modifier.isStatic(clazz.getModifiers());
+    }
+
     public static boolean isStatic(Member member) {
         return Modifier.isStatic(member.getModifiers());
     }
@@ -219,6 +264,18 @@ public abstract class ReflectionUtils {
         return !isPublic(member);
     }
 
+    public static boolean isNotPrivate(Class<?> type) {
+        return !isPrivate(type);
+    }
+
+    public static boolean isNotPrivate(Member member) {
+        return !isPrivate(member);
+    }
+
+    public static boolean isNotStatic(Class<?> clazz) {
+        return !isStatic(clazz);
+    }
+
     public static boolean isNotStatic(Member member) {
         return !isStatic(member);
     }
@@ -235,9 +292,6 @@ public abstract class ReflectionUtils {
     private static final Pattern GETTER_NAME = Pattern.compile("^get[^a-z\\p{Ll}].*$");
     private static final Pattern BOOLEAN_GETTER_NAME = Pattern.compile("^is[^a-z\\p{Ll}].*$");
 
-    @Nullable
-    private static final Class<?> RECORD_CLASS = tryLoadClass("java.lang.Record");
-
     public static boolean isGetter(Method method) {
         if (isStatic(method)) {
             return false;
@@ -252,7 +306,7 @@ public abstract class ReflectionUtils {
             return false;
         }
 
-        if (RECORD_CLASS != null && RECORD_CLASS.isAssignableFrom(method.getDeclaringClass())) {
+        if (isRecord(method.getDeclaringClass())) {
             return true;
         }
 
@@ -274,7 +328,7 @@ public abstract class ReflectionUtils {
 
         val methodName = method.getName();
 
-        if (RECORD_CLASS != null && RECORD_CLASS.isAssignableFrom(method.getDeclaringClass())) {
+        if (isRecord(method.getDeclaringClass())) {
             return methodName;
         }
 
@@ -289,7 +343,7 @@ public abstract class ReflectionUtils {
 
 
     @Contract("_ -> param1")
-    @SuppressWarnings({"deprecation", "java:S3011"})
+    @SuppressWarnings({"deprecation", "java:S3011", "RedundantSuppression"})
     public static <T extends AccessibleObject & Member> T makeAccessible(T member) {
         if (!member.isAccessible()) {
             if (isNotPublic(member) || isNotPublic(member.getDeclaringClass())) {

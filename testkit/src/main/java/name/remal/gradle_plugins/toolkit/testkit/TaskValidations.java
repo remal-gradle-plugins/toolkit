@@ -5,6 +5,7 @@ import static java.util.stream.Collectors.joining;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.GradleVersionUtils.isCurrentGradleVersionGreaterThanOrEqualTo;
 import static name.remal.gradle_plugins.toolkit.ObjectUtils.isNotEmpty;
+import static name.remal.gradle_plugins.toolkit.reflection.MembersFinder.findMethod;
 import static name.remal.gradle_plugins.toolkit.reflection.MethodsInvoker.invokeMethod;
 import static name.remal.gradle_plugins.toolkit.reflection.MethodsInvoker.invokeStaticMethod;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.unwrapGeneratedSubclass;
@@ -15,7 +16,6 @@ import lombok.SneakyThrows;
 import lombok.val;
 import name.remal.gradle_plugins.toolkit.StringUtils;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
-import name.remal.gradle_plugins.toolkit.reflection.MembersFinder;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -78,7 +78,7 @@ public abstract class TaskValidations {
     private static LocalTaskNode getLocalTaskNode(Task task) {
         val taskNodeFactory = ((ProjectInternal) task.getProject()).getServices().get(TaskNodeFactory.class);
 
-        val getOrCreateNodeWithOrdinal = MembersFinder.findMethod(
+        val getOrCreateNodeWithOrdinal = findMethod(
             (Class<TaskNodeFactory>) taskNodeFactory.getClass(),
             TaskNode.class,
             "getOrCreateNode",
