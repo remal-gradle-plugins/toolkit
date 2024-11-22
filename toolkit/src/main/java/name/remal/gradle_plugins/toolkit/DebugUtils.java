@@ -6,6 +6,7 @@ import static javax.annotation.meta.When.UNKNOWN;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 
+import com.google.errorprone.annotations.CheckReturnValue;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.time.Duration;
@@ -49,6 +50,7 @@ public abstract class DebugUtils {
         logger.quiet(dumpClassLoader(classLoader));
     }
 
+    @CheckReturnValue
     public static String dumpClassLoader(@Nullable ClassLoader classLoader) {
         val message = new StringBuilder();
         dumpClassLoader(message, classLoader);
