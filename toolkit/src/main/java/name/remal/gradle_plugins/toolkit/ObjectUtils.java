@@ -136,7 +136,7 @@ public abstract class ObjectUtils {
         } else if (object instanceof Future) {
             return unwrapProviders(((Future<?>) object).get(5, MINUTES));
         } else if (object instanceof CompletionStage) {
-            return unwrapProviders(((CompletionStage<?>) object).toCompletableFuture().get(5, MINUTES));
+            return unwrapProviders(((CompletionStage<?>) object).toCompletableFuture());
 
         } else if (object instanceof AtomicBoolean) {
             return ((AtomicBoolean) object).get();
@@ -163,7 +163,7 @@ public abstract class ObjectUtils {
             return unwrapProviders(((Provider<?>) object).getOrNull());
 
         } else {
-            val dotClassName = '.' + object.getClass().getName();
+            val dotClassName = '.' + object.getClass().getName(); // support relocated classes too
             if (dotClassName.endsWith(".com.google.common.base.Absent")) {
                 return null;
             } else if (dotClassName.endsWith(".com.google.common.base.Present")) {

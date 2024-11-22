@@ -21,22 +21,19 @@ public abstract class ResolutionStrategyUtils {
         });
 
 
-        project.getPluginManager().withPlugin(
-            "io.spring.dependency-management",
-            __ -> {
-                Action<?> untypedAction = untypedResolutionStrategy -> {
-                    action.execute((ResolutionStrategy) untypedResolutionStrategy);
-                };
+        project.getPluginManager().withPlugin("io.spring.dependency-management", __ -> {
+            Action<?> untypedAction = untypedResolutionStrategy -> {
+                action.execute((ResolutionStrategy) untypedResolutionStrategy);
+            };
 
-                try {
-                    val dependencyManagement = getExtension(project, "dependencyManagement");
-                    invokeMethod(dependencyManagement, "resolutionStrategy", Action.class, untypedAction);
+            try {
+                val dependencyManagement = getExtension(project, "dependencyManagement");
+                invokeMethod(dependencyManagement, "resolutionStrategy", Action.class, untypedAction);
 
-                } catch (Throwable e) {
-                    logger.warn("Error calling `dependencyManagement.resolutionStrategy()`", e);
-                }
+            } catch (Throwable e) {
+                logger.warn("Error calling `dependencyManagement.resolutionStrategy()`", e);
             }
-        );
+        });
     }
 
 }
