@@ -8,6 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.AbstractList;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -150,6 +152,17 @@ class ReflectionUtilsTest {
 
         assertEquals(String.class, ReflectionUtils.unwrapPrimitiveType(String.class));
         assertEquals(Collection.class, ReflectionUtils.unwrapPrimitiveType(Collection.class));
+    }
+
+
+    @Test
+    void iterateClassHierarchyWithoutInterfaces() {
+        val result = ReflectionUtils.iterateClassHierarchyWithoutInterfaces(ArrayList.class);
+        assertThat(result).containsSubsequence(
+            ArrayList.class,
+            AbstractList.class,
+            Object.class
+        );
     }
 
 

@@ -9,6 +9,7 @@ import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.AbstractCompileUtils.getDestinationDir;
 import static name.remal.gradle_plugins.toolkit.CrossCompileServices.loadAllCrossCompileServiceImplementations;
 import static name.remal.gradle_plugins.toolkit.FileTreeElementUtils.isNotArchiveEntry;
+import static name.remal.gradle_plugins.toolkit.ThrowableUtils.unwrapReflectionException;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.isGetterOf;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.isNotStatic;
 
@@ -59,7 +60,13 @@ public abstract class SourceSetUtils {
     public static Set<String> getSourceSetConfigurationNames(SourceSet sourceSet) {
         Set<String> configurationNames = new LinkedHashSet<>();
         for (val method : GET_CONFIGURATION_NAME_METHODS) {
-            val nameObject = method.invoke(sourceSet);
+            final Object nameObject;
+            try {
+                nameObject = method.invoke(sourceSet);
+            } catch (Throwable e) {
+                throw unwrapReflectionException(e);
+            }
+
             if (nameObject != null) {
                 val name = nameObject.toString();
                 if (!name.isEmpty()) {
@@ -133,7 +140,13 @@ public abstract class SourceSetUtils {
     @SneakyThrows
     public static boolean isSourceSetTask(SourceSet sourceSet, Task task) {
         for (val method : GET_TASK_NAME_METHODS) {
-            val nameObject = method.invoke(sourceSet);
+            final Object nameObject;
+            try {
+                nameObject = method.invoke(sourceSet);
+            } catch (Throwable e) {
+                throw unwrapReflectionException(e);
+            }
+
             if (nameObject != null) {
                 val name = nameObject.toString();
                 if (!name.isEmpty()) {
@@ -167,12 +180,18 @@ public abstract class SourceSetUtils {
     @Unmodifiable
     @ReliesOnInternalGradleApi
     @SneakyThrows
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings({"deprecation", "java:S3776"})
     public static Collection<SourceDirectorySet> getAllSourceDirectorySets(SourceSet sourceSet) {
         Collection<SourceDirectorySet> result = newSetFromMap(new IdentityHashMap<>());
 
         for (val method : GET_SOURCE_DIRECTORY_SET_METHODS) {
-            val sourceDirectorySet = (SourceDirectorySet) method.invoke(sourceSet);
+            final SourceDirectorySet sourceDirectorySet;
+            try {
+                sourceDirectorySet = (SourceDirectorySet) method.invoke(sourceSet);
+            } catch (Throwable e) {
+                throw unwrapReflectionException(e);
+            }
+
             result.add(sourceDirectorySet);
         }
 
@@ -182,7 +201,13 @@ public abstract class SourceSetUtils {
                 val plugin = pluginEntry.getValue();
                 for (val pluginMethod : plugin.getClass().getMethods()) {
                     if (isNotStatic(pluginMethod) && isGetterOf(pluginMethod, SourceDirectorySet.class)) {
-                        val sourceDirectorySet = (SourceDirectorySet) pluginMethod.invoke(plugin);
+                        final SourceDirectorySet sourceDirectorySet;
+                        try {
+                            sourceDirectorySet = (SourceDirectorySet) pluginMethod.invoke(plugin);
+                        } catch (Throwable e) {
+                            throw unwrapReflectionException(e);
+                        }
+
                         result.add(sourceDirectorySet);
                     }
                 }

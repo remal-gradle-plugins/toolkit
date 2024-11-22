@@ -1,12 +1,15 @@
 package name.remal.gradle_plugins.toolkit.reflection;
 
 import static java.beans.Introspector.decapitalize;
+import static java.lang.ClassLoader.getSystemClassLoader;
 import static java.nio.file.Files.createTempFile;
 import static java.nio.file.Files.write;
+import static java.util.Collections.emptyIterator;
 import static javax.annotation.meta.When.UNKNOWN;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.CrossCompileServices.loadCrossCompileService;
 import static name.remal.gradle_plugins.toolkit.DebugUtils.ifDebugEnabled;
+import static name.remal.gradle_plugins.toolkit.ThrowableUtils.unwrapReflectionException;
 import static name.remal.gradle_plugins.toolkit.reflection.WhoCalledUtils.getCallingClass;
 
 import com.google.common.collect.ImmutableList;
@@ -16,10 +19,14 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.CustomLog;
@@ -68,7 +75,7 @@ public abstract class ReflectionUtils {
 
 
     @Nullable
-    private static final Class<?> RECORD_CLASS = tryLoadClass("java.lang.Record");
+    private static final Class<?> RECORD_CLASS = tryLoadClass("java.lang.Record", getSystemClassLoader());
 
     public static boolean isRecord(Class<?> clazz) {
         return RECORD_CLASS != null && RECORD_CLASS.isAssignableFrom(clazz);
@@ -120,10 +127,57 @@ public abstract class ReflectionUtils {
 
         } catch (Throwable exception) {
             val className = new ClassReader(bytecode).getClassName().replace('/', '.');
-            throw new RuntimeException("Class defining error: " + className, exception);
+            throw new RuntimeException("Class defining error: " + className, unwrapReflectionException(exception));
         }
     }
 
+
+    public static Iterable<Class<?>> iterateClassHierarchyWithoutInterfaces(@Nullable Class<?> rootClass) {
+        return new Iterable<Class<?>>() {
+            @Nonnull
+            @Override
+            public Iterator<Class<?>> iterator() {
+                if (rootClass == null) {
+                    return emptyIterator();
+                }
+
+                return new Iterator<Class<?>>() {
+                    @Nullable
+                    private Class<?> nextClass = rootClass;
+
+                    @Override
+                    public boolean hasNext() {
+                        return nextClass != null;
+                    }
+
+                    @Override
+                    public Class<?> next() {
+                        val currentClass = nextClass;
+                        if (currentClass == null) {
+                            throw new NoSuchElementException();
+                        }
+
+                        val superClass = currentClass.getSuperclass();
+                        if (superClass != null && superClass != currentClass) {
+                            nextClass = superClass;
+                        } else {
+                            nextClass = null;
+                        }
+
+                        return currentClass;
+                    }
+                };
+            }
+        };
+    }
+
+    public static Stream<Class<?>> streamClassHierarchyWithoutInterfaces(@Nullable Class<?> rootClass) {
+        if (rootClass == null) {
+            return Stream.empty();
+        }
+
+        return StreamSupport.stream(iterateClassHierarchyWithoutInterfaces(rootClass).spliterator(), false);
+    }
 
     @Unmodifiable
     public static List<Class<?>> getClassHierarchy(Class<?> rootClass) {
@@ -232,6 +286,22 @@ public abstract class ReflectionUtils {
         return Modifier.isPublic(member.getModifiers());
     }
 
+    public static boolean isProtected(Class<?> type) {
+        return Modifier.isProtected(type.getModifiers());
+    }
+
+    public static boolean isProtected(Member member) {
+        return Modifier.isProtected(member.getModifiers());
+    }
+
+    public static boolean isPackagePrivate(Class<?> type) {
+        return isNotPublic(type) && isNotProtected(type) && isNotPrivate(type);
+    }
+
+    public static boolean isPackagePrivate(Member member) {
+        return isNotPublic(member) && isNotProtected(member) && isNotPrivate(member);
+    }
+
     public static boolean isPrivate(Class<?> type) {
         return Modifier.isPrivate(type.getModifiers());
     }
@@ -256,12 +326,45 @@ public abstract class ReflectionUtils {
         return Modifier.isAbstract(method.getModifiers());
     }
 
+    public static boolean isFinal(Class<?> type) {
+        return Modifier.isFinal(type.getModifiers());
+    }
+
+    public static boolean isFinal(Method method) {
+        return Modifier.isFinal(method.getModifiers());
+    }
+
+    public static boolean isSynthetic(Class<?> type) {
+        return type.isSynthetic();
+    }
+
+    public static boolean isSynthetic(Member member) {
+        return member.isSynthetic();
+    }
+
+
     public static boolean isNotPublic(Class<?> type) {
         return !isPublic(type);
     }
 
     public static boolean isNotPublic(Member member) {
         return !isPublic(member);
+    }
+
+    public static boolean isNotProtected(Class<?> type) {
+        return !isProtected(type);
+    }
+
+    public static boolean isNotProtected(Member member) {
+        return !isProtected(member);
+    }
+
+    public static boolean isNotPackagePrivate(Class<?> type) {
+        return !isPackagePrivate(type);
+    }
+
+    public static boolean isNotPackagePrivate(Member member) {
+        return !isPackagePrivate(member);
     }
 
     public static boolean isNotPrivate(Class<?> type) {
@@ -288,12 +391,28 @@ public abstract class ReflectionUtils {
         return !isAbstract(method);
     }
 
+    public static boolean isNotFinal(Class<?> type) {
+        return !isFinal(type);
+    }
+
+    public static boolean isNotFinal(Method method) {
+        return !isFinal(method);
+    }
+
+    public static boolean isNotSynthetic(Class<?> type) {
+        return !isSynthetic(type);
+    }
+
+    public static boolean isNotSynthetic(Member member) {
+        return !isSynthetic(member);
+    }
+
 
     private static final Pattern GETTER_NAME = Pattern.compile("^get[^a-z\\p{Ll}].*$");
     private static final Pattern BOOLEAN_GETTER_NAME = Pattern.compile("^is[^a-z\\p{Ll}].*$");
 
     public static boolean isGetter(Method method) {
-        if (isStatic(method)) {
+        if (isStatic(method) || isSynthetic(method)) {
             return false;
         }
 
@@ -358,14 +477,19 @@ public abstract class ReflectionUtils {
         = loadCrossCompileService(DefaultMethodInvoker.class);
 
     @Nonnull(when = UNKNOWN)
+    @SneakyThrows
     public static Object invokeDefaultMethod(Method method, Object target, @Nullable Object... args) {
         if (!method.isDefault()) {
             throw new IllegalArgumentException("Not a default method: " + method);
         }
-        if (args == null) {
-            return DEFAULT_METHOD_INVOKER.invoke(method, target);
-        } else {
-            return DEFAULT_METHOD_INVOKER.invoke(method, target, args);
+        try {
+            if (args == null) {
+                return DEFAULT_METHOD_INVOKER.invoke(method, target);
+            } else {
+                return DEFAULT_METHOD_INVOKER.invoke(method, target, args);
+            }
+        } catch (Throwable e) {
+            throw unwrapReflectionException(e);
         }
     }
 

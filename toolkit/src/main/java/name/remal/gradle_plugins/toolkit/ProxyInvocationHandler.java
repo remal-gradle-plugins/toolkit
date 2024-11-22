@@ -6,6 +6,7 @@ import static javax.annotation.meta.When.UNKNOWN;
 import static name.remal.gradle_plugins.toolkit.ProxyUtils.isEqualsMethod;
 import static name.remal.gradle_plugins.toolkit.ProxyUtils.isHashCodeMethod;
 import static name.remal.gradle_plugins.toolkit.ProxyUtils.isToStringMethod;
+import static name.remal.gradle_plugins.toolkit.ThrowableUtils.unwrapReflectionException;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.invokeDefaultMethod;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
@@ -40,7 +41,11 @@ public final class ProxyInvocationHandler implements InvocationHandler {
     public Object invoke(Object proxy, Method method, @Nonnull(when = UNKNOWN) Object[] args) throws Throwable {
         for (val handler : handlers) {
             if (handler.getPredicate().test(method)) {
-                return handler.getImpl().invoke(proxy, method, args);
+                try {
+                    return handler.getImpl().invoke(proxy, method, args);
+                } catch (Throwable e) {
+                    throw unwrapReflectionException(e);
+                }
             }
         }
 

@@ -3,20 +3,18 @@ package name.remal.gradle_plugins.toolkit;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.ExtensionContainerUtils.getExtension;
 import static name.remal.gradle_plugins.toolkit.ExtensionContainerUtils.getOptionalExtension;
+import static name.remal.gradle_plugins.toolkit.GradleManagedObjectsUtils.copyManagedProperties;
 import static name.remal.gradle_plugins.toolkit.ServiceRegistryUtils.getService;
-import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.isGetterOf;
 
 import java.util.function.BiFunction;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.val;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainService;
@@ -69,7 +67,7 @@ public abstract class JavaToolchainServiceUtils {
             val toolchain = getJavaToolchainSpecOf(project);
             if (toolchain != null) {
                 val provider = getter.apply(javaToolchainService, spec -> {
-                    copyJavaToolchainSpec(toolchain, spec);
+                    copyManagedProperties(JavaToolchainSpec.class, toolchain, spec);
                     configurer.execute(spec);
                 });
                 return provider.orElse(currentJvmProvider).get();
@@ -84,20 +82,6 @@ public abstract class JavaToolchainServiceUtils {
         return getOptionalExtension(project, JavaPluginExtension.class)
             .map(JavaPluginExtension::getToolchain)
             .orElse(null);
-    }
-
-    @SuppressWarnings("unchecked")
-    @SneakyThrows
-    private static void copyJavaToolchainSpec(JavaToolchainSpec from, JavaToolchainSpec to) {
-        for (val method : JavaToolchainSpec.class.getMethods()) {
-            if (isGetterOf(method, Property.class)) {
-                val propertyFrom = (Property<Object>) method.invoke(from);
-                val propertyTo = (Property<Object>) method.invoke(to);
-                if (propertyFrom != null && propertyTo != null) {
-                    propertyTo.convention(propertyFrom);
-                }
-            }
-        }
     }
 
 }
