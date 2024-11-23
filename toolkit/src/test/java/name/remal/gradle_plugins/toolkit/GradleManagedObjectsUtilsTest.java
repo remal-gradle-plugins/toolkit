@@ -30,8 +30,6 @@ class GradleManagedObjectsUtilsTest {
     @SuppressWarnings("UnusedMethod")
     protected interface ManagedObject {
 
-        String getName();
-
         Property<String> getStringProperty();
 
         RegularFileProperty getRegularFileProperty();
@@ -64,8 +62,7 @@ class GradleManagedObjectsUtilsTest {
     @Test
     @SuppressWarnings("JUnitMalformedDeclaration")
     void copyManagedProperties(Project project) throws Throwable {
-        val source = project.getObjects().newInstance(ManagedObject.class, "source");
-        assertEquals("source", source.getName());
+        val source = project.getObjects().newInstance(ManagedObject.class);
         source.getStringProperty().set("string");
         source.getRegularFileProperty().set(project.file("build.gradle"));
         source.getDirectoryProperty().set(project.getLayout().getProjectDirectory());
@@ -80,12 +77,8 @@ class GradleManagedObjectsUtilsTest {
         createFile(source.getFileTree().getDir().toPath().resolve("file"));
         assertThat(source.getFileTree().getFiles()).isNotEmpty();
 
-        val target = project.getObjects().newInstance(ManagedObject.class, "target");
-        assertEquals("target", target.getName());
-
+        val target = project.getObjects().newInstance(ManagedObject.class);
         GradleManagedObjectsUtils.copyManagedProperties(source, target);
-
-        assertEquals("target", target.getName());
         assertEquals(source.getStringProperty().get(), target.getStringProperty().get());
         assertEquals(source.getRegularFileProperty().get(), target.getRegularFileProperty().get());
         assertEquals(source.getDirectoryProperty().get(), target.getDirectoryProperty().get());

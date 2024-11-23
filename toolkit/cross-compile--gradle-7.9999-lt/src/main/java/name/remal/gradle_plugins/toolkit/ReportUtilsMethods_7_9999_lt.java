@@ -11,7 +11,7 @@ import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.Report;
 
 @AutoService(ReportUtilsMethods.class)
-final class ReportUtilsMethodsDefault implements ReportUtilsMethods {
+final class ReportUtilsMethods_7_9999_lt implements ReportUtilsMethods {
 
     @Override
     public boolean isReportEnabled(Report report) {
