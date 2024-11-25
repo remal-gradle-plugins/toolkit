@@ -565,7 +565,7 @@ Closure<String> getPluginLastVersion = project.ext.getPluginLastVersion = { Stri
     if (versions.isEmpty()) {
         throw new IllegalStateException("Not versions found for plugin '$pluginId'")
     }
-    return versions.first()
+    return versions.last()
 }
 
 

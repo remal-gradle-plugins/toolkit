@@ -100,5 +100,29 @@ allprojects {
                 readmeFile.setText(content, 'UTF-8')
             }
         )
+
+        task.ext.readmeFileProcessors.add(
+            { File readmeFile ->
+                String content = readmeFile.getText('UTF-8')
+
+                content = content.replaceAll(
+                    /<!--\s*(plugin-usage(?:-(?:groovy|kotlin))?)\s*:\s*([^>]+?)\s*-->[\s\S]*?<!--\s*\/\s*\1\s*-->/
+                ) {
+                    String tag = it[1]
+                    String pluginId = it[2]
+                    logger.lifecycle('  Handling {}: {}', tag, pluginId)
+                    String lastVersion = project.getPluginLastVersion(pluginId)
+                    String usage = ''
+                    if (tag.endsWith('-kotlin')) {
+                        usage = "```kotlin\nplugins {\n    id(\"$pluginId\") version \"$lastVersion\"\n}\n```"
+                    } else {
+                        usage = "```groovy\nplugins {\n    id '$pluginId' version '$lastVersion'\n}\n```"
+                    }
+                    return "<!--$tag:$pluginId-->\n$usage\n<!--/$tag-->"
+                }
+
+                readmeFile.setText(content, 'UTF-8')
+            }
+        )
     }
 }
