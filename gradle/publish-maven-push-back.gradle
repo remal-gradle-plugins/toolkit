@@ -52,7 +52,7 @@ tasks.register('pushBackPublishedVersions') { Task task ->
                             "contents/${URLDecoder.decode(versionFilePath, 'UTF-8')}",
                             'PUT',
                             [
-                                message: "[push-back] Update $versionFilePath",
+                                message: "[no-changelog] Update $versionFilePath",
                                 content: Base64.encoder.encodeToString(curContent.getBytes('UTF-8')),
                                 sha: getResponse?.sha
                             ],
