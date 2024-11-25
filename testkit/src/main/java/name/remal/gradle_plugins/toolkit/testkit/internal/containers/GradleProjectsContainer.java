@@ -1,7 +1,5 @@
 package name.remal.gradle_plugins.toolkit.testkit.internal.containers;
 
-import static java.nio.file.Files.createTempDirectory;
-
 import lombok.SneakyThrows;
 import lombok.val;
 import name.remal.gradle_plugins.toolkit.testkit.functional.GradleProject;
@@ -39,7 +37,7 @@ public class GradleProjectsContainer extends AbstractExtensionContextContainer<G
 
     @SneakyThrows
     private GradleProject newGradleProject(ProjectDirPrefix dirPrefix) {
-        val projectDir = createTempDirectory(dirPrefix.toString()).toAbsolutePath().toFile();
+        val projectDir = dirPrefix.createTempDir().toFile();
         val gradleProject = new GradleProject(projectDir);
         registerResource(gradleProject);
         return gradleProject;

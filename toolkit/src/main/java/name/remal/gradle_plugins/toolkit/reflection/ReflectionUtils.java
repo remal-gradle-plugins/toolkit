@@ -107,6 +107,7 @@ public abstract class ReflectionUtils {
 
 
     @SneakyThrows
+    @SuppressWarnings("java:S5443")
     public static Class<?> defineClass(ClassLoader classLoader, byte[] bytecode) {
         ifDebugEnabled(() -> {
             val className = new ClassReader(bytecode).getClassName().replace('/', '.');

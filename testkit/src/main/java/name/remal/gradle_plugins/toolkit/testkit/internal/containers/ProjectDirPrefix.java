@@ -1,13 +1,20 @@
 package name.remal.gradle_plugins.toolkit.testkit.internal.containers;
 
+import static java.nio.file.Files.createTempDirectory;
+import static java.util.Arrays.binarySearch;
+import static java.util.Arrays.sort;
+import static name.remal.gradle_plugins.toolkit.PathUtils.normalizePath;
+
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.regex.Pattern;
 import javax.annotation.Nullable;
+import lombok.SneakyThrows;
 import lombok.val;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 @Internal
@@ -35,7 +42,8 @@ public class ProjectDirPrefix {
     @Nullable
     private final ProjectDirPrefix parent;
 
-    private ProjectDirPrefix() {
+    @VisibleForTesting
+    ProjectDirPrefix() {
         this.parent = null;
     }
 
@@ -51,7 +59,6 @@ public class ProjectDirPrefix {
     @CanIgnoreReturnValue
     public ProjectDirPrefix push(@Nullable String dirPrefix) {
         if (dirPrefix != null && !dirPrefix.isEmpty()) {
-            dirPrefix = normalizeDirPrefix(dirPrefix);
             dirPrefixes.addLast(dirPrefix);
         }
         return this;
@@ -63,7 +70,6 @@ public class ProjectDirPrefix {
             return null;
         }
 
-        expectedLastDirPrefix = normalizeDirPrefix(expectedLastDirPrefix);
         val lastItem = dirPrefixes.peekLast();
         if (expectedLastDirPrefix.equals(lastItem)) {
             dirPrefixes.removeLast();
@@ -92,10 +98,37 @@ public class ProjectDirPrefix {
     }
 
 
-    private static final Pattern FORBIDDEN_DIR_PREFIX_CHARS = Pattern.compile("[\\\\/:<>\"'|?*]");
+    private static final char[] FORBIDDEN_DIR_PREFIX_CHARS = "\\/:<>\"'|?*${}()&[]^".toCharArray();
 
-    private static String normalizeDirPrefix(String dirPrefix) {
-        return FORBIDDEN_DIR_PREFIX_CHARS.matcher(dirPrefix).replaceAll("-");
+    static {
+        sort(FORBIDDEN_DIR_PREFIX_CHARS);
+    }
+
+    @VisibleForTesting
+    String getTempDirPrefix() {
+        val unescapedPrefix = toString();
+        val prefix = new StringBuilder(unescapedPrefix.length() + 1);
+        for (int index = 0; index < unescapedPrefix.length(); index++) {
+            val ch = unescapedPrefix.charAt(index);
+            if (binarySearch(FORBIDDEN_DIR_PREFIX_CHARS, ch) >= 0) {
+                prefix.append('-');
+            } else if (ch < 32 || ch > 126) {
+                prefix.append('-');
+            } else {
+                prefix.append(ch);
+            }
+        }
+
+        prefix.append('-');
+        return prefix.toString();
+    }
+
+    @SneakyThrows
+    @SuppressWarnings("java:S5443")
+    public Path createTempDir() {
+        Path path = createTempDirectory(getTempDirPrefix());
+        path = normalizePath(path);
+        return path;
     }
 
 }
