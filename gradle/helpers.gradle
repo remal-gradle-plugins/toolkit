@@ -7,6 +7,8 @@ import static org.gradle.api.attributes.Category.VERIFICATION
 
 import groovy.json.JsonGenerator
 import groovy.json.JsonSlurper
+import groovy.xml.XmlSlurper
+import groovy.xml.slurpersupport.GPathResult
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.net.http.HttpClient
@@ -25,6 +27,9 @@ import org.json.JSONObject
 import org.json.JSONTokener
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import org.xml.sax.EntityResolver
+import org.xml.sax.InputSource
+import org.xml.sax.SAXException
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -410,8 +415,8 @@ Closure<byte[]> loadUrlContent = project.ext.loadUrlContent = { Object untypedUr
 
         URL url = project.uri(untypedUrl).toURL()
         URLConnection connection = url.openConnection()
-        connection.connectTimeout = 5000
-        connection.readTimeout = 15000
+        connection.connectTimeout = 5_000
+        connection.readTimeout = 30_000
         connection.useCaches = false
         try {
             if (connection instanceof HttpURLConnection) {
@@ -433,19 +438,31 @@ Closure<byte[]> loadUrlContent = project.ext.loadUrlContent = { Object untypedUr
     }
 }
 
-Closure<String> loadTextUrlContent = project.ext.loadTextUrlContent = { Object untypedUrl, String encoding = 'UTF-8', String cacheFileNameSuffix = null ->
+Closure<String> loadTextUrlContent = project.ext.loadTextUrlContent = { Object untypedUrl, String encoding = null, String cacheFileNameSuffix = null ->
     byte[] content = loadUrlContent(untypedUrl, cacheFileNameSuffix)
-    return new String(content, encoding)
+    return new String(content, encoding ?: 'UTF-8')
 }
 
-Closure<JSONArray> loadJsonFromUrl = project.ext.loadJsonFromUrl = { Object untypedUrl, String encoding = 'UTF-8' ->
+Closure<JSONArray> loadJsonFromUrl = project.ext.loadJsonFromUrl = { Object untypedUrl, String encoding = null ->
     String content = loadTextUrlContent(untypedUrl, encoding, '.json')
     return new JSONTokener(content).nextValue()
 }
 
-Closure<Document> loadHtmlFromUrl = project.ext.loadHtmlFromUrl = { Object untypedUrl, String encoding = 'UTF-8' ->
+Closure<Document> loadHtmlFromUrl = project.ext.loadHtmlFromUrl = { Object untypedUrl, String encoding = null ->
     String content = loadTextUrlContent(untypedUrl, encoding, '.html')
     return Jsoup.parse(content, project.uri(untypedUrl).toString())
+}
+
+Closure<GPathResult> loadXmlFromUrl = project.ext.loadXmlFromUrl = { Object untypedUrl, String encoding = null ->
+    XmlSlurper xmlParser = new XmlSlurper(false, true, true)
+    xmlParser.entityResolver = new EntityResolver() {
+        @Override
+        InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
+            new InputSource(new StringReader(""))
+        }
+    }
+    String content = loadTextUrlContent(untypedUrl, encoding, '.xml')
+    return xmlParser.parseText(content)
 }
 
 Closure<List<GradleVersion>> getAllGradleVersions = project.ext.getAllGradleVersions = {
@@ -536,6 +553,20 @@ Closure<List<Integer>> getLtsJavaRuntimeVersions = project.ext.getLtsJavaRuntime
         versionObject.getString('term_of_support') == 'LTS'
     }
 }.memoize()
+
+
+Closure<List<String>> getPluginVersions = project.ext.getPluginVersions = { String pluginId ->
+    def metadata = loadXmlFromUrl("https://plugins.gradle.org/m2/${pluginId.replace('.', '/')}/${pluginId}.gradle.plugin/maven-metadata.xml")
+    return metadata.versioning.versions.version*.text().collect()
+}.memoize()
+
+Closure<String> getPluginLastVersion = project.ext.getPluginLastVersion = { String pluginId ->
+    List<String> versions = getPluginVersions(pluginId)
+    if (versions.isEmpty()) {
+        throw new IllegalStateException("Not versions found for plugin '$pluginId'")
+    }
+    return versions.first()
+}
 
 
 ConcurrentMap<String, String> getGradleApiDependencyVersionCache = new ConcurrentHashMap<>()
