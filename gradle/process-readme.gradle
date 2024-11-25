@@ -3,24 +3,29 @@ allprojects {
         task.group = 'documentation'
         task.outputs.upToDateWhen { false }
 
-        List<Closure> readmeFileProcessors = []
-        task.ext.readmeFileProcessors = readmeFileProcessors
+        task.ext.readmeFileProcessors = []
 
         task.doLast {
-            if (readmeFileProcessors.isEmpty()) return
+            List<Closure> readmeFileProcessors = task.ext.readmeFileProcessors
+            if (readmeFileProcessors.isEmpty()) {
+                return
+            }
 
             FileTree files = project.fileTree(project.projectDir) {
                 include('README.md')
             }
             files.visit { FileVisitDetails details ->
-                if (details.directory) return
+                if (details.directory) {
+                    return
+                }
+
                 File readmeFile = details.file
                 logger.lifecycle('Processing {}', readmeFile)
                 readmeFileProcessors.forEach { fileProcessor -> fileProcessor(readmeFile) }
             }
         }
 
-        readmeFileProcessors.add(
+        task.ext.readmeFileProcessors.add(
             { File readmeFile ->
                 String content = readmeFile.getText('UTF-8')
 
@@ -42,7 +47,7 @@ allprojects {
             }
         )
 
-        readmeFileProcessors.add(
+        task.ext.readmeFileProcessors.add(
             { File readmeFile ->
                 String content = readmeFile.getText('UTF-8')
 
@@ -67,7 +72,7 @@ allprojects {
             }
         )
 
-        readmeFileProcessors.add(
+        task.ext.readmeFileProcessors.add(
             { File readmeFile ->
                 String content = readmeFile.getText('UTF-8')
 

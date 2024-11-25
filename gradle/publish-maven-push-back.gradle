@@ -2,7 +2,9 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultV
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException
 
-if (project.isBuildSrcProject) return
+if (project.isBuildSrcProject) {
+    return
+}
 
 tasks.register('pushBackPublishedVersions') { Task task ->
     task.group = 'documentation'
@@ -25,33 +27,33 @@ tasks.register('pushBackPublishedVersions') { Task task ->
                         "contents/${URLDecoder.decode(versionFilePath, 'UTF-8')}",
                     )
 
-                    String previouslyPublishedVersion = getResponse?.content?.with {
+                    String prevContent = getResponse?.content?.with {
                         new String(Base64.decoder.decode(it.trim()), "UTF-8").trim()
                     }
-                    String currentVersion = publication.version
-                    if (previouslyPublishedVersion?.length()) {
+                    String curContent = publication.version
+                    if (prevContent?.length()) {
                         VersionParser parser = new VersionParser()
-                        def prevVer = parser.transform(previouslyPublishedVersion)
-                        def curVer = parser.transform(currentVersion)
+                        def prevVer = parser.transform(prevContent)
+                        def curVer = parser.transform(curContent)
                         Comparator comparator = new DefaultVersionComparator().asVersionComparator()
                         int comparisonResult = comparator.compare(prevVer, curVer)
                         if (comparisonResult == 0) {
-                            logger.quiet("Version {} has been already reported to {}", currentVersion, versionFilePath)
+                            logger.quiet("Version {} has been already reported to {}", curContent, versionFilePath)
                             return
                         } else if (comparisonResult > 0) {
-                            logger.quiet("Version {} is less than what was already reported to {}: {}", currentVersion, versionFilePath, previouslyPublishedVersion)
+                            logger.quiet("Version {} is less than what was already reported to {}: {}", curContent, versionFilePath, prevContent)
                             return
                         }
                     }
 
                     try {
-                        logger.quiet("Reporting version {} to {}", currentVersion, versionFilePath)
+                        logger.quiet("Reporting version {} to {}", curContent, versionFilePath)
                         project.sendGitHubRestApiRequest(
                             "contents/${URLDecoder.decode(versionFilePath, 'UTF-8')}",
                             'PUT',
                             [
                                 message: "[push-back] Update $versionFilePath",
-                                content: Base64.encoder.encodeToString(currentVersion.getBytes('UTF-8')),
+                                content: Base64.encoder.encodeToString(curContent.getBytes('UTF-8')),
                                 sha: getResponse?.sha
                             ],
                         )
