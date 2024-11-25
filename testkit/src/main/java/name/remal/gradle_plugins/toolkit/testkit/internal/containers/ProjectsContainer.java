@@ -1,7 +1,6 @@
 package name.remal.gradle_plugins.toolkit.testkit.internal.containers;
 
 import static java.lang.String.format;
-import static java.nio.file.Files.createTempDirectory;
 import static org.codehaus.groovy.runtime.ResourceGroovyMethods.deleteDir;
 
 import java.lang.reflect.Parameter;
@@ -59,12 +58,12 @@ public class ProjectsContainer extends AbstractExtensionContextContainer<Project
         return newProject(parentProject, dirPrefix);
     }
 
-    @SneakyThrows
     @ReliesOnInternalGradleApi
+    @SneakyThrows
     private synchronized Project newProject(@Nullable Project parentProject, ProjectDirPrefix dirPrefix) {
         final Project project;
         if (parentProject == null) {
-            val projectDir = createTempDirectory(dirPrefix.toString()).toAbsolutePath().toFile();
+            val projectDir = dirPrefix.createTempDir().toFile();
             project = ProjectBuilder.builder()
                 .withProjectDir(projectDir)
                 .withName(projectDir.getName())

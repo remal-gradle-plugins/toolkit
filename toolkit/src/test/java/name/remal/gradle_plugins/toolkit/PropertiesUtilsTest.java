@@ -2,6 +2,7 @@ package name.remal.gradle_plugins.toolkit;
 
 import static java.lang.Character.MAX_CODE_POINT;
 import static java.lang.Character.MIN_CODE_POINT;
+import static java.lang.Character.toChars;
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,7 +22,7 @@ class PropertiesUtilsTest {
         val string = new StringBuilder();
         string.append(' ');
         IntStream.rangeClosed(MIN_CODE_POINT, MAX_CODE_POINT).forEach(codePoint -> {
-            for (val ch : Character.toChars(codePoint)) {
+            for (val ch : toChars(codePoint)) {
                 string.append(ch);
             }
         });
