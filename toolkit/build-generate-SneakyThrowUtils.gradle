@@ -3,6 +3,7 @@ import static java.lang.reflect.Modifier.isAbstract
 import com.google.common.reflect.Invokable
 import com.google.common.reflect.TypeToken
 import java.lang.reflect.Method
+import java.lang.reflect.Parameter
 import java.lang.reflect.Type
 import java.lang.reflect.TypeVariable
 
@@ -29,6 +30,7 @@ tasks.named('generateJava') {
         Class.forName('org.gradle.api.Action'),
         Class.forName('java.lang.Runnable'),
         Class.forName('java.util.concurrent.Callable'),
+        Class.forName('java.util.Comparator'),
         Class.forName('java.util.function.BiConsumer'),
         Class.forName('java.util.function.BiFunction'),
         Class.forName('java.util.function.BinaryOperator'),
@@ -72,7 +74,11 @@ tasks.named('generateJava') {
         Class.forName('java.util.function.ToLongBiFunction'),
         Class.forName('java.util.function.ToLongFunction'),
         Class.forName('java.util.function.UnaryOperator'),
-    ].sort { it.name }
+        Class.forName('java.io.FileFilter'),
+        Class.forName('java.io.FilenameFilter'),
+        Class.forName('java.nio.file.DirectoryStream$Filter'),
+        Class.forName('java.nio.file.PathMatcher'),
+    ]
 
     inputs.files(lambdaClasses.collect { it.protectionDomain?.codeSource?.location }.findAll { it != null }.toSet()).optional()
 
@@ -87,7 +93,11 @@ tasks.named('generateJava') {
             'lombok.NoArgsConstructor',
             'javax.annotation.Nonnull',
             'com.google.errorprone.annotations.CheckReturnValue',
-        ]).sort().findAll { !it.matches(/^java\.lang\.[^.]+$/) }.forEach { name -> it.writeImport(name) }
+        ])
+            .sort()
+            .findAll { !it.matches(/^java\.lang\.[^.]+$/) }
+            .collect { it.replaceFirst(/^(.+)\$.+$/, '$1') }
+            .forEach { name -> it.writeImport(name) }
         it.println("")
         it.println("@NoArgsConstructor(access = PRIVATE)")
         it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "checkstyle:OverloadMethodsDeclarationOrder", "overloads", "java:S1611", "java:S6539")
@@ -106,9 +116,18 @@ tasks.named('generateJava') {
                 it.println("throw (T) exception;")
             }
 
+            Set<String> usedNames = new LinkedHashSet<>()
             lambdaClasses.forEach { lambdaClass ->
-                Method method = lambdaClass.methods.find { isAbstract(it.modifiers) }
-                if (method == null) throw new GradleException("Abstract method can't be found for $lambdaClass")
+                Method method = lambdaClass.methods
+                    .findAll {
+                        !(it.name == 'equals' && it.parameterTypes == [Object])
+                            && !(it.name == 'toString' && it.parameterCount === 0)
+                            && !(it.name == 'hashCode' && it.parameterCount === 0)
+                    }
+                    .find { isAbstract(it.modifiers) }
+                if (method == null) {
+                    throw new GradleException("Abstract method can't be found for $lambdaClass")
+                }
 
                 List<TypeVariable> typeParams = lambdaClass.typeParameters.collect()
                 String typeParamsString = typeParams.isEmpty() ? '' : '<' + typeParams.join(', ') + '>'
@@ -117,33 +136,48 @@ tasks.named('generateJava') {
                     .getSupertype(method.declaringClass)
                     .method(method)
 
-                String paramsString = method.parameters.collect().withIndex().collect { param, index ->
+                String paramsString = method.parameters.collect().withIndex().collect { Parameter param, int index ->
                     Type type = resolvedMethod.genericParameterTypes[index]
-                    boolean primitive = TypeToken.of(type).rawType.primitive
-                    String annotations = primitive ? '' : '@Nonnull(when = UNKNOWN) '
-                    return "${annotations}${type} ${param.name}"
+                    boolean isPrimitive = param.type.primitive
+                    String annotations = isPrimitive ? '' : '@Nonnull(when = UNKNOWN) '
+                    return "${annotations}${type.typeName} ${param.name}"
                 }.join(', ')
                 String paramNamesString = method.parameters.collect { it.name }.join(', ')
 
+                String originalSimpleName = lambdaClass.name.replaceFirst(/^.+\.([^.]+)$/, '$1').replace('$', '.')
+                String resultSimpleName = originalSimpleName.replace('.', '')
+
                 it.println("")
                 it.println("")
+                it.println("/**")
+                it.println(" * Throwing {@link Throwable} alternative for {@link ${originalSimpleName}}.")
+                it.println(" */")
                 it.println("@FunctionalInterface")
-                it.writeBlock("public interface SneakyThrows${lambdaClass.simpleName}${typeParamsString}") {
+                it.writeBlock("public interface SneakyThrows${resultSimpleName}${typeParamsString}") {
                     if (!resolvedMethod.returnType.primitive) {
                         it.println("@Nonnull(when = UNKNOWN)")
                     }
                     it.println("${resolvedMethod.genericReturnType} ${method.name}($paramsString) throws Throwable;")
                 }
+
                 it.println("")
                 it.println("@CheckReturnValue")
-                it.writeBlock("public static${!typeParamsString.isEmpty() ? ' ' + typeParamsString : ''} ${lambdaClass.simpleName}${typeParamsString} sneakyThrows(SneakyThrows${lambdaClass.simpleName}${typeParamsString} ${lambdaClass.simpleName.uncapitalize()})") {
+                it.writeBlock("public static${!typeParamsString.isEmpty() ? ' ' + typeParamsString : ''} ${originalSimpleName}${typeParamsString} sneakyThrows(SneakyThrows${resultSimpleName}${typeParamsString} ${resultSimpleName.uncapitalize()})") {
                     it.println("return ($paramNamesString) -> {")
                     it.println("    try {")
-                    it.println("        ${resolvedMethod.genericReturnType != void.class ? 'return ' : ''}${lambdaClass.simpleName.uncapitalize()}.${method.name}($paramNamesString);")
+                    it.println("        ${resolvedMethod.genericReturnType != void.class ? 'return ' : ''}${resultSimpleName.uncapitalize()}.${method.name}($paramNamesString);")
                     it.println("    } catch (Throwable exception) {")
                     it.println("        throw sneakyThrow(exception);")
                     it.println("    }")
                     it.println("};")
+                }
+
+                if (usedNames.add(resultSimpleName)) {
+                    it.println("")
+                    it.println("@CheckReturnValue")
+                    it.writeBlock("public static${!typeParamsString.isEmpty() ? ' ' + typeParamsString : ''} ${originalSimpleName}${typeParamsString} sneakyThrows${resultSimpleName}(SneakyThrows${resultSimpleName}${typeParamsString} ${resultSimpleName.uncapitalize()})") {
+                        it.println("return sneakyThrows(${resultSimpleName.uncapitalize()});")
+                    }
                 }
             }
         }
