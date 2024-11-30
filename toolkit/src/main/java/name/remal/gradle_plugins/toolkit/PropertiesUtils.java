@@ -1,5 +1,6 @@
 package name.remal.gradle_plugins.toolkit;
 
+import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.ISO_8859_1;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.newInputStream;
@@ -119,6 +120,7 @@ public abstract class PropertiesUtils {
                 || (ch == ' ' && index == 0)
             ) {
                 writer.append('\\').append(ch);
+
             } else if (ch == '\t') {
                 writer.append("\\t");
             } else if (ch == '\n') {
@@ -127,8 +129,10 @@ public abstract class PropertiesUtils {
                 writer.append("\\r");
             } else if (ch == '\f') {
                 writer.append("\\f");
+
             } else if (ch <= 31 || 127 <= ch) {
-                writer.append("\\u").append(String.format("%04x", (int) ch).toUpperCase());
+                writer.append("\\u").append(format("%04x", (int) ch).toUpperCase());
+
             } else {
                 writer.append(ch);
             }
