@@ -9,20 +9,15 @@ public final class CacheableCallable<V> implements Callable<V> {
     }
 
 
-    private final LazyInitializer<V> lazyInitializer;
+    private final LazyValue<V> lazyValue;
 
     private CacheableCallable(Callable<V> delegate) {
-        this.lazyInitializer = new LazyInitializer<V>() {
-            @Override
-            protected V create() throws Throwable {
-                return delegate.call();
-            }
-        };
+        this.lazyValue = LazyValue.of(delegate::call);
     }
 
     @Override
     public V call() {
-        return lazyInitializer.get();
+        return lazyValue.get();
     }
 
 }

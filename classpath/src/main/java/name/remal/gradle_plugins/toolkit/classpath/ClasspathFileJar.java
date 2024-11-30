@@ -17,7 +17,7 @@ import java.util.zip.ZipInputStream;
 import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import lombok.val;
-import name.remal.gradle_plugins.toolkit.LazyInitializer;
+import name.remal.gradle_plugins.toolkit.LazyValue;
 
 @SuppressWarnings("java:S2160")
 final class ClasspathFileJar extends ClasspathFileBase {
@@ -184,23 +184,19 @@ final class ClasspathFileJar extends ClasspathFileBase {
         return TRUE.equals(isMultiRelease.get());
     }
 
-    private final LazyInitializer<Boolean> isMultiRelease = new LazyInitializer<Boolean>() {
-        @Override
-        @SneakyThrows
-        protected Boolean create() {
-            try (val zipFile = new ZipFile(file)) {
-                val manifestEntry = zipFile.getEntry(MANIFEST_RESOURCE_NAME);
-                if (manifestEntry != null) {
-                    try (val manifestStream = zipFile.getInputStream(manifestEntry)) {
-                        val manifest = new Manifest(manifestStream);
-                        return parseBoolean(manifest.getMainAttributes().getValue(MULTI_RELEASE));
-                    }
+    private final LazyValue<Boolean> isMultiRelease = LazyValue.of(() -> {
+        try (val zipFile = new ZipFile(file)) {
+            val manifestEntry = zipFile.getEntry(MANIFEST_RESOURCE_NAME);
+            if (manifestEntry != null) {
+                try (val manifestStream = zipFile.getInputStream(manifestEntry)) {
+                    val manifest = new Manifest(manifestStream);
+                    return parseBoolean(manifest.getMainAttributes().getValue(MULTI_RELEASE));
                 }
             }
-
-            return false;
         }
-    };
+
+        return false;
+    });
 
     //#endregion
 

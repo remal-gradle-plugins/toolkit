@@ -38,7 +38,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.ToString;
 import lombok.val;
-import name.remal.gradle_plugins.toolkit.LazyInitializer;
+import name.remal.gradle_plugins.toolkit.LazyValue;
 import name.remal.gradle_plugins.toolkit.ObjectUtils;
 import name.remal.gradle_plugins.toolkit.cache.ToolkitCache;
 import org.intellij.lang.annotations.Language;
@@ -103,12 +103,9 @@ abstract class ClasspathFileBase implements ClasspathFileMethods {
         return resourceNames.get();
     }
 
-    private final LazyInitializer<Set<String>> resourceNames = new LazyInitializer<Set<String>>() {
-        @Override
-        protected Set<String> create() {
-            return toImmutableSet(new TreeSet<>(getResourceNamesImpl()));
-        }
-    };
+    private final LazyValue<Set<String>> resourceNames = LazyValue.of(() ->
+        toImmutableSet(new TreeSet<>(getResourceNamesImpl()))
+    );
 
     protected abstract Set<String> getResourceNamesImpl();
 
@@ -185,43 +182,40 @@ abstract class ClasspathFileBase implements ClasspathFileMethods {
         return classesIndex.get();
     }
 
-    private final LazyInitializer<ClassesIndex> classesIndex = new LazyInitializer<ClassesIndex>() {
-        @Override
-        protected ClassesIndex create() {
-            ClassesIndex classesIndex = new ClassesIndex();
+    private final LazyValue<ClassesIndex> classesIndex = LazyValue.of(() -> {
+        ClassesIndex classesIndex = new ClassesIndex();
 
-            forEachClassResource((classpathFile, className, inputStreamOpener) -> {
-                if (className.equals("module-info")
-                    || className.equals("package-info")
-                    || className.endsWith(".package-info")
-                ) {
-                    return;
+        forEachClassResource((classpathFile, className, inputStreamOpener) -> {
+            if (className.equals("module-info")
+                || className.equals("package-info")
+                || className.endsWith(".package-info")
+            ) {
+                return;
+            }
+
+            try (InputStream inputStream = inputStreamOpener.openStream()) {
+                ClassReader classReader = new ClassReader(inputStream);
+
+                String superInternalName = classReader.getSuperName();
+                if (superInternalName != null) {
+                    String superName = superInternalName.replace('/', '.');
+                    classesIndex.registerParentClass(className, superName);
                 }
 
-                try (InputStream inputStream = inputStreamOpener.openStream()) {
-                    ClassReader classReader = new ClassReader(inputStream);
-
-                    String superInternalName = classReader.getSuperName();
-                    if (superInternalName != null) {
-                        String superName = superInternalName.replace('/', '.');
-                        classesIndex.registerParentClass(className, superName);
+                String[] interfaceInternalNames = classReader.getInterfaces();
+                if (interfaceInternalNames != null) {
+                    List<String> interfaceNames = new ArrayList<>();
+                    for (String interfaceInternalName : interfaceInternalNames) {
+                        String interfaceName = interfaceInternalName.replace('/', '.');
+                        interfaceNames.add(interfaceName);
                     }
-
-                    String[] interfaceInternalNames = classReader.getInterfaces();
-                    if (interfaceInternalNames != null) {
-                        List<String> interfaceNames = new ArrayList<>();
-                        for (String interfaceInternalName : interfaceInternalNames) {
-                            String interfaceName = interfaceInternalName.replace('/', '.');
-                            interfaceNames.add(interfaceName);
-                        }
-                        classesIndex.registerParentClasses(className, interfaceNames);
-                    }
+                    classesIndex.registerParentClasses(className, interfaceNames);
                 }
-            });
+            }
+        });
 
-            return classesIndex;
-        }
-    };
+        return classesIndex;
+    });
 
     //#endregion
 
@@ -234,53 +228,47 @@ abstract class ClasspathFileBase implements ClasspathFileMethods {
         return allServices.get();
     }
 
-    private final LazyInitializer<Map<String, Set<String>>> allServices =
-        new LazyInitializer<Map<String, Set<String>>>() {
-            @SuppressWarnings("InjectedReferences")
-            private static final String SERVICES_PREFIX = "META-INF/services/";
+    @SuppressWarnings("InjectedReferences")
+    private static final String SERVICES_PREFIX = "META-INF/services/";
 
-            @Override
-            @SneakyThrows
-            @SuppressWarnings("UnstableApiUsage")
-            protected Map<String, Set<String>> create() {
-                List<String> serviceNames = getResourceNames().stream()
-                    .filter(startsWithString(SERVICES_PREFIX))
-                    .map(resourceName -> resourceName.substring(SERVICES_PREFIX.length()))
-                    .filter(not(containsString("/")))
-                    .collect(toList());
+    private final LazyValue<Map<String, Set<String>>> allServices = LazyValue.of(() -> {
+        List<String> serviceNames = getResourceNames().stream()
+            .filter(startsWithString(SERVICES_PREFIX))
+            .map(resourceName -> resourceName.substring(SERVICES_PREFIX.length()))
+            .filter(not(containsString("/")))
+            .collect(toList());
 
-                Map<String, Set<String>> allServices = new LinkedHashMap<>();
-                for (String serviceName : serviceNames) {
-                    final String content;
-                    try (val inputStream = openStream(SERVICES_PREFIX + serviceName)) {
-                        if (inputStream == null) {
-                            continue;
-                        }
-
-                        byte[] bytes = toByteArray(inputStream);
-                        content = new String(bytes, UTF_8);
-                    }
-
-                    Splitter.on(CharMatcher.anyOf("\r\n")).splitToStream(content)
-                        .map(line -> {
-                            val commentPos = line.indexOf('#');
-                            if (commentPos >= 0) {
-                                return line.substring(0, commentPos);
-                            } else {
-                                return line;
-                            }
-                        })
-                        .map(String::trim)
-                        .filter(ObjectUtils::isNotEmpty)
-                        .forEach(implName -> {
-                            val implNames = allServices.computeIfAbsent(serviceName, __ -> new LinkedHashSet<>());
-                            implNames.add(implName);
-                        });
+        Map<String, Set<String>> allServices = new LinkedHashMap<>();
+        for (String serviceName : serviceNames) {
+            final String content;
+            try (val inputStream = openStream(SERVICES_PREFIX + serviceName)) {
+                if (inputStream == null) {
+                    continue;
                 }
 
-                return toDeepImmutableSetMap(allServices);
+                byte[] bytes = toByteArray(inputStream);
+                content = new String(bytes, UTF_8);
             }
-        };
+
+            Splitter.on(CharMatcher.anyOf("\r\n")).splitToStream(content)
+                .map(line -> {
+                    val commentPos = line.indexOf('#');
+                    if (commentPos >= 0) {
+                        return line.substring(0, commentPos);
+                    } else {
+                        return line;
+                    }
+                })
+                .map(String::trim)
+                .filter(ObjectUtils::isNotEmpty)
+                .forEach(implName -> {
+                    val implNames = allServices.computeIfAbsent(serviceName, __ -> new LinkedHashSet<>());
+                    implNames.add(implName);
+                });
+        }
+
+        return toDeepImmutableSetMap(allServices);
+    });
 
     //#endregion
 
@@ -293,40 +281,36 @@ abstract class ClasspathFileBase implements ClasspathFileMethods {
         return allSpringFactories.get();
     }
 
-    private final LazyInitializer<Map<String, Set<String>>> allSpringFactories =
-        new LazyInitializer<Map<String, Set<String>>>() {
-            @Override
-            @SuppressWarnings({"UnstableApiUsage", "InjectedReferences"})
-            protected Map<String, Set<String>> create() throws Throwable {
-                final Properties properties;
-                try (val inputStream = openStream("META-INF/spring.factories")) {
-                    if (inputStream == null) {
-                        return emptyMap();
-                    }
-
-                    properties = new Properties();
-                    try (val reader = new InputStreamReader(inputStream, UTF_8)) {
-                        properties.load(reader);
-                    }
-                }
-
-                Map<String, Set<String>> allFactories = new LinkedHashMap<>();
-                properties.stringPropertyNames().forEach(factoryName -> {
-                    String implNamesString = properties.getProperty(factoryName, "");
-                    Splitter.on(',').splitToStream(implNamesString)
-                        .map(String::trim)
-                        .filter(ObjectUtils::isNotEmpty)
-                        .forEach(implName -> {
-                            Collection<String> implNames = allFactories.computeIfAbsent(
-                                factoryName,
-                                __ -> new LinkedHashSet<>()
-                            );
-                            implNames.add(implName);
-                        });
-                });
-                return toDeepImmutableSetMap(allFactories);
+    @SuppressWarnings("InjectedReferences")
+    private final LazyValue<Map<String, Set<String>>> allSpringFactories = LazyValue.of(() -> {
+        final Properties properties;
+        try (val inputStream = openStream("META-INF/spring.factories")) {
+            if (inputStream == null) {
+                return emptyMap();
             }
-        };
+
+            properties = new Properties();
+            try (val reader = new InputStreamReader(inputStream, UTF_8)) {
+                properties.load(reader);
+            }
+        }
+
+        Map<String, Set<String>> allFactories = new LinkedHashMap<>();
+        properties.stringPropertyNames().forEach(factoryName -> {
+            String implNamesString = properties.getProperty(factoryName, "");
+            Splitter.on(',').splitToStream(implNamesString)
+                .map(String::trim)
+                .filter(ObjectUtils::isNotEmpty)
+                .forEach(implName -> {
+                    Collection<String> implNames = allFactories.computeIfAbsent(
+                        factoryName,
+                        __ -> new LinkedHashSet<>()
+                    );
+                    implNames.add(implName);
+                });
+        });
+        return toDeepImmutableSetMap(allFactories);
+    });
 
     //#endregion
 

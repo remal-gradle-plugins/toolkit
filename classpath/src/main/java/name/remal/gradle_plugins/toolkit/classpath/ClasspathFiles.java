@@ -12,6 +12,7 @@ import com.google.errorprone.annotations.MustBeClosed;
 import java.io.File;
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -24,7 +25,7 @@ import java.util.stream.StreamSupport;
 import javax.annotation.Nullable;
 import lombok.val;
 import name.remal.gradle_plugins.toolkit.FileUtils;
-import name.remal.gradle_plugins.toolkit.LazyInitializer;
+import name.remal.gradle_plugins.toolkit.LazyValue;
 import org.gradle.api.JavaVersion;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.Unmodifiable;
@@ -32,9 +33,10 @@ import org.jetbrains.annotations.Unmodifiable;
 public final class ClasspathFiles implements ClasspathFileMethods {
 
     private final List<ClasspathFileBase> files;
+    private final LazyValue<ClassesIndex> classesIndex;
 
     public ClasspathFiles() {
-        this.files = emptyList();
+        this(Collections.<ClasspathFileBase>emptyList());
     }
 
     public ClasspathFiles(Iterable<? extends File> files) {
@@ -49,6 +51,13 @@ public final class ClasspathFiles implements ClasspathFileMethods {
         Iterable<? extends File> files,
         JavaVersion compatibilityVersion
     ) {
+        this(filesToClasspathFiles(files, compatibilityVersion));
+    }
+
+    private static List<ClasspathFileBase> filesToClasspathFiles(
+        Iterable<? extends File> files,
+        JavaVersion compatibilityVersion
+    ) {
         val jvmMajorCompatibilityVersion = parseInt(compatibilityVersion.getMajorVersion());
         val filesBuilder = ImmutableList.<ClasspathFileBase>builder();
         StreamSupport.stream(files.spliterator(), false)
@@ -57,12 +66,19 @@ public final class ClasspathFiles implements ClasspathFileMethods {
             .distinct()
             .map(file -> ClasspathFileBase.of(file, jvmMajorCompatibilityVersion))
             .forEach(filesBuilder::add);
-        this.files = filesBuilder.build();
+        return filesBuilder.build();
     }
 
 
     private ClasspathFiles(List<ClasspathFileBase> files) {
-        this.files = ImmutableList.copyOf(files);
+        val immutableFiles = ImmutableList.copyOf(files);
+        this.files = immutableFiles;
+        this.classesIndex = LazyValue.of(() -> {
+            val classIndexes = immutableFiles.stream()
+                .map(ClasspathFileMethods::getClassesIndex)
+                .collect(toList());
+            return new ClassesIndex(classIndexes);
+        });
     }
 
     public ClasspathFiles plus(ClasspathFiles other) {
@@ -152,16 +168,6 @@ public final class ClasspathFiles implements ClasspathFileMethods {
     public ClassesIndex getClassesIndex() {
         return classesIndex.get();
     }
-
-    private final LazyInitializer<ClassesIndex> classesIndex = new LazyInitializer<ClassesIndex>() {
-        @Override
-        protected ClassesIndex create() {
-            val classIndexes = files.stream()
-                .map(ClasspathFileMethods::getClassesIndex)
-                .collect(toList());
-            return new ClassesIndex(classIndexes);
-        }
-    };
 
     @Override
     @Unmodifiable

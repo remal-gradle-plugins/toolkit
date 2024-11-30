@@ -218,13 +218,8 @@ public abstract class SourceSetUtils {
     }
 
 
-    private static final LazyInitializer<List<WhenTestSourceSetRegistered>> ALL_WHEN_TEST_SOURCE_SET_REGISTERED =
-        new LazyInitializer<List<WhenTestSourceSetRegistered>>() {
-            @Override
-            protected List<WhenTestSourceSetRegistered> create() {
-                return loadAllCrossCompileServiceImplementations(WhenTestSourceSetRegistered.class);
-            }
-        };
+    private static final LazyValue<List<WhenTestSourceSetRegistered>> ALL_WHEN_TEST_SOURCE_SET_REGISTERED =
+        LazyValue.of(() -> loadAllCrossCompileServiceImplementations(WhenTestSourceSetRegistered.class));
 
     public static void whenTestSourceSetRegistered(Project project, Action<SourceSet> action) {
         Set<SourceSet> processedSourceSets = newSetFromMap(new IdentityHashMap<>());
