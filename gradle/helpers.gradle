@@ -1,4 +1,5 @@
 import static java.nio.charset.StandardCharsets.UTF_8
+import static java.util.stream.Collectors.toList
 import static org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE
 import static org.gradle.api.attributes.Category.DOCUMENTATION
 import static org.gradle.api.attributes.Category.ENFORCED_PLATFORM
@@ -20,6 +21,8 @@ import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.function.Supplier
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException
 import org.gradle.util.GradleVersion
 import org.json.JSONArray
@@ -49,6 +52,11 @@ buildscript {
 Object MUTEX = new Object[0]
 
 project.ext.isBuildSrcProject = rootProject.name == 'buildSrc'
+
+File rootProjectDir = project.ext.rootProjectDir = project.rootDir
+if (project.isBuildSrcProject) {
+    rootProjectDir = project.ext.rootProjectDir = rootProjectDir.parentFile
+}
 
 project.ext.unwrapProviders = { object ->
     while (true) {
@@ -555,17 +563,43 @@ Closure<List<Integer>> getLtsJavaRuntimeVersions = project.ext.getLtsJavaRuntime
 }.memoize()
 
 
+Property<String> publishedVersionsDirRelativePathProperty = project.ext.publishedVersionsDirRelativePath = project.objects.property(String)
+
 Closure<List<String>> getPluginVersions = project.ext.getPluginVersions = { String pluginId ->
     def metadata = loadXmlFromUrl("https://plugins.gradle.org/m2/${pluginId.replace('.', '/')}/${pluginId}.gradle.plugin/maven-metadata.xml")
-    return metadata.versioning.versions.version*.text().collect()
+    List<String> versions = metadata.versioning.versions.version*.text().collect()
+
+    String publishedVersionsDirRelativePath = publishedVersionsDirRelativePathProperty.orNull
+    if (publishedVersionsDirRelativePath != null) {
+        File publishedVersionFile = new File(rootProjectDir, "$publishedVersionsDirRelativePath/$pluginId/${pluginId}.gradle.plugin.version")
+        if (publishedVersionFile.isFile()) {
+            String publishedVersion = publishedVersionFile.getText('UTF-8')
+            if (!publishedVersion.isEmpty()) {
+                versions.add(publishedVersion)
+            }
+        }
+    }
+
+    VersionParser parser = new VersionParser()
+    Comparator comparator = new DefaultVersionComparator().asVersionComparator()
+    versions = versions.stream()
+        .map { it.trim() }
+        .filter { !it.isEmpty() }
+        .distinct()
+        .map { parser.transform(it) }
+        .sorted(comparator.reversed())
+        .map { it.toString() }
+        .collect(toList())
+
+    return versions
 }.memoize()
 
 Closure<String> getPluginLastVersion = project.ext.getPluginLastVersion = { String pluginId ->
     List<String> versions = getPluginVersions(pluginId)
     if (versions.isEmpty()) {
-        throw new IllegalStateException("Not versions found for plugin '$pluginId'")
+        throw new IllegalStateException("No versions were found for plugin '$pluginId'")
     }
-    return versions.last()
+    return versions.first()
 }
 
 

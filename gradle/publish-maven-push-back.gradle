@@ -6,6 +6,9 @@ if (project.isBuildSrcProject) {
     return
 }
 
+String publishedVersionsDirRelativePath = '.published'
+project.publishedVersionsDirRelativePath.set(publishedVersionsDirRelativePath)
+
 tasks.register('pushBackPublishedVersions') { Task task ->
     task.group = 'documentation'
     task.outputs.upToDateWhen { false }
@@ -16,7 +19,7 @@ tasks.register('pushBackPublishedVersions') { Task task ->
             .filter { it.pluginManager.hasPlugin('maven-publish') }
             .flatMap { it.publishing.publications.withType(MavenPublication).stream() }
             .forEach { MavenPublication publication ->
-                String versionFilePath = ".published/${publication.groupId}/${publication.artifactId}.version"
+                String versionFilePath = "$publishedVersionsDirRelativePath/${publication.groupId}/${publication.artifactId}.version"
                 if (!versionFilePaths.add(versionFilePath)) {
                     return
                 }

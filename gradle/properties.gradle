@@ -22,9 +22,7 @@ buildscript {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 allprojects {
-    File rootProjectDir = project.rootDir
-    if (project.isBuildSrcProject) rootProjectDir = rootProjectDir.parentFile
-    project.ext['rootProjectDir'] = rootProjectDir
+    File rootProjectDir = project.rootProjectDir
 
     if (project.isBuildSrcProject) {
         Properties props = new Properties()
