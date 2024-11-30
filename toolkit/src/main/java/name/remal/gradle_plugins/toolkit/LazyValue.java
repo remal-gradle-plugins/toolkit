@@ -43,18 +43,18 @@ public abstract class LazyValue<T> {
     protected abstract T create() throws Throwable;
 
 
-    private static final Object NO_INIT = new Object();
+    private static final Object NOT_INITIALIZED = new Object[0];
 
     @Nonnull(when = UNKNOWN)
     @SuppressWarnings("unchecked")
-    private volatile T value = (T) NO_INIT;
+    private volatile T value = (T) NOT_INITIALIZED;
 
     @SneakyThrows
     @Nonnull(when = UNKNOWN)
     public final T get() {
-        if (value == NO_INIT) {
+        if (value == NOT_INITIALIZED) {
             synchronized (this) {
-                if (value == NO_INIT) {
+                if (value == NOT_INITIALIZED) {
                     value = create();
                 }
             }
