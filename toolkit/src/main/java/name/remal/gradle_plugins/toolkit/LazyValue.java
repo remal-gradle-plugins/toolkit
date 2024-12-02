@@ -1,14 +1,14 @@
 package name.remal.gradle_plugins.toolkit;
 
+import static java.util.Objects.requireNonNull;
 import static javax.annotation.meta.When.UNKNOWN;
 
-import com.google.errorprone.annotations.ForOverride;
-import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import lombok.val;
 
-public abstract class LazyValue<T> {
+public final class LazyValue<T> {
 
     @FunctionalInterface
     public interface LazyValueSupplier<T> {
@@ -17,30 +17,16 @@ public abstract class LazyValue<T> {
     }
 
     public static <T> LazyValue<T> of(LazyValueSupplier<T> supplier) {
-        val supplierHolder = new AtomicReference<>(supplier);
-        return new LazyValue<T>() {
-            @Override
-            @Nonnull(when = UNKNOWN)
-            @SneakyThrows
-            protected T create() {
-                val savedSupplier = supplierHolder.get();
-                supplierHolder.set(null);
-                return savedSupplier.get();
-            }
-        };
+        return new LazyValue<>(supplier);
     }
 
 
-    /**
-     * Use {@link #of(LazyValueSupplier)} instead.
-     */
-    private LazyValue() {
+    @Nullable
+    private LazyValueSupplier<T> valueSupplier;
+
+    private LazyValue(LazyValueSupplier<T> valueSupplier) {
+        this.valueSupplier = valueSupplier;
     }
-
-
-    @Nonnull(when = UNKNOWN)
-    @ForOverride
-    protected abstract T create() throws Throwable;
 
 
     private static final Object NOT_INITIALIZED = new Object[0];
@@ -51,15 +37,30 @@ public abstract class LazyValue<T> {
 
     @SneakyThrows
     @Nonnull(when = UNKNOWN)
-    public final T get() {
+    public T get() {
         if (value == NOT_INITIALIZED) {
             synchronized (this) {
                 if (value == NOT_INITIALIZED) {
-                    value = create();
+                    value = requireNonNull(valueSupplier).get();
+                    valueSupplier = null;
                 }
             }
         }
         return value;
+    }
+
+    public boolean isInitialized() {
+        return value != NOT_INITIALIZED;
+    }
+
+    @Override
+    public String toString() {
+        val value = this.value;
+        if (value == NOT_INITIALIZED) {
+            return "<not initialized>";
+        }
+
+        return String.valueOf(value);
     }
 
 }
