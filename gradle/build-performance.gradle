@@ -1,0 +1,78 @@
+import static java.util.concurrent.TimeUnit.NANOSECONDS
+
+import java.time.Duration
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArrayList
+
+@groovy.transform.Immutable
+class TaskTiming {
+    String taskPath
+    long nanos
+}
+
+class TimingsListener {
+
+    private static final long nanosToReport = Duration.ofSeconds(10).toNanos()
+
+    private final Map<Task, Long> startNanos = new ConcurrentHashMap<>()
+    private final List<TaskTiming> longTimings = new CopyOnWriteArrayList<>()
+
+    void beforeExecute(Task task) {
+        startNanos[task] = System.nanoTime()
+    }
+
+    void afterExecute(Task task) {
+        if (startNanos.containsKey(task)) {
+            long nanos = System.nanoTime() - startNanos[task]
+            if (nanos >= nanosToReport) {
+                longTimings.add(new TaskTiming(
+                    taskPath: task.path,
+                    nanos: nanos,
+                ))
+                //task.logger.warn("${task.path} took ${NANOSECONDS.toSeconds(nanos)}s")
+            }
+        }
+    }
+
+    void buildFinished() {
+        Logger logger = Logging.getLogger(TimingsListener.class)
+
+        boolean isHeaderPrinted = false
+        longTimings.forEach { timing ->
+            if (!isHeaderPrinted) {
+                logger.warn("")
+                logger.warn("Long tasks:")
+                isHeaderPrinted = true
+            }
+            logger.warn(String.format("%4ss %s", NANOSECONDS.toSeconds(timing.nanos), timing.taskPath))
+        }
+    }
+
+}
+
+TimingsListener timingsListener = new TimingsListener();
+gradle.taskGraph.beforeTask { timingsListener.beforeExecute(it) }
+gradle.taskGraph.afterTask { timingsListener.afterExecute(it) }
+gradle.buildFinished { timingsListener.buildFinished() }
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+allprojects {
+    tasks.withType(Test).configureEach { Test task ->
+        long nanosToReport = Duration.ofSeconds(10).toNanos()
+        if (task.name == 'functionalTest') {
+            nanosToReport = Duration.ofSeconds(60).toNanos()
+        }
+
+        Map<Task, Long> startNanos = new ConcurrentHashMap<>()
+        task.beforeTest { TestDescriptor descr ->
+            startNanos[descr.id] = System.nanoTime()
+        }
+        task.afterTest { TestDescriptor descr, TestResult result ->
+            long nanos = System.nanoTime() - startNanos[descr.id]
+            if (nanos >= nanosToReport) {
+                task.logger.warn("Long test: {} > {}: {}s", descr.className, descr.displayName, NANOSECONDS.toSeconds(nanos))
+            }
+        }
+    }
+}

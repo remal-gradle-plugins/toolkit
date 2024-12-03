@@ -4,6 +4,8 @@ import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_
 import java.time.Duration
 
 allprojects {
+    apply plugin: 'name.remal.merge-resources'
+
     configurations.configureEach { Configuration conf ->
         conf.resolutionStrategy.cacheDynamicVersionsFor(1, HOURS)
     }
@@ -24,6 +26,4 @@ allprojects {
     tasks.matching { it instanceof ProcessForkOptions }.configureEach { ProcessForkOptions task ->
         task.workingDir = project.projectDir
     }
-
-    apply plugin: 'name.remal.merge-resources'
 }
