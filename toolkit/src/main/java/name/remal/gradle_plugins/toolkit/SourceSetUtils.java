@@ -1,10 +1,10 @@
 package name.remal.gradle_plugins.toolkit;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.Arrays.stream;
 import static java.util.Collections.newSetFromMap;
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.AbstractCompileUtils.getDestinationDir;
 import static name.remal.gradle_plugins.toolkit.CrossCompileServices.loadAllCrossCompileServiceImplementations;
@@ -13,7 +13,6 @@ import static name.remal.gradle_plugins.toolkit.ThrowableUtils.unwrapReflectionE
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.isGetterOf;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.isNotStatic;
 
-import com.google.common.collect.ImmutableList;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.IdentityHashMap;
@@ -46,15 +45,13 @@ public abstract class SourceSetUtils {
         "^get[A-Z].*[a-z]ConfigurationName$"
     );
 
-    private static final List<Method> GET_CONFIGURATION_NAME_METHODS = ImmutableList.copyOf(
-        Stream.of(SourceSet.class.getMethods())
-            .filter(ReflectionUtils::isNotStatic)
-            .filter(it -> it.getParameterCount() == 0)
-            .filter(it -> it.getReturnType() == String.class)
-            .filter(it -> GET_CONFIGURATION_NAME_METHOD_NAME.matcher(it.getName()).matches())
-            .sorted(comparing(Method::getName))
-            .collect(toList())
-    );
+    private static final List<Method> GET_CONFIGURATION_NAME_METHODS = Stream.of(SourceSet.class.getMethods())
+        .filter(ReflectionUtils::isNotStatic)
+        .filter(it -> it.getParameterCount() == 0)
+        .filter(it -> it.getReturnType() == String.class)
+        .filter(it -> GET_CONFIGURATION_NAME_METHOD_NAME.matcher(it.getName()).matches())
+        .sorted(comparing(Method::getName))
+        .collect(toImmutableList());
 
     @SneakyThrows
     public static Set<String> getSourceSetConfigurationNames(SourceSet sourceSet) {
@@ -135,7 +132,7 @@ public abstract class SourceSetUtils {
         .filter(method -> isGetterOf(method, String.class))
         .filter(it -> GET_TASK_NAME_METHOD_NAME.matcher(it.getName()).matches())
         .sorted(comparing(Method::getName))
-        .collect(toList());
+        .collect(toImmutableList());
 
     @SneakyThrows
     public static boolean isSourceSetTask(SourceSet sourceSet, Task task) {
@@ -175,7 +172,7 @@ public abstract class SourceSetUtils {
         .filter(ReflectionUtils::isNotStatic)
         .filter(method -> isGetterOf(method, SourceDirectorySet.class))
         .sorted(comparing(Method::getName))
-        .collect(toList());
+        .collect(toImmutableList());
 
     @Unmodifiable
     @ReliesOnInternalGradleApi

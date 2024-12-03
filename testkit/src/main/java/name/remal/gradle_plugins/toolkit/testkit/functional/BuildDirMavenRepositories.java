@@ -1,6 +1,6 @@
 package name.remal.gradle_plugins.toolkit.testkit.functional;
 
-import static java.util.stream.Collectors.toList;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.PredicateUtils.not;
 
@@ -12,13 +12,14 @@ import java.util.Collection;
 import lombok.NoArgsConstructor;
 import lombok.val;
 import name.remal.gradle_plugins.toolkit.PathUtils;
+import org.jetbrains.annotations.Unmodifiable;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class BuildDirMavenRepositories {
 
     private static final String BUILD_DIR_MAVEN_REPOSITORIES_PATHS_PROPERTY = "build-dir-maven-repos";
 
-    @SuppressWarnings("UnstableApiUsage")
+    @Unmodifiable
     public static Collection<Path> getBuildDirMavenRepositories() {
         val paths = System.getProperty(BUILD_DIR_MAVEN_REPOSITORIES_PATHS_PROPERTY);
         if (paths == null) {
@@ -33,7 +34,7 @@ public abstract class BuildDirMavenRepositories {
             .map(Paths::get)
             .map(PathUtils::normalizePath)
             .distinct()
-            .collect(toList());
+            .collect(toImmutableList());
     }
 
 }

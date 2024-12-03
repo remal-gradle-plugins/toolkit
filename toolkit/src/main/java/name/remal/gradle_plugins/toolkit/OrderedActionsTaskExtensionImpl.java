@@ -1,5 +1,6 @@
 package name.remal.gradle_plugins.toolkit;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.lang.String.format;
 import static java.lang.reflect.Proxy.newProxyInstance;
 import static lombok.AccessLevel.PUBLIC;
@@ -20,7 +21,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
@@ -63,12 +63,10 @@ class OrderedActionsTaskExtensionImpl implements OrderedActionsTaskExtension {
                 .add(frozenAction);
         }
 
-        return ImmutableList.copyOf(
-            allStagedActions.values().stream()
-                .map(OrderedActionsTaskExtensionImpl::sortStagedActions)
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList())
-        );
+        return allStagedActions.values().stream()
+            .map(OrderedActionsTaskExtensionImpl::sortStagedActions)
+            .flatMap(Collection::stream)
+            .collect(toImmutableList());
     }
 
     @VisibleForTesting
