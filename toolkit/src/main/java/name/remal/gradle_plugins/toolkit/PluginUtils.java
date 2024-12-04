@@ -3,18 +3,19 @@ package name.remal.gradle_plugins.toolkit;
 import static java.lang.ClassLoader.getSystemClassLoader;
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Collections.synchronizedMap;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.ObjectUtils.isEmpty;
 import static name.remal.gradle_plugins.toolkit.reflection.WhoCalledUtils.getCallingClass;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import io.github.classgraph.ClassGraph;
 import java.io.InputStreamReader;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
-import java.util.WeakHashMap;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
@@ -26,16 +27,16 @@ public abstract class PluginUtils {
 
     private static final String CORE_PLUGIN_ID_PREFIX = "org.gradle.";
 
-    private static final Map<ClassLoader, Map<String, String>> PLUGIN_CLASS_NAMES = synchronizedMap(
-        new WeakHashMap<>()
-    );
+    private static final LoadingCache<ClassLoader, Map<String, String>> PLUGIN_CLASS_NAMES = CacheBuilder.newBuilder()
+        .weakKeys()
+        .build(CacheLoader.from(PluginUtils::getAllPluginClassNamesFor));
 
     @SneakyThrows
     public static Map<String, String> getAllPluginClassNames(@Nullable ClassLoader classLoader) {
         if (classLoader == null) {
             classLoader = getSystemClassLoader();
         }
-        return PLUGIN_CLASS_NAMES.computeIfAbsent(classLoader, PluginUtils::getAllPluginClassNamesFor);
+        return PLUGIN_CLASS_NAMES.getUnchecked(classLoader);
     }
 
     public static Map<String, String> getAllPluginClassNames() {

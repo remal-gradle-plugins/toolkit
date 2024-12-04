@@ -7,7 +7,6 @@ import static java.lang.Character.isLowerCase;
 import static java.lang.Character.toLowerCase;
 import static java.util.Arrays.stream;
 import static java.util.Collections.singletonList;
-import static java.util.Collections.synchronizedMap;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
@@ -17,7 +16,8 @@ import static name.remal.gradle_plugins.toolkit.ReportUtils.setReportDestination
 import static name.remal.gradle_plugins.toolkit.ReportUtils.setReportEnabled;
 import static name.remal.gradle_plugins.toolkit.StringUtils.trimWith;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.defineClass;
-import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.isAbstract;
+import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.isNotAbstract;
+import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.isStatic;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.unwrapGeneratedSubclass;
 import static org.gradle.api.reporting.Report.OutputType.DIRECTORY;
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
@@ -42,6 +42,9 @@ import static org.objectweb.asm.Type.getInternalName;
 import static org.objectweb.asm.Type.getMethodDescriptor;
 import static org.objectweb.asm.Type.getType;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import java.io.File;
@@ -53,10 +56,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.WeakHashMap;
 import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.CustomLog;
 import lombok.NoArgsConstructor;
@@ -76,7 +77,6 @@ import org.gradle.api.reporting.Reporting;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
-import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
@@ -95,8 +95,6 @@ import org.objectweb.asm.util.CheckClassAdapter;
 @NoArgsConstructor(access = PRIVATE)
 @CustomLog
 public abstract class ReportContainerUtils {
-
-    private static final boolean COPY_SIGNATURES_TO_DELEGATING_CLASS = false;
 
     private static final ReportContainerUtilsMethods METHODS =
         loadCrossCompileService(ReportContainerUtilsMethods.class);
@@ -255,14 +253,12 @@ public abstract class ReportContainerUtils {
     }
 
     private static Class<?> getWithReportGettersClass(Class<?> reportContainerType) {
-        return WITH_REPORT_GETTERS_CLASSES.computeIfAbsent(
-            reportContainerType,
-            ReportContainerUtils::generateWithReportGettersClass
-        );
+        return WITH_REPORT_GETTERS_CLASSES.getUnchecked(reportContainerType);
     }
 
-    private static final Map<Class<?>, Class<?>> WITH_REPORT_GETTERS_CLASSES =
-        synchronizedMap(new WeakHashMap<>());
+    private static final LoadingCache<Class<?>, Class<?>> WITH_REPORT_GETTERS_CLASSES = CacheBuilder.newBuilder()
+        .weakKeys()
+        .build(CacheLoader.from(ReportContainerUtils::generateWithReportGettersClass));
 
     @SneakyThrows
     private static Class<?> generateWithReportGettersClass(Class<?> reportContainerType) {
@@ -270,6 +266,9 @@ public abstract class ReportContainerUtils {
         classNode.version = V1_8;
         classNode.access = ACC_PUBLIC | ACC_SYNTHETIC;
         classNode.name = getInternalName(reportContainerType) + "$$Delegating";
+        if (reportContainerType.getClassLoader() == null) {
+            classNode.name = getInternalName(ReportContainerUtils.class) + '$' + classNode.name.replace('/', '$');
+        }
         classNode.superName = getInternalName(Object.class);
         classNode.interfaces = singletonList(getInternalName(reportContainerType));
         classNode.fields = new ArrayList<>();
@@ -290,12 +289,14 @@ public abstract class ReportContainerUtils {
                 "<init>",
                 getMethodDescriptor(
                     VOID_TYPE,
-                    getType(ReportContainer.class)
+                    getType(delegateField.desc)
                 ),
                 null,
                 null
             );
             classNode.methods.add(methodNode);
+
+            methodNode.parameters = singletonList(new ParameterNode(delegateField.name, ACC_FINAL));
 
             val instructions = methodNode.instructions = new InsnList();
             instructions.add(new LabelNode());
@@ -329,7 +330,7 @@ public abstract class ReportContainerUtils {
                 ACC_PUBLIC,
                 reportGetter.getName(),
                 getMethodDescriptor(reportGetter),
-                getMethodSignature(reportGetter),
+                null,
                 null
             );
             classNode.methods.add(methodNode);
@@ -358,7 +359,10 @@ public abstract class ReportContainerUtils {
         });
 
         for (val method : reportContainerType.getMethods()) {
-            if (!isAbstract(method)) {
+            if (method.isSynthetic()
+                || isStatic(method)
+                || isNotAbstract(method)
+            ) {
                 continue;
             }
 
@@ -366,7 +370,7 @@ public abstract class ReportContainerUtils {
                 ACC_PUBLIC,
                 method.getName(),
                 getMethodDescriptor(method),
-                getMethodSignature(method),
+                null,
                 null
             );
             val isAlreadyImplemented = classNode.methods.stream().anyMatch(other ->
@@ -419,24 +423,13 @@ public abstract class ReportContainerUtils {
         val classWriter = new ClassWriter(COMPUTE_MAXS | COMPUTE_FRAMES);
         classNode.accept(new CheckClassAdapter(classWriter));
         val bytecode = classWriter.toByteArray();
-        return defineClass(reportContainerType.getClassLoader(), bytecode);
-    }
 
-    @Nullable
-    private static String getMethodSignature(Method method) {
-        if (!COPY_SIGNATURES_TO_DELEGATING_CLASS) {
-            return null;
+        ClassLoader classLoader = reportContainerType.getClassLoader();
+        if (classLoader == null) {
+            classLoader = ReportContainerUtils.class.getClassLoader();
         }
 
-        val isNotGeneric = Stream.concat(
-            Stream.of(method.getGenericReturnType()),
-            stream(method.getGenericParameterTypes())
-        ).allMatch(Class.class::isInstance);
-        if (isNotGeneric) {
-            return null;
-        }
-
-        return AsmClassGeneratorUtils.signature(method);
+        return defineClass(classLoader, bytecode);
     }
 
 
