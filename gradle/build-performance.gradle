@@ -44,7 +44,7 @@ class TimingsListener {
                 logger.warn("Long tasks:")
                 isHeaderPrinted = true
             }
-            logger.warn(String.format("%4ss %s", NANOSECONDS.toSeconds(timing.nanos), timing.taskPath))
+            logger.warn(String.format("%6ss %s", NANOSECONDS.toSeconds(timing.nanos), timing.taskPath))
         }
     }
 
