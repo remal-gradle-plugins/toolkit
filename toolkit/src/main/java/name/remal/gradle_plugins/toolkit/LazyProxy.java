@@ -45,7 +45,6 @@ import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
-import name.remal.gradle_plugins.toolkit.reflection.TypeProvider;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
@@ -75,30 +74,22 @@ public abstract class LazyProxy {
         return proxy;
     }
 
-    public static <T> T asLazyProxy(TypeProvider<T> interfaceTypeProvider, LazyValue<? extends T> lazyValue) {
-        return asLazyProxy(interfaceTypeProvider.getRawClass(), lazyValue);
-    }
-
-    @SuppressWarnings({"unchecked", "java:S1172"})
+    @SuppressWarnings("unchecked")
     public static <E, T extends List<E>> T asLazyListProxy(
-        @SuppressWarnings("unused") Class<E> elementType,
         LazyValue<? extends T> lazyValue
     ) {
         return (T) asLazyProxy(List.class, lazyValue);
     }
 
-    @SuppressWarnings({"unchecked", "java:S1172"})
+    @SuppressWarnings("unchecked")
     public static <E, T extends Set<E>> T asLazySetProxy(
-        @SuppressWarnings("unused") Class<E> elementType,
         LazyValue<? extends T> lazyValue
     ) {
         return (T) asLazyProxy(Set.class, lazyValue);
     }
 
-    @SuppressWarnings({"unchecked", "java:S1172"})
+    @SuppressWarnings("unchecked")
     public static <K, V, T extends Map<K, V>> T asLazyMapProxy(
-        @SuppressWarnings("unused") Class<K> keyType,
-        @SuppressWarnings("unused") Class<K> valueType,
         LazyValue<? extends T> lazyValue
     ) {
         return (T) asLazyProxy(Map.class, lazyValue);
