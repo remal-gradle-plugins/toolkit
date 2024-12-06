@@ -53,20 +53,36 @@ tasks.named('generateJava') {
         jmodsFileTree.files.forEach { File jmodFile ->
             new ZipFile(jmodFile).withCloseable { zipFile ->
                 String moduleInfoEntryName = 'classes/module-info.class'
-                ZipEntry zipEntry = zipFile.getEntry(moduleInfoEntryName)
-                if (zipEntry == null) {
+                ZipEntry moduleInfoZipEntry = zipFile.getEntry(moduleInfoEntryName)
+                if (moduleInfoZipEntry == null) {
                     throw new IllegalStateException("Entry `$moduleInfoEntryName` can't be found in $jmodFile")
                 }
 
-                zipFile.getInputStream(zipEntry).withCloseable { InputStream input ->
+                /*
+                Set<String> packages = new TreeSet<>()
+                zipFile.entries().collect().forEach { ZipEntry zipEntry ->
+                    String name = zipEntry.name
+                    if (!name.startsWith('classes/')
+                        || !name.endsWith('.class')
+                        || name.endsWith('/module-info.class')
+                    ) {
+                        return
+                    }
+
+                    String className = name.substring('classes/'.length(), name.length() - '.class'.length()).replace('/', '.')
+                    int packageEndPos = className.lastIndexOf('.')
+                    String packageName = packageEndPos >= 0 ? className.substring(0, packageEndPos) : ''
+                    packages.add(packageName)
+                }
+                */
+
+                zipFile.getInputStream(moduleInfoZipEntry).withCloseable { InputStream input ->
                     ClassNode classNode = new ClassNode()
                     new ClassReader(input).accept(classNode, SKIP_CODE | SKIP_DEBUG | SKIP_FRAMES)
 
-                    modulePackages[classNode.module.name] = new TreeSet<>(
-                        (classNode.module.exports ?: [])
-                        //.findAll { !it.modules?.size() }
-                            .collect { it.packaze.replace('/', '.') }
-                    )
+                    modulePackages[classNode.module.name] = (classNode.module.exports ?: [])
+                        .findAll { !it.modules?.size() }
+                        .collect { it.packaze.replace('/', '.') }
                 }
             }
         }
@@ -92,7 +108,9 @@ tasks.named('generateJava') {
         it.writeImport("java.util.Set")
         it.writeImport("lombok.NoArgsConstructor")
         it.writeImport("lombok.val")
+        it.writeImport("name.remal.gradle_plugins.toolkit.annotations.ReliesOnExternalDependency")
         it.println("")
+        it.println("@ReliesOnExternalDependency")
         it.println("@NoArgsConstructor(access = PRIVATE)")
         it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "java:S107", "java:S1128", "java:S1611")
         it.writeBlock("abstract class ${it.simpleName}") {
