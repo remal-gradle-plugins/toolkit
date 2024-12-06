@@ -1,0 +1,126 @@
+import static org.objectweb.asm.ClassReader.SKIP_CODE
+import static org.objectweb.asm.ClassReader.SKIP_DEBUG
+import static org.objectweb.asm.ClassReader.SKIP_FRAMES
+
+import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.tree.ClassNode
+
+apply plugin: 'java-library'
+apply plugin: 'name.remal.test-source-sets'
+apply plugin: 'name.remal.generate-sources'
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+buildscript {
+    dependencies {
+        classpath platform("org.ow2.asm:asm-bom:9.7.1")
+        classpath 'org.ow2.asm:asm-tree'
+    }
+    repositories {
+        mavenCentral()
+    }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+Provider<JavaCompiler> latestLtsJavaCompiler = javaToolchains.compilerFor {
+    languageVersion = provider {
+        file('.tool-versions').getText('UTF-8').split(/[\n\r]+/)
+            .collect { it.replaceFirst(/#.*/, '').trim() }
+            .find { it.find(/^java\s+/) }
+            ?.replaceFirst(/^\S+\s+(?:\D+-)?(\d+).*$/, '$1')
+            ?.with { JavaLanguageVersion.of(it) }
+    }
+}
+Provider<File> latestLtsJmodsDir = latestLtsJavaCompiler.map {
+    it.metadata.installationPath.dir('jmods').asFile
+        .with {
+            if (!it.isDirectory()) {
+                throw new IllegalStateException("Not a directory: $it")
+            }
+            return it
+        }
+}
+FileTree jmodsFileTree = files(latestLtsJmodsDir).asFileTree
+    .matching { include('*.jmod') }
+
+tasks.named('generateJava') {
+    inputs.files(jmodsFileTree).withNormalizer(ClasspathNormalizer).optional()
+    classFile(project.calculateBaseJavaPackage() + '.reflection', 'LatestLtsJdkModules') {
+        Map<String, Set<String>> modulePackages = new TreeMap<>()
+        jmodsFileTree.files.forEach { File jmodFile ->
+            new ZipFile(jmodFile).withCloseable { zipFile ->
+                String moduleInfoEntryName = 'classes/module-info.class'
+                ZipEntry zipEntry = zipFile.getEntry(moduleInfoEntryName)
+                if (zipEntry == null) {
+                    throw new IllegalStateException("Entry `$moduleInfoEntryName` can't be found in $jmodFile")
+                }
+
+                zipFile.getInputStream(zipEntry).withCloseable { InputStream input ->
+                    ClassNode classNode = new ClassNode()
+                    new ClassReader(input).accept(classNode, SKIP_CODE | SKIP_DEBUG | SKIP_FRAMES)
+
+                    modulePackages[classNode.module.name] = new TreeSet<>(
+                        (classNode.module.exports ?: [])
+                        //.findAll { !it.modules?.size() }
+                            .collect { it.packaze.replace('/', '.') }
+                    )
+                }
+            }
+        }
+        modulePackages.values().removeIf { it.isEmpty() }
+
+        Map<String, String> packageModules = new TreeMap<>()
+        modulePackages.forEach { moduleName, packageNames ->
+            packageNames.forEach { packageName ->
+                packageModules.putIfAbsent(packageName, moduleName)
+            }
+        }
+
+        it.writePackage()
+        it.println("")
+        it.writeStaticImport("java.util.Arrays", "asList")
+        it.writeStaticImport("java.util.Collections", "unmodifiableMap")
+        it.writeStaticImport("java.util.Collections", "unmodifiableSet")
+        it.writeStaticImport("lombok.AccessLevel", "PRIVATE")
+        it.println("")
+        it.writeImport("java.util.LinkedHashMap")
+        it.writeImport("java.util.LinkedHashSet")
+        it.writeImport("java.util.Map")
+        it.writeImport("java.util.Set")
+        it.writeImport("lombok.NoArgsConstructor")
+        it.writeImport("lombok.val")
+        it.println("")
+        it.println("@NoArgsConstructor(access = PRIVATE)")
+        it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "java:S107", "java:S1128", "java:S1611")
+        it.writeBlock("abstract class ${it.simpleName}") {
+            /*
+            it.println("")
+            it.println("public static final Map<String, Set<String>> LATEST_LTS_JDK_MODULE_PACKAGES;")
+            it.println("")
+            it.writeBlock("static") {
+                it.println("val mapping = new LinkedHashMap<String, Set<String>>();")
+                modulePackages.forEach { moduleName, packageNames ->
+                    it.println("mapping.put(\"${it.escapeJava(moduleName)}\", unmodifiableSet(new LinkedHashSet<>(asList(")
+                    it.println("    " + packageNames.collect { name -> "\"${it.escapeJava(name)}\"" }.join(',\n    '))
+                    it.println("))));")
+                }
+                it.println("LATEST_LTS_JDK_MODULE_PACKAGES = unmodifiableMap(mapping);")
+            }
+            */
+
+            it.println("")
+            it.println("public static final Map<String, String> LATEST_LTS_JDK_PACKAGE_MODULES;")
+            it.println("")
+            it.writeBlock("static") {
+                it.println("val mapping = new LinkedHashMap<String, String>();")
+                packageModules.forEach { packageName, moduleName ->
+                    it.println("mapping.put(\"${it.escapeJava(packageName)}\", \"${it.escapeJava(moduleName)}\");")
+                }
+                it.println("LATEST_LTS_JDK_PACKAGE_MODULES = unmodifiableMap(mapping);")
+            }
+        }
+    }
+}

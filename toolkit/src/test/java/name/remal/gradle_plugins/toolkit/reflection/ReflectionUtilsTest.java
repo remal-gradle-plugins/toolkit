@@ -15,7 +15,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.val;
-import name.remal.gradle_plugins.toolkit.testkit.MinSupportedJavaVersion;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.junit.jupiter.api.Test;
@@ -107,7 +106,6 @@ class ReflectionUtilsTest {
 
 
     @Test
-    @MinSupportedJavaVersion(9)
     void moduleNameOf() {
         assertEquals(
             "java.base",
@@ -116,6 +114,14 @@ class ReflectionUtilsTest {
 
         assertNull(
             ReflectionUtils.moduleNameOf(ReflectionUtilsTest.class)
+        );
+    }
+
+    @Test
+    void moduleNameOfJdkClass() {
+        assertEquals(
+            "java.base",
+            ReflectionUtils.moduleNameOfJdkClass(String.class.getName())
         );
     }
 

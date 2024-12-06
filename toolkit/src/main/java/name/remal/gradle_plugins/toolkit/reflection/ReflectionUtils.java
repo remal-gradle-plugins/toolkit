@@ -10,6 +10,7 @@ import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.CrossCompileServices.loadCrossCompileService;
 import static name.remal.gradle_plugins.toolkit.DebugUtils.ifDebugEnabled;
 import static name.remal.gradle_plugins.toolkit.ThrowableUtils.unwrapReflectionException;
+import static name.remal.gradle_plugins.toolkit.reflection.LatestLtsJdkModules.LATEST_LTS_JDK_PACKAGE_MODULES;
 import static name.remal.gradle_plugins.toolkit.reflection.WhoCalledUtils.getCallingClass;
 
 import com.google.common.collect.ImmutableList;
@@ -230,7 +231,7 @@ public abstract class ReflectionUtils {
 
     public static String packageNameOf(Class<?> clazz) {
         val className = clazz.getName();
-        int lastDelimPos = className.lastIndexOf('.');
+        val lastDelimPos = className.lastIndexOf('.');
         return lastDelimPos >= 0 ? className.substring(0, lastDelimPos) : "";
     }
 
@@ -243,7 +244,23 @@ public abstract class ReflectionUtils {
      */
     @Nullable
     public static String moduleNameOf(Class<?> clazz) {
-        return METHODS.moduleNameOf(clazz);
+        val moduleName = METHODS.moduleNameOf(clazz);
+        if (moduleName != null) {
+            return moduleName;
+        }
+
+        return moduleNameOfJdkClass(clazz.getName());
+    }
+
+    @Nullable
+    public static String moduleNameOfJdkClass(String className) {
+        val lastDelimPos = className.lastIndexOf('.');
+        if (lastDelimPos >= 0) {
+            val packageName = className.substring(0, lastDelimPos);
+            return LATEST_LTS_JDK_PACKAGE_MODULES.get(packageName);
+        }
+
+        return null;
     }
 
 
