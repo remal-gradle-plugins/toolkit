@@ -12,7 +12,7 @@ class TaskTiming {
 
 class TimingsListener {
 
-    private static final long nanosToReport = Duration.ofSeconds(10).toNanos()
+    private static final long nanosToReport = Duration.ofSeconds(30).toNanos()
 
     private final Map<Task, Long> startNanos = new ConcurrentHashMap<>()
     private final List<TaskTiming> longTimings = new CopyOnWriteArrayList<>()
