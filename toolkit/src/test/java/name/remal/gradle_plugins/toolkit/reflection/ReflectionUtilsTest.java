@@ -15,6 +15,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.val;
+import name.remal.gradle_plugins.toolkit.testkit.MinSupportedJavaVersion;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.junit.jupiter.api.Test;
@@ -89,6 +90,33 @@ class ReflectionUtilsTest {
         assertNotEquals(TestTask.class, taskType);
         val unwrappedGeneratedSubclass = ReflectionUtils.unwrapGeneratedSubclass(taskType);
         assertEquals(TestTask.class, unwrappedGeneratedSubclass);
+    }
+
+
+    @Test
+    void packageNameOf() {
+        assertEquals(
+            "java.lang",
+            ReflectionUtils.packageNameOf(String.class)
+        );
+        assertEquals(
+            ReflectionUtils.packageNameOf(ReflectionUtilsTest.class),
+            ReflectionUtils.packageNameOf(TestTask.class)
+        );
+    }
+
+
+    @Test
+    @MinSupportedJavaVersion(9)
+    void moduleNameOf() {
+        assertEquals(
+            "java.base",
+            ReflectionUtils.moduleNameOf(String.class)
+        );
+
+        assertNull(
+            ReflectionUtils.moduleNameOf(ReflectionUtilsTest.class)
+        );
     }
 
 

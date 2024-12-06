@@ -43,6 +43,9 @@ import org.objectweb.asm.ClassReader;
 @CustomLog
 public abstract class ReflectionUtils {
 
+    private static final ReflectionUtilsMethods METHODS = loadCrossCompileService(ReflectionUtilsMethods.class);
+
+
     @Nullable
     public static Class<?> tryLoadClass(String name, @Nullable ClassLoader classLoader) {
         try {
@@ -229,6 +232,18 @@ public abstract class ReflectionUtils {
         val className = clazz.getName();
         int lastDelimPos = className.lastIndexOf('.');
         return lastDelimPos >= 0 ? className.substring(0, lastDelimPos) : "";
+    }
+
+    /**
+     * Returns the module name of the provided class.
+     *
+     * <p>Returns {@code null} for unnamed modules.
+     *
+     * <p>If the current runtime Java version is 8, this method tries it's best to determine the module name.
+     */
+    @Nullable
+    public static String moduleNameOf(Class<?> clazz) {
+        return METHODS.moduleNameOf(clazz);
     }
 
 
