@@ -2,6 +2,8 @@ package name.remal.gradle_plugins.toolkit;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.newOutputStream;
+import static java.util.zip.Deflater.BEST_COMPRESSION;
+import static java.util.zip.Deflater.DEFLATED;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.PathUtils.createParentDirectories;
 import static name.remal.gradle_plugins.toolkit.PathUtils.normalizePath;
@@ -10,7 +12,6 @@ import com.google.errorprone.annotations.MustBeClosed;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import lombok.NoArgsConstructor;
@@ -29,8 +30,8 @@ public abstract class ArchiveUtils {
 
         val outputStream = newOutputStream(path);
         val zipOutputStream = new ZipOutputStream(outputStream, UTF_8);
-        zipOutputStream.setMethod(ZipOutputStream.DEFLATED);
-        zipOutputStream.setLevel(Deflater.BEST_COMPRESSION);
+        zipOutputStream.setMethod(DEFLATED);
+        zipOutputStream.setLevel(BEST_COMPRESSION);
         return new ArchiveWriter() {
             @Override
             public void writeEntry(String entryName, byte[] bytes) throws IOException {

@@ -415,11 +415,6 @@ public abstract class ReportContainerUtils {
             instructions.add(new InsnNode(getType(method.getReturnType()).getOpcode(IRETURN)));
         }
 
-        classNode.methods.forEach(methodNode -> {
-            methodNode.maxLocals = 1;
-            methodNode.maxStack = 1;
-        });
-
         val classWriter = new ClassWriter(COMPUTE_MAXS | COMPUTE_FRAMES);
         classNode.accept(new CheckClassAdapter(classWriter));
         val bytecode = classWriter.toByteArray();
