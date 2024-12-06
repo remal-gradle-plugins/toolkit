@@ -1,11 +1,14 @@
 package name.remal.gradle_plugins.toolkit.testkit;
 
+import static name.remal.gradle_plugins.toolkit.LazyProxy.asLazyProxy;
 import static name.remal.gradle_plugins.toolkit.testkit.internal.containers.ProjectsContainer.getProjectsContainer;
 
 import com.google.auto.service.AutoService;
 import lombok.val;
+import name.remal.gradle_plugins.toolkit.LazyValue;
 import name.remal.gradle_plugins.toolkit.testkit.internal.AbstractProjectDirPrefixExtension;
 import org.gradle.api.Project;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.invocation.Gradle;
 import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -36,7 +39,9 @@ public class GradleProjectExtension extends AbstractProjectDirPrefixExtension im
 
         val paramType = parameterContext.getParameter().getType();
         if (paramType == Gradle.class) {
-            return project.getGradle();
+            return asLazyProxy(GradleInternal.class, LazyValue.of(() ->
+                (GradleInternal) project.getGradle()
+            ));
         }
 
         return project;

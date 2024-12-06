@@ -1,18 +1,22 @@
 package name.remal.gradle_plugins.toolkit.testkit.internal.containers;
 
 import static java.lang.String.format;
+import static name.remal.gradle_plugins.toolkit.LazyProxy.asLazyProxy;
 import static org.codehaus.groovy.runtime.ResourceGroovyMethods.deleteDir;
 
 import java.lang.reflect.Parameter;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import lombok.val;
+import name.remal.gradle_plugins.toolkit.LazyValue;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import name.remal.gradle_plugins.toolkit.testkit.ApplyPlugin;
 import name.remal.gradle_plugins.toolkit.testkit.ChildProjectOf;
 import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateInternal;
 import org.gradle.testfixtures.ProjectBuilder;
 import org.jetbrains.annotations.ApiStatus.Internal;
@@ -61,29 +65,38 @@ public class ProjectsContainer extends AbstractExtensionContextContainer<Project
     @ReliesOnInternalGradleApi
     @SneakyThrows
     private synchronized Project newProject(@Nullable Project parentProject, ProjectDirPrefix dirPrefix) {
-        final Project project;
+        final Supplier<Project> projectCreator;
         if (parentProject == null) {
-            val projectDir = dirPrefix.createTempDir().toFile();
-            project = ProjectBuilder.builder()
-                .withProjectDir(projectDir)
-                .withName(projectDir.getName())
-                .build();
+            projectCreator = () -> {
+                val projectDir = dirPrefix.createTempDir().toFile();
+                return ProjectBuilder.builder()
+                    .withProjectDir(projectDir)
+                    .withName(projectDir.getName())
+                    .build();
+            };
 
         } else {
-            project = ProjectBuilder.builder()
-                .withParent(parentProject)
-                .build();
+            projectCreator = () -> {
+                return ProjectBuilder.builder()
+                    .withParent(parentProject)
+                    .build();
+            };
         }
 
+        return asLazyProxy(ProjectInternal.class, LazyValue.of(() -> {
+            val project = projectCreator.get();
+            registerResource(project);
+            evaluateProjectIfNeeded(project);
+            return (ProjectInternal) project;
+        }));
+    }
+
+    private static void evaluateProjectIfNeeded(Project project) {
         val stateInternal = (ProjectStateInternal) project.getState();
         if (stateInternal.isUnconfigured()) {
             stateInternal.toBeforeEvaluate();
             stateInternal.toEvaluate();
         }
-
-        registerResource(project);
-
-        return project;
     }
 
 
@@ -155,21 +168,21 @@ public class ProjectsContainer extends AbstractExtensionContextContainer<Project
             paramProject = newProject(null, dirPrefix);
         }
 
-        val pluginManager = paramProject.getPluginManager();
+        val finalProject = paramProject;
         annotatedParam.findRepeatableAnnotations(ApplyPlugin.class).forEach(applyPlugin -> {
             val id = applyPlugin.value();
             if (!id.isEmpty()) {
-                pluginManager.apply(id);
+                finalProject.getPluginManager().apply(id);
             }
 
             val type = applyPlugin.type();
             if (type != ApplyPlugin.NotSetPluginType.class) {
-                pluginManager.apply(type);
+                finalProject.getPluginManager().apply(type);
             }
         });
 
-        parameterProjects.put(annotatedParam, paramProject);
-        return paramProject;
+        parameterProjects.put(annotatedParam, finalProject);
+        return finalProject;
     }
 
 }
