@@ -37,6 +37,7 @@ dependencies {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 project.fatJarWith(project(':toolkit-annotations'))
+project.fatJarWith(project(':toolkit:fat-jar--latest-jdk'))
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
