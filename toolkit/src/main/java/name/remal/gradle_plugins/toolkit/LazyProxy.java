@@ -97,7 +97,7 @@ public abstract class LazyProxy {
 
 
     public static boolean isLazyProxy(Object object) {
-        return object instanceof LazyProxyMarker;
+        return object instanceof LazyProxyMarkerHolder.LazyProxyMarker;
     }
 
 
@@ -131,7 +131,7 @@ public abstract class LazyProxy {
         classNode.superName = getInternalName(Object.class);
         classNode.interfaces = asList(
             getInternalName(interfaceClass),
-            getInternalName(LazyProxyMarker.class)
+            getInternalName(LazyProxyMarkerHolder.LazyProxyMarker.class)
         );
         classNode.fields = new ArrayList<>();
         classNode.methods = new ArrayList<>();
@@ -267,7 +267,15 @@ public abstract class LazyProxy {
     }
 
 
-    private interface LazyProxyMarker {
+    /**
+     * {@link LazyProxyMarker} needs to be public, but this class should not be accessible to any source code.
+     * To do that, we wrap it with a private class.
+     */
+    private interface LazyProxyMarkerHolder {
+
+        interface LazyProxyMarker {
+        }
+
     }
 
 }
