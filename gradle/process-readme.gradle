@@ -111,7 +111,7 @@ allprojects {
                     String tag = it[1]
                     String pluginId = it[2]
                     logger.lifecycle('  Handling {}: {}', tag, pluginId)
-                    String lastVersion = project.getPluginLastVersion(pluginId)
+                    String lastVersion = project.getPluginLastVersionWithCurrentAsFallback(pluginId)
                     String usage = ''
                     if (tag.endsWith('-kotlin')) {
                         usage = "```kotlin\nplugins {\n    id(\"$pluginId\") version \"$lastVersion\"\n}\n```"

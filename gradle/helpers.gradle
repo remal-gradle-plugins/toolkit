@@ -596,10 +596,33 @@ Closure<List<String>> getPluginVersions = project.ext.getPluginVersions = { Stri
 
 Closure<String> getPluginLastVersion = project.ext.getPluginLastVersion = { String pluginId ->
     List<String> versions = getPluginVersions(pluginId)
-    if (versions.isEmpty()) {
-        throw new IllegalStateException("No versions were found for plugin '$pluginId'")
+    if (!versions.isEmpty()) {
+        return versions.first()
     }
-    return versions.first()
+
+    throw new IllegalStateException("No versions were found for plugin '$pluginId'")
+}
+
+Closure<String> getPluginLastVersionWithCurrentAsFallback = project.ext.getPluginLastVersionWithCurrentAsFallback = { String pluginId ->
+    List<String> versions = getPluginVersions(pluginId)
+    if (!versions.isEmpty()) {
+        return versions.first()
+    }
+
+    String currentVersion = project.allprojects.stream()
+        .filter { it.pluginManager.hasPlugin('maven-publish') }
+        .flatMap { it.publishing.publications.withType(MavenPublication).stream() }
+        .map { MavenPublication.cast(it) }
+        .filter { it.groupId == pluginId && it.artifactId == "${pluginId}.gradle.plugin" }
+        .map { it.version }
+        .filter { it?.length() }
+        .findFirst()
+        .orElse(null)
+    if (currentVersion != null) {
+        return currentVersion;
+    }
+
+    throw new IllegalStateException("No versions were found for plugin '$pluginId'")
 }
 
 

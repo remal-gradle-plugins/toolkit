@@ -15,9 +15,10 @@ tasks.register('pushBackPublishedVersions') { Task task ->
 
     doLast {
         Collection<String> versionFilePaths = new LinkedHashSet<>()
-        allprojects.stream()
+        project.allprojects.stream()
             .filter { it.pluginManager.hasPlugin('maven-publish') }
             .flatMap { it.publishing.publications.withType(MavenPublication).stream() }
+            .map { MavenPublication.cast(it) }
             .forEach { MavenPublication publication ->
                 String versionFilePath = "$publishedVersionsDirRelativePath/${publication.groupId}/${publication.artifactId}.version"
                 if (!versionFilePaths.add(versionFilePath)) {
