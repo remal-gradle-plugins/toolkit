@@ -11,7 +11,6 @@ import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import lombok.val;
-import name.remal.gradle_plugins.toolkit.LazyValue;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import name.remal.gradle_plugins.toolkit.testkit.ApplyPlugin;
 import name.remal.gradle_plugins.toolkit.testkit.ChildProjectOf;
@@ -83,12 +82,12 @@ public class ProjectsContainer extends AbstractExtensionContextContainer<Project
             };
         }
 
-        return asLazyProxy(ProjectInternal.class, LazyValue.of(() -> {
+        return asLazyProxy(ProjectInternal.class, () -> {
             val project = projectCreator.get();
             registerResource(project);
             evaluateProjectIfNeeded(project);
             return (ProjectInternal) project;
-        }));
+        });
     }
 
     private static void evaluateProjectIfNeeded(Project project) {

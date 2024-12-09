@@ -19,20 +19,14 @@ import org.junit.jupiter.api.Test;
 class LazyProxyTest {
 
     @Test
-    void asLazyProxy() {
-        val lazyValue = LazyValue.of(() -> "value");
-        val lazyProxy = LazyProxy.asLazyProxy(CharSequence.class, lazyValue);
-        assertFalse(lazyValue.isInitialized(), "isInitialized");
-
+    void asLazyProxy_simple() {
+        val lazyProxy = LazyProxy.asLazyProxy(CharSequence.class, () -> "value");
         assertEquals("value".length(), lazyProxy.length());
-
-        assertTrue(lazyValue.isInitialized(), "isInitialized");
     }
 
     @Test
     void asLazyProxy_to_string() {
-        val lazyValue = LazyValue.of(() -> "value");
-        val lazyProxy = LazyProxy.asLazyProxy(CharSequence.class, lazyValue);
+        val lazyProxy = LazyProxy.asLazyProxy(CharSequence.class, () -> "value");
         assertEquals("value", lazyProxy.toString());
     }
 
@@ -40,34 +34,52 @@ class LazyProxyTest {
     @SuppressWarnings("java:S5778")
     void asLazyProxy_for_not_interface() {
         assertThrows(IllegalArgumentException.class, () ->
-            LazyProxy.asLazyProxy(String.class, LazyValue.of(() -> "value"))
+            LazyProxy.asLazyProxy(String.class, () -> "value")
         );
 
         assertThrows(IllegalArgumentException.class, () ->
-            LazyProxy.asLazyProxy(ElementType.class, LazyValue.of(() -> ElementType.TYPE))
+            LazyProxy.asLazyProxy(ElementType.class, () -> ElementType.TYPE)
         );
     }
 
     @Test
     void isLazyProxy() {
-        val lazyProxy = LazyProxy.asLazyProxy(CharSequence.class, LazyValue.of(() -> "value"));
-        assertTrue(LazyProxy.isLazyProxy(lazyProxy), "isLazyProxy");
+        val lazyProxy = LazyProxy.asLazyProxy(CharSequence.class, () -> "value");
+        assertTrue(LazyProxy.isLazyProxy(lazyProxy), "isLazyProxy: lazyProxy");
+        assertFalse(LazyProxy.isLazyProxy("asd"), "isLazyProxy: string");
+    }
+
+    @Test
+    void isLazyProxyInitialized() {
+        val lazyProxy = LazyProxy.asLazyProxy(CharSequence.class, () -> "value");
+        assertFalse(LazyProxy.isLazyProxyInitialized(lazyProxy), "isLazyProxyInitialized");
+
+        assertEquals("value".length(), lazyProxy.length());
+
+        assertTrue(LazyProxy.isLazyProxyInitialized(lazyProxy), "isLazyProxyInitialized");
+    }
+
+    @Test
+    void isLazyProxyInitialized_failure() {
+        assertThrows(IllegalArgumentException.class, () ->
+            LazyProxy.isLazyProxyInitialized("asd")
+        );
     }
 
     @Test
     void asLazyListProxy() {
         {
-            val lazyProxy = LazyProxy.asLazyListProxy(LazyValue.of(() ->
+            val lazyProxy = LazyProxy.asLazyListProxy(() ->
                 singletonList("a")
-            ));
+            );
             assertInstanceOf(List.class, lazyProxy);
             assertEquals(1, lazyProxy.size());
         }
 
         {
-            List<CharSequence> lazyProxy = LazyProxy.asLazyListProxy(LazyValue.of(() ->
+            List<CharSequence> lazyProxy = LazyProxy.asLazyListProxy(() ->
                 singletonList("a")
-            ));
+            );
             assertInstanceOf(List.class, lazyProxy);
             assertEquals(1, lazyProxy.size());
         }
@@ -76,17 +88,17 @@ class LazyProxyTest {
     @Test
     void asLazySetProxy() {
         {
-            val lazyProxy = LazyProxy.asLazySetProxy(LazyValue.of(() ->
+            val lazyProxy = LazyProxy.asLazySetProxy(() ->
                 singleton("a")
-            ));
+            );
             assertInstanceOf(Set.class, lazyProxy);
             assertEquals(1, lazyProxy.size());
         }
 
         {
-            Set<CharSequence> lazyProxy = LazyProxy.asLazySetProxy(LazyValue.of(() ->
+            Set<CharSequence> lazyProxy = LazyProxy.asLazySetProxy(() ->
                 singleton("a")
-            ));
+            );
             assertInstanceOf(Set.class, lazyProxy);
             assertEquals(1, lazyProxy.size());
         }
@@ -95,17 +107,17 @@ class LazyProxyTest {
     @Test
     void asLazyMapProxy() {
         {
-            val lazyProxy = LazyProxy.asLazyMapProxy(LazyValue.of(() ->
+            val lazyProxy = LazyProxy.asLazyMapProxy(() ->
                 singletonMap("a", "b")
-            ));
+            );
             assertInstanceOf(Map.class, lazyProxy);
             assertEquals(1, lazyProxy.size());
         }
 
         {
-            Map<CharSequence, CharSequence> lazyProxy = LazyProxy.asLazyMapProxy(LazyValue.of(() ->
+            Map<CharSequence, CharSequence> lazyProxy = LazyProxy.asLazyMapProxy(() ->
                 singletonMap("a", "b")
-            ));
+            );
             assertInstanceOf(Map.class, lazyProxy);
             assertEquals(1, lazyProxy.size());
         }

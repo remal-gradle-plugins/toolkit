@@ -11,7 +11,7 @@ class LazyValueTest {
 
     @Test
     void simpleTest() {
-        val lazyValue = LazyValue.of(() -> "value");
+        val lazyValue = LazyValue.lazyValue(() -> "value");
         assertFalse(lazyValue.isInitialized(), "isInitialized");
         assertEquals("value", lazyValue.get());
         assertTrue(lazyValue.isInitialized(), "isInitialized");

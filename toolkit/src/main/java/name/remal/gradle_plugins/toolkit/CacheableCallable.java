@@ -1,6 +1,10 @@
 package name.remal.gradle_plugins.toolkit;
 
+import static javax.annotation.meta.When.UNKNOWN;
+import static name.remal.gradle_plugins.toolkit.LazyNullableValue.lazyNullableValue;
+
 import java.util.concurrent.Callable;
+import javax.annotation.Nonnull;
 
 public final class CacheableCallable<V> implements Callable<V> {
 
@@ -9,12 +13,13 @@ public final class CacheableCallable<V> implements Callable<V> {
     }
 
 
-    private final LazyValue<V> lazyValue;
+    private final LazyNullableValue<V> lazyValue;
 
     private CacheableCallable(Callable<V> delegate) {
-        this.lazyValue = LazyValue.of(delegate::call);
+        this.lazyValue = lazyNullableValue(delegate::call);
     }
 
+    @Nonnull(when = UNKNOWN)
     @Override
     public V call() {
         return lazyValue.get();

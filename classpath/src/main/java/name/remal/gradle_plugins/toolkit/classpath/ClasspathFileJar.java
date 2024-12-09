@@ -5,6 +5,7 @@ import static java.lang.Boolean.parseBoolean;
 import static java.lang.Integer.parseInt;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.newInputStream;
+import static name.remal.gradle_plugins.toolkit.LazyValue.lazyValue;
 
 import java.io.File;
 import java.io.InputStream;
@@ -184,7 +185,7 @@ final class ClasspathFileJar extends ClasspathFileBase {
         return TRUE.equals(isMultiRelease.get());
     }
 
-    private final LazyValue<Boolean> isMultiRelease = LazyValue.of(() -> {
+    private final LazyValue<Boolean> isMultiRelease = lazyValue(() -> {
         try (val zipFile = new ZipFile(file)) {
             val manifestEntry = zipFile.getEntry(MANIFEST_RESOURCE_NAME);
             if (manifestEntry != null) {

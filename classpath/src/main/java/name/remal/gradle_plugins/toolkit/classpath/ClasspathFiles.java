@@ -3,6 +3,7 @@ package name.remal.gradle_plugins.toolkit.classpath;
 import static java.lang.Integer.parseInt;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
+import static name.remal.gradle_plugins.toolkit.LazyValue.lazyValue;
 import static name.remal.gradle_plugins.toolkit.PredicateUtils.not;
 import static name.remal.gradle_plugins.toolkit.classpath.Utils.toDeepImmutableSetMap;
 
@@ -73,7 +74,7 @@ public final class ClasspathFiles implements ClasspathFileMethods {
     private ClasspathFiles(List<ClasspathFileBase> files) {
         val immutableFiles = ImmutableList.copyOf(files);
         this.files = immutableFiles;
-        this.classesIndex = LazyValue.of(() -> {
+        this.classesIndex = lazyValue(() -> {
             val classIndexes = immutableFiles.stream()
                 .map(ClasspathFileMethods::getClassesIndex)
                 .collect(toList());

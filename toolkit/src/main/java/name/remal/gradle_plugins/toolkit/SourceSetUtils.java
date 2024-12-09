@@ -9,6 +9,7 @@ import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.AbstractCompileUtils.getDestinationDir;
 import static name.remal.gradle_plugins.toolkit.CrossCompileServices.loadAllCrossCompileServiceImplementations;
 import static name.remal.gradle_plugins.toolkit.FileTreeElementUtils.isNotArchiveEntry;
+import static name.remal.gradle_plugins.toolkit.LazyValue.lazyValue;
 import static name.remal.gradle_plugins.toolkit.ThrowableUtils.unwrapReflectionException;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.isGetterOf;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.isNotStatic;
@@ -216,7 +217,7 @@ public abstract class SourceSetUtils {
 
 
     private static final LazyValue<List<WhenTestSourceSetRegistered>> ALL_WHEN_TEST_SOURCE_SET_REGISTERED =
-        LazyValue.of(() -> loadAllCrossCompileServiceImplementations(WhenTestSourceSetRegistered.class));
+        lazyValue(() -> loadAllCrossCompileServiceImplementations(WhenTestSourceSetRegistered.class));
 
     public static void whenTestSourceSetRegistered(Project project, Action<SourceSet> action) {
         Set<SourceSet> processedSourceSets = newSetFromMap(new IdentityHashMap<>());

@@ -7,6 +7,7 @@ import static java.util.Collections.emptyMap;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static name.remal.gradle_plugins.toolkit.FileUtils.normalizeFile;
+import static name.remal.gradle_plugins.toolkit.LazyValue.lazyValue;
 import static name.remal.gradle_plugins.toolkit.PredicateUtils.containsString;
 import static name.remal.gradle_plugins.toolkit.PredicateUtils.not;
 import static name.remal.gradle_plugins.toolkit.PredicateUtils.startsWithString;
@@ -103,7 +104,7 @@ abstract class ClasspathFileBase implements ClasspathFileMethods {
         return resourceNames.get();
     }
 
-    private final LazyValue<Set<String>> resourceNames = LazyValue.of(() ->
+    private final LazyValue<Set<String>> resourceNames = lazyValue(() ->
         toImmutableSet(new TreeSet<>(getResourceNamesImpl()))
     );
 
@@ -182,7 +183,7 @@ abstract class ClasspathFileBase implements ClasspathFileMethods {
         return classesIndex.get();
     }
 
-    private final LazyValue<ClassesIndex> classesIndex = LazyValue.of(() -> {
+    private final LazyValue<ClassesIndex> classesIndex = lazyValue(() -> {
         ClassesIndex classesIndex = new ClassesIndex();
 
         forEachClassResource((classpathFile, className, inputStreamOpener) -> {
@@ -231,7 +232,7 @@ abstract class ClasspathFileBase implements ClasspathFileMethods {
     @SuppressWarnings("InjectedReferences")
     private static final String SERVICES_PREFIX = "META-INF/services/";
 
-    private final LazyValue<Map<String, Set<String>>> allServices = LazyValue.of(() -> {
+    private final LazyValue<Map<String, Set<String>>> allServices = lazyValue(() -> {
         List<String> serviceNames = getResourceNames().stream()
             .filter(startsWithString(SERVICES_PREFIX))
             .map(resourceName -> resourceName.substring(SERVICES_PREFIX.length()))
@@ -282,7 +283,7 @@ abstract class ClasspathFileBase implements ClasspathFileMethods {
     }
 
     @SuppressWarnings("InjectedReferences")
-    private final LazyValue<Map<String, Set<String>>> allSpringFactories = LazyValue.of(() -> {
+    private final LazyValue<Map<String, Set<String>>> allSpringFactories = lazyValue(() -> {
         final Properties properties;
         try (val inputStream = openStream("META-INF/spring.factories")) {
             if (inputStream == null) {

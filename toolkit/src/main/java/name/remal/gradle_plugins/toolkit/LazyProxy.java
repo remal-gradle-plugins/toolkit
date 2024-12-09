@@ -1,11 +1,11 @@
 package name.remal.gradle_plugins.toolkit;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
+import static name.remal.gradle_plugins.toolkit.LazyValue.lazyValue;
 import static name.remal.gradle_plugins.toolkit.SneakyThrowUtils.sneakyThrow;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.defineClass;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.isNotAbstract;
@@ -13,7 +13,6 @@ import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.isSta
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
 import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
 import static org.objectweb.asm.Opcodes.ACC_FINAL;
-import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
 import static org.objectweb.asm.Opcodes.ALOAD;
@@ -35,6 +34,7 @@ import static org.objectweb.asm.Type.getType;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableList;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
@@ -45,6 +45,7 @@ import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
+import org.jetbrains.annotations.Contract;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
@@ -61,12 +62,15 @@ import org.objectweb.asm.util.CheckClassAdapter;
 @NoArgsConstructor(access = PRIVATE)
 public abstract class LazyProxy {
 
+    @Contract(pure = true)
     @SneakyThrows
     @SuppressWarnings("unchecked")
-    public static <T> T asLazyProxy(Class<T> interfaceClass, LazyValue<? extends T> lazyValue) {
+    public static <T> T asLazyProxy(Class<T> interfaceClass, LazyValueSupplier<? extends T> lazyValueSupplier) {
         if (!interfaceClass.isInterface()) {
             throw new IllegalArgumentException("Not an interface: " + interfaceClass);
         }
+
+        val lazyValue = lazyValue(lazyValueSupplier);
 
         val proxyClass = PROXY_CLASSES.getUnchecked(interfaceClass);
         val proxyCtor = proxyClass.getConstructor(LazyValue.class);
@@ -74,30 +78,53 @@ public abstract class LazyProxy {
         return proxy;
     }
 
+    @Contract(pure = true)
     @SuppressWarnings("unchecked")
     public static <E, T extends List<E>> T asLazyListProxy(
-        LazyValue<? extends T> lazyValue
+        LazyValueSupplier<? extends T> lazyValueSupplier
     ) {
-        return (T) asLazyProxy(List.class, lazyValue);
+        return (T) asLazyProxy(List.class, lazyValueSupplier);
     }
 
+    @Contract(pure = true)
     @SuppressWarnings("unchecked")
     public static <E, T extends Set<E>> T asLazySetProxy(
-        LazyValue<? extends T> lazyValue
+        LazyValueSupplier<? extends T> lazyValueSupplier
     ) {
-        return (T) asLazyProxy(Set.class, lazyValue);
+        return (T) asLazyProxy(Set.class, lazyValueSupplier);
     }
 
+    @Contract(pure = true)
     @SuppressWarnings("unchecked")
     public static <K, V, T extends Map<K, V>> T asLazyMapProxy(
-        LazyValue<? extends T> lazyValue
+        LazyValueSupplier<? extends T> lazyValueSupplier
     ) {
-        return (T) asLazyProxy(Map.class, lazyValue);
+        return (T) asLazyProxy(Map.class, lazyValueSupplier);
     }
 
 
+    @Contract(pure = true)
     public static boolean isLazyProxy(Object object) {
         return object instanceof LazyProxyMarkerHolder.LazyProxyMarker;
+    }
+
+    @Contract(pure = true)
+    @SneakyThrows
+    public static boolean isLazyProxyInitialized(Object object) {
+        Class<?> proxyClass = object.getClass();
+        while (proxyClass != null && proxyClass != Object.class) {
+            for (val interfaceClass : proxyClass.getInterfaces()) {
+                if (interfaceClass == LazyProxyMarkerHolder.LazyProxyMarker.class) {
+                    val lazyValueField = proxyClass.getField(LAZY_VALUE_FIELD_NODE);
+                    val lazyValue = (LazyValue<?>) lazyValueField.get(object);
+                    return lazyValue.isInitialized();
+                }
+            }
+
+            proxyClass = proxyClass.getSuperclass();
+        }
+
+        throw new IllegalArgumentException("Not a lazy proxy: " + object);
     }
 
 
@@ -105,15 +132,17 @@ public abstract class LazyProxy {
         .weakKeys()
         .build(CacheLoader.from(LazyProxy::generateProxyClass));
 
+    private static final String LAZY_VALUE_FIELD_NODE = "lazyValue";
+
     private static final Method LAZY_VALUE_GET_METHOD;
     private static final List<Method> OBJECT_METHODS_TO_IMPLEMENT;
 
     static {
         try {
             LAZY_VALUE_GET_METHOD = LazyValue.class.getMethod("get");
-            OBJECT_METHODS_TO_IMPLEMENT = stream(Object.class.getMethods())
-                .filter(ProxyUtils::isToStringMethod)
-                .collect(toImmutableList());
+            OBJECT_METHODS_TO_IMPLEMENT = ImmutableList.of(
+                Object.class.getMethod("toString")
+            );
         } catch (NoSuchMethodException e) {
             throw sneakyThrow(e);
         }
@@ -136,14 +165,14 @@ public abstract class LazyProxy {
         classNode.fields = new ArrayList<>();
         classNode.methods = new ArrayList<>();
 
-        val delegateField = new FieldNode(
-            ACC_PRIVATE | ACC_FINAL,
-            "delegate",
+        val lazyValueField = new FieldNode(
+            ACC_PUBLIC | ACC_FINAL,
+            LAZY_VALUE_FIELD_NODE,
             getDescriptor(LazyValue.class),
             null,
             null
         );
-        classNode.fields.add(delegateField);
+        classNode.fields.add(lazyValueField);
 
         {
             val methodNode = new MethodNode(
@@ -151,14 +180,14 @@ public abstract class LazyProxy {
                 "<init>",
                 getMethodDescriptor(
                     VOID_TYPE,
-                    getType(delegateField.desc)
+                    getType(lazyValueField.desc)
                 ),
                 null,
                 null
             );
             classNode.methods.add(methodNode);
 
-            methodNode.parameters = singletonList(new ParameterNode(delegateField.name, ACC_FINAL));
+            methodNode.parameters = singletonList(new ParameterNode(lazyValueField.name, ACC_FINAL));
 
             val instructions = methodNode.instructions = new InsnList();
             instructions.add(new LabelNode());
@@ -168,9 +197,7 @@ public abstract class LazyProxy {
                 INVOKESPECIAL,
                 classNode.superName,
                 "<init>",
-                getMethodDescriptor(
-                    VOID_TYPE
-                )
+                getMethodDescriptor(VOID_TYPE)
             ));
 
             instructions.add(new VarInsnNode(ALOAD, 0));
@@ -178,8 +205,8 @@ public abstract class LazyProxy {
             instructions.add(new FieldInsnNode(
                 PUTFIELD,
                 classNode.name,
-                delegateField.name,
-                delegateField.desc
+                lazyValueField.name,
+                lazyValueField.desc
             ));
 
             instructions.add(new InsnNode(RETURN));
@@ -225,13 +252,11 @@ public abstract class LazyProxy {
             instructions.add(new FieldInsnNode(
                 GETFIELD,
                 classNode.name,
-                delegateField.name,
-                delegateField.desc
+                lazyValueField.name,
+                lazyValueField.desc
             ));
             instructions.add(new MethodInsnNode(
-                LAZY_VALUE_GET_METHOD.getDeclaringClass().isInterface()
-                    ? INVOKEINTERFACE
-                    : INVOKEVIRTUAL,
+                LAZY_VALUE_GET_METHOD.getDeclaringClass().isInterface() ? INVOKEINTERFACE : INVOKEVIRTUAL,
                 getInternalName(LAZY_VALUE_GET_METHOD.getDeclaringClass()),
                 LAZY_VALUE_GET_METHOD.getName(),
                 getMethodDescriptor(LAZY_VALUE_GET_METHOD)
@@ -243,9 +268,7 @@ public abstract class LazyProxy {
             }
 
             instructions.add(new MethodInsnNode(
-                method.getDeclaringClass().isInterface()
-                    ? INVOKEINTERFACE
-                    : INVOKEVIRTUAL,
+                method.getDeclaringClass().isInterface() ? INVOKEINTERFACE : INVOKEVIRTUAL,
                 getInternalName(method.getDeclaringClass()),
                 method.getName(),
                 getMethodDescriptor(method)
@@ -272,10 +295,8 @@ public abstract class LazyProxy {
      * To do that, we wrap it with a private class.
      */
     private interface LazyProxyMarkerHolder {
-
         interface LazyProxyMarker {
         }
-
     }
 
 }

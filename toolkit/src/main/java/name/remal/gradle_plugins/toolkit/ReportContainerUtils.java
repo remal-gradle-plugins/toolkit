@@ -347,9 +347,7 @@ public abstract class ReportContainerUtils {
             ));
             instructions.add(new LdcInsnNode(reportName));
             instructions.add(new MethodInsnNode(
-                getByNameMethod.getDeclaringClass().isInterface()
-                    ? INVOKEINTERFACE
-                    : INVOKEVIRTUAL,
+                getByNameMethod.getDeclaringClass().isInterface() ? INVOKEINTERFACE : INVOKEVIRTUAL,
                 getInternalName(getByNameMethod.getDeclaringClass()),
                 getByNameMethod.getName(),
                 getMethodDescriptor(getByNameMethod)
@@ -404,9 +402,7 @@ public abstract class ReportContainerUtils {
             }
 
             instructions.add(new MethodInsnNode(
-                method.getDeclaringClass().isInterface()
-                    ? INVOKEINTERFACE
-                    : INVOKEVIRTUAL,
+                method.getDeclaringClass().isInterface() ? INVOKEINTERFACE : INVOKEVIRTUAL,
                 getInternalName(method.getDeclaringClass()),
                 method.getName(),
                 getMethodDescriptor(method)

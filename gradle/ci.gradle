@@ -55,19 +55,19 @@ allprojects {
         }
     }
 
-    tasks.create('buildWithAllTests') {
+    tasks.register('buildWithAllTests') {
         group = 'build'
         dependsOn(project.tasks.matching { it.name == 'build' })
         dependsOn(project.tasks.matching { it.name == 'allTests' })
     }
 
-    tasks.create('buildInstall') {
+    tasks.register('buildInstall') {
         group = 'build'
         dependsOn('build')
         dependsOn(project.tasks.matching { it.name == 'publishToMavenLocal' })
     }
 
-    tasks.create('buildInstallWithAllTests') {
+    tasks.register('buildInstallWithAllTests') {
         group = 'build'
         dependsOn('buildWithAllTests')
         dependsOn(project.tasks.matching { it.name == 'publishToMavenLocal' })
