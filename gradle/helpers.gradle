@@ -659,6 +659,7 @@ allprojects {
 
 allprojects {
     project.ext.fatJarWithDependentTaskNames = [
+        'generateJava',
         'classes',
         'jar',
         'sourcesJar',
