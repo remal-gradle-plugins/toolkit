@@ -9,7 +9,11 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import java.lang.annotation.ElementType;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -67,10 +71,29 @@ class LazyProxyTest {
     }
 
     @Test
+    void asLazyCollectionProxy() {
+        {
+            val lazyProxy = LazyProxy.asLazyCollectionProxy(() ->
+                ImmutableList.of("a")
+            );
+            assertInstanceOf(Collection.class, lazyProxy);
+            assertEquals(1, lazyProxy.size());
+        }
+
+        {
+            Collection<CharSequence> lazyProxy = LazyProxy.asLazyCollectionProxy(() ->
+                ImmutableSet.of("a")
+            );
+            assertInstanceOf(Collection.class, lazyProxy);
+            assertEquals(1, lazyProxy.size());
+        }
+    }
+
+    @Test
     void asLazyListProxy() {
         {
             val lazyProxy = LazyProxy.asLazyListProxy(() ->
-                singletonList("a")
+                ImmutableList.of("a")
             );
             assertInstanceOf(List.class, lazyProxy);
             assertEquals(1, lazyProxy.size());
@@ -89,7 +112,7 @@ class LazyProxyTest {
     void asLazySetProxy() {
         {
             val lazyProxy = LazyProxy.asLazySetProxy(() ->
-                singleton("a")
+                ImmutableSet.of("a")
             );
             assertInstanceOf(Set.class, lazyProxy);
             assertEquals(1, lazyProxy.size());
@@ -108,7 +131,7 @@ class LazyProxyTest {
     void asLazyMapProxy() {
         {
             val lazyProxy = LazyProxy.asLazyMapProxy(() ->
-                singletonMap("a", "b")
+                ImmutableMap.of("a", "b")
             );
             assertInstanceOf(Map.class, lazyProxy);
             assertEquals(1, lazyProxy.size());

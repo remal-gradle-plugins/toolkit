@@ -38,6 +38,7 @@ import com.google.common.collect.ImmutableList;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -80,26 +81,34 @@ public abstract class LazyProxy {
 
     @Contract(pure = true)
     @SuppressWarnings("unchecked")
-    public static <E, T extends List<E>> T asLazyListProxy(
-        LazyValueSupplier<? extends T> lazyValueSupplier
+    public static <E> Collection<E> asLazyCollectionProxy(
+        LazyValueSupplier<? extends Collection<E>> lazyValueSupplier
     ) {
-        return (T) asLazyProxy(List.class, lazyValueSupplier);
+        return asLazyProxy(Collection.class, lazyValueSupplier);
     }
 
     @Contract(pure = true)
     @SuppressWarnings("unchecked")
-    public static <E, T extends Set<E>> T asLazySetProxy(
-        LazyValueSupplier<? extends T> lazyValueSupplier
+    public static <E> List<E> asLazyListProxy(
+        LazyValueSupplier<? extends List<E>> lazyValueSupplier
     ) {
-        return (T) asLazyProxy(Set.class, lazyValueSupplier);
+        return asLazyProxy(List.class, lazyValueSupplier);
     }
 
     @Contract(pure = true)
     @SuppressWarnings("unchecked")
-    public static <K, V, T extends Map<K, V>> T asLazyMapProxy(
-        LazyValueSupplier<? extends T> lazyValueSupplier
+    public static <E> Set<E> asLazySetProxy(
+        LazyValueSupplier<? extends Set<E>> lazyValueSupplier
     ) {
-        return (T) asLazyProxy(Map.class, lazyValueSupplier);
+        return asLazyProxy(Set.class, lazyValueSupplier);
+    }
+
+    @Contract(pure = true)
+    @SuppressWarnings("unchecked")
+    public static <K, V> Map<K, V> asLazyMapProxy(
+        LazyValueSupplier<? extends Map<K, V>> lazyValueSupplier
+    ) {
+        return asLazyProxy(Map.class, lazyValueSupplier);
     }
 
 
@@ -155,7 +164,7 @@ public abstract class LazyProxy {
         classNode.access = ACC_PUBLIC | ACC_SYNTHETIC;
         classNode.name = getInternalName(interfaceClass) + "$$LazyProxy";
         if (interfaceClass.getClassLoader() == null) {
-            classNode.name = getInternalName(LazyProxy.class) + '$' + classNode.name.replace('/', '$');
+            classNode.name = getInternalName(LazyProxy.class) + '$' + classNode.name.replace('/', '_');
         }
         classNode.superName = getInternalName(Object.class);
         classNode.interfaces = asList(
