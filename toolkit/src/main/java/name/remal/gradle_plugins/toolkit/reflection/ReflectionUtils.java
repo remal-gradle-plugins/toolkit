@@ -230,6 +230,14 @@ public abstract class ReflectionUtils {
     }
 
     public static String packageNameOf(Class<?> clazz) {
+        while (clazz.isArray()) {
+            clazz = clazz.getComponentType();
+        }
+
+        if (clazz.isPrimitive()) {
+            return "java.lang";
+        }
+
         val className = clazz.getName();
         val lastDelimPos = className.lastIndexOf('.');
         return lastDelimPos >= 0 ? className.substring(0, lastDelimPos) : "";
