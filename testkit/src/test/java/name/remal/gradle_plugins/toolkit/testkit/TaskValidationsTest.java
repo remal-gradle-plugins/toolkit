@@ -28,7 +28,7 @@ class TaskValidationsTest {
 
     @Test
     void executeOnlyIfSpecs() {
-        val task = project.getTasks().create("test");
+        val task = project.getTasks().register("test").get();
 
         val executedOnlyIfSpecs = new AtomicInteger(0);
         task.onlyIf(__ -> {
@@ -51,7 +51,7 @@ class TaskValidationsTest {
 
     @Test
     void executeActions() {
-        val task = project.getTasks().create("test", TestTaskForExecuteActions.class);
+        val task = project.getTasks().register("test", TestTaskForExecuteActions.class).get();
 
         val isDoFirstExecuted = new AtomicBoolean(false);
         task.doFirst(__ -> isDoFirstExecuted.set(true));
@@ -85,8 +85,8 @@ class TaskValidationsTest {
     @Test
     @MinSupportedGradleVersion("7.0")
     void assertNoTaskPropertiesProblems_without_problems() {
-        val task = project.getTasks().create("task", TestTaskWithoutPropertyProblems.class);
-        assertDoesNotThrow(() -> TaskValidations.assertNoTaskPropertiesProblems(task));
+        val task = project.getTasks().register("task", TestTaskWithoutPropertyProblems.class).get();
+        assertDoesNotThrow(() -> TaskValidations.assertNoTaskPropertiesProblemsImpl(task, true));
     }
 
     @NoArgsConstructor(access = PUBLIC, onConstructor_ = {@Inject})
@@ -103,8 +103,8 @@ class TaskValidationsTest {
     @Test
     @MinSupportedGradleVersion("7.0")
     void assertNoTaskPropertiesProblems_with_problems() {
-        val task = project.getTasks().create("task", TestTaskWithPropertyProblems.class);
-        assertThrows(AssertionError.class, () -> TaskValidations.assertNoTaskPropertiesProblems(task));
+        val task = project.getTasks().register("task", TestTaskWithPropertyProblems.class).get();
+        assertThrows(AssertionError.class, () -> TaskValidations.assertNoTaskPropertiesProblemsImpl(task, true));
     }
 
     @NoArgsConstructor(access = PUBLIC, onConstructor_ = {@Inject})

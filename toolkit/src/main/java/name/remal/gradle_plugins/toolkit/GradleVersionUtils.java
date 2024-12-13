@@ -13,7 +13,7 @@ public abstract class GradleVersionUtils {
 
 
     public static boolean isCurrentGradleVersionLessThan(GradleVersion version) {
-        return CURRENT.compareTo(version) < 0;
+        return CURRENT.compareTo(version.getBaseVersion()) < 0;
     }
 
     public static boolean isCurrentGradleVersionLessThan(String versionString) {
@@ -23,7 +23,7 @@ public abstract class GradleVersionUtils {
 
 
     public static boolean isCurrentGradleVersionLessThanOrEqualTo(GradleVersion version) {
-        return CURRENT.compareTo(version) <= 0;
+        return CURRENT.compareTo(version.getBaseVersion()) <= 0;
     }
 
     public static boolean isCurrentGradleVersionLessThanOrEqualTo(String versionString) {
@@ -33,7 +33,7 @@ public abstract class GradleVersionUtils {
 
 
     public static boolean isCurrentGradleVersionEqualTo(GradleVersion version) {
-        return CURRENT.compareTo(version) == 0;
+        return CURRENT.compareTo(version.getBaseVersion()) == 0;
     }
 
     public static boolean isCurrentGradleVersionEqualTo(String versionString) {
@@ -43,7 +43,7 @@ public abstract class GradleVersionUtils {
 
 
     public static boolean isCurrentGradleVersionGreaterThanOrEqualTo(GradleVersion version) {
-        return CURRENT.compareTo(version) >= 0;
+        return CURRENT.compareTo(version.getBaseVersion()) >= 0;
     }
 
     public static boolean isCurrentGradleVersionGreaterThanOrEqualTo(String versionString) {
@@ -53,7 +53,7 @@ public abstract class GradleVersionUtils {
 
 
     public static boolean isCurrentGradleVersionGreaterThan(GradleVersion version) {
-        return CURRENT.compareTo(version) > 0;
+        return CURRENT.compareTo(version.getBaseVersion()) > 0;
     }
 
     public static boolean isCurrentGradleVersionGreaterThan(String versionString) {

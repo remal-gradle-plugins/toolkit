@@ -10,7 +10,9 @@ import static name.remal.gradle_plugins.toolkit.reflection.MethodsInvoker.invoke
 import static name.remal.gradle_plugins.toolkit.reflection.MethodsInvoker.invokeStaticMethod;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.unwrapGeneratedSubclass;
 
+import com.google.common.annotations.VisibleForTesting;
 import java.util.Collection;
+import lombok.CustomLog;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -19,6 +21,8 @@ import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.TaskNode;
@@ -27,6 +31,7 @@ import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 
 @NoArgsConstructor(access = PRIVATE)
 @ReliesOnInternalGradleApi
+@CustomLog
 public abstract class TaskValidations {
 
     @SuppressWarnings("unchecked")
@@ -45,20 +50,48 @@ public abstract class TaskValidations {
 
     public static void assertNoTaskPropertiesProblems(Task task) {
         if (isCurrentGradleVersionGreaterThanOrEqualTo("7.0")) {
-            assertNoTaskPropertiesProblemsImpl(task);
+            assertNoTaskPropertiesProblemsImpl(task, false);
         }
     }
 
-    private static void assertNoTaskPropertiesProblemsImpl(Task task) {
-        val taskNode = getLocalTaskNode(task);
-        taskNode.resolveMutations();
-
+    @VisibleForTesting
+    @SneakyThrows
+    @SuppressWarnings("Slf4jFormatShouldBeConst")
+    static void assertNoTaskPropertiesProblemsImpl(Task task, boolean rethrowExceptions) {
         val taskType = unwrapGeneratedSubclass(task.getClass());
-        val validationContext = taskNode.getValidationContext();
-        val typeValidationContext = validationContext.forType(taskType, false);
-        taskNode.getTaskProperties().validateType(typeValidationContext);
 
-        Collection<?> problems = invokeMethod(validationContext, Collection.class, "getProblems");
+        final Collection<?> problems;
+        try {
+            if (isCurrentGradleVersionGreaterThanOrEqualTo("8.12")) {
+                val services = ((ProjectInternal) task.getProject()).getServices();
+                val problemsService = (InternalProblems) services.get(Problems.class);
+                val problemsProgressEventEmitterHolderClass = Class.forName(
+                    "org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder"
+                );
+                invokeStaticMethod(
+                    problemsProgressEventEmitterHolderClass,
+                    "init",
+                    InternalProblems.class, problemsService
+                );
+            }
+
+            val taskNode = getLocalTaskNode(task);
+            taskNode.resolveMutations();
+
+            val validationContext = taskNode.getValidationContext();
+            val typeValidationContext = validationContext.forType(taskType, false);
+            taskNode.getTaskProperties().validateType(typeValidationContext);
+
+            problems = invokeMethod(validationContext, Collection.class, "getProblems");
+
+        } catch (Throwable e) {
+            if (rethrowExceptions) {
+                throw e;
+            }
+            logger.error(e.toString(), e);
+            return;
+        }
+
         if (isNotEmpty(problems)) {
             throw new AssertionError(format(
                 "%d problems found with task %s (%s):%s",
