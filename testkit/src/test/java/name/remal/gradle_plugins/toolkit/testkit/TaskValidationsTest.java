@@ -84,15 +84,27 @@ class TaskValidationsTest {
 
 
     @Test
-    void markTaskSkipped() {
+    void markTaskAsSkipped() {
         val task = project.getTasks().register("task").get();
-        assertDoesNotThrow(() -> TaskValidations.markTaskSkipped(task));
+        assertDoesNotThrow(() -> TaskValidations.markTaskAsSkipped(task));
     }
 
     @Test
-    void markTaskExecuted() {
+    void markTaskAsExecuted() {
         val task = project.getTasks().register("task").get();
-        assertDoesNotThrow(() -> TaskValidations.markTaskExecuted(task));
+        assertDoesNotThrow(() -> TaskValidations.markTaskAsExecuted(task));
+    }
+
+    @Test
+    void markTaskDependenciesAsSkipped() {
+        val task = project.getTasks().register("task").get();
+        assertDoesNotThrow(() -> TaskValidations.markTaskDependenciesAsSkipped(task));
+    }
+
+    @Test
+    void markTaskDependenciesAsExecuted() {
+        val task = project.getTasks().register("task").get();
+        assertDoesNotThrow(() -> TaskValidations.markTaskDependenciesAsExecuted(task));
     }
 
 

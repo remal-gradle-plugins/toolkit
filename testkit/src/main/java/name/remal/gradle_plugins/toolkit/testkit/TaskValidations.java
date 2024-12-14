@@ -50,15 +50,27 @@ public abstract class TaskValidations {
         }
     }
 
-    public static <T extends Task> T markTaskSkipped(T task) {
+
+    public static <T extends Task> T markTaskAsSkipped(T task) {
         ((TaskInternal) task).getState().setOutcome(TaskExecutionOutcome.SKIPPED);
         return task;
     }
 
-    public static <T extends Task> T markTaskExecuted(T task) {
+    public static <T extends Task> T markTaskAsExecuted(T task) {
         ((TaskInternal) task).getState().setOutcome(TaskExecutionOutcome.EXECUTED);
         return task;
     }
+
+    public static <T extends Task> T markTaskDependenciesAsSkipped(T task) {
+        task.getTaskDependencies().getDependencies(task).forEach(TaskValidations::markTaskAsSkipped);
+        return task;
+    }
+
+    public static <T extends Task> T markTaskDependenciesAsExecuted(T task) {
+        task.getTaskDependencies().getDependencies(task).forEach(TaskValidations::markTaskAsExecuted);
+        return task;
+    }
+
 
     public static void assertNoTaskPropertiesProblems(Task task) {
         if (isCurrentGradleVersionGreaterThanOrEqualTo("7.0")) {
