@@ -24,6 +24,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.plan.TaskNodeFactory;
@@ -85,7 +86,9 @@ public abstract class TaskValidations {
             problems = invokeMethod(validationContext, Collection.class, "getProblems");
 
         } catch (Throwable e) {
-            if (rethrowExceptions) {
+            if (rethrowExceptions
+                || e instanceof TaskExecutionException
+            ) {
                 throw e;
             }
             logger.error(e.toString(), e);
