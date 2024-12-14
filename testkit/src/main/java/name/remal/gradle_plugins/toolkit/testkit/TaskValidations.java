@@ -21,6 +21,7 @@ import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.specs.Spec;
@@ -47,6 +48,16 @@ public abstract class TaskValidations {
         for (val action : actions) {
             action.execute(task);
         }
+    }
+
+    public static <T extends Task> T markTaskSkipped(T task) {
+        ((TaskInternal) task).getState().setOutcome(TaskExecutionOutcome.SKIPPED);
+        return task;
+    }
+
+    public static <T extends Task> T markTaskExecuted(T task) {
+        ((TaskInternal) task).getState().setOutcome(TaskExecutionOutcome.EXECUTED);
+        return task;
     }
 
     public static void assertNoTaskPropertiesProblems(Task task) {

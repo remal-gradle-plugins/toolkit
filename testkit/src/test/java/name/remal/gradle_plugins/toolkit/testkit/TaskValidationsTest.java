@@ -82,6 +82,20 @@ class TaskValidationsTest {
 
     }
 
+
+    @Test
+    void markTaskSkipped() {
+        val task = project.getTasks().register("task").get();
+        assertDoesNotThrow(() -> TaskValidations.markTaskSkipped(task));
+    }
+
+    @Test
+    void markTaskExecuted() {
+        val task = project.getTasks().register("task").get();
+        assertDoesNotThrow(() -> TaskValidations.markTaskExecuted(task));
+    }
+
+
     @Test
     @MinSupportedGradleVersion("7.0")
     void assertNoTaskPropertiesProblems_without_problems() {
