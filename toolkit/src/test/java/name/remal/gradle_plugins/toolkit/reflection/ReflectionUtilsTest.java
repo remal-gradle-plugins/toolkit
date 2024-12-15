@@ -99,6 +99,10 @@ class ReflectionUtilsTest {
             ReflectionUtils.packageNameOf(String.class)
         );
         assertEquals(
+            "java.lang",
+            ReflectionUtils.packageNameOf(int.class)
+        );
+        assertEquals(
             ReflectionUtils.packageNameOf(ReflectionUtilsTest.class),
             ReflectionUtils.packageNameOf(TestTask.class)
         );
@@ -107,6 +111,11 @@ class ReflectionUtilsTest {
 
     @Test
     void moduleNameOf() {
+        assertEquals(
+            "java.base",
+            ReflectionUtils.moduleNameOf(int.class)
+        );
+
         assertEquals(
             "java.base",
             ReflectionUtils.moduleNameOf(String.class)

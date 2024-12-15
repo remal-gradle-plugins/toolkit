@@ -252,6 +252,14 @@ public abstract class ReflectionUtils {
      */
     @Nullable
     public static String moduleNameOf(Class<?> clazz) {
+        while (clazz.isArray()) {
+            clazz = clazz.getComponentType();
+        }
+
+        if (clazz.isPrimitive()) {
+            return "java.base";
+        }
+
         val moduleName = METHODS.moduleNameOf(clazz);
         if (moduleName != null) {
             return moduleName;
