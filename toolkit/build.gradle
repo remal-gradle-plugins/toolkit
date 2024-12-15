@@ -39,9 +39,6 @@ dependencies {
 project.fatJarWith(project(':toolkit-annotations'))
 
 project.fatJarWith(project(':toolkit:fat-jar--latest-lts-jdk'))
-dependencies {
-    optional project(':toolkit:fat-jar--latest-lts-jdk')
-}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

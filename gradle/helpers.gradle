@@ -660,6 +660,7 @@ allprojects {
 allprojects {
     project.ext.fatJarWithDependentTaskNames = [
         'generateJava',
+        'generateResources',
         'classes',
         'jar',
         'sourcesJar',
@@ -667,6 +668,8 @@ allprojects {
     ]
 
     Closure fatJarWithImpl = { Project otherProject ->
+        configurations.compileOnly.dependencies.add(dependencies.create(otherProject))
+
         otherProject.tasks.withType(Javadoc).configureEach { enabled = false }
 
         project.fatJarWithDependentTaskNames.forEach { String taskName ->
