@@ -182,7 +182,7 @@ allprojects {
             optionalHidden 'org.immutables:gson'
 
 
-            testConstraints platform('org.junit:junit-bom:5.11.3')
+            testConstraints platform('org.junit:junit-bom:5.11.4')
 
             testImplementation 'org.junit.jupiter:junit-jupiter-api'
             testImplementation 'org.junit.jupiter:junit-jupiter-params'
