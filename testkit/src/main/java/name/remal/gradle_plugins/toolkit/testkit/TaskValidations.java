@@ -52,12 +52,18 @@ public abstract class TaskValidations {
 
 
     public static <T extends Task> T markTaskAsSkipped(T task) {
-        ((TaskInternal) task).getState().setOutcome(TaskExecutionOutcome.SKIPPED);
+        val state = ((TaskInternal) task).getState();
+        if (state.getOutcome() == null) {
+            state.setOutcome(TaskExecutionOutcome.SKIPPED);
+        }
         return task;
     }
 
     public static <T extends Task> T markTaskAsExecuted(T task) {
-        ((TaskInternal) task).getState().setOutcome(TaskExecutionOutcome.EXECUTED);
+        val state = ((TaskInternal) task).getState();
+        if (state.getOutcome() == null) {
+            state.setOutcome(TaskExecutionOutcome.EXECUTED);
+        }
         return task;
     }
 
