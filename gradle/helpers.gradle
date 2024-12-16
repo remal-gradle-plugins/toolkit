@@ -429,7 +429,12 @@ Closure<byte[]> loadUrlContent = project.ext.loadUrlContent = { Object untypedUr
         try {
             if (connection instanceof HttpURLConnection) {
                 if (connection.responseCode != 200) {
-                    throw new GradleException("$url returned ${connection.responseCode} status")
+                    throw new HttpErrorStatusCodeException(
+                        'GET',
+                        url.toString(),
+                        connection.responseCode,
+                        'Not Found'
+                    )
                 }
             }
 
@@ -566,7 +571,15 @@ Closure<List<Integer>> getLtsJavaRuntimeVersions = project.ext.getLtsJavaRuntime
 Property<String> publishedVersionsDirRelativePathProperty = project.ext.publishedVersionsDirRelativePath = project.objects.property(String)
 
 Closure<List<String>> getPluginVersions = project.ext.getPluginVersions = { String pluginId ->
-    def metadata = loadXmlFromUrl("https://plugins.gradle.org/m2/${pluginId.replace('.', '/')}/${pluginId}.gradle.plugin/maven-metadata.xml")
+    def metadata = null
+    try {
+        metadata = loadXmlFromUrl("https://plugins.gradle.org/m2/${pluginId.replace('.', '/')}/${pluginId}.gradle.plugin/maven-metadata.xml")
+    } catch (HttpErrorStatusCodeException e) {
+        if (e.statusCode == 404) {
+            return []
+        }
+    }
+
     List<String> versions = metadata.versioning.versions.version*.text().collect()
 
     String publishedVersionsDirRelativePath = publishedVersionsDirRelativePathProperty.orNull
@@ -615,7 +628,7 @@ Closure<String> getPluginLastVersionWithCurrentAsFallback = project.ext.getPlugi
         .map { MavenPublication.cast(it) }
         .filter { it.groupId == pluginId && it.artifactId == "${pluginId}.gradle.plugin" }
         .map { it.version }
-        .filter { it?.length() }
+        .filter { it != null && !it.isEmpty() }
         .findFirst()
         .orElse(null)
     if (currentVersion != null) {

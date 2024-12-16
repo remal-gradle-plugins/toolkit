@@ -35,7 +35,7 @@ tasks.register('pushBackPublishedVersions') { Task task ->
                         new String(Base64.decoder.decode(it.trim()), "UTF-8").trim()
                     }
                     String curContent = publication.version
-                    if (prevContent?.length()) {
+                    if (prevContent != null && !curContent.isEmpty()) {
                         VersionParser parser = new VersionParser()
                         def prevVer = parser.transform(prevContent)
                         def curVer = parser.transform(curContent)
