@@ -41,7 +41,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
@@ -105,10 +108,34 @@ public abstract class LazyProxy {
 
     @Contract(pure = true)
     @SuppressWarnings("unchecked")
+    public static <E> SortedSet<E> asLazySortedSetProxy(
+        LazyValueSupplier<? extends SortedSet<E>> lazyValueSupplier
+    ) {
+        return asLazyProxy(SortedSet.class, lazyValueSupplier);
+    }
+
+    @Contract(pure = true)
+    @SuppressWarnings("unchecked")
     public static <K, V> Map<K, V> asLazyMapProxy(
         LazyValueSupplier<? extends Map<K, V>> lazyValueSupplier
     ) {
         return asLazyProxy(Map.class, lazyValueSupplier);
+    }
+
+    @Contract(pure = true)
+    @SuppressWarnings("unchecked")
+    public static <K, V> SortedMap<K, V> asLazySortedMapProxy(
+        LazyValueSupplier<? extends SortedMap<K, V>> lazyValueSupplier
+    ) {
+        return asLazyProxy(SortedMap.class, lazyValueSupplier);
+    }
+
+    @Contract(pure = true)
+    @SuppressWarnings("unchecked")
+    public static <K, V> NavigableMap<K, V> asLazyNavigableMapProxy(
+        LazyValueSupplier<? extends NavigableMap<K, V>> lazyValueSupplier
+    ) {
+        return asLazyProxy(NavigableMap.class, lazyValueSupplier);
     }
 
 

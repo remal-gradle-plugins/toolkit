@@ -12,11 +12,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableSortedSet;
 import java.lang.annotation.ElementType;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import lombok.val;
 import org.junit.jupiter.api.Test;
 
@@ -128,6 +135,25 @@ class LazyProxyTest {
     }
 
     @Test
+    void asLazySortedSetProxy() {
+        {
+            val lazyProxy = LazyProxy.asLazySortedSetProxy(() ->
+                ImmutableSortedSet.of("a")
+            );
+            assertInstanceOf(SortedSet.class, lazyProxy);
+            assertEquals(1, lazyProxy.size());
+        }
+
+        {
+            SortedSet<CharSequence> lazyProxy = LazyProxy.asLazySortedSetProxy(() ->
+                new TreeSet<>(singleton("a"))
+            );
+            assertInstanceOf(SortedSet.class, lazyProxy);
+            assertEquals(1, lazyProxy.size());
+        }
+    }
+
+    @Test
     void asLazyMapProxy() {
         {
             val lazyProxy = LazyProxy.asLazyMapProxy(() ->
@@ -142,6 +168,44 @@ class LazyProxyTest {
                 singletonMap("a", "b")
             );
             assertInstanceOf(Map.class, lazyProxy);
+            assertEquals(1, lazyProxy.size());
+        }
+    }
+
+    @Test
+    void asLazySortedMapProxy() {
+        {
+            val lazyProxy = LazyProxy.asLazySortedMapProxy(() ->
+                ImmutableSortedMap.of("a", "b")
+            );
+            assertInstanceOf(SortedMap.class, lazyProxy);
+            assertEquals(1, lazyProxy.size());
+        }
+
+        {
+            Map<CharSequence, CharSequence> lazyProxy = LazyProxy.asLazySortedMapProxy(() ->
+                new TreeMap<>(singletonMap("a", "b"))
+            );
+            assertInstanceOf(SortedMap.class, lazyProxy);
+            assertEquals(1, lazyProxy.size());
+        }
+    }
+
+    @Test
+    void asLazyNavigableMapProxy() {
+        {
+            val lazyProxy = LazyProxy.asLazyNavigableMapProxy(() ->
+                ImmutableSortedMap.of("a", "b")
+            );
+            assertInstanceOf(NavigableMap.class, lazyProxy);
+            assertEquals(1, lazyProxy.size());
+        }
+
+        {
+            Map<CharSequence, CharSequence> lazyProxy = LazyProxy.asLazyNavigableMapProxy(() ->
+                new TreeMap<>(singletonMap("a", "b"))
+            );
+            assertInstanceOf(NavigableMap.class, lazyProxy);
             assertEquals(1, lazyProxy.size());
         }
     }
