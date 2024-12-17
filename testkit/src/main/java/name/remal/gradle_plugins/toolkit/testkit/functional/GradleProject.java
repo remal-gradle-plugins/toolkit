@@ -558,6 +558,7 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
                 "--warning-mode=all",
                 "-Dorg.gradle.parallel=true",
                 "-Dorg.gradle.workers.max=4",
+                "-Dmaven.repo.local=" + new File(projectDir, ".m2").getAbsolutePath(),
                 "-Dorg.gradle.vfs.watch=false",
                 "-Dorg.gradle.daemon=false",
                 "-Dhttp.keepAlive=false",
