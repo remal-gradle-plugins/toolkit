@@ -24,7 +24,7 @@ dependencies {
 
 
     testImplementation project(':testkit')
-    testImplementation 'io.spring.dependency-management:io.spring.dependency-management.gradle.plugin:1.1.6'
+    testImplementation 'io.spring.dependency-management:io.spring.dependency-management.gradle.plugin:1.1.7'
     testImplementation 'com.softeq.gradle.itest:com.softeq.gradle.itest.gradle.plugin:1.0.4'
     testImplementation 'org.unbroken-dome.test-sets:org.unbroken-dome.test-sets.gradle.plugin:4.1.0'
 
