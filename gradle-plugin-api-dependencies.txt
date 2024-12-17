@@ -4,7 +4,7 @@
 com.gradle.publish:plugin-publish-plugin:1.3.0
 gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.1.9
 io.github.gradle-nexus:publish-plugin:2.0.0
-name.remal.gradle-plugins.build-time-constants:build-time-constants:1.0.0-rc-2
+name.remal.gradle-plugins.build-time-constants:build-time-constants:1.0.0-rc-3
 name.remal.gradle-plugins.idea-settings:idea-settings:3.0.13
 name.remal.gradle-plugins.lombok:lombok:2.2.13
 name.remal.gradle-plugins.merge-resources:merge-resources:4.0.2
@@ -43,12 +43,12 @@ zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.build_time
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.build_time_constants.internal._relocated.name.remal.gradle_plugins.toolkit.Version:e9d81982d320d091579eb098217cfa5e3af79c779d8bed8a873732f800146f24
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.build_time_constants.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils$1$1:c5eb11687b0cfc78d588b888ac93fa66f2903263e9946d67eb1c5c01b75cc837
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.build_time_constants.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils$1:f90070caf37d52b6e58a37e0abc080f8ce937d1ca582692917763efbe14ab990
-zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.build_time_constants.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils:ba36892aff885782881e892c34fb5cb1c85bcd6e4d85987805bddd7b444288d6
+zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.build_time_constants.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils:6f5ac27c3408ccf9e7df0b93b95decdac84cb41af9ec0f8b73b09b00c89942bc
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.build_time_constants.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtilsMethods:a5b15aa6d59b919069dee92495650e2323efaa9bd84dd91b17230aeb3d6c34f3
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.build_time_constants.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtilsMethods_8_lte$UrlResourcesOnlyClassLoader:7cf22ef0dadb77f09f902138ba0020001153e2680d4c506635691c2b06afebb3
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.build_time_constants.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtilsMethods_8_lte:307340662877cad288b1cfb4a2acb622af18b37ba1d0978631f816ae6d4965d9
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.build_time_constants.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtilsMethods_9_gte:6fcd399fddbbc0491ba05122cf3cc3a6d66f59ef2695eb74dab95007a522087d
-zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.build_time_constants.jvm.BuildTimeConstantsJvmPlugin:74077a36bee0d0f4ee2cd4a0f94d8d2777c72c480d486821cdb2f87fe688be1a
+zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.build_time_constants.jvm.BuildTimeConstantsJvmPlugin:7df1380d080915919eba493222b86f12c2470d8c76061bd49dbc9dfd316c4978
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.idea_settings.internal.CommandLineUtils:6bc58ab6328b8bb2f931ed79ef19dad591c07dc7287992b3d78a17a8d31801a8
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.idea_settings.internal.ConfigureExternalAnnotationsRoot:8baff3dbbbe7c901b3801377f975421c4064af6d3310d345fb5be17685ba7129
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.idea_settings.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils$1:2ad0cd52fa624733b180f9718702382387823bc5bc7700e4c8a4bde381155bbe
