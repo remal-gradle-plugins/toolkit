@@ -3,6 +3,7 @@ package name.remal.gradle_plugins.toolkit;
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 import static lombok.AccessLevel.PRIVATE;
+import static name.remal.gradle_plugins.toolkit.GradleUtils.isIncludedBuild;
 import static name.remal.gradle_plugins.toolkit.PathUtils.normalizePath;
 
 import java.io.File;
@@ -33,6 +34,10 @@ public abstract class ProjectUtils {
     }
 
     public static boolean isBuildSrcProject(Project project) {
+        if (!isIncludedBuild(project)) {
+            return false;
+        }
+
         project = project.getRootProject();
         return project.getName().equals("buildSrc");
     }
