@@ -4,6 +4,7 @@ import javax.annotation.Nullable;
 import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.Value;
+import org.gradle.util.GradleVersion;
 
 @Value
 @Builder
@@ -15,7 +16,12 @@ public class SuppressedMessage {
     String message;
 
     @Nullable
-    @Default
-    String stackTracePrefix = null;
+    String stackTracePrefix;
+
+    @Nullable
+    GradleVersion minGradleVersion;
+
+    @Nullable
+    GradleVersion maxGradleVersion;
 
 }

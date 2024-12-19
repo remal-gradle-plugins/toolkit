@@ -483,6 +483,16 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
         List<SuppressedMessage> suppressedMessages,
         @Nullable Predicate<String> isWarningEndLine
     ) {
+        val currentBaseGradleVersion = GradleVersion.current().getBaseVersion();
+        suppressedMessages = suppressedMessages.stream()
+            .filter(msg -> msg.getMinGradleVersion() == null
+                || msg.getMinGradleVersion().getBaseVersion().compareTo(currentBaseGradleVersion) <= 0
+            )
+            .filter(msg -> msg.getMaxGradleVersion() == null
+                || msg.getMaxGradleVersion().getBaseVersion().compareTo(currentBaseGradleVersion) >= 0
+            )
+            .collect(toList());
+
         Collection<String> errors = new LinkedHashSet<>();
         forEachLine:
         for (int lineIndex = 0; lineIndex < outputLines.size(); ++lineIndex) {
