@@ -77,102 +77,119 @@ public abstract class ObjectUtils {
     }
 
 
+    private static final String GUAVA_ABSENT_CLASS_NAME_SUFFIX =
+        "!com!google!common!base!Absent".replace('!', '.');
+
+    private static final String GUAVA_PRESENT_CLASS_NAME_SUFFIX =
+        "!com!google!common!base!Present".replace('!', '.');
+
+    private static final String GUAVA_ATOMIC_DOUBLE_CLASS_NAME_SUFFIX =
+        "!com!google!common!util!concurrent!AtomicDouble".replace('!', '.');
+
     @Nullable
     @Contract("null->null")
     @SneakyThrows
-    @SuppressWarnings("java:S3776")
+    @SuppressWarnings({"java:S3776", "java:S6541"})
     public static Object unwrapProviders(@Nullable Object object) {
-        if (object == null) {
-            return null;
-
-        } else if (object instanceof Closure) {
-            val typedObject = (Closure<?>) object;
-            if (typedObject.getMaximumNumberOfParameters() == 0 && isEmpty(typedObject.getParameterTypes())) {
-                return unwrapProviders(typedObject.call());
-            } else {
-                return object;
-            }
-        } else if (object instanceof GString) {
-            return object.toString();
-
-        } else if (object instanceof Optional) {
-            return unwrapProviders(((Optional<?>) object).orElse(null));
-        } else if (object instanceof OptionalInt) {
-            val typedObject = (OptionalInt) object;
-            return typedObject.isPresent() ? typedObject.getAsInt() : null;
-        } else if (object instanceof OptionalLong) {
-            val typedObject = (OptionalLong) object;
-            return typedObject.isPresent() ? typedObject.getAsLong() : null;
-        } else if (object instanceof OptionalDouble) {
-            val typedObject = (OptionalDouble) object;
-            return typedObject.isPresent() ? typedObject.getAsDouble() : null;
-
-        } else if (object instanceof Callable) {
-            return unwrapProviders(((Callable<?>) object).call());
-        } else if (object instanceof Supplier) {
-            return unwrapProviders(((Supplier<?>) object).get());
-        } else if (object instanceof BooleanSupplier) {
-            return ((BooleanSupplier) object).getAsBoolean();
-        } else if (object instanceof IntSupplier) {
-            return ((IntSupplier) object).getAsInt();
-        } else if (object instanceof LongSupplier) {
-            return ((LongSupplier) object).getAsLong();
-        } else if (object instanceof DoubleSupplier) {
-            return ((DoubleSupplier) object).getAsDouble();
-
-        } else if (object instanceof SneakyThrowsCallable) {
-            return unwrapProviders(((SneakyThrowsCallable<?>) object).call());
-        } else if (object instanceof SneakyThrowsSupplier) {
-            return unwrapProviders(((SneakyThrowsSupplier<?>) object).get());
-        } else if (object instanceof SneakyThrowsBooleanSupplier) {
-            return ((SneakyThrowsBooleanSupplier) object).getAsBoolean();
-        } else if (object instanceof SneakyThrowsIntSupplier) {
-            return ((SneakyThrowsIntSupplier) object).getAsInt();
-        } else if (object instanceof SneakyThrowsLongSupplier) {
-            return ((SneakyThrowsLongSupplier) object).getAsLong();
-        } else if (object instanceof SneakyThrowsDoubleSupplier) {
-            return ((SneakyThrowsDoubleSupplier) object).getAsDouble();
-
-        } else if (object instanceof Future) {
-            return unwrapProviders(((Future<?>) object).get(5, MINUTES));
-        } else if (object instanceof CompletionStage) {
-            return unwrapProviders(((CompletionStage<?>) object).toCompletableFuture());
-
-        } else if (object instanceof AtomicBoolean) {
-            return ((AtomicBoolean) object).get();
-        } else if (object instanceof AtomicInteger) {
-            return ((AtomicInteger) object).get();
-        } else if (object instanceof AtomicLong) {
-            return ((AtomicLong) object).get();
-        } else if (object instanceof AtomicReference) {
-            return unwrapProviders(((AtomicReference<?>) object).get());
-
-        } else if (object instanceof Lazy) {
-            return unwrapProviders(((Lazy<?>) object).getValue());
-        } else if (object instanceof Function0) {
-            return unwrapProviders(((Function0<?>) object).invoke());
-        } else if (object instanceof KCallable) {
-            val typedObject = (KCallable<?>) object;
-            if (isEmpty(typedObject.getTypeParameters())) {
-                return unwrapProviders(typedObject.call());
-            } else {
-                return typedObject;
-            }
-
-        } else if (object instanceof Provider) {
-            return unwrapProviders(((Provider<?>) object).getOrNull());
-
-        } else {
-            val dotClassName = '.' + object.getClass().getName(); // support relocated classes too
-            if (dotClassName.endsWith(".com.google.common.base.Absent")) {
+        while (true) {
+            if (object == null) {
                 return null;
-            } else if (dotClassName.endsWith(".com.google.common.base.Present")) {
-                return unwrapProviders(invokeMethod(object, Object.class, "get"));
-            } else if (dotClassName.endsWith(".com.google.common.util.concurrent.AtomicDouble")) {
-                return invokeMethod(object, Object.class, "get");
+
+            } else if (object instanceof LazyValueBase) {
+                object = ((LazyValueBase<?>) object).get();
+
+            } else if (object instanceof AbstractLateInit) {
+                object = ((AbstractLateInit<?>) object).get();
+
+            } else if (object instanceof Provider) {
+                object = ((Provider<?>) object).getOrNull();
+
+            } else if (object instanceof Closure) {
+                val typedObject = (Closure<?>) object;
+                if (typedObject.getMaximumNumberOfParameters() == 0 && isEmpty(typedObject.getParameterTypes())) {
+                    object = typedObject.call();
+                } else {
+                    return object;
+                }
+            } else if (object instanceof GString) {
+                return object.toString();
+
+            } else if (object instanceof Optional) {
+                object = ((Optional<?>) object).orElse(null);
+            } else if (object instanceof OptionalInt) {
+                val typedObject = (OptionalInt) object;
+                return typedObject.isPresent() ? typedObject.getAsInt() : null;
+            } else if (object instanceof OptionalLong) {
+                val typedObject = (OptionalLong) object;
+                return typedObject.isPresent() ? typedObject.getAsLong() : null;
+            } else if (object instanceof OptionalDouble) {
+                val typedObject = (OptionalDouble) object;
+                return typedObject.isPresent() ? typedObject.getAsDouble() : null;
+
+            } else if (object instanceof Callable) {
+                object = ((Callable<?>) object).call();
+            } else if (object instanceof Supplier) {
+                object = ((Supplier<?>) object).get();
+            } else if (object instanceof BooleanSupplier) {
+                return ((BooleanSupplier) object).getAsBoolean();
+            } else if (object instanceof IntSupplier) {
+                return ((IntSupplier) object).getAsInt();
+            } else if (object instanceof LongSupplier) {
+                return ((LongSupplier) object).getAsLong();
+            } else if (object instanceof DoubleSupplier) {
+                return ((DoubleSupplier) object).getAsDouble();
+
+            } else if (object instanceof SneakyThrowsCallable) {
+                object = ((SneakyThrowsCallable<?>) object).call();
+            } else if (object instanceof SneakyThrowsSupplier) {
+                object = ((SneakyThrowsSupplier<?>) object).get();
+            } else if (object instanceof SneakyThrowsBooleanSupplier) {
+                return ((SneakyThrowsBooleanSupplier) object).getAsBoolean();
+            } else if (object instanceof SneakyThrowsIntSupplier) {
+                return ((SneakyThrowsIntSupplier) object).getAsInt();
+            } else if (object instanceof SneakyThrowsLongSupplier) {
+                return ((SneakyThrowsLongSupplier) object).getAsLong();
+            } else if (object instanceof SneakyThrowsDoubleSupplier) {
+                return ((SneakyThrowsDoubleSupplier) object).getAsDouble();
+
+            } else if (object instanceof Future) {
+                object = ((Future<?>) object).get(5, MINUTES);
+            } else if (object instanceof CompletionStage) {
+                object = ((CompletionStage<?>) object).toCompletableFuture();
+
+            } else if (object instanceof AtomicBoolean) {
+                return ((AtomicBoolean) object).get();
+            } else if (object instanceof AtomicInteger) {
+                return ((AtomicInteger) object).get();
+            } else if (object instanceof AtomicLong) {
+                return ((AtomicLong) object).get();
+            } else if (object instanceof AtomicReference) {
+                object = ((AtomicReference<?>) object).get();
+
+            } else if (object instanceof Lazy) {
+                object = ((Lazy<?>) object).getValue();
+            } else if (object instanceof Function0) {
+                object = ((Function0<?>) object).invoke();
+            } else if (object instanceof KCallable) {
+                val typedObject = (KCallable<?>) object;
+                if (isEmpty(typedObject.getTypeParameters())) {
+                    object = typedObject.call();
+                } else {
+                    return typedObject;
+                }
 
             } else {
-                return object;
+                val dotClassName = '.' + object.getClass().getName(); // support relocated classes too
+                if (dotClassName.endsWith(GUAVA_ABSENT_CLASS_NAME_SUFFIX)) {
+                    return null;
+                } else if (dotClassName.endsWith(GUAVA_PRESENT_CLASS_NAME_SUFFIX)) {
+                    object = invokeMethod(object, Object.class, "get");
+                } else if (dotClassName.endsWith(GUAVA_ATOMIC_DOUBLE_CLASS_NAME_SUFFIX)) {
+                    object = invokeMethod(object, Object.class, "get");
+
+                } else {
+                    return object;
+                }
             }
         }
     }

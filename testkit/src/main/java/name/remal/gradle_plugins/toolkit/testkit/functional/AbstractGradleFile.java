@@ -105,25 +105,39 @@ abstract class AbstractGradleFile<
         });
     }
 
+    @Contract("_,_ -> this")
+    @CanIgnoreReturnValue
+    public final Child applyPlugin(String pluginId, Object version) {
+        pluginToVersion.put(pluginId, version);
+        return getSelf();
+    }
+
     @Contract("_ -> this")
     @CanIgnoreReturnValue
     public final Child applyPlugin(String pluginId) {
-        pluginToVersion.put(pluginId, "");
-        return getSelf();
+        return applyPlugin(pluginId, "");
     }
 
     @Contract("_,_ -> this")
     @CanIgnoreReturnValue
-    public final Child applyPlugin(String pluginId, String version) {
-        pluginToVersion.put(pluginId, version);
-        return getSelf();
+    public final Child applyPlugin(String pluginId, Supplier<Object> versionSupplier) {
+        return applyPlugin(pluginId, (Object) versionSupplier);
     }
 
     @Contract("_,_ -> this")
     @CanIgnoreReturnValue
-    public final Child applyPlugin(String pluginId, Supplier<String> version) {
+    public final Child applyPluginAtTheBeginning(String pluginId, Object version) {
+        val currentPlugins = new LinkedHashMap<>(pluginToVersion);
+        pluginToVersion.clear();
         pluginToVersion.put(pluginId, version);
+        pluginToVersion.putAll(currentPlugins);
         return getSelf();
+    }
+
+    @Contract("_ -> this")
+    @CanIgnoreReturnValue
+    public final Child applyPluginAtTheBeginning(String pluginId) {
+        return applyPluginAtTheBeginning(pluginId, "");
     }
 
     @UnmodifiableView
