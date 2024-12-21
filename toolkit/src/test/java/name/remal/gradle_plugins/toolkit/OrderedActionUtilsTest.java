@@ -18,11 +18,11 @@ import org.junit.jupiter.api.Test;
 @RequiredArgsConstructor
 class OrderedActionUtilsTest {
 
-    private final Project project;
+    final Project project;
 
     @Test
     void doFirstLastOrdered() {
-        val task = project.getTasks().create("test");
+        val task = project.getTasks().register("test").get();
 
         Set<String> executedDoFirstActions = new LinkedHashSet<>();
         OrderedActionUtils.doFirstOrdered(task, new OrderedAction<Task>() {

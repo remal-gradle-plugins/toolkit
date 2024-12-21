@@ -3,25 +3,30 @@ if (project.isBuildSrcProject) {
 }
 
 allprojects {
-    tasks.withType(AbstractCompile).configureEach {
+    tasks.withType(AbstractCompile).configureEach { AbstractCompile task ->
         Property<String> baseJavaPackage = project.objects.property(String).value(provider {
             project.calculateBaseJavaPackage()
         }).with { it.finalizeValueOnRead(); it }
-        doLast {
-            String classFilePrefix = baseJavaPackage.get().replace('.', '/')
-            project.files(it.destinationDirectory).asFileTree
-                .matching { include('**/*.class') }
-                .matching { exclude("${classFilePrefix}/**/*.class") }
-                .visit { FileVisitDetails details ->
-                    if (details.directory) {
-                        return
-                    }
-                    String relativePath = details.relativePath.toString()
-                    String className = relativePath.replaceFirst(/\.class$/, '').replace('/', '.')
-                    throw new GradleException(
-                        "Class name doesn't start with base Java package '${baseJavaPackage.get()}': ${className}"
-                    )
+
+        Property<String> classFilePrefix = project.objects.property(String).value(provider {
+            baseJavaPackage.get().replace('.', '/')
+        }).with { it.finalizeValueOnRead(); it }
+
+        FileTree classFilesWithWrongPackage = project.fileTree(task.destinationDirectory)
+            .matching { include('**/*.class') }
+            .matching { exclude("${classFilePrefix.get()}/**/*.class") }
+
+        task.doLast {
+            classFilesWithWrongPackage.visit { FileVisitDetails details ->
+                if (details.directory) {
+                    return
                 }
+                String relativePath = details.relativePath.toString()
+                String className = relativePath.replaceFirst(/\.class$/, '').replace('/', '.')
+                throw new GradleException(
+                    "Class name doesn't start with base Java package '${baseJavaPackage.get()}': ${className}"
+                )
+            }
         }
     }
 }

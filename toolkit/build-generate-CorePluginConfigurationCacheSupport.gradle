@@ -23,6 +23,7 @@ tasks.named('generateJava') {
     Property<String> baseJavaPackage = project.objects.property(String).value(provider {
         project.calculateBaseJavaPackage()
     }).with { it.finalizeValueOnRead(); it }
+
     classFile(baseJavaPackage.get(), 'CorePluginConfigurationCacheSupport') {
         it.writePackage()
         it.println("")
@@ -46,7 +47,7 @@ tasks.named('generateJava') {
             it.writeBlock("public static GradleCompatibilityMode get(GradleVersion gradleVersion, String pluginId)") {
                 it.println("gradleVersion = gradleVersion.getBaseVersion();")
                 gradleVersions.get().forEach { GradleVersion gradleVersion ->
-                    def documentationDocument = project.loadHtmlFromUrl(getDocumentationUrl(gradleVersion))
+                    def documentationDocument = loadHtmlFromUrl(getDocumentationUrl(gradleVersion))
                     def tableElements = documentationDocument.select('h2#config_cache\\:plugins + .sectionbody table:not(.tableblock)')
                     if (tableElements.isEmpty()) {
                         throw new GradleException("Table node can't be found for $gradleVersion")

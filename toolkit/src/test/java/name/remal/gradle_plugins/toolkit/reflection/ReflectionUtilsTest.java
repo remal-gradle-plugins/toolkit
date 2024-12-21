@@ -14,12 +14,16 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import lombok.val;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.junit.jupiter.api.Test;
 
+@RequiredArgsConstructor
 class ReflectionUtilsTest {
+
+    final Project project;
 
     @Test
     void tryLoadClass() {
@@ -82,9 +86,8 @@ class ReflectionUtilsTest {
     }
 
     @Test
-    @SuppressWarnings("java:S5845")
-    void unwrapGeneratedSubclass(Project project) {
-        val task = project.getTasks().create("testTask", TestTask.class);
+    void unwrapGeneratedSubclass() {
+        val task = project.getTasks().register("testTask", TestTask.class).get();
         val taskType = task.getClass();
         assertNotEquals(TestTask.class, taskType);
         val unwrappedGeneratedSubclass = ReflectionUtils.unwrapGeneratedSubclass(taskType);

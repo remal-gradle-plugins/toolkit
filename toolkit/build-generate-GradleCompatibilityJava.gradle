@@ -4,9 +4,13 @@ tasks.named('generateJava') {
     String documentationUrl = 'https://docs.gradle.org/current/userguide/compatibility.html'
     outputs.file(project.getCacheFileForDownloadedUrl(documentationUrl)).optional()
 
-    classFile(project.calculateBaseJavaPackage(), 'GradleCompatibilityJava') {
+    Property<String> baseJavaPackage = project.objects.property(String).value(provider {
+        project.calculateBaseJavaPackage()
+    }).with { it.finalizeValueOnRead(); it }
+
+    classFile(baseJavaPackage.get(), 'GradleCompatibilityJava') {
         SortedMap<GradleVersion, Integer> compatibility = new TreeMap<>(Comparator.reverseOrder())
-        def documentationDocument = project.loadHtmlFromUrl(documentationUrl)
+        def documentationDocument = loadHtmlFromUrl(documentationUrl)
         def tableElements = documentationDocument.select('h2#java_runtime + .sectionbody table.tableblock')
         if (tableElements.isEmpty()) {
             throw new GradleException("Table node can't be found")
@@ -47,9 +51,9 @@ tasks.named('generateJava') {
         it.writePackage()
         it.println("")
         it.writeStaticImport('lombok.AccessLevel', 'PRIVATE')
-        it.writeStaticImport("${project.calculateBaseJavaPackage()}.GradleCompatibilityMode", 'SUPPORTED')
-        it.writeStaticImport("${project.calculateBaseJavaPackage()}.GradleCompatibilityMode", 'UNKNOWN')
-        it.writeStaticImport("${project.calculateBaseJavaPackage()}.GradleCompatibilityMode", 'UNSUPPORTED')
+        it.writeStaticImport("${baseJavaPackage.get()}.GradleCompatibilityMode", 'SUPPORTED')
+        it.writeStaticImport("${baseJavaPackage.get()}.GradleCompatibilityMode", 'UNKNOWN')
+        it.writeStaticImport("${baseJavaPackage.get()}.GradleCompatibilityMode", 'UNSUPPORTED')
         it.println("")
         it.writeImport("lombok.NoArgsConstructor")
         it.writeImport("org.gradle.util.GradleVersion")

@@ -59,49 +59,50 @@ allprojects {
         projectsToCollectClassesRelyingOnDependency.add(project)
 
         tasks.withType(AbstractCompile).configureEach { AbstractCompile task ->
+            FileTree classFiles = project.fileTree(destinationDirectory)
+                .matching { include('**/*.class') }
+
             task.doLast {
-                project.fileTree(task.destinationDirectory)
-                    .matching { include('**/*.class') }
-                    .visit { FileVisitDetails details ->
-                        if (details.isDirectory()) {
-                            return
-                        }
-
-                        ClassNode classNode = new ClassNode()
-
-                        AtomicBoolean isGradleInternalApiUsed = new AtomicBoolean()
-                        Remapper gradleInternalApiRemapper = new Remapper() {
-                            @Override
-                            String map(String internalName) {
-                                if (internalName.startsWith('org/gradle/') && internalName.contains('/internal/')) {
-                                    isGradleInternalApiUsed.set(true)
-                                }
-                                return super.map(internalName)
-                            }
-                        }
-                        ClassRemapper gradleInternalApiClassRemapper = new ClassRemapper(classNode, gradleInternalApiRemapper)
-
-                        details.open().withCloseable {
-                            new ClassReader(it).accept(gradleInternalApiClassRemapper, 0)
-                        }
-
-                        if (!isGradleInternalApiUsed.get()
-                            || isNodeAnnotatedWith(classNode, 'ReliesOnInternalGradleApi')
-                        ) {
-                            return
-                        }
-
-                        classNode.invisibleAnnotations = classNode.invisibleAnnotations ?: []
-                        classNode.invisibleAnnotations.add(
-                            new AnnotationNode(
-                                'Lname/remal/gradle_plugins/toolkit/annotations/ReliesOnInternalGradleApi;'
-                            )
-                        )
-
-                        ClassWriter classWriter = new ClassWriter(0)
-                        classNode.accept(classWriter)
-                        details.file.bytes = classWriter.toByteArray()
+                classFiles.visit { FileVisitDetails details ->
+                    if (details.isDirectory()) {
+                        return
                     }
+
+                    ClassNode classNode = new ClassNode()
+
+                    AtomicBoolean isGradleInternalApiUsed = new AtomicBoolean()
+                    Remapper gradleInternalApiRemapper = new Remapper() {
+                        @Override
+                        String map(String internalName) {
+                            if (internalName.startsWith('org/gradle/') && internalName.contains('/internal/')) {
+                                isGradleInternalApiUsed.set(true)
+                            }
+                            return super.map(internalName)
+                        }
+                    }
+                    ClassRemapper gradleInternalApiClassRemapper = new ClassRemapper(classNode, gradleInternalApiRemapper)
+
+                    details.open().withCloseable {
+                        new ClassReader(it).accept(gradleInternalApiClassRemapper, 0)
+                    }
+
+                    if (!isGradleInternalApiUsed.get()
+                        || isNodeAnnotatedWith(classNode, 'ReliesOnInternalGradleApi')
+                    ) {
+                        return
+                    }
+
+                    classNode.invisibleAnnotations = classNode.invisibleAnnotations ?: []
+                    classNode.invisibleAnnotations.add(
+                        new AnnotationNode(
+                            'Lname/remal/gradle_plugins/toolkit/annotations/ReliesOnInternalGradleApi;'
+                        )
+                    )
+
+                    ClassWriter classWriter = new ClassWriter(0)
+                    classNode.accept(classWriter)
+                    details.file.bytes = classWriter.toByteArray()
+                }
             }
         }
     }
