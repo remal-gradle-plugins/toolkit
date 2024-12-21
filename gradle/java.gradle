@@ -303,13 +303,17 @@ allprojects {
         }
 
         tasks.withType(Test).configureEach {
+            Property<JavaVersion> javaRuntimeVersion = project.objects.property(JavaVersion).value(provider {
+                project.javaRuntimeVersion
+            }).with { it.finalizeValueOnRead(); it }
+
             javaLauncher = javaToolchains.launcherFor {
-                languageVersion = JavaLanguageVersion.of(project.javaRuntimeVersion.majorVersion)
+                languageVersion = JavaLanguageVersion.of(javaRuntimeVersion.get().majorVersion)
                 //vendor = project.defaultJvmVendor
             }
 
-            if (project.javaRuntimeVersion.isJava9Compatible()) {
-                if (project.javaRuntimeVersion <= JavaVersion.VERSION_16) {
+            if (javaRuntimeVersion.get().isJava9Compatible()) {
+                if (javaRuntimeVersion.get() <= JavaVersion.VERSION_16) {
                     jvmArgs('--illegal-access=deny')
                 }
 
@@ -340,7 +344,7 @@ allprojects {
                             return null
                         }
                     if (minSupportedJavaVersion != null) {
-                        if (project.javaRuntimeVersion.majorVersion.toInteger() < minSupportedJavaVersion) {
+                        if (javaRuntimeVersion.get().majorVersion.toInteger() < minSupportedJavaVersion) {
                             return true
                         }
                     }
@@ -355,7 +359,7 @@ allprojects {
                             return null
                         }
                     if (maxSupportedJavaVersion != null) {
-                        if (project.javaRuntimeVersion.majorVersion.toInteger() > maxSupportedJavaVersion) {
+                        if (javaRuntimeVersion.get().majorVersion.toInteger() > maxSupportedJavaVersion) {
                             return true
                         }
                     }

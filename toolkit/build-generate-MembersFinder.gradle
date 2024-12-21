@@ -1,7 +1,11 @@
 int typedMethodMaxParamsCount = 15
 
 tasks.named('generateJava') {
-    classFile("${project.calculateBaseJavaPackage()}.reflection", 'MembersFinder') {
+    Property<String> baseJavaPackage = project.objects.property(String).value(provider {
+        project.calculateBaseJavaPackage()
+    }).with { it.finalizeValueOnRead(); it }
+
+    classFile("${baseJavaPackage.get()}.reflection", 'MembersFinder') {
         it.writePackage()
         it.println("")
         it.writeStaticImport('lombok.AccessLevel', 'PRIVATE')
@@ -162,7 +166,7 @@ tasks.named('generateJava') {
         }
     }
 
-    classFile("${project.calculateBaseJavaPackage()}.reflection", 'MethodsInvoker') {
+    classFile("${baseJavaPackage.get()}.reflection", 'MethodsInvoker') {
         it.writePackage()
         it.println("")
         it.writeStaticImport('javax.annotation.meta.When', 'UNKNOWN')
@@ -224,12 +228,12 @@ tasks.named('generateJava') {
     }
 
     (0..typedMethodMaxParamsCount).forEach { paramsCount ->
-        classFile("${project.calculateBaseJavaPackage()}.reflection", "TypedMethod${paramsCount}") {
+        classFile("${baseJavaPackage.get()}.reflection", "TypedMethod${paramsCount}") {
             it.writePackage()
             it.println("")
             it.writeStaticImport('javax.annotation.meta.When', 'UNKNOWN')
-            it.writeStaticImport("${project.calculateBaseJavaPackage()}.ThrowableUtils", 'unwrapReflectionException')
-            it.writeStaticImport("${project.calculateBaseJavaPackage()}.reflection.ReflectionUtils", 'isStatic')
+            it.writeStaticImport("${baseJavaPackage.get()}.ThrowableUtils", 'unwrapReflectionException')
+            it.writeStaticImport("${baseJavaPackage.get()}.reflection.ReflectionUtils", 'isStatic')
             it.println("")
             it.writeImport('java.lang.reflect.Method')
             it.writeImport('javax.annotation.Nonnull')
@@ -261,12 +265,12 @@ tasks.named('generateJava') {
             }
         }
 
-        classFile("${project.calculateBaseJavaPackage()}.reflection", "TypedVoidMethod${paramsCount}") {
+        classFile("${baseJavaPackage.get()}.reflection", "TypedVoidMethod${paramsCount}") {
             it.writePackage()
             it.println("")
             it.writeStaticImport('javax.annotation.meta.When', 'UNKNOWN')
-            it.writeStaticImport("${project.calculateBaseJavaPackage()}.ThrowableUtils", 'unwrapReflectionException')
-            it.writeStaticImport("${project.calculateBaseJavaPackage()}.reflection.ReflectionUtils", 'isStatic')
+            it.writeStaticImport("${baseJavaPackage.get()}.ThrowableUtils", 'unwrapReflectionException')
+            it.writeStaticImport("${baseJavaPackage.get()}.reflection.ReflectionUtils", 'isStatic')
             it.println("")
             it.writeImport('java.lang.reflect.Method')
             it.writeImport('javax.annotation.Nonnull')
@@ -296,12 +300,12 @@ tasks.named('generateJava') {
             }
         }
 
-        classFile("${project.calculateBaseJavaPackage()}.reflection", "TypedStaticMethod${paramsCount}") {
+        classFile("${baseJavaPackage.get()}.reflection", "TypedStaticMethod${paramsCount}") {
             it.writePackage()
             it.println("")
             it.writeStaticImport('javax.annotation.meta.When', 'UNKNOWN')
-            it.writeStaticImport("${project.calculateBaseJavaPackage()}.ThrowableUtils", 'unwrapReflectionException')
-            it.writeStaticImport("${project.calculateBaseJavaPackage()}.reflection.ReflectionUtils", 'isNotStatic')
+            it.writeStaticImport("${baseJavaPackage.get()}.ThrowableUtils", 'unwrapReflectionException')
+            it.writeStaticImport("${baseJavaPackage.get()}.reflection.ReflectionUtils", 'isNotStatic')
             it.println("")
             it.writeImport('java.lang.reflect.Method')
             it.writeImport('javax.annotation.Nonnull')
@@ -333,12 +337,12 @@ tasks.named('generateJava') {
             }
         }
 
-        classFile("${project.calculateBaseJavaPackage()}.reflection", "TypedStaticVoidMethod${paramsCount}") {
+        classFile("${baseJavaPackage.get()}.reflection", "TypedStaticVoidMethod${paramsCount}") {
             it.writePackage()
             it.println("")
             it.writeStaticImport('javax.annotation.meta.When', 'UNKNOWN')
-            it.writeStaticImport("${project.calculateBaseJavaPackage()}.ThrowableUtils", 'unwrapReflectionException')
-            it.writeStaticImport("${project.calculateBaseJavaPackage()}.reflection.ReflectionUtils", 'isNotStatic')
+            it.writeStaticImport("${baseJavaPackage.get()}.ThrowableUtils", 'unwrapReflectionException')
+            it.writeStaticImport("${baseJavaPackage.get()}.reflection.ReflectionUtils", 'isNotStatic')
             it.println("")
             it.writeImport('java.lang.reflect.Method')
             it.writeImport('javax.annotation.Nonnull')

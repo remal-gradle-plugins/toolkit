@@ -2,7 +2,6 @@ package name.remal.gradle_plugins.toolkit.testkit.functional;
 
 import javax.annotation.Nullable;
 import lombok.Builder;
-import lombok.Builder.Default;
 import lombok.Value;
 import org.gradle.util.GradleVersion;
 
@@ -10,8 +9,7 @@ import org.gradle.util.GradleVersion;
 @Builder
 public class SuppressedMessage {
 
-    @Default
-    boolean startsWith = false;
+    boolean startsWith;
 
     String message;
 

@@ -1,19 +1,19 @@
 allprojects {
-    tasks.create('processReadme') { Task task ->
+    TaskProvider processReadme = tasks.register('processReadme') { Task task ->
         task.group = 'documentation'
         task.outputs.upToDateWhen { false }
 
         task.ext.readmeFileProcessors = []
 
+        FileTree files = project.fileTree(project.projectDir) {
+            include('README.md')
+        }
         task.doLast {
             List<Closure> readmeFileProcessors = task.ext.readmeFileProcessors
             if (readmeFileProcessors.isEmpty()) {
                 return
             }
 
-            FileTree files = project.fileTree(project.projectDir) {
-                include('README.md')
-            }
             files.visit { FileVisitDetails details ->
                 if (details.directory) {
                     return
@@ -25,6 +25,8 @@ allprojects {
             }
         }
 
+        ProviderFactory providers = project.providers
+
         task.ext.readmeFileProcessors.add(
             { File readmeFile ->
                 String content = readmeFile.getText('UTF-8')
@@ -35,7 +37,7 @@ allprojects {
                     String tag = it[1]
                     String property = it[2]
                     logger.lifecycle('  Handling {}: {}', tag, property)
-                    Object propertyValueObj = project.unwrapProviders(project.property(property))
+                    Object propertyValueObj = unwrapProviders(providers.gradleProperty(property).get())
                     String propertyValue = "$propertyValueObj"
                     if (tag.contains('code-')) {
                         propertyValue = "`$propertyValue`"
@@ -57,7 +59,7 @@ allprojects {
                     String tag = it[1]
                     String property = it[2]
                     logger.lifecycle('  Handling {}: {}', tag, property)
-                    Object propertyValueObj = project.unwrapProviders(project.property(property))
+                    Object propertyValueObj = unwrapProviders(providers.gradleProperty(property).get())
                     if (!(propertyValueObj instanceof Iterable)) {
                         throw new GradleException("`$property` property is not iterable: ${propertyValueObj?.class}")
                     }
@@ -111,7 +113,7 @@ allprojects {
                     String tag = it[1]
                     String pluginId = it[2]
                     logger.lifecycle('  Handling {}: {}', tag, pluginId)
-                    String lastVersion = project.getPluginLastVersionWithCurrentAsFallback(pluginId)
+                    String lastVersion = getPluginLastVersionWithCurrentAsFallback(pluginId)
                     String usage = ''
                     if (tag.endsWith('-kotlin')) {
                         usage = "```kotlin\nplugins {\n    id(\"$pluginId\") version \"$lastVersion\"\n}\n```"
@@ -125,4 +127,6 @@ allprojects {
             }
         )
     }
+
+    processReadme.get()
 }

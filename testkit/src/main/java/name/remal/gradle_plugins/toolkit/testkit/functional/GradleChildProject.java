@@ -4,10 +4,15 @@ import java.io.File;
 import lombok.Getter;
 
 @Getter
-public class GradleChildProject extends AbstractGradleProject<GradleChildProject> {
+public class GradleChildProject extends AbstractGradleProject<GradleChildProject, ChildBuildFile> {
 
     GradleChildProject(File projectDir) {
         super(projectDir);
+    }
+
+    @Override
+    protected ChildBuildFile createBuildFile(File projectDir) {
+        return new ChildBuildFile(projectDir);
     }
 
 }

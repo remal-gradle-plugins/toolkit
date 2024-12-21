@@ -79,16 +79,24 @@ rootProject.ext['includedBuildScripts'].forEach { String includedBuildScript ->
 
 tasks.named('generateResources') {
     inputs.files(configurations.compileClasspath).optional().withPropertyName('compileClasspath')
+    MapProperty<String, String> props = project.objects.mapProperty(String, String).value(provider {
+        [
+            tookitGroup: project.tookitGroup(),
+            tookitVersion: project.tookitVersion(),
+            tookitUrl: project.tookitUrl(),
+        ]
+    }).with { it.finalizeValueOnRead(); it }
+    inputs.property('props', props)
     scriptsToInclude.forEach { includedBuildScriptFile, resource ->
         inputs.file(includedBuildScriptFile)
         binaryFile(resource) { OutputStream outputStream ->
             String content = includedBuildScriptFile.getText('UTF-8')
 
             content = content.replaceAll(/\$\{\s*(?:project\s*\.\s*)?(tookitGroup|tookitVersion)\s*\(\s*\)\s*\}/) { matcher ->
-                project.property(matcher[1])()
+                props.get()[matcher[1]]
             }
             content = content.replaceAll(/\b(?:project\s*\.\s*)?(tookitGroup|tookitVersion|tookitUrl)\s*\(\s*\)/) { matcher ->
-                '\'' + project.property(matcher[1])() + '\''
+                props.get()[matcher[1]] + '\''
             }
 
             outputStream.write(content.getBytes('UTF-8'))
@@ -99,13 +107,19 @@ tasks.named('generateResources') {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 tasks.named('generateJava') {
-    inputs.property('project.version', project.provider { project.version })
+    Property<String> gradleApiMinVersion = project.objects.property(String).value(provider { project.property('gradle-api.min-version').toString() }).with { it.finalizeValueOnRead(); it }
+    Property<String> toolkitVersion = project.objects.property(String).value(provider { project.version?.toString() }).with { it.finalizeValueOnRead(); it }
+    inputs.property('toolkitVersion', toolkitVersion)
+    Property<String> toolkitBaseJavaPackage = project.objects.property(String).value(provider {
+        project.calculateBaseJavaPackageFor(project(':toolkit'))
+    }).with { it.finalizeValueOnRead(); it }
+    inputs.property('toolkitBaseJavaPackage', toolkitBaseJavaPackage)
     classFile(project.calculateBaseJavaPackage(), 'BuildLogicPlugin') {
         it.writePackage()
         it.println("")
         it.writeStaticImport("java.lang.String", "format")
-        it.writeStaticImport("${project.calculateBaseJavaPackageFor(project(':toolkit'))}.ObjectUtils", "unwrapProviders")
-        it.writeStaticImport("${project.calculateBaseJavaPackageFor(project(':toolkit'))}.ResourceUtils", "getResourceUrl")
+        it.writeStaticImport("${toolkitBaseJavaPackage.get()}.ObjectUtils", "unwrapProviders")
+        it.writeStaticImport("${toolkitBaseJavaPackage.get()}.ResourceUtils", "getResourceUrl")
         it.println("")
         it.writeImport("lombok.val")
         it.writeImport("org.gradle.api.Plugin")
@@ -116,7 +130,7 @@ tasks.named('generateJava') {
         it.writeBlock("public class ${it.simpleName} implements Plugin<Project>") {
             it.writeBlock("public void apply(Project project)") {
                 it.println("val currentGradleVersion = GradleVersion.current().getBaseVersion();")
-                it.println("val minToolkitGradleVersion = GradleVersion.version(\"${it.escapeJava(project.ext['gradle-api.min-version'])}\").getBaseVersion();")
+                it.println("val minToolkitGradleVersion = GradleVersion.version(\"${it.escapeJava(gradleApiMinVersion.get())}\").getBaseVersion();")
                 it.writeBlock("if (currentGradleVersion.compareTo(minToolkitGradleVersion) < 0)") {
                     it.println("throw new IllegalStateException(format(")
                     it.println("    \"Current Gradle version is %s, which is less than minimum supported Gradle version by toolkit: %s\",")
@@ -157,7 +171,7 @@ tasks.named('generateJava') {
                 it.println("        .getByName(\"projectDependencyConstraints\")")
                 it.println("        .getDependencies()")
                 it.println("        .add(")
-                it.println("            proj.getDependencies().platform(\"name.remal.gradle-plugins.toolkit:toolkit-bom:${project.version}\")")
+                it.println("            proj.getDependencies().platform(\"name.remal.gradle-plugins.toolkit:toolkit-bom:${toolkitVersion.get()}\")")
                 it.println("        )")
                 it.println(");")
             }

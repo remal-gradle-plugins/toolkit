@@ -43,9 +43,12 @@ project.fatJarWith(project(':toolkit:fat-jar--latest-lts-jdk'))
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 tasks.named('generateJava') { Task it ->
-    inputs.property('project.group', project.group)
-    inputs.property('project.name', project.name)
-    inputs.property('project.version', project.version)
+    Property<String> toolkitGroupId = project.objects.property(String).value(provider { project.group?.toString() }).with { it.finalizeValueOnRead(); it }
+    Property<String> toolkitArtifactId = project.objects.property(String).value(provider { project.name }).with { it.finalizeValueOnRead(); it }
+    Property<String> toolkitVersion = project.objects.property(String).value(provider { project.version?.toString() }).with { it.finalizeValueOnRead(); it }
+    inputs.property('toolkitGroupId', toolkitGroupId).optional(true)
+    inputs.property('toolkitArtifactId', toolkitArtifactId).optional(true)
+    inputs.property('toolkitVersion', toolkitVersion).optional(true)
     classFile(project.calculateBaseJavaPackage(), 'ToolkitBuildInfo') {
         it.writePackage()
         it.println("")
@@ -55,9 +58,9 @@ tasks.named('generateJava') { Task it ->
         it.println("")
         it.println("@NoArgsConstructor(access = PRIVATE)")
         it.writeBlock("abstract class ${it.simpleName}") {
-            it.println("public static final String TOOLKIT_GROUP_ID = \"${it.escapeJava(project.group)}\";")
-            it.println("public static final String TOOLKIT_ARTIFACT_IT = \"${it.escapeJava(project.name)}\";")
-            it.println("public static final String TOOLKIT_VERSION = \"${it.escapeJava(project.version)}\";")
+            it.println("public static final String TOOLKIT_GROUP_ID = \"${it.escapeJava(toolkitGroupId.get())}\";")
+            it.println("public static final String TOOLKIT_ARTIFACT_IT = \"${it.escapeJava(toolkitArtifactId.get())}\";")
+            it.println("public static final String TOOLKIT_VERSION = \"${it.escapeJava(toolkitVersion.get())}\";")
         }
     }
 }

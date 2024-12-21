@@ -13,8 +13,7 @@ allprojects {
         Task githubSubmitDependencies = tasks.create('githubSubmitDependencies') { Task task ->
             task.group = 'documentation'
 
-            SetProperty<DependencyToSubmit> lazyDependenciesToSubmitSet = project.objects.setProperty(DependencyToSubmit.class)
-                .with { it.finalizeValueOnRead(); it }
+            SetProperty<DependencyToSubmit> lazyDependenciesToSubmitSet = project.objects.setProperty(DependencyToSubmit.class).with { it.finalizeValueOnRead(); it }
             task.ext.dependenciesToSubmit = lazyDependenciesToSubmitSet
             task.inputs.property('dependenciesToSubmit', lazyDependenciesToSubmitSet)
 
@@ -141,6 +140,21 @@ allprojects {
                     .collect { it.get(0) }
             }).with { it.finalizeValueOnRead(); it }
 
+            String projectCorrelator = project.path
+            String buildFileRelativePath = rootProject.relativePath(project.buildFile)
+
+            Property<String> runId = project.objects.property(String).value(provider {
+                [
+                    'github-actions-run',
+                    project.property('github-actions-run-id'),
+                    project.property('github-actions-run-attempt'),
+                    project.property('github-actions-job'),
+                    project.property('github-actions-job-index'),
+                ].collect { it ?: '' }.join('-')
+            }).with { it.finalizeValueOnRead(); it }
+            Property<String> gitSha = project.objects.property(String).value(provider { project.property('git-sha') }).with { it.finalizeValueOnRead(); it }
+            Property<String> gitRef = project.objects.property(String).value(provider { project.property('git-ref') }).with { it.finalizeValueOnRead(); it }
+
             JsonGenerator jsonGenerator = new JsonGenerator.Options()
                 .excludeNulls()
                 .excludeFieldsByName('contentHash', 'originalClassName')
@@ -181,36 +195,28 @@ allprojects {
 
                 Map manifests = [:]
                 manifests.put(
-                    rootProject.relativePath(project.buildFile),
+                    buildFileRelativePath,
                     [
-                        name: rootProject.relativePath(project.buildFile),
+                        name: buildFileRelativePath,
                         file: [
-                            source_location: rootProject.relativePath(project.buildFile),
+                            source_location: buildFileRelativePath,
                         ],
                         resolved: resolved,
                     ]
                 )
 
-                String runId = [
-                    'github-actions-run',
-                    project.property('github-actions-run-id'),
-                    project.property('github-actions-run-attempt'),
-                    project.property('github-actions-job'),
-                    project.property('github-actions-job-index'),
-                ].collect { it ?: '' }.join('-')
-
                 Map requestBody = [
                     version: System.currentTimeMillis(),
                     job: [
-                        id: runId,
-                        correlator: project.path,
+                        id: runId.get(),
+                        correlator: projectCorrelator,
                     ],
-                    sha: project.property('git-sha'),
-                    ref: project.property('git-ref'),
+                    sha: gitSha.get(),
+                    ref: gitRef.get(),
                     detector: [
-                        name: project.tookitGroup(),
-                        version: project.tookitVersion(),
-                        url: project.tookitUrl(),
+                        name: tookitGroup(),
+                        version: tookitVersion(),
+                        url: tookitUrl(),
                     ],
                     manifests: manifests,
                     scanned: new Date(),
@@ -222,7 +228,7 @@ allprojects {
                 reportFile.setText(JsonOutput.prettyPrint(jsonContent), 'UTF-8')
 
 
-                Map responseJson = project.sendGitHubRestApiRequest(
+                Map responseJson = sendGitHubRestApiRequest(
                     "dependency-graph/snapshots",
                     'POST',
                     HttpRequest.BodyPublishers.ofString(jsonContent, UTF_8)

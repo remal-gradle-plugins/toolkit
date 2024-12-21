@@ -6,25 +6,29 @@ allprojects {
     pluginManager.withPlugin('java') {
         TaskProvider checkSourceDirs = tasks.register('checkSourceDirs') { Task task ->
             task.group = 'verification'
-            task.doLast {
-                Set<File> allSourceDirs = project.sourceSets.stream()
+
+            File baseSourceDir = project.file('src')
+
+            SetProperty<File> allSourceDirs = project.objects.setProperty(File).value(provider {
+                project.sourceSets.stream()
                     .flatMap { SourceSet sourceSet -> sourceSet.allSource.srcDirs.stream() }
                     .map { File file -> file.canonicalFile }
                     .flatMap { File file -> Stream.of(file, file.parentFile) }
                     .filter { it != null }
                     .collect(toSet())
+            }).with { it.finalizeValueOnRead(); it }
 
+            task.doLast {
                 List<File> invalidSourceDirs = []
 
                 Closure<List<File>> getSubDirs = { File file ->
                     return file.listFiles()?.collect()?.findAll { it.directory } ?: []
                 }
 
-                File baseSourceDir = project.file('src')
                 List<File> sourceSetsBaseDirs = getSubDirs(baseSourceDir)
                 for (File sourceSetsBaseDir : sourceSetsBaseDirs) {
                     sourceSetsBaseDir = sourceSetsBaseDir.canonicalFile
-                    if (!allSourceDirs.contains(sourceSetsBaseDir)) {
+                    if (!allSourceDirs.get().contains(sourceSetsBaseDir)) {
                         invalidSourceDirs.add(sourceSetsBaseDir)
                         break
                     }
@@ -32,7 +36,7 @@ allprojects {
                     List<File> sourceDirs = getSubDirs(sourceSetsBaseDir)
                     for (File sourceDir : sourceDirs) {
                         sourceDir = sourceDir.canonicalFile
-                        if (!allSourceDirs.contains(sourceDir)) {
+                        if (!allSourceDirs.get().contains(sourceDir)) {
                             invalidSourceDirs.add(sourceDir)
                         }
                     }

@@ -696,7 +696,7 @@ allprojects {
 
         tasks.withType(AbstractCopyTask).configureEach {
             filesMatching(['**/package-info.class', '**/package-info.java']) {
-                duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+                duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             }
         }
 

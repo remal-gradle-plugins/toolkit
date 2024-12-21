@@ -28,17 +28,22 @@ import lombok.val;
 import org.jetbrains.annotations.Contract;
 
 @Getter
-abstract class AbstractGradleProject<Child extends AbstractGradleProject<Child>> {
+abstract class AbstractGradleProject<
+    Child extends AbstractGradleProject<Child, ?>,
+    BuildFileType extends AbstractBuildFile<BuildFileType>
+    > {
 
     private static final String GRADLE_PROPERTIES_RELATIVE_PATH = "gradle.properties";
 
     protected final File projectDir;
-    protected final BuildFile buildFile;
+    protected final BuildFileType buildFile;
     protected final Map<String, Object> gradleProperties = synchronizedMap(new LinkedHashMap<>());
+
+    protected abstract BuildFileType createBuildFile(File projectDir);
 
     AbstractGradleProject(File projectDir) {
         this.projectDir = normalizeFile(projectDir.getAbsoluteFile());
-        this.buildFile = new BuildFile(this.projectDir);
+        this.buildFile = createBuildFile(this.projectDir);
     }
 
     public final String getName() {
@@ -52,35 +57,31 @@ abstract class AbstractGradleProject<Child extends AbstractGradleProject<Child>>
 
     @Contract("_ -> this")
     @CanIgnoreReturnValue
-    @SuppressWarnings("unchecked")
-    public final Child forBuildFile(Consumer<BuildFile> buildFileConsumer) {
+    public final Child forBuildFile(Consumer<BuildFileType> buildFileConsumer) {
         buildFileConsumer.accept(buildFile);
-        return (Child) this;
+        return getSelf();
     }
 
     @Contract("_ -> this")
     @CanIgnoreReturnValue
-    @SuppressWarnings("unchecked")
     public final synchronized Child forGradleProperties(Consumer<Map<String, Object>> propertiesConsumer) {
         propertiesConsumer.accept(gradleProperties);
-        return (Child) this;
+        return getSelf();
     }
 
     @Contract("_ -> this")
     @CanIgnoreReturnValue
-    @SuppressWarnings("unchecked")
     public final synchronized Child setGradleProperties(Map<String, Object> gradleProperties) {
         this.gradleProperties.clear();
         this.gradleProperties.putAll(gradleProperties);
-        return (Child) this;
+        return getSelf();
     }
 
     @Contract("_,_ -> this")
     @CanIgnoreReturnValue
-    @SuppressWarnings("unchecked")
     public final synchronized Child setGradleProperty(String key, @Nullable Object value) {
         gradleProperties.put(key, value);
-        return (Child) this;
+        return getSelf();
     }
 
     @SneakyThrows
@@ -107,7 +108,6 @@ abstract class AbstractGradleProject<Child extends AbstractGradleProject<Child>>
     @Contract("_,_ -> this")
     @CanIgnoreReturnValue
     @SneakyThrows
-    @SuppressWarnings("unchecked")
     public final Child writeBinaryFile(String relativeFilePath, byte[] bytes) {
         if (GRADLE_PROPERTIES_RELATIVE_PATH.equals(relativeFilePath)) {
             throw new IllegalArgumentException(format(
@@ -120,7 +120,7 @@ abstract class AbstractGradleProject<Child extends AbstractGradleProject<Child>>
         createParentDirectories(destPath);
         write(destPath, bytes);
 
-        return (Child) this;
+        return getSelf();
     }
 
     @Contract("_,_,_ -> this")
@@ -167,6 +167,14 @@ abstract class AbstractGradleProject<Child extends AbstractGradleProject<Child>>
         }
 
         return destPath;
+    }
+
+
+    @Contract("->this")
+    @CanIgnoreReturnValue
+    @SuppressWarnings("unchecked")
+    protected final Child getSelf() {
+        return (Child) this;
     }
 
 }

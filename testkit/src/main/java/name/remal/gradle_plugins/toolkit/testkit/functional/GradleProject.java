@@ -56,7 +56,7 @@ import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.Contract;
 
 @Getter
-public class GradleProject extends AbstractGradleProject<GradleProject> {
+public class GradleProject extends AbstractGradleProject<GradleProject, BuildFile> {
 
     private static final Duration DEFAULT_TASK_TIMEOUT = Duration.ofMinutes(1);
 
@@ -69,16 +69,21 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
     protected final SettingsFile settingsFile;
 
     public GradleProject(File projectDir) {
-        super(projectDir.getAbsoluteFile());
+        super(projectDir);
         this.settingsFile = new SettingsFile(this.projectDir);
         setTaskTimeout(DEFAULT_TASK_TIMEOUT);
+    }
+
+    @Override
+    protected BuildFile createBuildFile(File projectDir) {
+        return new BuildFile(projectDir);
     }
 
     @Contract("_ -> this")
     @CanIgnoreReturnValue
     public final synchronized GradleProject forSettingsFile(Consumer<SettingsFile> settingsFileConsumer) {
         settingsFileConsumer.accept(settingsFile);
-        return this;
+        return getSelf();
     }
 
     @Override
@@ -109,7 +114,7 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
     ) {
         val child = newChildProject(name);
         childProjectConsumer.accept(child);
-        return this;
+        return getSelf();
     }
 
 
@@ -214,7 +219,7 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
     public final synchronized GradleProject addForbiddenMessage(String message) {
         assertIsNotBuilt();
         forbiddenMessages.add(message);
-        return this;
+        return getSelf();
     }
 
     @Contract("_ -> this")
@@ -222,7 +227,7 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
     public final synchronized GradleProject addSuppressedForbiddenMessage(SuppressedMessage suppressedMessage) {
         assertIsNotBuilt();
         suppressedForbiddenMessages.add(suppressedMessage);
-        return this;
+        return getSelf();
     }
 
     @Contract("_ -> this")
@@ -230,7 +235,7 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
     public final synchronized GradleProject addDeprecationMessage(String message) {
         assertIsNotBuilt();
         deprecationMessages.add(message);
-        return this;
+        return getSelf();
     }
 
     @Contract("_ -> this")
@@ -238,7 +243,7 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
     public final synchronized GradleProject addSuppressedDeprecationMessage(SuppressedMessage suppressedMessage) {
         assertIsNotBuilt();
         suppressedDeprecationMessages.add(suppressedMessage);
-        return this;
+        return getSelf();
     }
 
     @Contract("_ -> this")
@@ -246,7 +251,7 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
     public final synchronized GradleProject addMutableProjectStateWarning(String message) {
         assertIsNotBuilt();
         mutableProjectStateWarnings.add(message);
-        return this;
+        return getSelf();
     }
 
     @Contract("_ -> this")
@@ -256,7 +261,7 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
     ) {
         assertIsNotBuilt();
         suppressedMutableProjectStateWarnings.add(suppressedMessage);
-        return this;
+        return getSelf();
     }
 
     @Contract("_ -> this")
@@ -264,7 +269,7 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
     public final synchronized GradleProject addOptimizationsDisabledWarning(String message) {
         assertIsNotBuilt();
         optimizationsDisabledWarnings.add(message);
-        return this;
+        return getSelf();
     }
 
     @Contract("_ -> this")
@@ -274,7 +279,7 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
     ) {
         assertIsNotBuilt();
         suppressedOptimizationsDisabledWarnings.add(suppressedMessage);
-        return this;
+        return getSelf();
     }
 
 
@@ -285,7 +290,7 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
     public final synchronized GradleProject withoutPluginClasspath() {
         assertIsNotBuilt();
         withPluginClasspath = false;
-        return this;
+        return getSelf();
     }
 
 
@@ -297,7 +302,7 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
     public final synchronized GradleProject withoutConfigurationCache() {
         assertIsNotBuilt();
         withConfigurationCache = false;
-        return this;
+        return getSelf();
     }
 
     @Nullable
@@ -311,7 +316,7 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
         children.values().forEach(child -> {
             child.buildFile.setTaskTimeout(taskTimeout);
         });
-        return this;
+        return getSelf();
     }
 
     private boolean withJacoco = currentJvmArgsHaveJacocoJvmArg();
@@ -321,7 +326,7 @@ public class GradleProject extends AbstractGradleProject<GradleProject> {
     public final synchronized GradleProject withoutJacoco() {
         assertIsNotBuilt();
         withJacoco = false;
-        return this;
+        return getSelf();
     }
 
 
