@@ -46,7 +46,7 @@ class TaskUtilsTest {
     @Test
     @MinSupportedGradleVersion("7.4")
     void markAsNotCompatibleWithConfigurationCache() {
-        val task = project.getTasks().create("testTask", DefaultTask.class);
+        val task = project.getTasks().register("testTask", DefaultTask.class).get();
         assertTrue(task.isCompatibleWithConfigurationCache());
         TaskUtils.markAsNotCompatibleWithConfigurationCache(task);
         assertFalse(task.isCompatibleWithConfigurationCache());
@@ -54,7 +54,7 @@ class TaskUtilsTest {
 
     @Test
     void clearRegisteredFileProperties() {
-        val task = project.getTasks().create("testTask");
+        val task = project.getTasks().register("testTask").get();
         val taskInputs = (TaskInputsInternal) task.getInputs();
 
         taskInputs.dir(project.getProjectDir());

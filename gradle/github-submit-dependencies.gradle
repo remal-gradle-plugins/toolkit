@@ -14,10 +14,11 @@ allprojects {
             task.group = 'documentation'
 
             SetProperty<DependencyToSubmit> lazyDependenciesToSubmitSet = project.objects.setProperty(DependencyToSubmit.class)
+                .with { it.finalizeValueOnRead(); it }
             task.ext.dependenciesToSubmit = lazyDependenciesToSubmitSet
             task.inputs.property('dependenciesToSubmit', lazyDependenciesToSubmitSet)
 
-            File reportFile = project.file("${project.reporting.baseDir}/${task.name}.json")
+            File reportFile = project.file("${project.reporting.baseDirectory.asFile.get()}/${task.name}.json")
             task.ext.reportFile = reportFile
             task.outputs.file(reportFile).withPropertyName('reportFile')
             doFirst { reportFile.delete() }
@@ -39,107 +40,106 @@ allprojects {
                 'excludeFromForcedClassesRelocation',
             ]
             Closure processConfiguration = { Configuration conf, boolean isBuildscript = false ->
-                lazyDependenciesToSubmitSet.addAll(
-                    provider {
-                        if (configurationsNotToTrack.contains(conf.name)) {
-                            return []
-                        }
+                lazyDependenciesToSubmitSet.addAll(provider {
+                    if (configurationsNotToTrack.contains(conf.name)) {
+                        return []
+                    }
 
-                        if (!conf.canSafelyBeResolved()) return []
+                    if (!conf.canSafelyBeResolved()) {
+                        return []
+                    }
 
-                        Collection<ResolvedArtifact> resolvedArtifacts = conf.resolvedConfiguration.resolvedArtifacts
+                    Collection<ResolvedArtifact> resolvedArtifacts = conf.resolvedConfiguration.resolvedArtifacts
 
-                        Set<DependencyToSubmit> result = [].toSet()
-                        Closure processResolvedDependency = {
-                            ResolvedDependencyResult resolvedDependency,
-                            DependencyToSubmitScope scope,
-                            DependencyToSubmitRelationship relationship ->
-                                ModuleComponentIdentifier id = resolvedDependency.selected.id.with { id ->
-                                    if (id instanceof ModuleComponentIdentifier) {
-                                        return id
-                                    } else {
-                                        return null
-                                    }
+                    Set<DependencyToSubmit> result = [].toSet()
+                    Closure processResolvedDependency = {
+                        ResolvedDependencyResult resolvedDependency,
+                        DependencyToSubmitScope scope,
+                        DependencyToSubmitRelationship relationship ->
+                            ModuleComponentIdentifier id = resolvedDependency.selected.id.with { id ->
+                                if (id instanceof ModuleComponentIdentifier) {
+                                    return id
+                                } else {
+                                    return null
                                 }
-                                if (id == null) return
+                            }
+                            if (id == null) {
+                                return
+                            }
 
-                                if (isPlatformDependency(resolvedDependency)) {
+                            if (isPlatformDependency(resolvedDependency)) {
+                                result.add(
+                                    new DependencyToSubmit(
+                                        nullIfEmpty(id.group),
+                                        nullIfEmpty(id.module),
+                                        nullIfEmpty(id.version),
+                                        null,
+                                        null,
+                                        scope,
+                                        relationship
+                                    )
+                                )
+                            } else {
+                                Collection<ResolvedArtifact> dependencyArtifacts = resolvedArtifacts.findAll { it.id.componentIdentifier == id }
+                                dependencyArtifacts.forEach { dependencyArtifact ->
                                     result.add(
                                         new DependencyToSubmit(
                                             nullIfEmpty(id.group),
                                             nullIfEmpty(id.module),
                                             nullIfEmpty(id.version),
-                                            null,
-                                            null,
+                                            nullIfEmpty(dependencyArtifact.classifier),
+                                            nullIfEmpty(nullIfJar(dependencyArtifact.extension)),
                                             scope,
                                             relationship
                                         )
                                     )
-                                } else {
-                                    Collection<ResolvedArtifact> dependencyArtifacts = resolvedArtifacts.findAll { it.id.componentIdentifier == id }
-                                    dependencyArtifacts.forEach { dependencyArtifact ->
-                                        result.add(
-                                            new DependencyToSubmit(
-                                                nullIfEmpty(id.group),
-                                                nullIfEmpty(id.module),
-                                                nullIfEmpty(id.version),
-                                                nullIfEmpty(dependencyArtifact.classifier),
-                                                nullIfEmpty(nullIfJar(dependencyArtifact.extension)),
-                                                scope,
-                                                relationship
-                                            )
-                                        )
-                                    }
                                 }
-                        }
-
-                        DependencyToSubmitScope scope = DependencyToSubmitScope.DEVELOPMENT
-                        if (isBuildscript) {
-                            // do nothing
-                        } else if (['runtimeClasspath', 'relocateClasses'].contains(conf.name)) {
-                            scope = DependencyToSubmitScope.RUNTIME
-                        }
-
-                        conf.incoming.resolutionResult
-                            .root
-                            .dependencies
-                            .collect { (DependencyResult) it }
-                            .findAll { !it.constraint }
-                            .findAll { it instanceof ResolvedDependencyResult }
-                            .collect { (ResolvedDependencyResult) it }
-                            .findAll { !isExcludedCategory(it) }
-                            .forEach { processResolvedDependency(it, scope, DependencyToSubmitRelationship.DIRECT) }
-
-                        conf.incoming.resolutionResult
-                            .allDependencies
-                            .collect { (DependencyResult) it }
-                            .findAll { !it.constraint }
-                            .findAll { it instanceof ResolvedDependencyResult }
-                            .collect { (ResolvedDependencyResult) it }
-                            .findAll { !isExcludedCategory(it) }
-                            .findAll { !it.selected.selectionReason.expected }
-                            .forEach { processResolvedDependency(it, scope, DependencyToSubmitRelationship.INDIRECT) }
-
-                        return result
+                            }
                     }
-                )
+
+                    DependencyToSubmitScope scope = DependencyToSubmitScope.DEVELOPMENT
+                    if (isBuildscript) {
+                        // do nothing
+                    } else if (['runtimeClasspath', 'relocateClasses'].contains(conf.name)) {
+                        scope = DependencyToSubmitScope.RUNTIME
+                    }
+
+                    conf.incoming.resolutionResult
+                        .root
+                        .dependencies
+                        .collect { (DependencyResult) it }
+                        .findAll { !it.constraint }
+                        .findAll { it instanceof ResolvedDependencyResult }
+                        .collect { (ResolvedDependencyResult) it }
+                        .findAll { !isExcludedCategory(it) }
+                        .forEach { processResolvedDependency(it, scope, DependencyToSubmitRelationship.DIRECT) }
+
+                    conf.incoming.resolutionResult
+                        .allDependencies
+                        .collect { (DependencyResult) it }
+                        .findAll { !it.constraint }
+                        .findAll { it instanceof ResolvedDependencyResult }
+                        .collect { (ResolvedDependencyResult) it }
+                        .findAll { !isExcludedCategory(it) }
+                        .findAll { !it.selected.selectionReason.expected }
+                        .forEach { processResolvedDependency(it, scope, DependencyToSubmitRelationship.INDIRECT) }
+
+                    return result
+                })
             }
 
             project.buildscript.configurations.all { processConfiguration(it, true) }
             project.configurations.all { processConfiguration(it) }
 
-            ListProperty<DependencyToSubmit> lazyDependenciesToSubmit = project.objects.listProperty(DependencyToSubmit.class)
-            lazyDependenciesToSubmit.set(
-                provider {
-                    lazyDependenciesToSubmitSet.get()
-                        .findAll { it.version != null && !it.version.isEmpty() }
-                        .toSorted()
-                        .groupBy { it.toString() }
-                        .values()
-                        .toList()
-                        .collect { it.get(0) }
-                }
-            )
+            ListProperty<DependencyToSubmit> lazyDependenciesToSubmit = project.objects.listProperty(DependencyToSubmit.class).value(provider {
+                lazyDependenciesToSubmitSet.get()
+                    .findAll { it.version != null && !it.version.isEmpty() }
+                    .toSorted()
+                    .groupBy { it.toString() }
+                    .values()
+                    .toList()
+                    .collect { it.get(0) }
+            }).with { it.finalizeValueOnRead(); it }
 
             JsonGenerator jsonGenerator = new JsonGenerator.Options()
                 .excludeNulls()
@@ -148,7 +148,9 @@ allprojects {
 
             doLast {
                 Closure<String> encodeUrlPart = { String string ->
-                    if (string == null) return ''
+                    if (string == null) {
+                        return ''
+                    }
                     return URLEncoder.encode(string, UTF_8)
                         .replace("+", "%20")
                         .replace("*", "%2A")
@@ -274,8 +276,12 @@ class DependencyToSubmit implements Serializable, Comparable<DependencyToSubmit>
     @Override
     int compareTo(DependencyToSubmit other) {
         int result = toString() <=> other.toString()
-        if (result == 0) result = scopeComparator.compare(scope, other.scope)
-        if (result == 0) result = relationshipComparator.compare(relationship, other.relationship)
+        if (result == 0) {
+            result = scopeComparator.compare(scope, other.scope)
+        }
+        if (result == 0) {
+            result = relationshipComparator.compare(relationship, other.relationship)
+        }
         return result
     }
 

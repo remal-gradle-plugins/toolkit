@@ -3,34 +3,33 @@ import org.gradle.util.GradleVersion
 class ResourceLoader {}
 
 tasks.named('generateJava') {
-    ListProperty<GradleVersion> gradleVersions = project.objects.listProperty(GradleVersion).convention(
-        provider {
-            project.getMinorGradleVersions()
-                .findAll { it >= GradleVersion.version('6.6') }
-                .sort()
-                .reverse()
-        }
-    )
+    ListProperty<GradleVersion> gradleVersions = project.objects.listProperty(GradleVersion).value(provider {
+        project.getMinorGradleVersions()
+            .findAll { it >= GradleVersion.version('6.6') }
+            .sort()
+            .reverse()
+    }).with { it.finalizeValueOnRead(); it }
 
     Closure<String> getDocumentationUrl = { GradleVersion gradleVersion ->
         "https://docs.gradle.org/${gradleVersion.version}/userguide/configuration_cache.html"
     }
 
-    outputs.files(
-        files(
-            gradleVersions.map { versions ->
-                versions.collect { project.getCacheFileForDownloadedUrl(getDocumentationUrl(it)) }
-            }
-        )
-    ).optional()
+    outputs.files(files(
+        gradleVersions.map { versions ->
+            versions.collect { project.getCacheFileForDownloadedUrl(getDocumentationUrl(it)) }
+        }
+    )).optional()
 
-    classFile(project.calculateBaseJavaPackage(), 'CorePluginConfigurationCacheSupport') {
+    Property<String> baseJavaPackage = project.objects.property(String).value(provider {
+        project.calculateBaseJavaPackage()
+    }).with { it.finalizeValueOnRead(); it }
+    classFile(baseJavaPackage.get(), 'CorePluginConfigurationCacheSupport') {
         it.writePackage()
         it.println("")
         it.writeStaticImport('lombok.AccessLevel', 'PRIVATE')
-        it.writeStaticImport("${project.calculateBaseJavaPackage()}.GradleCompatibilityMode", 'PARTIALLY_SUPPORTED')
-        it.writeStaticImport("${project.calculateBaseJavaPackage()}.GradleCompatibilityMode", 'SUPPORTED')
-        it.writeStaticImport("${project.calculateBaseJavaPackage()}.GradleCompatibilityMode", 'UNSUPPORTED')
+        it.writeStaticImport("${baseJavaPackage.get()}.GradleCompatibilityMode", 'PARTIALLY_SUPPORTED')
+        it.writeStaticImport("${baseJavaPackage.get()}.GradleCompatibilityMode", 'SUPPORTED')
+        it.writeStaticImport("${baseJavaPackage.get()}.GradleCompatibilityMode", 'UNSUPPORTED')
         it.println("")
         it.writeImport("lombok.NoArgsConstructor")
         it.writeImport("org.gradle.util.GradleVersion")
@@ -56,7 +55,9 @@ tasks.named('generateJava') {
                     Map<String, String> plugins = [:]
                     trElements.forEach { trElement ->
                         def pluginLinkElements = trElement.select('a[href*=_plugin], a[href*=publishing]')
-                        if (pluginLinkElements.isEmpty()) return
+                        if (pluginLinkElements.isEmpty()) {
+                            return
+                        }
 
                         String pluginHref = pluginLinkElements.first().attr('href')
                             .replaceFirst(/^(.*\/)?([^\/]+)$/, '$2')
@@ -69,10 +70,14 @@ tasks.named('generateJava') {
                         } else {
                             pluginId = pluginHref.replaceFirst(/^([a-z_]+)_plugin\.html$/, '$1')
                         }
-                        if (pluginId == pluginHref) return
+                        if (pluginId == pluginHref) {
+                            return
+                        }
                         pluginId = pluginId.replace('_', '-')
 
-                        if (pluginId == 'java-gradle') pluginId = 'java-gradle-plugin'
+                        if (pluginId == 'java-gradle') {
+                            pluginId = 'java-gradle-plugin'
+                        }
 
                         String status
                         String text = trElement.text()
@@ -92,7 +97,9 @@ tasks.named('generateJava') {
                     }
                     plugins.keySet().forEach { pluginId ->
                         if (gradleVersion < GradleVersion.version('6.9.9999')) {
-                            if (pluginId == 'maven') return
+                            if (pluginId == 'maven') {
+                                return
+                            }
                         }
                         if (ResourceLoader.getResource("/META-INF/gradle-plugins/org.gradle.${pluginId}.properties") == null) {
                             throw new GradleException("Unknown plugin ID for $gradleVersion: $pluginId")

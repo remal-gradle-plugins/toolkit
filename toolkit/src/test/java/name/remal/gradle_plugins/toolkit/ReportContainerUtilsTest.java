@@ -37,13 +37,13 @@ class ReportContainerUtilsTest {
 
     @Test
     void noTaskPropertiesProblems() {
-        val task = project.getTasks().create(TestReportsTask.class.getSimpleName(), TestReportsTask.class);
+        val task = project.getTasks().register(TestReportsTask.class.getSimpleName(), TestReportsTask.class).get();
         assertNoTaskPropertiesProblems(task);
     }
 
     @Test
     void reportsCorrectlyConfigured() {
-        val task = project.getTasks().create(TestReportsTask.class.getSimpleName(), TestReportsTask.class);
+        val task = project.getTasks().register(TestReportsTask.class.getSimpleName(), TestReportsTask.class).get();
 
         val baseReportsDir = project.file("build/reports/testReports/TestReportsTask");
 

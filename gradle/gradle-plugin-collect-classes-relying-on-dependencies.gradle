@@ -27,7 +27,9 @@ buildscript {
     }
 }
 
-if (project.isBuildSrcProject) return
+if (project.isBuildSrcProject) {
+    return
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -106,65 +108,67 @@ allprojects {
 
     pluginManager.withPlugin('java-gradle-plugin') {
         Closure<MapProperty<String, ClassNode>> createClassesRelyingOnDependency = { String annotationSimpleName ->
-            return project.objects.mapProperty(String, ClassNode).value(
-                provider {
-                    FileTree classesFileTree = project.files().asFileTree
-                    projectsToCollectClassesRelyingOnDependency.forEach { currentProject ->
-                        for (File runtimeClasspathFile : currentProject.sourceSets.main.runtimeClasspath.files) {
-                            if (runtimeClasspathFile.isDirectory()) {
-                                classesFileTree += project.fileTree(runtimeClasspathFile)
-                            } else if (runtimeClasspathFile.isFile()) {
-                                classesFileTree += project.zipTree(runtimeClasspathFile)
-                            }
+            return project.objects.mapProperty(String, ClassNode).value(provider {
+                FileTree classesFileTree = project.files().asFileTree
+                projectsToCollectClassesRelyingOnDependency.forEach { currentProject ->
+                    for (File runtimeClasspathFile : currentProject.sourceSets.main.runtimeClasspath.files) {
+                        if (runtimeClasspathFile.isDirectory()) {
+                            classesFileTree += project.fileTree(runtimeClasspathFile)
+                        } else if (runtimeClasspathFile.isFile()) {
+                            classesFileTree += project.zipTree(runtimeClasspathFile)
                         }
                     }
-
-                    classesFileTree = classesFileTree
-                        .matching { include('**/*.class') }
-                        .matching { exclude("**/${annotationSimpleName}.class") }
-
-                    Map<String, ClassNode> result = new TreeMap<>()
-                    classesFileTree.visit { FileTreeElement fileTreeElement ->
-                        if (fileTreeElement.directory) return
-
-                        ClassNode classNode = new ClassNode()
-                        fileTreeElement.open().withCloseable {
-                            new ClassReader(it).accept(classNode, SKIP_DEBUG | SKIP_FRAMES)
-                        }
-
-                        if (isNodeAnnotatedWith(classNode, annotationSimpleName)
-                            || classNode.fields?.any { isNodeAnnotatedWith(it, annotationSimpleName) }
-                            || classNode.methods?.any { isNodeAnnotatedWith(it, annotationSimpleName) }
-                        ) {
-                            String className = relativePathToClassName(fileTreeElement.path)
-                            result.put(className, classNode)
-                        }
-                    }
-
-                    if (!result.isEmpty()) {
-                        classesFileTree
-                            .matching {
-                                for (String className : result.keySet()) {
-                                    include(className.replace('.', '/') + '*.class')
-                                }
-                            }
-                            .visit { FileTreeElement fileTreeElement ->
-                                if (fileTreeElement.directory) return
-
-                                String className = relativePathToClassName(fileTreeElement.path)
-                                result.computeIfAbsent(className) {
-                                    ClassNode classNode = new ClassNode()
-                                    fileTreeElement.open().withCloseable {
-                                        new ClassReader(it).accept(classNode, SKIP_DEBUG | SKIP_FRAMES)
-                                    }
-                                    return classNode
-                                }
-                            }
-                    }
-
-                    return result
                 }
-            ).with { it.finalizeValueOnRead(); it }
+
+                classesFileTree = classesFileTree
+                    .matching { include('**/*.class') }
+                    .matching { exclude("**/${annotationSimpleName}.class") }
+
+                Map<String, ClassNode> result = new TreeMap<>()
+                classesFileTree.visit { FileTreeElement fileTreeElement ->
+                    if (fileTreeElement.directory) {
+                        return
+                    }
+
+                    ClassNode classNode = new ClassNode()
+                    fileTreeElement.open().withCloseable {
+                        new ClassReader(it).accept(classNode, SKIP_DEBUG | SKIP_FRAMES)
+                    }
+
+                    if (isNodeAnnotatedWith(classNode, annotationSimpleName)
+                        || classNode.fields?.any { isNodeAnnotatedWith(it, annotationSimpleName) }
+                        || classNode.methods?.any { isNodeAnnotatedWith(it, annotationSimpleName) }
+                    ) {
+                        String className = relativePathToClassName(fileTreeElement.path)
+                        result.put(className, classNode)
+                    }
+                }
+
+                if (!result.isEmpty()) {
+                    classesFileTree
+                        .matching {
+                            for (String className : result.keySet()) {
+                                include(className.replace('.', '/') + '*.class')
+                            }
+                        }
+                        .visit { FileTreeElement fileTreeElement ->
+                            if (fileTreeElement.directory) {
+                                return
+                            }
+
+                            String className = relativePathToClassName(fileTreeElement.path)
+                            result.computeIfAbsent(className) {
+                                ClassNode classNode = new ClassNode()
+                                fileTreeElement.open().withCloseable {
+                                    new ClassReader(it).accept(classNode, SKIP_DEBUG | SKIP_FRAMES)
+                                }
+                                return classNode
+                            }
+                        }
+                }
+
+                return result
+            }).with { it.finalizeValueOnRead(); it }
         }
 
         MapProperty<String, ClassNode> classesRelyingOnInternalGradleApi = createClassesRelyingOnDependency('ReliesOnInternalGradleApi')
@@ -173,79 +177,75 @@ allprojects {
 
         tasks.named('collectGradlePluginApiDependencies').configure {
             dependsOn('classes')
-            dependsOn(
-                provider {
-                    projectsToCollectClassesRelyingOnDependency.collect { currentProject ->
-                        [
-                            currentProject.tasks.named('classes'),
-                            currentProject.registerResolveSourceSetRuntimeClasspathTask('main'),
-                        ]
-                    }.flatten()
-                }
-            )
+            dependsOn(provider {
+                projectsToCollectClassesRelyingOnDependency.collect { currentProject ->
+                    [
+                        currentProject.tasks.named('classes'),
+                        currentProject.registerResolveSourceSetRuntimeClasspathTask('main'),
+                    ]
+                }.flatten()
+            })
         }
 
         ; [
             'zzzz-classes-relying-on-gradle-internal-api': classesRelyingOnInternalGradleApi,
             'zzzz-classes-relying-on-external-dependency': classesRelyingOnExternalDependency,
         ].forEach { String group, MapProperty<String, ClassNode> classesRelyingOnDependency ->
-            project.nonJavaApiDependencies.addAll(
-                provider {
-                    return classesRelyingOnDependency.get().collect { String className, ClassNode classNode ->
-                        classNode.visibleAnnotations = null
-                        classNode.invisibleAnnotations = null
-                        classNode.visibleTypeAnnotations = null
-                        classNode.invisibleTypeAnnotations = null
+            project.nonJavaApiDependencies.addAll(provider {
+                return classesRelyingOnDependency.get().collect { String className, ClassNode classNode ->
+                    classNode.visibleAnnotations = null
+                    classNode.invisibleAnnotations = null
+                    classNode.visibleTypeAnnotations = null
+                    classNode.invisibleTypeAnnotations = null
 
-                        classNode.fields?.forEach {
-                            it.visibleAnnotations = null
-                            it.invisibleAnnotations = null
-                            it.visibleTypeAnnotations = null
-                            it.invisibleTypeAnnotations = null
-                        }
-                        classNode.methods?.forEach {
-                            it.visibleAnnotations = null
-                            it.invisibleAnnotations = null
-                            it.visibleTypeAnnotations = null
-                            it.invisibleTypeAnnotations = null
-                            it.visibleLocalVariableAnnotations = null
-                            it.invisibleLocalVariableAnnotations = null
-                            it.visibleParameterAnnotations = null
-                            it.invisibleParameterAnnotations = null
-                        }
+                    classNode.fields?.forEach {
+                        it.visibleAnnotations = null
+                        it.invisibleAnnotations = null
+                        it.visibleTypeAnnotations = null
+                        it.invisibleTypeAnnotations = null
+                    }
+                    classNode.methods?.forEach {
+                        it.visibleAnnotations = null
+                        it.invisibleAnnotations = null
+                        it.visibleTypeAnnotations = null
+                        it.invisibleTypeAnnotations = null
+                        it.visibleLocalVariableAnnotations = null
+                        it.invisibleLocalVariableAnnotations = null
+                        it.visibleParameterAnnotations = null
+                        it.invisibleParameterAnnotations = null
+                    }
 
-                        classNode.fields = classNode.fields?.toSorted(
-                            Comparator.comparing((Function) { it.name })
-                        )
-                        classNode.methods = classNode.methods?.toSorted(
-                            Comparator.comparing((Function) { it.name })
-                                .thenComparing((Function) { it.desc })
-                        )
+                    classNode.fields = classNode.fields?.toSorted(
+                        Comparator.comparing((Function) { it.name })
+                    )
+                    classNode.methods = classNode.methods?.toSorted(
+                        Comparator.comparing((Function) { it.name })
+                            .thenComparing((Function) { it.desc })
+                    )
 
-                        classNode.methods?.forEach { MethodNode methodNode ->
-                            Iterator<AbstractInsnNode> instructions = (methodNode.instructions ?: []).iterator()
-                            while (instructions.hasNext()) {
-                                def instruction = instructions.next()
-                                if (instruction instanceof LineNumberNode) {
-                                    instructions.remove()
-                                }
+                    classNode.methods?.forEach { MethodNode methodNode ->
+                        Iterator<AbstractInsnNode> instructions = (methodNode.instructions ?: []).iterator()
+                        while (instructions.hasNext()) {
+                            def instruction = instructions.next()
+                            if (instruction instanceof LineNumberNode) {
+                                instructions.remove()
                             }
                         }
-
-                        ClassWriter classWriter = new ClassWriter(classNode.api)
-                        classNode.accept(classWriter)
-
-                        byte[] bytes = classWriter.toByteArray()
-                        MessageDigest messageDigest = MessageDigest.getInstance('SHA-256')
-                        messageDigest.update(className.getBytes('UTF-8'))
-                        messageDigest.update(bytes)
-                        messageDigest.update('\n'.getBytes('UTF-8'))
-                        String hash = new BigInteger(1, messageDigest.digest()).toString(16)
-
-                        return "$group:$className:$hash"
                     }
+
+                    ClassWriter classWriter = new ClassWriter(classNode.api)
+                    classNode.accept(classWriter)
+
+                    byte[] bytes = classWriter.toByteArray()
+                    MessageDigest messageDigest = MessageDigest.getInstance('SHA-256')
+                    messageDigest.update(className.getBytes('UTF-8'))
+                    messageDigest.update(bytes)
+                    messageDigest.update('\n'.getBytes('UTF-8'))
+                    String hash = new BigInteger(1, messageDigest.digest()).toString(16)
+
+                    return "$group:$className:$hash"
                 }
-            )
+            })
         }
 
 
@@ -257,28 +257,23 @@ allprojects {
         ].forEach { String taskName, MapProperty<String, ClassNode> classesRelyingOnDependency ->
             TaskProvider reportTask = tasks.register(taskName) { Task task ->
                 task.dependsOn('classes')
-                dependsOn(
-                    provider {
-                        projectsToCollectClassesRelyingOnDependency.collect { currentProject ->
-                            [
-                                currentProject.tasks.named('classes'),
-                                currentProject.registerResolveSourceSetRuntimeClasspathTask('main'),
-                            ]
-                        }.flatten()
-                    }
-                )
+                dependsOn(provider {
+                    projectsToCollectClassesRelyingOnDependency.collect { currentProject ->
+                        [
+                            currentProject.tasks.named('classes'),
+                            currentProject.registerResolveSourceSetRuntimeClasspathTask('main'),
+                        ]
+                    }.flatten()
+                })
 
-                ListProperty<String> classNamesRelyingOnDependency = project.objects.listProperty(String).value(
-                    provider {
-                        classesRelyingOnDependency.get()
-                            .keySet()
-                            .toSorted()
-                    }
-                )
-                classNamesRelyingOnDependency.finalizeValueOnRead()
+                ListProperty<String> classNamesRelyingOnDependency = project.objects.listProperty(String).value(provider {
+                    classesRelyingOnDependency.get()
+                        .keySet()
+                        .toSorted()
+                }).with { it.finalizeValueOnRead(); it }
                 task.inputs.property('classNamesRelyingOnDependency', classNamesRelyingOnDependency)
 
-                File reportFile = project.file("${project.reporting.baseDir}/${task.name}.txt")
+                File reportFile = project.file("${project.reporting.baseDirectory.asFile.get()}/${task.name}.txt")
                 task.outputs.file(reportFile).withPropertyName('reportFile')
                 doFirst { reportFile.delete() }
 

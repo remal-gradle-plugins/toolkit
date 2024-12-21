@@ -65,7 +65,9 @@ class CrossCompileDependencyInfo implements Named {
     }
 
     void setMaxVersionNumbers(int maxVersionNumbers) {
-        if (maxVersionNumbers <= 0) throw new IllegalArgumentException("maxVersionNumbers <= 0: $maxVersionNumbers")
+        if (maxVersionNumbers <= 0) {
+            throw new IllegalArgumentException("maxVersionNumbers <= 0: $maxVersionNumbers")
+        }
         this.maxVersionNumbers = maxVersionNumbers
     }
 
@@ -180,7 +182,9 @@ allCrossCompileProjects.all { CrossCompileProjectInfo crossCompileProjectInfo ->
             }
 
             Closure removeCrossCompileDependenciesFrom = { Configuration conf ->
-                if (conf.state != Configuration.State.UNRESOLVED) return
+                if (conf.state != Configuration.State.UNRESOLVED) {
+                    return
+                }
 
                 conf.dependencies.all {
                     conf.dependencies.removeIf { Dependency dep ->
@@ -240,7 +244,9 @@ allCrossCompileProjects.all { CrossCompileProjectInfo crossCompileProjectInfo ->
                     .matching { it.exclude('**/package-info.class') }
                     .matching { it.exclude('module-info.class') }
                     .visit { FileVisitDetails details ->
-                        if (details.directory) return
+                        if (details.directory) {
+                            return
+                        }
 
                         File file = details.file
                         ClassReader classReader = new ClassReader(file.bytes)
@@ -248,7 +254,9 @@ allCrossCompileProjects.all { CrossCompileProjectInfo crossCompileProjectInfo ->
                         classReader.accept(classNode, 0)
 
                         List<AnnotationNode> annotations = classNode.invisibleAnnotations ?: []
-                        if (annotations.any { it.desc.endsWith('/RemalGradlePluginsCrossCompilation;') }) return
+                        if (annotations.any { it.desc.endsWith('/RemalGradlePluginsCrossCompilation;') }) {
+                            return
+                        }
                         AnnotationNode annotation = new AnnotationNode('Lname/remal/gradle_plugins/toolkit/internal/RemalGradlePluginsCrossCompilation;')
                         annotation.values = [
                             'dependency', crossCompileProjectInfo.dependency,

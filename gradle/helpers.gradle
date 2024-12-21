@@ -719,12 +719,10 @@ allprojects {
                 }
             }
 
-            task.source(
-                project.provider {
-                    otherProject.tasks.withType(Javadoc)
-                        .collect { it.source }
-                }
-            )
+            task.source(project.provider {
+                otherProject.tasks.withType(Javadoc)
+                    .collect { it.source }
+            })
         }
     }
 

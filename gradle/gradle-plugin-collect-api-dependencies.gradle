@@ -1,4 +1,6 @@
-if (project.isBuildSrcProject) return
+if (project.isBuildSrcProject) {
+    return
+}
 
 allprojects {
     pluginManager.withPlugin('java-gradle-plugin') {
@@ -45,18 +47,15 @@ allprojects {
                     .withPropertyName(inputConf.name)
             }
 
-            SetProperty<String> platformDependencyNotations = project.objects.setProperty(String)
-            platformDependencyNotations.addAll(
-                project.provider {
-                    Collection<String> notation = new TreeSet<String>()
-                    inputConfs.forEach { Configuration inputConf ->
-                        inputConf.allDependencies.forEach { Dependency dep ->
-                            notation.add("${dep.group}:${dep.name}:${dep.version}")
-                        }
+            SetProperty<String> platformDependencyNotations = project.objects.setProperty(String).value(project.provider {
+                Collection<String> notation = new TreeSet<String>()
+                inputConfs.forEach { Configuration inputConf ->
+                    inputConf.allDependencies.forEach { Dependency dep ->
+                        notation.add("${dep.group}:${dep.name}:${dep.version}")
                     }
-                    return notation
                 }
-            )
+                return notation
+            }).with { it.finalizeValueOnRead(); it }
             task.inputs.property('platformDependencyNotations', platformDependencyNotations)
 
             File outputFile = project.file("${project.layout.buildDirectory.asFile.get()}/gradle-plugin-api-dependencies.txt")
@@ -83,7 +82,9 @@ allprojects {
                             return null
                         }
                     }
-                    if (id == null) return
+                    if (id == null) {
+                        return
+                    }
 
                     if (isPlatformDependency(resolvedDependency)) {
                         String notation = "${id.group}:${id.module}:${id.version}"

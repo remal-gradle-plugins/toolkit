@@ -1,4 +1,6 @@
-if (project.isBuildSrcProject) return
+if (project.isBuildSrcProject) {
+    return
+}
 
 allprojects {
     String signingKey = findProperty('signing.key')?.toString()

@@ -55,7 +55,9 @@ allprojects {
 
         tasks.register('allSonarlint') {
             group = VERIFICATION_GROUP
-            dependsOn(project.provider { project.sourceSets.collect { SourceSet sourceSet -> sourceSet.getTaskName('sonarlint', null) } })
+            dependsOn(project.provider {
+                project.sourceSets.collect { SourceSet sourceSet -> sourceSet.getTaskName('sonarlint', null) }
+            })
         }
 
         NamedDomainObjectSet<Configuration> sonarlintConfs = configurations.matching { startWithWord(it.name, 'sonarlint') }

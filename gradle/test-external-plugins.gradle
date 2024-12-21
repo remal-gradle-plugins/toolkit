@@ -4,7 +4,9 @@ allprojects {
             conf.extendsFrom = conf.extendsFrom.findAll { it.name != 'projectDependencyConstraints' }
             conf.transitive = false
             conf.allDependencies.configureEach { Dependency dep ->
-                if (dep instanceof ModuleDependency) dep.transitive = conf.transitive
+                if (dep instanceof ModuleDependency) {
+                    dep.transitive = conf.transitive
+                }
 
                 String expectedName = "${dep.group}.gradle.plugin"
                 if (dep.name != expectedName) {
@@ -21,7 +23,9 @@ allprojects {
                     .forEach { ResolvedDependency dep ->
                         String pluginId = dep.moduleGroup
                         boolean isGradlePlugin = dep.moduleName == "${pluginId}.gradle.plugin"
-                        if (!isGradlePlugin) return
+                        if (!isGradlePlugin) {
+                            return
+                        }
 
                         String propertyName = "external-plugin-version-$pluginId"
                         task.systemProperty(propertyName, dep.moduleVersion)

@@ -1,4 +1,6 @@
-if (project.isBuildSrcProject) return
+if (project.isBuildSrcProject) {
+    return
+}
 
 allprojects {
     pluginManager.withPlugin('name.remal.classes-relocation') {

@@ -1,10 +1,14 @@
-if (project.isBuildSrcProject) return
+if (project.isBuildSrcProject) {
+    return
+}
 
 allprojects {
     pluginManager.withPlugin('java-gradle-plugin') {
         configurations.all { Configuration conf ->
             conf.dependencies.all { Dependency dep ->
-                if (conf.state != Configuration.State.UNRESOLVED) return
+                if (conf.state != Configuration.State.UNRESOLVED) {
+                    return
+                }
                 if (dep instanceof FileCollectionDependency && dep.files.toString() != 'file collection') {
                     conf.dependencies.remove(dep)
                 }
@@ -67,14 +71,12 @@ allprojects {
         }
 
         configurations.matching { ['shadow', 'excludeFromClassesRelocation'].contains(it.name) }.configureEach { conf ->
-            conf.dependencies.addAllLater(
-                provider {
-                    Collection<ResolvedDependency> resolvedDeps = getGradleApiResolvedDependencies()
-                    return resolvedDeps.collect {
-                        project.dependencies.create("${it.moduleGroup}:${it.moduleName}:${it.moduleVersion}")
-                    }
+            conf.dependencies.addAllLater(provider {
+                Collection<ResolvedDependency> resolvedDeps = getGradleApiResolvedDependencies()
+                return resolvedDeps.collect {
+                    project.dependencies.create("${it.moduleGroup}:${it.moduleName}:${it.moduleVersion}")
                 }
-            )
+            })
         }
 
 

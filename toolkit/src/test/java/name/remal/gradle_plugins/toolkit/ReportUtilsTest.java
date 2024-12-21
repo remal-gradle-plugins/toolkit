@@ -24,9 +24,11 @@ class ReportUtilsTest {
 
     public ReportUtilsTest(Project project) {
         this.project = project;
-        this.singleFileReport = project.getTasks().create("checkstyle", org.gradle.api.plugins.quality.Checkstyle.class)
+        this.singleFileReport = project.getTasks()
+            .register("checkstyle", org.gradle.api.plugins.quality.Checkstyle.class).get()
             .getReports().getXml();
-        this.directoryReport = project.getTasks().create("test", org.gradle.api.tasks.testing.Test.class)
+        this.directoryReport = project.getTasks()
+            .register("test", org.gradle.api.tasks.testing.Test.class).get()
             .getReports().getHtml();
     }
 

@@ -7,7 +7,9 @@ import java.nio.channels.OverlappingFileLockException
 import java.time.Duration
 import javax.annotation.Nullable
 
-if (project.isBuildSrcProject) return
+if (project.isBuildSrcProject) {
+    return
+}
 
 allprojects {
     pluginManager.withPlugin('java') {
@@ -74,15 +76,21 @@ allprojects {
             task.doLast {
                 JacocoTaskExtension jacocoTaskExtension = task.extensions.getByType(JacocoTaskExtension)
                 File execFile = jacocoTaskExtension.destinationFile?.absoluteFile
-                if (execFile == null) return
+                if (execFile == null) {
+                    return
+                }
 
                 long startTime = System.nanoTime()
                 long maxTimeout = Duration.ofSeconds(10).toNanos()
                 long timeoutTime = startTime + maxTimeout
                 for (int attempt = 1; System.nanoTime() < timeoutTime; ++attempt) {
-                    if (attempt > 1) Thread.sleep(1_000)
+                    if (attempt > 1) {
+                        Thread.sleep(1_000)
+                    }
 
-                    if (!execFile.exists()) continue
+                    if (!execFile.exists()) {
+                        continue
+                    }
 
                     try {
                         FileChannel.open(execFile.toPath(), READ, WRITE).withCloseable { FileChannel channel ->

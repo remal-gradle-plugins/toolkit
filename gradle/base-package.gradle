@@ -1,19 +1,25 @@
-if (project.isBuildSrcProject) return
+if (project.isBuildSrcProject) {
+    return
+}
 
 allprojects {
     tasks.withType(AbstractCompile).configureEach {
+        Property<String> baseJavaPackage = project.objects.property(String).value(provider {
+            project.calculateBaseJavaPackage()
+        }).with { it.finalizeValueOnRead(); it }
         doLast {
-            String baseJavaPackage = project.calculateBaseJavaPackage()
-            String classFilePrefix = baseJavaPackage.replace('.', '/')
+            String classFilePrefix = baseJavaPackage.get().replace('.', '/')
             project.files(it.destinationDirectory).asFileTree
                 .matching { include('**/*.class') }
                 .matching { exclude("${classFilePrefix}/**/*.class") }
                 .visit { FileVisitDetails details ->
-                    if (details.directory) return
+                    if (details.directory) {
+                        return
+                    }
                     String relativePath = details.relativePath.toString()
                     String className = relativePath.replaceFirst(/\.class$/, '').replace('/', '.')
                     throw new GradleException(
-                        "Class name doesn't start with base Java package '${baseJavaPackage}': ${className}"
+                        "Class name doesn't start with base Java package '${baseJavaPackage.get()}': ${className}"
                     )
                 }
         }

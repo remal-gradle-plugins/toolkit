@@ -28,7 +28,9 @@ allprojects {
 
     tasks.register('allCheckstyle') {
         group = VERIFICATION_GROUP
-        dependsOn(project.provider { project.sourceSets.collect { SourceSet sourceSet -> sourceSet.getTaskName('checkstyle', null) } })
+        dependsOn(project.provider {
+            project.sourceSets.collect { SourceSet sourceSet -> sourceSet.getTaskName('checkstyle', null) }
+        })
     }
 
     pluginManager.withPlugin('java') {

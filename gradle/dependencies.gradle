@@ -57,7 +57,7 @@ allprojects {
         conf.visible = false
         conf.canBeConsumed = false
         conf.canBeResolved = false
-        conf.description('Dependency constraints')
+        conf.description = "Dependency constraints"
 
         configurations
             .matching { it !== conf }
