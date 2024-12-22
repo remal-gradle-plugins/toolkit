@@ -1,3 +1,5 @@
+import org.gradle.api.internal.artifacts.dependencies.SelfResolvingDependencyInternal
+
 if (project.isBuildSrcProject) {
     return
 }
@@ -25,6 +27,16 @@ allprojects {
         dependencies {
             gradleApi 'name.remal.gradle-api:gradle-api'
             testImplementation 'name.remal.gradle-api:gradle-test-kit'
+        }
+
+        configurations.matching { it.state == Configuration.State.UNRESOLVED }.configureEach { Configuration conf ->
+            conf.dependencies.whenObjectAdded { Dependency dep ->
+                if (dep instanceof SelfResolvingDependencyInternal) {
+                    if (dep.targetComponentId != null) {
+                        conf.dependencies.remove(dep)
+                    }
+                }
+            }
         }
 
 

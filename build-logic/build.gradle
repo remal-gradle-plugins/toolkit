@@ -96,7 +96,7 @@ tasks.named('generateResources') {
                 props.get()[matcher[1]]
             }
             content = content.replaceAll(/\b(?:project\s*\.\s*)?(tookitGroup|tookitVersion|tookitUrl)\s*\(\s*\)/) { matcher ->
-                props.get()[matcher[1]] + '\''
+                '\'' + props.get()[matcher[1]] + '\''
             }
 
             outputStream.write(content.getBytes('UTF-8'))
