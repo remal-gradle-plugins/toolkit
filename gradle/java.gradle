@@ -25,10 +25,12 @@ buildscript {
 
 allprojects {
     pluginManager.withPlugin('java') {
-        apply plugin: 'name.remal.build-time-constants'
-        apply plugin: 'name.remal.classes-relocation'
-        apply plugin: 'name.remal.insert-null-checks'
         apply plugin: 'name.remal.test-source-sets'
+        try {
+            apply plugin: 'name.remal.build-time-constants.v2'
+        } catch (UnknownPluginException ignored) {
+            apply plugin: 'name.remal.build-time-constants'
+        }
 
         java {
             sourceCompatibility = targetCompatibility = project.javaRuntimeMinVersion
@@ -162,11 +164,6 @@ allprojects {
         dependencies {
             compileConstraints platform('org.immutables:bom:2.10.1')
 
-            relocateClasses 'org.apache.commons:commons-lang3:3.17.0'
-            relocateClasses 'org.apache.commons:commons-text:1.13.0'
-            relocateClasses 'org.apache.commons:commons-collections4:4.4'
-            relocateClasses 'com.google.guava:guava:33.4.0-jre'
-
             compileOnlyAll 'com.google.code.findbugs:jsr305:3.0.2'
             compileOnlyAll 'org.jetbrains:annotations:26.0.1'
             optionalHidden 'com.github.spotbugs:spotbugs-annotations:4.8.6'
@@ -193,13 +190,6 @@ allprojects {
 
             testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
             testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-        }
-
-        if (!rootProject.allprojects.any { it.group == 'name.remal.gradle-plugins.toolkit' }) {
-            dependencies {
-                relocateClasses 'name.remal.gradle-plugins.toolkit:toolkit'
-                testImplementation 'name.remal.gradle-plugins.toolkit:testkit'
-            }
         }
 
 

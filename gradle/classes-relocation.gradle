@@ -3,107 +3,74 @@ if (project.isBuildSrcProject) {
 }
 
 allprojects {
-    pluginManager.withPlugin('name.remal.classes-relocation') {
-        dependencies {
-            excludeFromForcedClassesRelocation 'com.google.code.findbugs:jsr305:3.0.2'
-            excludeFromForcedClassesRelocation 'org.jetbrains:annotations:26.0.1'
-            excludeFromForcedClassesRelocation 'com.github.spotbugs:spotbugs-annotations:4.8.6'
-        }
-
-        classesRelocation {
-            relocatedClassesPackageName = "${project.calculateBaseJavaPackage()}.internal._relocated"
-        }
-
-        List<String> relocationConfNames = [
-            'relocateClasses',
-            'excludeFromClassesRelocation',
-            'excludeFromForcedClassesRelocation',
-        ]
-
-        tasks.withType(AbstractCompile).configureEach { AbstractCompile task ->
-            task.inputs.property('relocatedClassesPackageName', classesRelocation.relocatedClassesPackageName)
-            relocationConfNames.forEach { relocationConfName ->
-                task.dependsOn(configurations.named(relocationConfName))
-                task.inputs.files(configurations.named(relocationConfName))
-                    .optional()
-                    .withPropertyName("configuration-$relocationConfName")
+    pluginManager.withPlugin('java') {
+        if (project.name.contains('--')) {
+            configurations.create('classesRelocation') { Configuration conf ->
+                conf.visible = false
+                conf.canBeResolved = false
+                conf.canBeConsumed = false
+                configurations.compileOnly.extendsFrom(conf)
             }
+            return
         }
 
-        configurations.matching { relocationConfNames.contains(it.name) }.configureEach { Configuration conf ->
-            conf.canBeConsumed = false
 
-            conf.attributes {
-                attribute(
-                    Usage.USAGE_ATTRIBUTE,
-                    objects.named(Usage.class, Usage.JAVA_RUNTIME)
-                )
-                attribute(
-                    Category.CATEGORY_ATTRIBUTE,
-                    objects.named(Category.class, Category.LIBRARY)
-                )
-            }
+        try {
+            apply plugin: 'name.remal.classes-relocation.v2'
+        } catch (UnknownPluginException ignored) {
+            apply plugin: 'name.remal.classes-relocation'
         }
     }
 
+    withAnyOfPlugins(['name.remal.classes-relocation.v2', 'name.remal.classes-relocation']) {
+        classesRelocation {
+            basePackageForRelocatedClasses.set(provider { "${project.calculateBaseJavaPackage()}.internal._relocated" })
+        }
 
-    pluginManager.withPlugin('com.gradleup.shadow') {
-        configurations.compileOnly.extendsFrom(configurations.shadow)
+        dependencies {
+            classesRelocation 'org.apache.commons:commons-lang3:3.17.0'
+            classesRelocation 'org.apache.commons:commons-text:1.13.0'
+            classesRelocation 'org.apache.commons:commons-collections4:4.4'
+            classesRelocation 'com.google.guava:guava:33.4.0-jre'
+        }
 
-        configurations.named('shadow') { Configuration conf ->
-            conf.dependencies.withType(ModuleDependency).configureEach { ModuleDependency dep ->
+        Closure<Boolean> isRelocationConfiguration = { Configuration conf ->
+            return ['classesRelocation', 'classesRelocationClasspath', 'relocateClasses'].contains(conf.name)
+        }
+
+        configurations.matching { isRelocationConfiguration(it) }.configureEach { Configuration conf ->
+            ; [
+                [group: 'org.jspecify', module: 'jspecify'],
+                [group: 'com.google.code.findbugs', module: 'jsr305'],
+                [group: 'org.jetbrains', module: 'annotations'],
+                [group: 'com.github.spotbugs', module: 'spotbugs-annotations'],
+                [group: 'com.google.errorprone', module: 'error_prone_annotations'],
+                [group: 'com.google.j2objc', module: 'j2objc-annotations'],
+                [group: 'org.checkerframework', module: 'checker-qual'],
+            ].forEach { exclusion ->
+                conf.dependencies.configureEach { dep ->
+                    if (dep instanceof ModuleDependency) {
+                        dep.exclude(exclusion)
+                    }
+                }
+            }
+        }
+
+        pluginManager.withPlugin('java-gradle-plugin') {
+            configurations.matching { isRelocationConfiguration(it) }.configureEach { Configuration conf ->
                 ; [
-                    [group: 'com.google.code.findbugs', module: 'jsr305'],
-                    [group: 'org.checkerframework', module: 'checker-qual'],
-                    [group: 'com.google.errorprone', module: 'error_prone_annotations'],
-                    [group: 'com.google.j2objc', module: 'j2objc-annotations'],
-                    [group: 'org.jetbrains', module: 'annotations'],
-                    [group: 'com.google.auto.service', module: 'auto-service'],
-                ].forEach { dep.exclude(it) }
-            }
-
-            conf.attributes {
-                attribute(
-                    Usage.USAGE_ATTRIBUTE,
-                    objects.named(Usage.class, Usage.JAVA_RUNTIME)
-                )
-                attribute(
-                    Category.CATEGORY_ATTRIBUTE,
-                    objects.named(Category.class, Category.LIBRARY)
-                )
-            }
-        }
-
-        TaskProvider<Jar> jar = tasks.named('jar', Jar) {
-            archiveClassifier = 'original'
-        }
-
-        TaskProvider<Jar> shadowJar = tasks.named('shadowJar', Jar) {
-            dependsOn('classes')
-            configurations = [project.configurations.shadow]
-            archiveClassifier = ''
-
-            enableRelocation = true
-            relocationPrefix = "${project.calculateBaseJavaPackage()}.internal._shadow"
-            mergeServiceFiles()
-            mergeGroovyExtensionModules()
-            duplicatesStrategy = DuplicatesStrategy.INCLUDE
-
-            exclude('**/module-info.class')
-            exclude('**/package-info.class')
-            exclude('org/gradle/**')
-
-            if (true) {
-                minimize()
-            }
-
-            //doLast { println stats }
-        }
-
-        configurations.matching { it.canBeConsumed }.all { Configuration conf ->
-            boolean hasJar = conf.artifacts.removeIf { it.file == jar.get().archiveFile.get().asFile }
-            if (hasJar) {
-                project.artifacts.add(conf.name, shadowJar)
+                    [group: 'org.slf4j'],
+                    [group: 'log4j', module: 'log4j'],
+                    [group: 'commons-logging', module: 'commons-logging'],
+                    [group: 'ch.qos.logback'],
+                    [group: 'org.springframework', module: 'spring-jcl'],
+                ].forEach { exclusion ->
+                    conf.dependencies.configureEach { dep ->
+                        if (dep instanceof ModuleDependency) {
+                            dep.exclude(exclusion)
+                        }
+                    }
+                }
             }
         }
     }
