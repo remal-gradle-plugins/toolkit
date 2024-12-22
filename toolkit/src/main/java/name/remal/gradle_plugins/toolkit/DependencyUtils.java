@@ -74,6 +74,15 @@ public abstract class DependencyUtils {
     }
 
 
+    public static boolean isGradleEmbeddedDependency(@Nullable Dependency dependency) {
+        return Optional.ofNullable(dependency)
+            .filter(SelfResolvingDependencyInternal.class::isInstance)
+            .map(SelfResolvingDependencyInternal.class::cast)
+            .map(SelfResolvingDependencyInternal::getTargetComponentId)
+            .filter(ComponentIdentifierUtils::isGradleEmbeddedComponentIdentifier)
+            .isPresent();
+    }
+
     public static boolean isEmbeddedGradleApiDependency(@Nullable Dependency dependency) {
         return Optional.ofNullable(dependency)
             .filter(SelfResolvingDependencyInternal.class::isInstance)

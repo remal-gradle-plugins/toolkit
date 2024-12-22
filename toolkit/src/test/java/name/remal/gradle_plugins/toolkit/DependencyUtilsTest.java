@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import lombok.RequiredArgsConstructor;
 import lombok.val;
+import name.remal.gradle_plugins.toolkit.testkit.MinSupportedGradleVersion;
 import org.gradle.api.Project;
 import org.junit.jupiter.api.Test;
 
@@ -31,6 +32,15 @@ class DependencyUtilsTest {
 
 
     @Test
+    @MinSupportedGradleVersion("7.0")
+    void isGradleEmbeddedDependency() {
+        assertTrue(DependencyUtils.isGradleEmbeddedDependency(project.getDependencies().gradleApi()));
+        assertTrue(DependencyUtils.isGradleEmbeddedDependency(project.getDependencies().gradleTestKit()));
+        assertTrue(DependencyUtils.isGradleEmbeddedDependency(project.getDependencies().localGroovy()));
+    }
+
+    @Test
+    @MinSupportedGradleVersion("7.0")
     void isEmbeddedGradleApiDependency() {
         assertTrue(DependencyUtils.isEmbeddedGradleApiDependency(project.getDependencies().gradleApi()));
         assertFalse(DependencyUtils.isEmbeddedGradleApiDependency(project.getDependencies().gradleTestKit()));
@@ -38,6 +48,7 @@ class DependencyUtilsTest {
     }
 
     @Test
+    @MinSupportedGradleVersion("7.0")
     void isEmbeddedGradleTestKitDependency() {
         assertFalse(DependencyUtils.isEmbeddedGradleTestKitDependency(project.getDependencies().gradleApi()));
         assertTrue(DependencyUtils.isEmbeddedGradleTestKitDependency(project.getDependencies().gradleTestKit()));
@@ -45,6 +56,7 @@ class DependencyUtilsTest {
     }
 
     @Test
+    @MinSupportedGradleVersion("7.0")
     void isEmbeddedLocalGroovyDependency() {
         assertFalse(DependencyUtils.isEmbeddedLocalGroovyDependency(project.getDependencies().gradleApi()));
         assertFalse(DependencyUtils.isEmbeddedLocalGroovyDependency(project.getDependencies().gradleTestKit()));
