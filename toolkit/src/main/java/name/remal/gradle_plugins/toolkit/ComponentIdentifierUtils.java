@@ -6,10 +6,12 @@ import static name.remal.gradle_plugins.toolkit.reflection.MembersFinder.findMet
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.val;
+import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import name.remal.gradle_plugins.toolkit.reflection.TypedMethod0;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 
+@ReliesOnInternalGradleApi
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ComponentIdentifierUtils {
 

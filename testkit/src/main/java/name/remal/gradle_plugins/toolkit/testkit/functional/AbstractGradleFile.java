@@ -146,9 +146,8 @@ abstract class AbstractGradleFile<
     }
 
     public final boolean isPluginApplied(String pluginId) {
-        val appliedPlugins = getAppliedPlugins();
-        return appliedPlugins.contains(pluginId)
-            || appliedPlugins.contains("org.gradle." + pluginId);
+        return pluginToVersion.containsKey(pluginId)
+            || pluginToVersion.containsKey("org.gradle." + pluginId);
     }
 
 }

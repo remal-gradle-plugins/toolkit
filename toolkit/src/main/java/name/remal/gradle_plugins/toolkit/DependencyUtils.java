@@ -7,6 +7,7 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.val;
+import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasAttributes;
@@ -74,6 +75,7 @@ public abstract class DependencyUtils {
     }
 
 
+    @ReliesOnInternalGradleApi
     public static boolean isGradleEmbeddedDependency(@Nullable Dependency dependency) {
         return Optional.ofNullable(dependency)
             .filter(SelfResolvingDependencyInternal.class::isInstance)
@@ -83,6 +85,7 @@ public abstract class DependencyUtils {
             .isPresent();
     }
 
+    @ReliesOnInternalGradleApi
     public static boolean isEmbeddedGradleApiDependency(@Nullable Dependency dependency) {
         return Optional.ofNullable(dependency)
             .filter(SelfResolvingDependencyInternal.class::isInstance)
@@ -92,6 +95,7 @@ public abstract class DependencyUtils {
             .isPresent();
     }
 
+    @ReliesOnInternalGradleApi
     public static boolean isEmbeddedGradleTestKitDependency(@Nullable Dependency dependency) {
         return Optional.ofNullable(dependency)
             .filter(SelfResolvingDependencyInternal.class::isInstance)
@@ -101,6 +105,7 @@ public abstract class DependencyUtils {
             .isPresent();
     }
 
+    @ReliesOnInternalGradleApi
     public static boolean isEmbeddedLocalGroovyDependency(@Nullable Dependency dependency) {
         return Optional.ofNullable(dependency)
             .filter(SelfResolvingDependencyInternal.class::isInstance)
