@@ -11,8 +11,10 @@ allprojects {
                 if (conf.state != Configuration.State.UNRESOLVED) {
                     return
                 }
-                if (dep instanceof FileCollectionDependency && dep.files.toString() != 'file collection') {
-                    conf.dependencies.remove(dep)
+                if (dep instanceof SelfResolvingDependencyInternal) {
+                    if (dep.targetComponentId != null) {
+                        conf.dependencies.remove(dep)
+                    }
                 }
             }
         }
@@ -27,16 +29,6 @@ allprojects {
         dependencies {
             gradleApi 'name.remal.gradle-api:gradle-api'
             testImplementation 'name.remal.gradle-api:gradle-test-kit'
-        }
-
-        configurations.matching { it.state == Configuration.State.UNRESOLVED }.configureEach { Configuration conf ->
-            conf.dependencies.whenObjectAdded { Dependency dep ->
-                if (dep instanceof SelfResolvingDependencyInternal) {
-                    if (dep.targetComponentId != null) {
-                        conf.dependencies.remove(dep)
-                    }
-                }
-            }
         }
 
 
