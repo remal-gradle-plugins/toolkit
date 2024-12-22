@@ -75,16 +75,18 @@ public abstract class DependencyUtils {
     }
 
 
+    @Contract("null->false")
     @ReliesOnInternalGradleApi
-    public static boolean isGradleEmbeddedDependency(@Nullable Dependency dependency) {
+    public static boolean isEmbeddedGradleDependency(@Nullable Dependency dependency) {
         return Optional.ofNullable(dependency)
             .filter(SelfResolvingDependencyInternal.class::isInstance)
             .map(SelfResolvingDependencyInternal.class::cast)
             .map(SelfResolvingDependencyInternal::getTargetComponentId)
-            .filter(ComponentIdentifierUtils::isGradleEmbeddedComponentIdentifier)
+            .filter(ComponentIdentifierUtils::isEmbeddedGradleComponentIdentifier)
             .isPresent();
     }
 
+    @Contract("null->false")
     @ReliesOnInternalGradleApi
     public static boolean isEmbeddedGradleApiDependency(@Nullable Dependency dependency) {
         return Optional.ofNullable(dependency)
@@ -95,6 +97,7 @@ public abstract class DependencyUtils {
             .isPresent();
     }
 
+    @Contract("null->false")
     @ReliesOnInternalGradleApi
     public static boolean isEmbeddedGradleTestKitDependency(@Nullable Dependency dependency) {
         return Optional.ofNullable(dependency)
@@ -105,14 +108,93 @@ public abstract class DependencyUtils {
             .isPresent();
     }
 
+    @Contract("null->false")
     @ReliesOnInternalGradleApi
     public static boolean isEmbeddedLocalGroovyDependency(@Nullable Dependency dependency) {
         return Optional.ofNullable(dependency)
             .filter(SelfResolvingDependencyInternal.class::isInstance)
             .map(SelfResolvingDependencyInternal.class::cast)
             .map(SelfResolvingDependencyInternal::getTargetComponentId)
-            .filter(ComponentIdentifierUtils::isLocalGroovyComponentIdentifier)
+            .filter(ComponentIdentifierUtils::isEmbeddedLocalGroovyComponentIdentifier)
             .isPresent();
+    }
+
+
+    @Contract("null->false")
+    public static boolean isExternalGradleDependency(@Nullable Dependency dependency) {
+        return isExternalGradleApiDependency(dependency)
+            || isExternalGradleTestKitDependency(dependency)
+            || isExternalLocalGroovyDependency(dependency);
+    }
+
+    @Contract("null->false")
+    public static boolean isExternalGradleApiDependency(@Nullable Dependency dependency) {
+        if (dependency == null) {
+            return false;
+        }
+
+        if (Objects.equals(dependency.getGroup(), "name.remal.gradle-api")
+            && Objects.equals(dependency.getName(), "gradle-api")
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    @Contract("null->false")
+    public static boolean isExternalGradleTestKitDependency(@Nullable Dependency dependency) {
+        if (dependency == null) {
+            return false;
+        }
+
+        if (Objects.equals(dependency.getGroup(), "name.remal.gradle-api")
+            && Objects.equals(dependency.getName(), "gradle-test-kit")
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    @Contract("null->false")
+    public static boolean isExternalLocalGroovyDependency(@Nullable Dependency dependency) {
+        if (dependency == null) {
+            return false;
+        }
+
+        if (Objects.equals(dependency.getGroup(), "name.remal.gradle-api")
+            && Objects.equals(dependency.getName(), "local-groovy")
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+
+    @Contract("null->false")
+    public static boolean isGradleDependency(@Nullable Dependency dependency) {
+        return isEmbeddedGradleDependency(dependency)
+            || isExternalGradleDependency(dependency);
+    }
+
+    @Contract("null->false")
+    public static boolean isGradleApiDependency(@Nullable Dependency dependency) {
+        return isEmbeddedGradleApiDependency(dependency)
+            || isExternalGradleApiDependency(dependency);
+    }
+
+    @Contract("null->false")
+    public static boolean isGradleTestKitDependency(@Nullable Dependency dependency) {
+        return isEmbeddedGradleTestKitDependency(dependency)
+            || isExternalGradleTestKitDependency(dependency);
+    }
+
+    @Contract("null->false")
+    public static boolean isLocalGroovyDependency(@Nullable Dependency dependency) {
+        return isEmbeddedLocalGroovyDependency(dependency)
+            || isExternalLocalGroovyDependency(dependency);
     }
 
 }

@@ -33,10 +33,10 @@ class DependencyUtilsTest {
 
     @Test
     @MinSupportedGradleVersion("7.0")
-    void isGradleEmbeddedDependency() {
-        assertTrue(DependencyUtils.isGradleEmbeddedDependency(project.getDependencies().gradleApi()));
-        assertTrue(DependencyUtils.isGradleEmbeddedDependency(project.getDependencies().gradleTestKit()));
-        assertTrue(DependencyUtils.isGradleEmbeddedDependency(project.getDependencies().localGroovy()));
+    void isEmbeddedGradleDependency() {
+        assertTrue(DependencyUtils.isEmbeddedGradleDependency(project.getDependencies().gradleApi()));
+        assertTrue(DependencyUtils.isEmbeddedGradleDependency(project.getDependencies().gradleTestKit()));
+        assertTrue(DependencyUtils.isEmbeddedGradleDependency(project.getDependencies().localGroovy()));
     }
 
     @Test
