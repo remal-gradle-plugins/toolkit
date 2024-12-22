@@ -4,11 +4,12 @@ if (project.isBuildSrcProject) {
 
 allprojects {
     pluginManager.withPlugin('maven-publish') {
+        TaskContainer tasks = project.tasks
         tasks.register('publishToBuildDir') { Task task ->
             task.group = 'publishing'
 
             Closure<GenerateMavenPom> getGeneratePomFileTask = { MavenPublication publication ->
-                project.tasks.named(
+                tasks.named(
                     "generatePomFileFor${publication.name.capitalize()}Publication",
                     GenerateMavenPom
                 ).get()
@@ -21,7 +22,7 @@ allprojects {
             task.inputs.files(project.provider { publications.collect { getGeneratePomFileTask(it).destination }.flatten() }).optional().withPropertyName('pomFiles')
             task.inputs.files(project.provider { publications.collect { it.artifacts.collect { it.file } }.flatten() }).optional().withPropertyName('artifactFiles')
 
-            File outputDir = project.file("${project.buildDir}/.m2")
+            File outputDir = project.layout.buildDirectory.dir(".m2").get().asFile
             task.outputs.dir(outputDir).withPropertyName('outputDir')
             task.ext.outputDir = outputDir
 
@@ -33,7 +34,7 @@ allprojects {
 
             task.doLast {
                 publications.forEach { publication ->
-                    File artifactDir = project.file("${outputDir}/${publication.groupId.replace('.', '/')}/${publication.artifactId}")
+                    File artifactDir = new File(outputDir, "${publication.groupId.replace('.', '/')}/${publication.artifactId}")
                     File versionDir = new File(artifactDir, publication.version)
 
                     File pomFile = getGeneratePomFileTask(publication).destination

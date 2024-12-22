@@ -1,3 +1,5 @@
+import static java.util.stream.Collectors.toList
+
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException
@@ -13,61 +15,65 @@ tasks.register('pushBackPublishedVersions') { Task task ->
     task.group = 'documentation'
     task.outputs.upToDateWhen { false }
 
-    doLast {
-        Collection<String> versionFilePaths = new LinkedHashSet<>()
+    ListProperty<MavenPublication> allMavenPublications = objects.listProperty(MavenPublication).value(provider {
         project.allprojects.stream()
             .filter { it.pluginManager.hasPlugin('maven-publish') }
             .flatMap { it.publishing.publications.withType(MavenPublication).stream() }
             .map { MavenPublication.cast(it) }
-            .forEach { MavenPublication publication ->
-                String versionFilePath = "$publishedVersionsDirRelativePath/${publication.groupId}/${publication.artifactId}.version"
-                if (!versionFilePaths.add(versionFilePath)) {
-                    return
+            .collect(toList())
+    }).with { it.finalizeValueOnRead(); it }
+
+    doLast {
+        Collection<String> versionFilePaths = new LinkedHashSet<>()
+        allMavenPublications.get().forEach { MavenPublication publication ->
+            String versionFilePath = "$publishedVersionsDirRelativePath/${publication.groupId}/${publication.artifactId}.version"
+            if (!versionFilePaths.add(versionFilePath)) {
+                return
+            }
+
+            int maxAttempts = 3
+            for (int attempt = 1; attempt <= maxAttempts; ++attempt) {
+                Map getResponse = sendGitHubRestApiRequest(
+                    "contents/${URLDecoder.decode(versionFilePath, 'UTF-8')}",
+                )
+
+                String prevContent = getResponse?.content?.with {
+                    new String(Base64.decoder.decode(it.trim()), "UTF-8").trim()
+                }
+                String curContent = publication.version
+                if (prevContent != null && !curContent.isEmpty()) {
+                    VersionParser parser = new VersionParser()
+                    def prevVer = parser.transform(prevContent)
+                    def curVer = parser.transform(curContent)
+                    Comparator comparator = new DefaultVersionComparator().asVersionComparator()
+                    int comparisonResult = comparator.compare(prevVer, curVer)
+                    if (comparisonResult == 0) {
+                        logger.quiet("Version {} has been already reported to {}", curContent, versionFilePath)
+                        return
+                    } else if (comparisonResult > 0) {
+                        logger.quiet("Version {} is less than what was already reported to {}: {}", curContent, versionFilePath, prevContent)
+                        return
+                    }
                 }
 
-                int maxAttempts = 3
-                for (int attempt = 1; attempt <= maxAttempts; ++attempt) {
-                    Map getResponse = project.sendGitHubRestApiRequest(
+                try {
+                    logger.quiet("Reporting version {} to {}", curContent, versionFilePath)
+                    sendGitHubRestApiRequest(
                         "contents/${URLDecoder.decode(versionFilePath, 'UTF-8')}",
+                        'PUT',
+                        [
+                            message: "[no-changelog] Update $versionFilePath",
+                            content: Base64.encoder.encodeToString(curContent.getBytes('UTF-8')),
+                            sha: getResponse?.sha
+                        ],
                     )
 
-                    String prevContent = getResponse?.content?.with {
-                        new String(Base64.decoder.decode(it.trim()), "UTF-8").trim()
-                    }
-                    String curContent = publication.version
-                    if (prevContent != null && !curContent.isEmpty()) {
-                        VersionParser parser = new VersionParser()
-                        def prevVer = parser.transform(prevContent)
-                        def curVer = parser.transform(curContent)
-                        Comparator comparator = new DefaultVersionComparator().asVersionComparator()
-                        int comparisonResult = comparator.compare(prevVer, curVer)
-                        if (comparisonResult == 0) {
-                            logger.quiet("Version {} has been already reported to {}", curContent, versionFilePath)
-                            return
-                        } else if (comparisonResult > 0) {
-                            logger.quiet("Version {} is less than what was already reported to {}: {}", curContent, versionFilePath, prevContent)
-                            return
-                        }
-                    }
-
-                    try {
-                        logger.quiet("Reporting version {} to {}", curContent, versionFilePath)
-                        project.sendGitHubRestApiRequest(
-                            "contents/${URLDecoder.decode(versionFilePath, 'UTF-8')}",
-                            'PUT',
-                            [
-                                message: "[no-changelog] Update $versionFilePath",
-                                content: Base64.encoder.encodeToString(curContent.getBytes('UTF-8')),
-                                sha: getResponse?.sha
-                            ],
-                        )
-
-                    } catch (HttpErrorStatusCodeException e) {
-                        if (e.statusCode != 409 || attempt >= maxAttempts) {
-                            throw e
-                        }
+                } catch (HttpErrorStatusCodeException e) {
+                    if (e.statusCode != 409 || attempt >= maxAttempts) {
+                        throw e
                     }
                 }
             }
+        }
     }
 }

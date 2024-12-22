@@ -10,7 +10,7 @@ allprojects {
     pluginManager.withPlugin('java') {
         project.apply plugin: 'reporting-base'
 
-        Task githubSubmitDependencies = tasks.create('githubSubmitDependencies') { Task task ->
+        TaskProvider githubSubmitDependencies = tasks.register('githubSubmitDependencies') { Task task ->
             task.group = 'documentation'
 
             SetProperty<DependencyToSubmit> lazyDependenciesToSubmitSet = project.objects.setProperty(DependencyToSubmit.class).with { it.finalizeValueOnRead(); it }

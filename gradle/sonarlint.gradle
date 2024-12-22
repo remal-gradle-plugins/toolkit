@@ -11,7 +11,6 @@ allprojects {
             rules {
                 disable(
                     // see https://rules.sonarsource.com/
-
                     'java:S110',  // Inheritance tree of classes should not be too deep
                     'java:S112',  // Generic exceptions should never be thrown
                     'java:S125',  // Sections of code should not be commented out
