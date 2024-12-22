@@ -51,68 +51,69 @@ public abstract class DebugUtils {
     }
 
     @CheckReturnValue
-    public static String dumpClassLoader(@Nullable ClassLoader classLoader) {
-        val message = new StringBuilder();
-        dumpClassLoader(message, classLoader);
-        return message.toString();
-    }
-
     @ReliesOnInternalGradleApi
     @SuppressWarnings("java:S3776")
-    private static void dumpClassLoader(StringBuilder message, @Nullable ClassLoader classLoader) {
-        if (message.length() > 0) {
-            message.append('\n');
-        }
+    public static String dumpClassLoader(@Nullable ClassLoader classLoader) {
+        val message = new StringBuilder();
 
-        message.append(classLoader);
+        while (true) {
+            if (message.length() > 0) {
+                message.append('\n');
+            }
 
-        if (classLoader == null) {
-            return;
-        }
+            message.append(classLoader);
 
+            if (classLoader == null) {
+                break;
+            }
 
-        if (classLoader instanceof ClassLoaderHierarchy) {
-            ((ClassLoaderHierarchy) classLoader).visit(new ClassLoaderVisitor() {
-                @Override
-                public void visitSpec(ClassLoaderSpec spec) {
-                    message.append("\n  Spec: ").append(spec);
-                }
+            if (classLoader instanceof ClassLoaderHierarchy) {
+                ((ClassLoaderHierarchy) classLoader).visit(new ClassLoaderVisitor() {
+                    @Override
+                    public void visitSpec(ClassLoaderSpec spec) {
+                        message.append("\n  Spec: ").append(spec);
+                    }
 
-                @Override
-                public void visitClassPath(URL[] urls) {
-                    if (isEmpty(urls)) {
-                        message.append("\n  Empty classpath");
-                    } else {
-                        message.append("\n  Classpath:");
-                        for (val url : urls) {
-                            message.append("\n    ").append(url);
+                    @Override
+                    public void visitClassPath(URL[] urls) {
+                        if (isEmpty(urls)) {
+                            message.append("\n  Empty classpath");
+                        } else {
+                            message.append("\n  Classpath:");
+                            for (val url : urls) {
+                                message.append("\n    ").append(url);
+                            }
                         }
                     }
-                }
 
-                @Override
-                public void visitParent(ClassLoader classLoader) {
-                    // do nothing
-                }
-            });
+                    @Override
+                    public void visitParent(ClassLoader parentClassLoader) {
+                        // do nothing
+                    }
+                });
 
-        } else if (classLoader instanceof URLClassLoader) {
-            val urls = ((URLClassLoader) classLoader).getURLs();
-            if (isEmpty(urls)) {
-                message.append("\n  Empty classpath");
+            } else if (classLoader instanceof URLClassLoader) {
+                val urls = ((URLClassLoader) classLoader).getURLs();
+                if (isEmpty(urls)) {
+                    message.append("\n  Empty classpath");
+                } else {
+                    message.append("\n  Classpath:");
+                    for (val url : urls) {
+                        message.append("\n    ").append(url);
+                    }
+                }
+            }
+
+
+            val parentClassLoader = classLoader.getParent();
+            if (parentClassLoader != null) {
+                classLoader = parentClassLoader;
             } else {
-                message.append("\n  Classpath:");
-                for (val url : urls) {
-                    message.append("\n    ").append(url);
-                }
+                break;
             }
         }
 
-
-        val parentClassLoader = classLoader.getParent();
-        if (parentClassLoader != null) {
-            dumpClassLoader(message, parentClassLoader);
-        }
+        return message.toString();
     }
 
 
