@@ -2,6 +2,7 @@ package name.remal.gradle_plugins.toolkit.reflection;
 
 import static java.beans.Introspector.decapitalize;
 import static java.lang.ClassLoader.getSystemClassLoader;
+import static java.lang.String.format;
 import static java.nio.file.Files.createTempFile;
 import static java.nio.file.Files.write;
 import static java.util.Collections.emptyIterator;
@@ -132,7 +133,14 @@ public abstract class ReflectionUtils {
 
         } catch (Throwable exception) {
             val className = new ClassReader(bytecode).getClassName().replace('/', '.');
-            throw new RuntimeException("Class defining error: " + className, unwrapReflectionException(exception));
+            throw new DefineClassException(
+                format(
+                    "Class defining error occurred. Class name: %s. Class loader: %s.",
+                    className,
+                    classLoader
+                ),
+                unwrapReflectionException(exception)
+            );
         }
     }
 
