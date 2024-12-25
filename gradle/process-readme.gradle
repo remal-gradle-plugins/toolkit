@@ -26,6 +26,20 @@ allprojects {
         }
 
         ProviderFactory providers = project.providers
+        MapProperty<String, Object> projectExtraProperties = objects.mapProperty(String, Object).value(provider {
+            Map<String, Object> extraProps = new LinkedHashMap<>()
+
+            Project curProject = project
+            while (curProject != null) {
+                curProject.ext.getProperties().forEach { key, value ->
+                    extraProps.putIfAbsent(key, value)
+                }
+
+                curProject = curProject.parent
+            }
+
+            return extraProps
+        }).with { it.finalizeValueOnRead(); it }
 
         task.ext.readmeFileProcessors.add(
             { File readmeFile ->
@@ -37,8 +51,12 @@ allprojects {
                     String tag = it[1]
                     String property = it[2]
                     logger.lifecycle('  Handling {}: {}', tag, property)
-                    Object propertyValueObj = unwrapProviders(providers.gradleProperty(property).get())
-                    String propertyValue = "$propertyValueObj"
+                    Object propertyValueObj = unwrapProviders(
+                        projectExtraProperties.getting(property)
+                            .orElse(providers.gradleProperty(property))
+                            .get()
+                    )
+                    String propertyValue = propertyValueObj?.toString()
                     if (tag.contains('code-')) {
                         propertyValue = "`$propertyValue`"
                     }
@@ -59,7 +77,11 @@ allprojects {
                     String tag = it[1]
                     String property = it[2]
                     logger.lifecycle('  Handling {}: {}', tag, property)
-                    Object propertyValueObj = unwrapProviders(providers.gradleProperty(property).get())
+                    Object propertyValueObj = unwrapProviders(
+                        projectExtraProperties.getting(property)
+                            .orElse(providers.gradleProperty(property))
+                            .get()
+                    )
                     if (!(propertyValueObj instanceof Iterable)) {
                         throw new GradleException("`$property` property is not iterable: ${propertyValueObj?.class}")
                     }
