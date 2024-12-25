@@ -574,7 +574,7 @@ public class GradleProject extends AbstractGradleProject<GradleProject, BuildFil
                 "-Dorg.gradle.parallel=true",
                 "-Dorg.gradle.workers.max=4",
                 "-Dorg.gradle.kotlin.dsl.allWarningsAsErrors=true",
-                "-Dmaven.repo.local=" + new File(projectDir, ".m2").getAbsolutePath(),
+                "-Dmaven.repo.local=" + new File(projectDir, ".m2-auto").getAbsolutePath(),
                 "-Dorg.gradle.vfs.watch=false",
                 "-Dorg.gradle.daemon=false",
                 "-Dhttp.keepAlive=false",
