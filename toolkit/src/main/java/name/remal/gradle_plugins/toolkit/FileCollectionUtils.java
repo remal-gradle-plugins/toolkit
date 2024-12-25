@@ -1,5 +1,7 @@
 package name.remal.gradle_plugins.toolkit;
 
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.CrossCompileServices.loadCrossCompileService;
@@ -10,6 +12,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.val;
 import org.gradle.api.artifacts.Configuration;
@@ -24,7 +27,11 @@ public abstract class FileCollectionUtils {
     private static final FileCollectionUtilsMethods METHODS = loadCrossCompileService(FileCollectionUtilsMethods.class);
 
     @Unmodifiable
-    public static Set<Configuration> getConfigurationsUsedIn(FileCollection fileCollection) {
+    public static Set<Configuration> getConfigurationsUsedIn(@Nullable FileCollection fileCollection) {
+        if (fileCollection == null) {
+            return emptySet();
+        }
+
         if (fileCollection instanceof Configuration) {
             return singleton((Configuration) fileCollection);
         }
@@ -34,8 +41,12 @@ public abstract class FileCollectionUtils {
 
     @Unmodifiable
     public static Map<File, ModuleVersionIdentifier> getModuleVersionIdentifiersForFilesIn(
-        FileCollection fileCollection
+        @Nullable FileCollection fileCollection
     ) {
+        if (fileCollection == null) {
+            return emptyMap();
+        }
+
         val result = new LinkedHashMap<File, ModuleVersionIdentifier>();
 
         val files = fileCollection.getFiles();
