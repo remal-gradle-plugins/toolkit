@@ -78,7 +78,7 @@ allprojects {
                     withSourcesJar()
                 }
 
-                publishing.publications.create('mavenJavaLibrary', MavenPublication) {
+                publishing.publications.register('mavenJavaLibrary', MavenPublication) {
                     from components.java
                 }
             }

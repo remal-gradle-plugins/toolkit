@@ -14,7 +14,7 @@ allprojects {
             return
         }
 
-        publishing.publications.create('mavenBom', MavenPublication) { MavenPublication publication ->
+        publishing.publications.register('mavenBom', MavenPublication) { MavenPublication publication ->
             publication.artifactId = publication.artifactId?.replaceFirst(/-root$/, '') + '-bom'
 
             publication.pom { MavenPom pom ->

@@ -152,12 +152,14 @@ JacocoReport jacocoReportMerged = tasks.create('jacocoReportMerged', JacocoRepor
 }
 
 tasks.register('displayTotalCodeCoverage') { Task task ->
-    task.dependsOn('jacocoReportMerged')
+    task.dependsOn(jacocoReportMerged)
     task.group = 'verification'
 
-    doLast {
-        File xmlReportFile = jacocoReportMerged.reports.xml.outputLocation.asFile.get()
+    RegularFileProperty xmlReportFile = objects.fileProperty().value(provider {
+        jacocoReportMerged.reports.xml.outputLocation.asFile.get()
+    }).with { it.finalizeValueOnRead(); it }
 
+    doLast {
         Class XmlParser = Class.forName('groovy.xml.XmlParser')
         def xmlParser = XmlParser.getConstructor(Boolean.TYPE, Boolean.TYPE, Boolean.TYPE).newInstance(false, false, true)
         Closure setFeatureQuietly = { String feature, Object value ->
@@ -171,7 +173,7 @@ tasks.register('displayTotalCodeCoverage') { Task task ->
         setFeatureQuietly('http://apache.org/xml/features/nonvalidating/load-external-dtd', false)
         setFeatureQuietly('http://javax.xml.XMLConstants/feature/secure-processing', true)
 
-        Node reportNode = xmlParser.parse(xmlReportFile)
+        Node reportNode = xmlParser.parse(xmlReportFile.get().asFile)
         reportNode.counter?.forEach { Node counterNode ->
             String type = counterNode['@type']
             long missed = (counterNode['@missed'] ?: '0').toString().toLong()

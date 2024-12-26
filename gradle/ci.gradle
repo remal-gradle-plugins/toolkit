@@ -29,7 +29,7 @@ allprojects {
 
     project.ext.defaultJvmVendor = JvmVendorSpec.ADOPTIUM
 
-    tasks.create('downloadDependencies') {
+    tasks.register('downloadDependencies') {
         doLast {
             project.configurations
                 .findAll { it.canBeResolved }
