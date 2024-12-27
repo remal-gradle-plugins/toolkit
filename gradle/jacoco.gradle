@@ -155,7 +155,7 @@ tasks.register('displayTotalCodeCoverage') { Task task ->
     task.dependsOn(jacocoReportMerged)
     task.group = 'verification'
 
-    RegularFileProperty xmlReportFile = objects.fileProperty().value(provider {
+    RegularFileProperty xmlReportFile = objects.fileProperty().fileProvider(provider {
         jacocoReportMerged.reports.xml.outputLocation.asFile.get()
     }).with { it.finalizeValueOnRead(); it }
 

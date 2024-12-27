@@ -29,6 +29,7 @@ buildscript {
             'name.remal.gradle-plugins.test-source-sets:test-source-sets:4.1.9',
             'name.remal.gradle-plugins.sonarlint:sonarlint:4.3.3',
             'name.remal.gradle-plugins.build-time-constants:build-time-constants:1.0.0-rc-3',
+            'name.remal.gradle-plugins.classes-relocation:classes-relocation:2.0.0-rc-1',
             'name.remal.gradle-plugins.idea-settings:idea-settings:3.0.14',
             'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.1.9',
             'com.gradle.publish:plugin-publish-plugin:1.3.0',
@@ -101,6 +102,7 @@ List<String> includedBuildScripts = [
     'gradle/publish-maven-to-build-dir.gradle',
     'gradle/publish-maven-push-back.gradle',
     'gradle/signing.gradle',
+    'gradle/toolkit-dependencies.gradle',
     'gradle/process-readme.gradle',
     'gradle/ide.gradle',
     'gradle/github-submit-dependencies.gradle',
@@ -116,14 +118,14 @@ allprojects {
         dependencies {
             optional 'name.remal.gradle-api:gradle-api'
 
-            relocateClasses 'org.ow2.asm:asm'
-            relocateClasses 'org.ow2.asm:asm-analysis'
-            relocateClasses 'org.ow2.asm:asm-commons'
-            relocateClasses 'org.ow2.asm:asm-tree'
-            relocateClasses 'org.ow2.asm:asm-util'
-            relocateClasses 'org.json:json:20240303'
-            relocateClasses 'org.jsoup:jsoup:1.18.3'
-            relocateClasses 'org.jdom:jdom2:2.0.6.1'
+            classesRelocation 'org.ow2.asm:asm'
+            classesRelocation 'org.ow2.asm:asm-analysis'
+            classesRelocation 'org.ow2.asm:asm-commons'
+            classesRelocation 'org.ow2.asm:asm-tree'
+            classesRelocation 'org.ow2.asm:asm-util'
+            classesRelocation 'org.json:json:20240303'
+            classesRelocation 'org.jsoup:jsoup:1.18.3'
+            classesRelocation 'org.jdom:jdom2:2.0.6.1'
 
 
             testImplementation 'org.ow2.asm:asm'

@@ -1,0 +1,12 @@
+allprojects {
+    pluginManager.withPlugin('java') {
+        if (rootProject.allprojects.any { it.group == 'name.remal.gradle-plugins.toolkit' }) {
+            return
+        }
+
+        dependencies {
+            classesRelocation 'name.remal.gradle-plugins.toolkit:toolkit'
+            testImplementation 'name.remal.gradle-plugins.toolkit:testkit'
+        }
+    }
+}

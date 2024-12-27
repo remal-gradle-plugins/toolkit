@@ -1,5 +1,6 @@
 allprojects {
     configurations.create('projectDependencyConstraints') { Configuration conf ->
+        conf.visible = false
         conf.canBeResolved = false
         conf.canBeConsumed = false
 

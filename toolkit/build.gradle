@@ -15,10 +15,10 @@ apply plugin: 'name.remal.generate-sources'
 }
 
 dependencies {
-    relocateClasses 'io.github.classgraph:classgraph:4.8.179'
-    relocateClasses 'org.ec4j.core:ec4j-core:1.1.0'
-    relocateClasses 'net.htmlparser.jericho:jericho-html:3.4'
-    relocateClasses('org.eclipse.jgit:org.eclipse.jgit:5.13.3.202401111512-r') {
+    classesRelocation 'io.github.classgraph:classgraph:4.8.179'
+    classesRelocation 'org.ec4j.core:ec4j-core:1.1.0'
+    classesRelocation 'net.htmlparser.jericho:jericho-html:3.4'
+    classesRelocation('org.eclipse.jgit:org.eclipse.jgit:5.13.3.202401111512-r') {
         exclude group: 'org.slf4j'
     }
 
