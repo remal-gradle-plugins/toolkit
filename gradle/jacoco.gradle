@@ -135,6 +135,15 @@ JacocoReport jacocoReportMerged = tasks.create('jacocoReportMerged', JacocoRepor
         }
     }
 
+    Configuration taskConf = configurations.create("${task.name}ClassDirectories") {
+        visible = false
+        canBeResolved = true
+        canBeConsumed = false
+        dependencies.withType(ModuleDependency).configureEach { it.transitive = false }
+    }
+    task.classDirectories.from(taskConf)
+    doFirst { task.classDirectories.files.forEach { println it } }
+
     allprojects {
         pluginManager.withPlugin('jacoco') {
             TaskCollection<Test> testTasks = tasks.withType(Test)
@@ -144,8 +153,14 @@ JacocoReport jacocoReportMerged = tasks.create('jacocoReportMerged', JacocoRepor
             task.dependsOn(reportTasks)
 
             task.executionData(testTasks)
+
+            if (project.name.contains('--')) {
+                return
+            }
+
             pluginManager.withPlugin('java') {
-                task.sourceSets(sourceSets.main)
+                task.sourceDirectories.from(provider { sourceSets.main.allJava.srcDirs })
+                taskConf.dependencies.add(task.project.dependencies.create(project))
             }
         }
     }
@@ -181,7 +196,7 @@ tasks.register('displayTotalCodeCoverage') { Task task ->
             long total = missed + covered
             double coverage = ((double) covered) / total
             if ('LINE'.equalsIgnoreCase(type)) {
-                project.logger.quiet(String.format('Total code coverage: %.2f%% lines', coverage * 100.0))
+                logger.quiet(String.format('Total code coverage: %.2f%% lines', coverage * 100.0))
             }
         }
     }
