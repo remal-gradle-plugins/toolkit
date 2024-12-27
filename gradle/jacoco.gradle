@@ -135,11 +135,10 @@ JacocoReport jacocoReportMerged = tasks.create('jacocoReportMerged', JacocoRepor
         }
     }
 
-    Configuration taskConf = configurations.create("${task.name}ClassDirectories") {
-        visible = false
-        canBeResolved = true
-        canBeConsumed = false
-        dependencies.withType(ModuleDependency).configureEach { it.transitive = false }
+    Configuration taskConf = configurations.detachedConfiguration().with { Configuration conf ->
+        conf.canBeResolved = true
+        conf.dependencies.withType(ModuleDependency).configureEach { it.transitive = false }
+        return conf
     }
     task.classDirectories.from(taskConf)
 
