@@ -142,7 +142,6 @@ JacocoReport jacocoReportMerged = tasks.create('jacocoReportMerged', JacocoRepor
         dependencies.withType(ModuleDependency).configureEach { it.transitive = false }
     }
     task.classDirectories.from(taskConf)
-    doFirst { task.classDirectories.files.forEach { println it } }
 
     allprojects {
         pluginManager.withPlugin('jacoco') {
