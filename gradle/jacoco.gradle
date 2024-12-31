@@ -135,13 +135,6 @@ JacocoReport jacocoReportMerged = tasks.create('jacocoReportMerged', JacocoRepor
         }
     }
 
-    Configuration taskConf = configurations.detachedConfiguration().with { Configuration conf ->
-        conf.canBeResolved = true
-        conf.dependencies.withType(ModuleDependency).configureEach { it.transitive = false }
-        return conf
-    }
-    task.classDirectories.from(taskConf)
-
     allprojects {
         pluginManager.withPlugin('jacoco') {
             TaskCollection<Test> testTasks = tasks.withType(Test)
@@ -157,8 +150,26 @@ JacocoReport jacocoReportMerged = tasks.create('jacocoReportMerged', JacocoRepor
             }
 
             pluginManager.withPlugin('java') {
+                task.dependsOn(provider {
+                    if (pluginManager.hasPlugin('name.remal.classes-relocation.v2')
+                        || pluginManager.hasPlugin('name.remal.classes-relocation')
+                    ) {
+                        tasks.relocateJar
+                    } else {
+                        tasks.jar
+                    }
+                })
+
                 task.sourceDirectories.from(provider { sourceSets.main.allJava.srcDirs })
-                taskConf.dependencies.add(task.project.dependencies.create(project))
+                task.classDirectories.from(provider {
+                    if (pluginManager.hasPlugin('name.remal.classes-relocation.v2')
+                        || pluginManager.hasPlugin('name.remal.classes-relocation')
+                    ) {
+                        tasks.relocateJar.targetJarFile
+                    } else {
+                        tasks.jar.archiveFile
+                    }
+                })
             }
         }
     }
