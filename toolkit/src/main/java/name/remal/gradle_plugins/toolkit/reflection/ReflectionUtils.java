@@ -16,6 +16,7 @@ import static name.remal.gradle_plugins.toolkit.reflection.WhoCalledUtils.getCal
 
 import com.google.common.collect.ImmutableList;
 import java.lang.reflect.AccessibleObject;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -132,8 +133,15 @@ public abstract class ReflectionUtils {
             return (Class<?>) defineClassMethod.invoke(classLoader, null, bytecode, 0, bytecode.length);
 
         } catch (Throwable exception) {
-            val className = new ClassReader(bytecode).getClassName().replace('/', '.');
-            throw new DefineClassException(
+            String className = "<unknown>";
+            Throwable suppressedException = null;
+            try {
+                className = new ClassReader(bytecode).getClassName().replace('/', '.');
+            } catch (Throwable e) {
+                suppressedException = e;
+            }
+
+            val exceptionToThrow = new DefineClassException(
                 format(
                     "Class defining error occurred. Class name: %s. Class loader: %s.",
                     className,
@@ -141,6 +149,12 @@ public abstract class ReflectionUtils {
                 ),
                 unwrapReflectionException(exception)
             );
+
+            if (suppressedException != null) {
+                exceptionToThrow.addSuppressed(suppressedException);
+            }
+
+            throw exceptionToThrow;
         }
     }
 
@@ -226,9 +240,21 @@ public abstract class ReflectionUtils {
     @ReliesOnInternalGradleApi
     @SuppressWarnings("unchecked")
     public static <T> Class<T> unwrapGeneratedSubclass(Class<T> type) {
-        while (GeneratedSubclass.class.isAssignableFrom(type)) {
-            type = (Class<T>) type.getSuperclass();
+        if (GeneratedSubclass.class.isAssignableFrom(type)) {
+            val superType = (Class<T>) type.getSuperclass();
+            if (superType == Object.class) {
+                try {
+                    return (Class<T>) type.getMethod("generatedFrom").invoke(null);
+                } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ignored) {
+                    // do nothing
+                }
+
+                return (Class<T>) type.getInterfaces()[0];
+            }
+
+            return superType;
         }
+
         return type;
     }
 
