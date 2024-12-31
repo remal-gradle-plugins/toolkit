@@ -39,11 +39,13 @@ import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.CompileClasspathNormalizer;
+import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectories;
 import org.gradle.api.tasks.OutputDirectory;
@@ -107,6 +109,28 @@ public abstract class TaskPropertiesUtils {
         })
         .filter(Objects::nonNull)
         .collect(toList()));
+
+    @SuppressWarnings("unchecked")
+    private static final List<Class<? extends Annotation>> IGNORE_ANNOTATIONS = (List) unmodifiableList(Stream.of(
+            getClassName(Internal.class),
+            getClassName(Console.class)
+        )
+        .map(className -> {
+            try {
+                return Class.forName(className);
+            } catch (ClassNotFoundException e) {
+                return null;
+            }
+        })
+        .filter(Objects::nonNull)
+        .collect(toList()));
+
+    private static final List<Class<? extends Annotation>> ALL_ANNOTATIONS = unmodifiableList(Stream.of(
+        UNSUPPORTED_ANNOTATIONS,
+        INPUT_ANNOTATIONS,
+        OUTPUT_ANNOTATIONS,
+        IGNORE_ANNOTATIONS
+    ).flatMap(Collection::stream).collect(toList()));
 
     public static void registerTaskProperties(
         Task task,
@@ -284,6 +308,10 @@ public abstract class TaskPropertiesUtils {
             }
             property.withPropertyName(fullPropertyName)
                 .optional(method.isAnnotationPresent(org.gradle.api.tasks.Optional.class));
+
+        } else if (IGNORE_ANNOTATIONS.stream().anyMatch(method::isAnnotationPresent)) {
+            // ignore
+
         } else {
             throw new TaskPropertiesException("Unsupported method: " + method);
         }
@@ -326,33 +354,31 @@ public abstract class TaskPropertiesUtils {
                     }
                 });
 
-            Stream.of(INPUT_ANNOTATIONS, OUTPUT_ANNOTATIONS)
-                .flatMap(Collection::stream)
-                .forEach(annotationType -> {
-                    if (method.isAnnotationPresent(annotationType)) {
-                        if (isSynthetic(method)
-                            || isStatic(method)
-                            || isPrivate(method)
-                            || isPackagePrivate(method)
-                        ) {
-                            throw new TaskPropertiesException(format(
-                                "%s doesn't support method annotated with %s: %s",
-                                TaskPropertiesUtils.class,
-                                annotationType,
-                                method
-                            ));
-                        }
-
-                        if (!isGetter(method)) {
-                            throw new TaskPropertiesException(format(
-                                "%s doesn't support method annotated with %s because it's not a getter: %s",
-                                TaskPropertiesUtils.class,
-                                annotationType,
-                                method
-                            ));
-                        }
+            ALL_ANNOTATIONS.forEach(annotationType -> {
+                if (method.isAnnotationPresent(annotationType)) {
+                    if (isSynthetic(method)
+                        || isStatic(method)
+                        || isPrivate(method)
+                        || isPackagePrivate(method)
+                    ) {
+                        throw new TaskPropertiesException(format(
+                            "%s doesn't support method annotated with %s: %s",
+                            TaskPropertiesUtils.class,
+                            annotationType,
+                            method
+                        ));
                     }
-                });
+
+                    if (!isGetter(method)) {
+                        throw new TaskPropertiesException(format(
+                            "%s doesn't support method annotated with %s because it's not a getter: %s",
+                            TaskPropertiesUtils.class,
+                            annotationType,
+                            method
+                        ));
+                    }
+                }
+            });
         });
     }
 
@@ -363,11 +389,7 @@ public abstract class TaskPropertiesUtils {
             .filter(not(Object.class::equals))
             .map(Class::getDeclaredMethods)
             .flatMap(Arrays::stream)
-            .filter(method ->
-                UNSUPPORTED_ANNOTATIONS.stream().anyMatch(method::isAnnotationPresent)
-                    || INPUT_ANNOTATIONS.stream().anyMatch(method::isAnnotationPresent)
-                    || OUTPUT_ANNOTATIONS.stream().anyMatch(method::isAnnotationPresent)
-            )
+            .filter(method -> ALL_ANNOTATIONS.stream().anyMatch(method::isAnnotationPresent))
             .collect(toList());
     }
 
@@ -379,18 +401,16 @@ public abstract class TaskPropertiesUtils {
             .map(Class::getDeclaredFields)
             .flatMap(Arrays::stream)
             .forEach(field -> {
-                Stream.of(UNSUPPORTED_ANNOTATIONS, INPUT_ANNOTATIONS, OUTPUT_ANNOTATIONS)
-                    .flatMap(Collection::stream)
-                    .forEach(annotationType -> {
-                        if (field.isAnnotationPresent(annotationType)) {
-                            throw new TaskPropertiesException(format(
-                                "%s doesn't support field annotated with %s: %s",
-                                TaskPropertiesUtils.class,
-                                annotationType,
-                                field
-                            ));
-                        }
-                    });
+                ALL_ANNOTATIONS.forEach(annotationType -> {
+                    if (field.isAnnotationPresent(annotationType)) {
+                        throw new TaskPropertiesException(format(
+                            "%s doesn't support field annotated with %s: %s",
+                            TaskPropertiesUtils.class,
+                            annotationType,
+                            field
+                        ));
+                    }
+                });
             });
     }
 

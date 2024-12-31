@@ -13,11 +13,13 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectories;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFile;
@@ -58,6 +60,8 @@ class TaskPropertiesUtilsTest {
             .containsEntry("strings", additionalProps.getStrings())
             .containsEntry("nestedProperties.integers", additionalProps.getNestedProperties().getIntegers())
             .containsEntry("nestedProviderProperties.integers", nestedProviderProperties.getIntegers())
+            .doesNotContainKey("internal")
+            .doesNotContainKey("console")
         ;
 
         assertThat(task.getInputs().getFiles().getFiles()).contains(
@@ -109,6 +113,12 @@ class TaskPropertiesUtilsTest {
 
         @OutputFiles
         ConfigurableFileCollection getOutputFiles();
+
+        @Internal
+        Property<Long> getInternal();
+
+        @Console
+        Property<Boolean> getConsole();
 
     }
 
