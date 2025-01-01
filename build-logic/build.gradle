@@ -107,6 +107,7 @@ tasks.named('generateResources') {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 tasks.named('generateJava') {
+    Property<String> javaApiMinVersion = project.objects.property(String).value(provider { project.property('java-runtime.min-version').toString() }).with { it.finalizeValueOnRead(); it }
     Property<String> gradleApiMinVersion = project.objects.property(String).value(provider { project.property('gradle-api.min-version').toString() }).with { it.finalizeValueOnRead(); it }
     Property<String> toolkitVersion = project.objects.property(String).value(provider { project.version?.toString() }).with { it.finalizeValueOnRead(); it }
     inputs.property('toolkitVersion', toolkitVersion)
@@ -122,6 +123,7 @@ tasks.named('generateJava') {
         it.writeStaticImport("${toolkitBaseJavaPackage.get()}.ResourceUtils", "getResourceUrl")
         it.println("")
         it.writeImport("lombok.val")
+        it.writeImport("org.gradle.api.JavaVersion")
         it.writeImport("org.gradle.api.Plugin")
         it.writeImport("org.gradle.api.Project")
         it.writeImport("org.gradle.util.GradleVersion")
@@ -129,6 +131,18 @@ tasks.named('generateJava') {
         it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "InjectedReferences")
         it.writeBlock("public class ${it.simpleName} implements Plugin<Project>") {
             it.writeBlock("public void apply(Project project)") {
+                it.println("val currentJavaVersion = JavaVersion.current();")
+                it.println("val minToolkitJavaVersion = JavaVersion.toVersion(\"${it.escapeJava(javaApiMinVersion.get())}\");")
+                it.writeBlock("if (currentJavaVersion.compareTo(minToolkitJavaVersion) < 0)") {
+                    it.println("throw new IllegalStateException(format(")
+                    it.println("    \"Current Java version is %s, which is less than minimum supported Java version by toolkit: %s\",")
+                    it.println("    currentJavaVersion,")
+                    it.println("    minToolkitJavaVersion")
+                    it.println("));")
+                }
+
+                it.println("")
+
                 it.println("val currentGradleVersion = GradleVersion.current().getBaseVersion();")
                 it.println("val minToolkitGradleVersion = GradleVersion.version(\"${it.escapeJava(gradleApiMinVersion.get())}\").getBaseVersion();")
                 it.writeBlock("if (currentGradleVersion.compareTo(minToolkitGradleVersion) < 0)") {
@@ -146,6 +160,20 @@ tasks.named('generateJava') {
                     it.println("    it.from(getResourceUrl(\"/${it.escapeJava(resource)}\", ${it.simpleName}.class));")
                 }
                 it.println("});");
+
+                it.println("")
+
+                it.println("Object minPluginJavaVersionUntyped = unwrapProviders(project.findProperty(\"java-runtime.min-version\"));")
+                it.writeBlock("if (minPluginJavaVersionUntyped != null)") {
+                    it.println("val minPluginJavaVersion = JavaVersion.toVersion(minPluginJavaVersionUntyped);")
+                    it.writeBlock("if (minPluginJavaVersion.compareTo(minToolkitJavaVersion) < 0)") {
+                        it.println("throw new IllegalStateException(format(")
+                        it.println("    \"Min supported Java version by the plugin is %s, which is less than minimum supported Java version by toolkit: %s\",")
+                        it.println("    currentJavaVersion,")
+                        it.println("    minToolkitJavaVersion")
+                        it.println("));")
+                    }
+                }
 
                 it.println("")
 
