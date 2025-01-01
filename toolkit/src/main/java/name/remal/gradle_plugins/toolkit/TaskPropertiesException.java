@@ -6,4 +6,8 @@ public class TaskPropertiesException extends RuntimeException {
         super(message);
     }
 
+    TaskPropertiesException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
 }

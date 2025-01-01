@@ -7,7 +7,6 @@ import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.build_time_constants.api.BuildTimeConstants.getClassName;
 import static name.remal.gradle_plugins.toolkit.ObjectUtils.isNotEmpty;
 import static name.remal.gradle_plugins.toolkit.PredicateUtils.not;
-import static name.remal.gradle_plugins.toolkit.SneakyThrowUtils.sneakyThrow;
 import static name.remal.gradle_plugins.toolkit.ThrowableUtils.unwrapReflectionException;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.getClassHierarchy;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.getPropertyNameForGetter;
@@ -144,17 +143,17 @@ public abstract class TaskPropertiesUtils {
         Object propertiesContainer,
         @Nullable String propertyNamePrefix
     ) {
-        registerTaskProperties(
+        registerTaskPropertiesImpl(
             task,
-            propertiesContainer,
+            task.getProject().getProviders().provider(() -> propertiesContainer),
             unwrapGeneratedSubclass(propertiesContainer.getClass()),
             propertyNamePrefix
         );
     }
 
-    private static void registerTaskProperties(
+    private static void registerTaskPropertiesImpl(
         Task task,
-        Object propertiesContainer,
+        Provider<Object> propertiesContainerProvider,
         Class<?> propertiesContainerType,
         @Nullable String propertyNamePrefix
     ) {
@@ -172,9 +171,9 @@ public abstract class TaskPropertiesUtils {
         checkCandidateMethods(candidateMethods);
 
         for (val method : candidateMethods) {
-            registerTaskProperties(
+            registerTaskPropertiesImpl(
                 task,
-                propertiesContainer,
+                propertiesContainerProvider,
                 propertiesContainerType,
                 propertyNamePrefix,
                 method
@@ -183,9 +182,9 @@ public abstract class TaskPropertiesUtils {
     }
 
     @SuppressWarnings({"unchecked", "java:S6541", "java:S3776"})
-    private static void registerTaskProperties(
+    private static void registerTaskPropertiesImpl(
         Task task,
-        Object propertiesContainer,
+        Provider<Object> propertiesContainerProvider,
         Class<?> propertiesContainerType,
         @Nullable String propertyNamePrefix,
         Method method
@@ -195,20 +194,19 @@ public abstract class TaskPropertiesUtils {
             ? propertyNamePrefix + "." + propertyName
             : propertyName;
 
-        val propertyValueProvider = task.getProject().getProviders().provider(() -> {
+        val propertyValueProvider = propertiesContainerProvider.map(propertiesContainer -> {
             try {
-                Object currentPropertiesContainer = propertiesContainer;
-                while (!method.getDeclaringClass().isAssignableFrom(currentPropertiesContainer.getClass())
-                    && currentPropertiesContainer instanceof Provider
-                ) {
-                    currentPropertiesContainer = ((Provider<?>) currentPropertiesContainer).getOrNull();
-                    if (currentPropertiesContainer == null) {
-                        return null;
-                    }
-                }
-                return makeAccessible(method).invoke(currentPropertiesContainer);
+                return makeAccessible(method).invoke(propertiesContainer);
             } catch (Throwable e) {
-                throw sneakyThrow(unwrapReflectionException(e));
+                throw new TaskPropertiesException(
+                    format(
+                        "Error calling `%s` on `%s` (expected properties container type: `%s`)",
+                        method,
+                        propertiesContainer.getClass().getName(),
+                        propertiesContainerType
+                    ),
+                    unwrapReflectionException(e)
+                );
             }
         });
 
@@ -250,33 +248,27 @@ public abstract class TaskPropertiesUtils {
                 .ifPresent(property::withPathSensitivity);
 
         } else if (method.isAnnotationPresent(Nested.class)) {
-            if (method.getGenericReturnType().getClass() == Class.class) {
-                registerTaskProperties(
-                    task,
-                    task.getProject().getProviders().provider(() -> {
-                        try {
-                            return makeAccessible(method).invoke(propertiesContainer);
-                        } catch (Throwable e) {
-                            throw sneakyThrow(unwrapReflectionException(e));
-                        }
-                    }),
-                    method.getReturnType(),
-                    fullPropertyName
-                );
-
-            } else if (Provider.class.isAssignableFrom(method.getReturnType())) {
+            if (Provider.class.isAssignableFrom(method.getReturnType())) {
                 val invokable = TypeToken.of(propertiesContainerType).method(method);
                 val returnType = invokable.getReturnType().getSupertype((Class) Provider.class).getType();
                 if (returnType instanceof ParameterizedType) {
                     val nestedType = ((ParameterizedType) returnType).getActualTypeArguments()[0];
                     val nestedClass = TypeToken.of(nestedType).getRawType();
-                    registerTaskProperties(
+                    registerTaskPropertiesImpl(
                         task,
-                        task.getProject().getProviders().provider(() -> {
+                        propertiesContainerProvider.flatMap(propertiesContainer -> {
                             try {
-                                return makeAccessible(method).invoke(propertiesContainer);
+                                return (Provider<?>) makeAccessible(method).invoke(propertiesContainer);
                             } catch (Throwable e) {
-                                throw sneakyThrow(unwrapReflectionException(e));
+                                throw new TaskPropertiesException(
+                                    format(
+                                        "Error calling `%s` on `%s` (expected properties container type: `%s`)",
+                                        method,
+                                        propertiesContainer.getClass().getName(),
+                                        propertiesContainerType
+                                    ),
+                                    unwrapReflectionException(e)
+                                );
                             }
                         }),
                         nestedClass,
@@ -285,8 +277,14 @@ public abstract class TaskPropertiesUtils {
                 } else {
                     throw new TaskPropertiesException("Unsupported method: " + method);
                 }
+
             } else {
-                throw new TaskPropertiesException("Unsupported method: " + method);
+                registerTaskPropertiesImpl(
+                    task,
+                    propertyValueProvider,
+                    method.getReturnType(),
+                    fullPropertyName
+                );
             }
 
         } else if (method.isAnnotationPresent(OutputDirectories.class)
