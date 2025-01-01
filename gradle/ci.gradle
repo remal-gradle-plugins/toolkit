@@ -30,13 +30,14 @@ allprojects {
     project.ext.defaultJvmVendor = JvmVendorSpec.ADOPTIUM
 
     tasks.register('downloadDependencies') {
+        Injections injections = project.objects.newInstance(Injections)
         doLast {
-            project.configurations
+            injections.configurations
                 .findAll { it.canBeResolved }
                 .findAll { it.name != 'default' }
                 .findAll { it.name != 'archives' }
                 .forEach { configuration ->
-                    configuration.resolvedConfiguration.lenientConfiguration.files
+                    configuration.resolvedConfiguration.lenientConfiguration.artifacts
                 }
         }
     }
@@ -99,4 +100,9 @@ allprojects {
         }
     }
 
+}
+
+interface Injections {
+    @Inject
+    ConfigurationContainer getConfigurations()
 }
