@@ -23,6 +23,7 @@ import java.io.Writer;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
 import javax.annotation.WillClose;
@@ -74,12 +75,12 @@ public abstract class PropertiesUtils {
     }
 
 
-    public static void storeProperties(Properties properties, File file) {
+    public static void storeProperties(Map<Object, Object> properties, File file) {
         storeProperties(properties, file.toPath());
     }
 
     @SneakyThrows
-    public static void storeProperties(Properties properties, Path path) {
+    public static void storeProperties(Map<Object, Object> properties, Path path) {
         path = normalizePath(path);
         createParentDirectories(path);
         try (val outputStream = newOutputStream(path)) {
@@ -88,14 +89,14 @@ public abstract class PropertiesUtils {
     }
 
     @SneakyThrows
-    public static void storeProperties(Properties properties, @WillClose OutputStream outputStream) {
+    public static void storeProperties(Map<Object, Object> properties, @WillClose OutputStream outputStream) {
         try (val writer = new OutputStreamWriter(outputStream, ISO_8859_1)) {
             storeProperties(properties, writer);
         }
     }
 
     @SneakyThrows
-    public static void storeProperties(Properties properties, @WillClose Writer writer) {
+    public static void storeProperties(Map<Object, Object> properties, @WillClose Writer writer) {
         try (val bw = writer instanceof BufferedWriter ? (BufferedWriter) writer : new BufferedWriter(writer)) {
             val map = new TreeMap<String, String>();
             properties.forEach((key, value) -> map.put(key.toString(), value.toString()));
