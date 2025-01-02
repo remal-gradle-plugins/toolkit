@@ -122,11 +122,11 @@ allprojects {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-JacocoReport jacocoReportMerged = tasks.create('jacocoReportMerged', JacocoReport) { JacocoReport task ->
-    apply plugin: 'jacoco'
+apply plugin: 'jacoco'
 
+TaskProvider<JacocoReport> jacocoReportMerged = tasks.register('jacocoReportMerged', JacocoReport) { JacocoReport task ->
     task.group = 'verification'
-    task.reports.all { ConfigurableReport report ->
+    task.reports.configureEach { ConfigurableReport report ->
         DirectoryProperty reportsDir = project.jacoco.reportsDirectory
         if (report.getOutputType() == OutputType.DIRECTORY) {
             report.outputLocation.convention(reportsDir.dir("${task.name}/${report.name}"))
@@ -134,43 +134,26 @@ JacocoReport jacocoReportMerged = tasks.create('jacocoReportMerged', JacocoRepor
             report.outputLocation.convention(reportsDir.file("${task.name}/${task.name}.${report.name}"))
         }
     }
+}
 
-    allprojects {
-        pluginManager.withPlugin('jacoco') {
-            TaskCollection<Test> testTasks = tasks.withType(Test)
-            task.dependsOn(testTasks)
+allprojects {
+    pluginManager.withPlugin('jacoco') {
+        JacocoReport task = jacocoReportMerged.get()
 
-            TaskCollection<JacocoReport> reportTasks = tasks.withType(JacocoReport).matching { it.name.matches(/jacoco[A-Z].*Report/) }
-            task.dependsOn(reportTasks)
+        TaskCollection<Test> testTasks = tasks.withType(Test)
+        task.dependsOn(testTasks)
 
-            task.executionData(testTasks)
+        TaskCollection<JacocoReport> reportTasks = tasks.withType(JacocoReport).matching { it.name.matches(/jacoco[A-Z].*Report/) }
+        task.dependsOn(reportTasks)
 
-            if (project.isIncludedInFatJar(project)) {
-                return
-            }
+        task.executionData(testTasks)
 
-            pluginManager.withPlugin('java') {
-                task.dependsOn(provider {
-                    if (pluginManager.hasPlugin('name.remal.classes-relocation.v2')
-                        || pluginManager.hasPlugin('name.remal.classes-relocation')
-                    ) {
-                        tasks.relocateJar
-                    } else {
-                        tasks.jar
-                    }
-                })
+        if (project.isIncludedInFatJar(project)) {
+            return
+        }
 
-                task.sourceDirectories.from(provider { sourceSets.main.allJava.srcDirs })
-                task.classDirectories.from(provider {
-                    if (pluginManager.hasPlugin('name.remal.classes-relocation.v2')
-                        || pluginManager.hasPlugin('name.remal.classes-relocation')
-                    ) {
-                        tasks.relocateJar.targetJarFile
-                    } else {
-                        tasks.jar.archiveFile
-                    }
-                })
-            }
+        pluginManager.withPlugin('java') {
+            task.sourceSets(sourceSets.main)
         }
     }
 }
@@ -180,7 +163,7 @@ tasks.register('displayTotalCodeCoverage') { Task task ->
     task.group = 'verification'
 
     RegularFileProperty xmlReportFile = objects.fileProperty().fileProvider(provider {
-        jacocoReportMerged.reports.xml.outputLocation.asFile.get()
+        jacocoReportMerged.get().reports.xml.outputLocation.asFile.get()
     }).with { it.finalizeValueOnRead(); it }
 
     doLast {
