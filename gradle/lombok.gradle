@@ -19,6 +19,6 @@ allprojects {
             }
         }
 
-        project.ext.fatJarWithDependentTaskNames.add('delombok')
+        project.ext.fatJarDependentTaskNames.add('delombok')
     }
 }

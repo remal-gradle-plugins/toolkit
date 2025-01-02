@@ -674,22 +674,33 @@ allprojects {
 }
 
 
+class IncludedInFatJarMarkerPlugin implements Plugin<Project> {
+    @Override
+    void apply(Project target) {
+        // do nothing
+    }
+}
+
+Closure<Boolean> isIncludedInFatJar = project.ext.isIncludedInFatJar = { Project otherProject ->
+    return otherProject.plugins.findPlugin(IncludedInFatJarMarkerPlugin) != null
+}
+
 allprojects {
-    project.ext.fatJarWithDependentTaskNames = [
+    SetProperty<String> fatJarDependentTaskNames = project.ext.fatJarDependentTaskNames = project.objects.setProperty(String).value([
         'generateJava',
         'generateResources',
         'classes',
         'jar',
         'sourcesJar',
         'javadocJar',
-    ]
+    ]).with { it.finalizeValueOnRead(); it }
 
     Closure fatJarWithImpl = { Project otherProject ->
         configurations.compileOnly.dependencies.add(dependencies.create(otherProject))
 
         otherProject.tasks.withType(Javadoc).configureEach { enabled = false }
 
-        project.fatJarWithDependentTaskNames.forEach { String taskName ->
+        fatJarDependentTaskNames.get().forEach { String taskName ->
             tasks.matching { it.name == taskName }.configureEach {
                 dependsOn(otherProject.tasks.matching { it.name == taskName })
             }
@@ -735,6 +746,7 @@ allprojects {
         if (!fatJarWithProjects.add(otherProject)) {
             return
         }
+        otherProject.pluginManager.apply(IncludedInFatJarMarkerPlugin)
         project.withPluginAfterEvaluateOrNow('java') {
             otherProject.withPluginAfterEvaluateOrNow('java') {
                 fatJarWithImpl(otherProject)

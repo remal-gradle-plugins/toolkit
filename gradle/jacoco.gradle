@@ -145,7 +145,7 @@ JacocoReport jacocoReportMerged = tasks.create('jacocoReportMerged', JacocoRepor
 
             task.executionData(testTasks)
 
-            if (project.name.contains('--')) {
+            if (project.isIncludedInFatJar(project)) {
                 return
             }
 
