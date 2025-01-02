@@ -85,6 +85,7 @@ List<String> includedBuildScripts = [
     'gradle/test-external-plugins.gradle',
     'gradle/lombok.gradle',
     'gradle/errorprone.gradle',
+    'gradle/build-time-constants.gradle',
     'gradle/classes-relocation.gradle',
     'gradle/cross-compile.gradle',
     'gradle/groovy.gradle',

@@ -26,11 +26,6 @@ buildscript {
 allprojects {
     pluginManager.withPlugin('java') {
         apply plugin: 'name.remal.test-source-sets'
-        try {
-            apply plugin: 'name.remal.build-time-constants.v2'
-        } catch (UnknownPluginException ignored) {
-            apply plugin: 'name.remal.build-time-constants'
-        }
 
         java {
             sourceCompatibility = targetCompatibility = project.javaRuntimeMinVersion
