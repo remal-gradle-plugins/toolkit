@@ -17,13 +17,20 @@ allprojects {
         gradlePlugin {
             website = property('repository-html-url')
             vcsUrl = property('repository-html-url')
-            plugins.all {
-                tags.addAll(
+            plugins.all { PluginDeclaration plugin ->
+                plugin.tags.addAll(
                     property('repository-topics').toString().split(/,/)
                         .collect { it.trim().toLowerCase() }
                         .findAll { !it.isEmpty() }
                         .findAll { it != 'gradle' && it != 'plugin' && it != 'gradle-plugin' }
                 )
+
+                if (plugin.name.startsWith('name.remal.')) {
+                    String pluginNameTag = plugin.name.substring('name.remal.'.length())
+                    if (!pluginNameTag.isEmpty()) {
+                        plugin.tags.add(pluginNameTag)
+                    }
+                }
             }
         }
 
