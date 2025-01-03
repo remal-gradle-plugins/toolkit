@@ -223,13 +223,13 @@ allprojects {
         }
         tasks.withType(Test).configureEach {
             onlyIf {
-                Collection<File> bytebuddyAgentFiles = configurations.testRuntimeClasspath.resolvedConfiguration
+                Collection<File> mockitoAgentFiles = configurations.testRuntimeClasspath.resolvedConfiguration
                     .lenientConfiguration
                     .allModuleDependencies
                     .findAll { "${it.moduleGroup}:${it.moduleName}" == 'net.bytebuddy:byte-buddy-agent' }
                     .collect { it.allModuleArtifacts.findAll { it.type === 'jar' }.collect { it.file } }
                     .flatten()
-                bytebuddyAgentFiles.forEach {
+                mockitoAgentFiles.forEach {
                     jvmArgs("-javaagent:${it.absolutePath}")
                 }
                 return true
@@ -280,10 +280,13 @@ allprojects {
         }
 
         tasks.named(sourceSets.main.jarTaskName, Jar) {
-            manifest {
-                attributes(
-                    'Automatic-Module-Name': project.calculateJavaModuleName()
-                )
+            onlyIf {
+                manifest {
+                    attributes(
+                        'Automatic-Module-Name': project.calculateJavaModuleName()
+                    )
+                }
+                return true
             }
         }
 
