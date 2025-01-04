@@ -59,29 +59,29 @@ abstract class AbstractGradleProject<
     @CanIgnoreReturnValue
     public final Child forBuildFile(Consumer<BuildFileType> buildFileConsumer) {
         buildFileConsumer.accept(buildFile);
-        return getSelf();
+        return self();
     }
 
     @Contract("_ -> this")
     @CanIgnoreReturnValue
-    public final synchronized Child forGradleProperties(Consumer<Map<String, Object>> propertiesConsumer) {
+    public final Child forGradleProperties(Consumer<Map<String, Object>> propertiesConsumer) {
         propertiesConsumer.accept(gradleProperties);
-        return getSelf();
+        return self();
     }
 
     @Contract("_ -> this")
     @CanIgnoreReturnValue
-    public final synchronized Child setGradleProperties(Map<String, Object> gradleProperties) {
+    public final Child setGradleProperties(Map<String, Object> gradleProperties) {
         this.gradleProperties.clear();
         this.gradleProperties.putAll(gradleProperties);
-        return getSelf();
+        return self();
     }
 
     @Contract("_,_ -> this")
     @CanIgnoreReturnValue
-    public final synchronized Child setGradleProperty(String key, @Nullable Object value) {
+    public final Child setGradleProperty(String key, @Nullable Object value) {
         gradleProperties.put(key, value);
-        return getSelf();
+        return self();
     }
 
     @SneakyThrows
@@ -120,7 +120,7 @@ abstract class AbstractGradleProject<
         createParentDirectories(destPath);
         write(destPath, bytes);
 
-        return getSelf();
+        return self();
     }
 
     @Contract("_,_,_ -> this")
@@ -173,7 +173,7 @@ abstract class AbstractGradleProject<
     @Contract("->this")
     @CanIgnoreReturnValue
     @SuppressWarnings("unchecked")
-    protected final Child getSelf() {
+    protected final Child self() {
         return (Child) this;
     }
 

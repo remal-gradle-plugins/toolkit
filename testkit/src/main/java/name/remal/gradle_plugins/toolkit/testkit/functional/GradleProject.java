@@ -2,11 +2,9 @@ package name.remal.gradle_plugins.toolkit.testkit.functional;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.synchronizedMap;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.NONE;
-import static name.remal.gradle_plugins.toolkit.FileUtils.normalizeFile;
 import static name.remal.gradle_plugins.toolkit.GradleCompatibilityMode.SUPPORTED;
 import static name.remal.gradle_plugins.toolkit.GradleCompatibilityMode.UNSUPPORTED;
 import static name.remal.gradle_plugins.toolkit.GradleCompatibilityUtils.getGradleJavaCompatibility;
@@ -17,6 +15,7 @@ import static name.remal.gradle_plugins.toolkit.JacocoJvmArg.currentJvmArgsHaveJ
 import static name.remal.gradle_plugins.toolkit.JacocoJvmArg.parseJacocoJvmArgFromCurrentJvmArgs;
 import static name.remal.gradle_plugins.toolkit.ObjectUtils.isEmpty;
 import static name.remal.gradle_plugins.toolkit.PathUtils.copyRecursively;
+import static name.remal.gradle_plugins.toolkit.PathUtils.deleteRecursively;
 import static name.remal.gradle_plugins.toolkit.PredicateUtils.not;
 import static name.remal.gradle_plugins.toolkit.StringUtils.escapeGroovy;
 import static name.remal.gradle_plugins.toolkit.StringUtils.trimRightWith;
@@ -66,7 +65,7 @@ public class GradleProject extends AbstractGradleProject<GradleProject, BuildFil
     private static final GradleVersion MIN_GRADLE_VERSION_WITH_CONFIGURATION_CACHE = GradleVersion.version("6.6");
 
 
-    protected final Map<String, GradleChildProject> children = synchronizedMap(new LinkedHashMap<>());
+    protected final Map<String, GradleChildProject> children = new LinkedHashMap<>();
 
     protected final SettingsFile settingsFile;
 
@@ -83,9 +82,9 @@ public class GradleProject extends AbstractGradleProject<GradleProject, BuildFil
 
     @Contract("_ -> this")
     @CanIgnoreReturnValue
-    public final synchronized GradleProject forSettingsFile(Consumer<SettingsFile> settingsFileConsumer) {
+    public final GradleProject forSettingsFile(Consumer<SettingsFile> settingsFileConsumer) {
         settingsFileConsumer.accept(settingsFile);
-        return getSelf();
+        return self();
     }
 
     @Override
@@ -96,7 +95,7 @@ public class GradleProject extends AbstractGradleProject<GradleProject, BuildFil
         children.values().forEach(AbstractGradleProject::writeToDisk);
     }
 
-    public final synchronized GradleChildProject newChildProject(String name) {
+    public final GradleChildProject newChildProject(String name) {
         return children.computeIfAbsent(name, __ -> {
             val childProjectDir = new File(projectDir, name);
             val child = new GradleChildProject(childProjectDir);
@@ -110,13 +109,13 @@ public class GradleProject extends AbstractGradleProject<GradleProject, BuildFil
 
     @Contract("_,_ -> this")
     @CanIgnoreReturnValue
-    public final synchronized GradleProject newChildProject(
+    public final GradleProject newChildProject(
         String name,
         Consumer<GradleChildProject> childProjectConsumer
     ) {
         val child = newChildProject(name);
         childProjectConsumer.accept(child);
-        return getSelf();
+        return self();
     }
 
 
@@ -218,70 +217,62 @@ public class GradleProject extends AbstractGradleProject<GradleProject, BuildFil
 
     @Contract("_ -> this")
     @CanIgnoreReturnValue
-    public final synchronized GradleProject addForbiddenMessage(String message) {
-        assertIsNotBuilt();
+    public final GradleProject addForbiddenMessage(String message) {
         forbiddenMessages.add(message);
-        return getSelf();
+        return self();
     }
 
     @Contract("_ -> this")
     @CanIgnoreReturnValue
-    public final synchronized GradleProject addSuppressedForbiddenMessage(SuppressedMessage suppressedMessage) {
-        assertIsNotBuilt();
+    public final GradleProject addSuppressedForbiddenMessage(SuppressedMessage suppressedMessage) {
         suppressedForbiddenMessages.add(suppressedMessage);
-        return getSelf();
+        return self();
     }
 
     @Contract("_ -> this")
     @CanIgnoreReturnValue
-    public final synchronized GradleProject addDeprecationMessage(String message) {
-        assertIsNotBuilt();
+    public final GradleProject addDeprecationMessage(String message) {
         deprecationMessages.add(message);
-        return getSelf();
+        return self();
     }
 
     @Contract("_ -> this")
     @CanIgnoreReturnValue
-    public final synchronized GradleProject addSuppressedDeprecationMessage(SuppressedMessage suppressedMessage) {
-        assertIsNotBuilt();
+    public final GradleProject addSuppressedDeprecationMessage(SuppressedMessage suppressedMessage) {
         suppressedDeprecationMessages.add(suppressedMessage);
-        return getSelf();
+        return self();
     }
 
     @Contract("_ -> this")
     @CanIgnoreReturnValue
-    public final synchronized GradleProject addMutableProjectStateWarning(String message) {
-        assertIsNotBuilt();
+    public final GradleProject addMutableProjectStateWarning(String message) {
         mutableProjectStateWarnings.add(message);
-        return getSelf();
+        return self();
     }
 
     @Contract("_ -> this")
     @CanIgnoreReturnValue
-    public final synchronized GradleProject addSuppressedMutableProjectStateWarning(
+    public final GradleProject addSuppressedMutableProjectStateWarning(
         SuppressedMessage suppressedMessage
     ) {
-        assertIsNotBuilt();
         suppressedMutableProjectStateWarnings.add(suppressedMessage);
-        return getSelf();
+        return self();
     }
 
     @Contract("_ -> this")
     @CanIgnoreReturnValue
-    public final synchronized GradleProject addOptimizationsDisabledWarning(String message) {
-        assertIsNotBuilt();
+    public final GradleProject addOptimizationsDisabledWarning(String message) {
         optimizationsDisabledWarnings.add(message);
-        return getSelf();
+        return self();
     }
 
     @Contract("_ -> this")
     @CanIgnoreReturnValue
-    public final synchronized GradleProject addSuppressedOptimizationsDisabledWarning(
+    public final GradleProject addSuppressedOptimizationsDisabledWarning(
         SuppressedMessage suppressedMessage
     ) {
-        assertIsNotBuilt();
         suppressedOptimizationsDisabledWarnings.add(suppressedMessage);
-        return getSelf();
+        return self();
     }
 
 
@@ -289,10 +280,9 @@ public class GradleProject extends AbstractGradleProject<GradleProject, BuildFil
 
     @Contract("-> this")
     @CanIgnoreReturnValue
-    public final synchronized GradleProject withoutPluginClasspath() {
-        assertIsNotBuilt();
+    public final GradleProject withoutPluginClasspath() {
         withPluginClasspath = false;
-        return getSelf();
+        return self();
     }
 
 
@@ -301,10 +291,9 @@ public class GradleProject extends AbstractGradleProject<GradleProject, BuildFil
 
     @Contract("-> this")
     @CanIgnoreReturnValue
-    public final synchronized GradleProject withoutConfigurationCache() {
-        assertIsNotBuilt();
+    public final GradleProject withoutConfigurationCache() {
         withConfigurationCache = false;
-        return getSelf();
+        return self();
     }
 
     @Nullable
@@ -312,23 +301,31 @@ public class GradleProject extends AbstractGradleProject<GradleProject, BuildFil
 
     @Contract("_ -> this")
     @CanIgnoreReturnValue
-    public final synchronized GradleProject setTaskTimeout(@Nullable Duration timeout) {
+    public final GradleProject setTaskTimeout(@Nullable Duration timeout) {
         taskTimeout = timeout;
         buildFile.setTaskTimeout(taskTimeout);
         children.values().forEach(child -> {
             child.buildFile.setTaskTimeout(taskTimeout);
         });
-        return getSelf();
+        return self();
     }
 
     private boolean withJacoco = currentJvmArgsHaveJacocoJvmArg();
 
     @Contract("-> this")
     @CanIgnoreReturnValue
-    public final synchronized GradleProject withoutJacoco() {
-        assertIsNotBuilt();
+    public final GradleProject withoutJacoco() {
         withJacoco = false;
-        return getSelf();
+        return self();
+    }
+
+
+    @Contract("-> this")
+    @CanIgnoreReturnValue
+    public final GradleProject withCleanBuildDir() {
+        logger.lifecycle("Deleting the build dir...");
+        deleteRecursively(getProjectDir().toPath().resolve("build"));
+        return self();
     }
 
 
@@ -340,95 +337,76 @@ public class GradleProject extends AbstractGradleProject<GradleProject, BuildFil
         return build(false);
     }
 
-    @Nullable
-    private BuildResult buildResult;
-    @Nullable
-    private Throwable buildException;
-
     @SneakyThrows
     @SuppressWarnings({"java:S106", "java:S3776", "UnstableApiUsage"})
-    private synchronized BuildResult build(boolean isExpectingSuccess) {
-        if (buildException != null) {
-            throw buildException;
+    private BuildResult build(boolean isExpectingSuccess) {
+        if (isExpectingSuccess) {
+            logger.lifecycle("Building (expecting success)...");
+        } else {
+            logger.lifecycle("Building (expecting failure)...");
         }
 
-        if (buildResult == null) {
-            final BuildResult currentBuildResult;
-            try {
-                if (withJacoco) {
-                    injectJacocoDumper();
-                }
+        if (withJacoco) {
+            injectJacocoDumper();
+        }
 
+        writeToDisk();
 
-                writeToDisk();
-
-
-                File jacocoProjectDir = null;
-                if (withJacoco && withConfigurationCache) {
-                    jacocoProjectDir = normalizeFile(new File(
-                        projectDir.getParentFile(),
-                        projectDir.getName() + ".jacoco"
-                    ));
-                    copyRecursively(projectDir.toPath(), jacocoProjectDir.toPath());
-                }
-
-
-                val runner = createGradleRunner(projectDir, withConfigurationCache);
-                if (withJacoco && jacocoProjectDir == null) {
-                    injectJacocoArgs(runner);
-                }
-
-                if (isExpectingSuccess) {
-                    currentBuildResult = runner.build();
-                    if (withConfigurationCache) {
-                        logger.lifecycle("\nRebuilding to validate the Configuration Cache additionally...\n");
-                        /*
-                         * Let's check that rebuild doesn't fail.
-                         * It helps to validate the Configuration Cache additionally.
-                         */
-                        runner.build();
-                    }
-                } else {
-                    currentBuildResult = runner.buildAndFail();
-                }
-
-                val output = currentBuildResult.getOutput();
-                List<String> outputLines = Splitter.onPattern("[\\n\\r]+").splitToStream(output)
-                    .map(StringUtils::trimRight)
-                    .filter(not(String::isEmpty))
-                    .collect(toList());
-                assertNoForbiddenMessages(outputLines);
-                assertNoDeprecationMessages(outputLines);
-                assertNoMutableProjectStateWarnings(outputLines);
-                assertNoOptimizationsDisabledWarnings(outputLines);
-
-
-                if (jacocoProjectDir != null) {
-                    logger.lifecycle("\nBuilding to collect test coverage"
-                        + " (see https://github.com/gradle/gradle/issues/25979)...\n");
-                    val jacocoRunner = createGradleRunner(jacocoProjectDir, false);
-                    injectJacocoArgs(jacocoRunner);
-                    if (isExpectingSuccess) {
-                        jacocoRunner.build();
-                    } else {
-                        jacocoRunner.buildAndFail();
-                    }
-                }
-
-            } catch (Throwable e) {
-                buildException = e;
-                throw e;
+        File jacocoProjectDir = null;
+        if (withJacoco && withConfigurationCache) {
+            jacocoProjectDir = new File(
+                projectDir.getParentFile(),
+                projectDir.getName() + ".jacoco"
+            );
+            if (!jacocoProjectDir.isDirectory()) {
+                copyRecursively(projectDir.toPath(), jacocoProjectDir.toPath());
             }
-            buildResult = currentBuildResult;
         }
 
+
+        val runner = createGradleRunner(projectDir, withConfigurationCache);
+        if (withJacoco && jacocoProjectDir == null) {
+            injectJacocoArgs(runner);
+        }
+
+        final BuildResult buildResult;
+        if (isExpectingSuccess) {
+            buildResult = runner.build();
+            if (withConfigurationCache) {
+                logger.lifecycle("\nRebuilding to validate the Configuration Cache additionally...\n");
+                /*
+                 * Let's check that rebuild doesn't fail.
+                 * It helps to validate the Configuration Cache additionally.
+                 */
+                runner.build();
+            }
+        } else {
+            buildResult = runner.buildAndFail();
+        }
+
+        val output = buildResult.getOutput();
+        List<String> outputLines = Splitter.onPattern("[\\n\\r]+").splitToStream(output)
+            .map(StringUtils::trimRight)
+            .filter(not(String::isEmpty))
+            .collect(toList());
+        assertNoForbiddenMessages(outputLines);
+        assertNoDeprecationMessages(outputLines);
+        assertNoMutableProjectStateWarnings(outputLines);
+        assertNoOptimizationsDisabledWarnings(outputLines);
+
+
+        if (jacocoProjectDir != null) {
+            logger.lifecycle("\nBuilding without the Configuration Cache to collect test coverage"
+                + " (see https://github.com/gradle/gradle/issues/25979)...\n");
+            val jacocoRunner = createGradleRunner(jacocoProjectDir, false);
+            injectJacocoArgs(jacocoRunner);
+            if (isExpectingSuccess) {
+                jacocoRunner.build();
+            } else {
+                jacocoRunner.buildAndFail();
+            }
+        }
         return buildResult;
-    }
-
-    private void assertIsNotBuilt() {
-        if (buildException != null || buildResult != null) {
-            throw new IllegalStateException("The project has already been built");
-        }
     }
 
     private void assertNoForbiddenMessages(List<String> outputLines) {
@@ -671,10 +649,18 @@ public class GradleProject extends AbstractGradleProject<GradleProject, BuildFil
         withJvmArguments(runner, jacocoJvmArg.toString());
     }
 
+    private boolean jacocoDumperInjected;
+
     /**
      * See <a href="https://discuss.gradle.org/t/jacoco-gradle-test-kit-with-java/36603/9">https://discuss.gradle.org/t/jacoco-gradle-test-kit-with-java/36603/9</a>.
      */
     private void injectJacocoDumper() {
+        if (jacocoDumperInjected) {
+            return;
+        } else {
+            jacocoDumperInjected = true;
+        }
+
         val settingsFile = getSettingsFile();
         settingsFile.addImport(MBeanServer.class);
         settingsFile.addImport(ManagementFactory.class);
