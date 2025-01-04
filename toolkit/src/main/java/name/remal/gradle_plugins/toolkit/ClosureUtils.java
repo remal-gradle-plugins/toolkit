@@ -4,6 +4,7 @@ import static java.lang.String.join;
 import static java.util.Arrays.asList;
 import static java.util.Collections.unmodifiableList;
 import static lombok.AccessLevel.PRIVATE;
+import static name.remal.gradle_plugins.toolkit.ActionUtils.doNothingAction;
 import static name.remal.gradle_plugins.toolkit.reflection.MembersFinder.getStaticMethod;
 
 import groovy.lang.Closure;
@@ -12,6 +13,7 @@ import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.val;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
+import org.gradle.api.Action;
 import org.jetbrains.annotations.Contract;
 
 @NoArgsConstructor(access = PRIVATE)
@@ -26,6 +28,16 @@ public abstract class ClosureUtils {
             configureMethod.invoke(closure, object);
         }
         return object;
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public static <T> Action<T> configureUsing(@Nullable Closure closure) {
+        if (closure != null) {
+            val configureUtilClass = getConfigureUtilClass();
+            val configureMethod = getStaticMethod(configureUtilClass, Action.class, "configureUsing", Closure.class);
+            return (Action<T>) configureMethod.invoke(closure);
+        }
+        return doNothingAction();
     }
 
 
