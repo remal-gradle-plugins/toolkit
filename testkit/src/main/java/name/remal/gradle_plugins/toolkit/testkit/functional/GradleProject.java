@@ -43,6 +43,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import lombok.CustomLog;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -56,6 +57,7 @@ import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.Contract;
 
 @Getter
+@CustomLog
 public class GradleProject extends AbstractGradleProject<GradleProject, BuildFile> {
 
     private static final Duration DEFAULT_TASK_TIMEOUT = Duration.ofMinutes(1);
@@ -378,6 +380,14 @@ public class GradleProject extends AbstractGradleProject<GradleProject, BuildFil
 
                 if (isExpectingSuccess) {
                     currentBuildResult = runner.build();
+                    if (withConfigurationCache) {
+                        logger.lifecycle("\nRebuilding to validate the Configuration Cache additionally...\n");
+                        /*
+                         * Let's check that rebuild doesn't fail.
+                         * It helps to validate the Configuration Cache additionally.
+                         */
+                        runner.build();
+                    }
                 } else {
                     currentBuildResult = runner.buildAndFail();
                 }
@@ -394,6 +404,8 @@ public class GradleProject extends AbstractGradleProject<GradleProject, BuildFil
 
 
                 if (jacocoProjectDir != null) {
+                    logger.lifecycle("\nBuilding to collect test coverage"
+                        + " (see https://github.com/gradle/gradle/issues/25979)...\n");
                     val jacocoRunner = createGradleRunner(jacocoProjectDir, false);
                     injectJacocoArgs(jacocoRunner);
                     if (isExpectingSuccess) {
