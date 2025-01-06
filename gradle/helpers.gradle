@@ -739,6 +739,23 @@ allprojects {
                     .collect { it.source }
             })
         }
+
+        tasks.withType(JacocoReportBase).configureEach { JacocoReportBase task ->
+            task.onlyIf {
+                Closure filterOutIncludedFiles = { ConfigurableFileCollection fileCollection ->
+                    fileCollection.setFrom(
+                        fileCollection.files
+                            .findAll { !otherProject.sourceSets.main.allSource.srcDirs.contains(it) }
+                            .findAll { !otherProject.sourceSets.main.output.contains(it) }
+                            .findAll { otherProject.tasks.jar.archiveFile.get().asFile != it }
+                    )
+                }
+                filterOutIncludedFiles(task.sourceDirectories)
+                filterOutIncludedFiles(task.classDirectories)
+                filterOutIncludedFiles(task.additionalClassDirs)
+                return true
+            }
+        }
     }
 
     Set<Project> fatJarWithProjects = new LinkedHashSet<>()
