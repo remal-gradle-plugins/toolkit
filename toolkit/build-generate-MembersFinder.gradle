@@ -1,11 +1,9 @@
 int typedMethodMaxParamsCount = 15
 
 generateSources.forMainSourceSet.java {
-    Property<String> baseJavaPackage = project.objects.property(String).value(provider {
-        project.calculateBaseJavaPackage()
-    }).with { it.finalizeValueOnRead(); it }
+    String baseJavaPackage = project.calculateBaseJavaPackage()
 
-    classFile("${baseJavaPackage.get()}.reflection", 'MembersFinder') {
+    classFile("${baseJavaPackage}.reflection", 'MembersFinder') {
         addStaticImport('lombok.AccessLevel', 'PRIVATE')
 
         addImport('java.util.Optional')
@@ -166,7 +164,7 @@ generateSources.forMainSourceSet.java {
         }
     }
 
-    classFile("${baseJavaPackage.get()}.reflection", 'MethodsInvoker') {
+    classFile("${baseJavaPackage}.reflection", 'MethodsInvoker') {
         addStaticImport('javax.annotation.meta.When', 'UNKNOWN')
         addStaticImport('lombok.AccessLevel', 'PRIVATE')
 
@@ -228,10 +226,10 @@ generateSources.forMainSourceSet.java {
     }
 
     (0..typedMethodMaxParamsCount).forEach { paramsCount ->
-        classFile("${baseJavaPackage.get()}.reflection", "TypedMethod${paramsCount}") {
+        classFile("${baseJavaPackage}.reflection", "TypedMethod${paramsCount}") {
             addStaticImport('javax.annotation.meta.When', 'UNKNOWN')
-            addStaticImport("${baseJavaPackage.get()}.ThrowableUtils", 'unwrapReflectionException')
-            addStaticImport("${baseJavaPackage.get()}.reflection.ReflectionUtils", 'isStatic')
+            addStaticImport("${baseJavaPackage}.ThrowableUtils", 'unwrapReflectionException')
+            addStaticImport("${baseJavaPackage}.reflection.ReflectionUtils", 'isStatic')
 
             addImport('java.lang.reflect.Method')
             addImport('javax.annotation.Nonnull')
@@ -267,10 +265,10 @@ generateSources.forMainSourceSet.java {
             }
         }
 
-        classFile("${baseJavaPackage.get()}.reflection", "TypedVoidMethod${paramsCount}") {
+        classFile("${baseJavaPackage}.reflection", "TypedVoidMethod${paramsCount}") {
             addStaticImport('javax.annotation.meta.When', 'UNKNOWN')
-            addStaticImport("${baseJavaPackage.get()}.ThrowableUtils", 'unwrapReflectionException')
-            addStaticImport("${baseJavaPackage.get()}.reflection.ReflectionUtils", 'isStatic')
+            addStaticImport("${baseJavaPackage}.ThrowableUtils", 'unwrapReflectionException')
+            addStaticImport("${baseJavaPackage}.reflection.ReflectionUtils", 'isStatic')
 
             addImport('java.lang.reflect.Method')
             addImport('javax.annotation.Nonnull')
@@ -304,10 +302,10 @@ generateSources.forMainSourceSet.java {
             }
         }
 
-        classFile("${baseJavaPackage.get()}.reflection", "TypedStaticMethod${paramsCount}") {
+        classFile("${baseJavaPackage}.reflection", "TypedStaticMethod${paramsCount}") {
             addStaticImport('javax.annotation.meta.When', 'UNKNOWN')
-            addStaticImport("${baseJavaPackage.get()}.ThrowableUtils", 'unwrapReflectionException')
-            addStaticImport("${baseJavaPackage.get()}.reflection.ReflectionUtils", 'isNotStatic')
+            addStaticImport("${baseJavaPackage}.ThrowableUtils", 'unwrapReflectionException')
+            addStaticImport("${baseJavaPackage}.reflection.ReflectionUtils", 'isNotStatic')
 
             addImport('java.lang.reflect.Method')
             addImport('javax.annotation.Nonnull')
@@ -343,10 +341,10 @@ generateSources.forMainSourceSet.java {
             }
         }
 
-        classFile("${baseJavaPackage.get()}.reflection", "TypedStaticVoidMethod${paramsCount}") {
+        classFile("${baseJavaPackage}.reflection", "TypedStaticVoidMethod${paramsCount}") {
             addStaticImport('javax.annotation.meta.When', 'UNKNOWN')
-            addStaticImport("${baseJavaPackage.get()}.ThrowableUtils", 'unwrapReflectionException')
-            addStaticImport("${baseJavaPackage.get()}.reflection.ReflectionUtils", 'isNotStatic')
+            addStaticImport("${baseJavaPackage}.ThrowableUtils", 'unwrapReflectionException')
+            addStaticImport("${baseJavaPackage}.reflection.ReflectionUtils", 'isNotStatic')
 
             addImport('java.lang.reflect.Method')
             addImport('javax.annotation.Nonnull')

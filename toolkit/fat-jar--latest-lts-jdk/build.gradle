@@ -46,8 +46,9 @@ Provider<File> latestLtsJmodsDir = latestLtsJavaCompiler.map {
 FileTree jmodsFileTree = files(latestLtsJmodsDir).asFileTree
     .matching { include('*.jmod') }
 
-tasks.named('generateJava') {
-    inputs.files(jmodsFileTree).withNormalizer(ClasspathNormalizer).optional()
+generateSources.forMainSourceSet.java {
+    withInputClasspathFiles('jmodsFileTree', jmodsFileTree)
+
     classFile(project.calculateBaseJavaPackage() + '.reflection', 'LatestLtsJdkModules') {
         Map<String, Set<String>> modulePackages = new TreeMap<>()
         jmodsFileTree.files.forEach { File jmodFile ->
@@ -95,13 +96,11 @@ tasks.named('generateJava') {
             }
         }
 
-        it.writePackage()
-        line()
         addStaticImport("java.util.Arrays", "asList")
         addStaticImport("java.util.Collections", "unmodifiableMap")
         addStaticImport("java.util.Collections", "unmodifiableSet")
         addStaticImport("lombok.AccessLevel", "PRIVATE")
-        line()
+
         addImport("java.util.LinkedHashMap")
         addImport("java.util.LinkedHashSet")
         addImport("java.util.Map")
@@ -109,11 +108,12 @@ tasks.named('generateJava') {
         addImport("lombok.NoArgsConstructor")
         addImport("lombok.val")
         addImport("name.remal.gradle_plugins.toolkit.annotations.ReliesOnExternalDependency")
-        line()
+
         line("@ReliesOnExternalDependency")
         line("@NoArgsConstructor(access = PRIVATE)")
         suppressWarningsLine("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "java:S107", "java:S1128", "java:S1611")
         block("abstract class ${simpleName}") {
+
             /*
             line()
             line("public static final Map<String, Set<String>> LATEST_LTS_JDK_MODULE_PACKAGES;")
@@ -139,6 +139,8 @@ tasks.named('generateJava') {
                 }
                 line("LATEST_LTS_JDK_PACKAGE_MODULES = unmodifiableMap(mapping);")
             }
+
+            line()
         }
     }
 }

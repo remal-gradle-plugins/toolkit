@@ -116,7 +116,9 @@ generateSources.forMainSourceSet.java {
     Property<String> javaApiMinVersion = project.objects.property(String).value(provider { project.property('java-runtime.min-version').toString() }).with { it.finalizeValueOnRead(); it }
     withInputProperty('javaApiMinVersion', javaApiMinVersion)
 
-    Property<String> gradleApiMinVersion = project.objects.property(String).value(provider { project.property('gradle-api.min-version').toString() }).with { it.finalizeValueOnRead(); it }
+    Property<String> gradleApiMinVersion = project.objects.property(String).value(provider {
+        project.property('gradle-api.min-version').toString()
+    }).with { it.finalizeValueOnRead(); it }
     withInputProperty('gradleApiMinVersion', gradleApiMinVersion)
 
     Property<String> toolkitVersion = project.objects.property(String).value(provider { project.version?.toString() }).with { it.finalizeValueOnRead(); it }
