@@ -4,55 +4,53 @@ import static name.remal.gradle_plugins.toolkit.GradleVersionUtils.isCurrentGrad
 
 import java.io.File;
 import java.lang.management.ManagementFactory;
-import javax.management.MBeanServer;
 import javax.management.ObjectName;
-import name.remal.gradle_plugins.generate_sources.generators.java_like.groovy.GroovyContent;
-import name.remal.gradle_plugins.toolkit.testkit.functional.generator.groovy.GradleBuildFileContentGroovy;
-import name.remal.gradle_plugins.toolkit.testkit.functional.generator.groovy.GradleBuildFileContentGroovyDefault;
-import name.remal.gradle_plugins.toolkit.testkit.functional.generator.groovy.GradleSettingsFileContentGroovy;
-import name.remal.gradle_plugins.toolkit.testkit.functional.generator.groovy.GradleSettingsFileContentGroovyDefault;
+import name.remal.gradle_plugins.generate_sources.generators.java_like.kotlin.KotlinContent;
+import name.remal.gradle_plugins.toolkit.testkit.functional.generator.kotlin.GradleBuildFileContentKotlin;
+import name.remal.gradle_plugins.toolkit.testkit.functional.generator.kotlin.GradleBuildFileContentKotlinDefault;
+import name.remal.gradle_plugins.toolkit.testkit.functional.generator.kotlin.GradleSettingsFileContentKotlin;
+import name.remal.gradle_plugins.toolkit.testkit.functional.generator.kotlin.GradleSettingsFileContentKotlinDefault;
 import org.gradle.api.Action;
 
-public class GradleProject
+public class GradleKtsProject
     extends AbstractGradleProject<
-    GroovyContent,
-    GradleBuildFileContentGroovy,
-    GradleSettingsFileContentGroovy,
-    GradleChildProject
+    KotlinContent,
+    GradleBuildFileContentKotlin,
+    GradleSettingsFileContentKotlin,
+    GradleKtsChildProject
     > {
 
-    public GradleProject(File projectDir) {
+    public GradleKtsProject(File projectDir) {
         super(projectDir);
     }
 
     @Override
     protected String getBuildFileName() {
-        return "build.gradle";
+        return "build.gradle.kts";
     }
 
     @Override
-    protected GradleBuildFileContentGroovy createBuildFileContent() {
-        return new GradleBuildFileContentGroovyDefault();
+    protected GradleBuildFileContentKotlin createBuildFileContent() {
+        return new GradleBuildFileContentKotlinDefault();
     }
 
     @Override
     protected String getSettingsFileName() {
-        return "settings.gradle";
+        return "settings.gradle.kts";
     }
 
     @Override
-    protected GradleSettingsFileContentGroovy createSettingsFileContent() {
-        return new GradleSettingsFileContentGroovyDefault();
+    protected GradleSettingsFileContentKotlin createSettingsFileContent() {
+        return new GradleSettingsFileContentKotlinDefault();
     }
 
     @Override
-    protected GradleChildProject createChildProject(File childProjectDir) {
-        return new GradleChildProject(childProjectDir);
+    protected GradleKtsChildProject createChildProject(File childProjectDir) {
+        return new GradleKtsChildProject(childProjectDir);
     }
 
     @Override
     protected void injectJacocoDumperImpl() {
-        settingsFile.addImport(MBeanServer.class);
         settingsFile.addImport(ManagementFactory.class);
         settingsFile.addImport(ObjectName.class);
 
@@ -60,17 +58,17 @@ public class GradleProject
         settingsFile.line("/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */");
         settingsFile.line("// Jacoco dumper logic:");
 
-        Action<GroovyContent> mainAction = block -> {
-            block.line("MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer()");
-            block.line("ObjectName jacocoObjectName = ObjectName.getInstance(\"org.jacoco:type=Runtime\")");
+        Action<KotlinContent> mainAction = block -> {
+            block.line("val mbeanServer = ManagementFactory.getPlatformMBeanServer()");
+            block.line("val jacocoObjectName = ObjectName.getInstance(\"org.jacoco:type=Runtime\")");
             block.block("if (mbeanServer.isRegistered(jacocoObjectName))", ifBlock -> {
                 //ifBlock.line("println '!!! dumping jacoco data !!!'");
                 ifBlock.line("mbeanServer.invoke(");
                 ifBlock.indent(inner -> {
                     inner.line("jacocoObjectName,");
                     inner.line("\"dump\",");
-                    inner.line("[true].toArray(new Object[0]),");
-                    inner.line("[\"boolean\"].toArray(new String[0])");
+                    inner.line("arrayOf(true),");
+                    inner.line("arrayOf(\"boolean\")");
                 });
                 ifBlock.line(")");
                 //ifBlock.line("println '!!! dumped jacoco data !!!'");
@@ -82,16 +80,16 @@ public class GradleProject
             settingsFile.addImport("org.gradle.api.services.BuildServiceParameters");
 
             settingsFile.block(
-                "abstract class JacocoDumper implements BuildService<BuildServiceParameters.None>, AutoCloseable",
+                "abstract class JacocoDumper : BuildService<BuildServiceParameters.None>, AutoCloseable",
                 classBlock -> {
-                    classBlock.block("void close()", mainAction);
+                    classBlock.block("override fun close()", mainAction);
                 }
             );
 
             settingsFile.line("gradle.sharedServices.registerIfAbsent(");
             settingsFile.indent(inner -> {
                 inner.line("\"%s\",", settingsFile.escapeString(GradleKtsProject.class.getName() + ":jacocoDumper"));
-                inner.line("JacocoDumper,");
+                inner.line("JacocoDumper::class,");
                 inner.line("{ }");
             });
             settingsFile.line(").get()");

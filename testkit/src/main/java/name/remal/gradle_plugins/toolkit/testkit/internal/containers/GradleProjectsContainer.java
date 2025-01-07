@@ -1,14 +1,15 @@
 package name.remal.gradle_plugins.toolkit.testkit.internal.containers;
 
-import lombok.SneakyThrows;
 import lombok.val;
+import name.remal.gradle_plugins.toolkit.testkit.functional.AbstractGradleProject;
+import name.remal.gradle_plugins.toolkit.testkit.functional.GradleKtsProject;
 import name.remal.gradle_plugins.toolkit.testkit.functional.GradleProject;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 
 @Internal
-public class GradleProjectsContainer extends AbstractExtensionContextContainer<GradleProject> {
+public class GradleProjectsContainer extends AbstractExtensionContextContainer<AbstractGradleProject<?, ?, ?, ?>> {
 
     public static GradleProjectsContainer getGradleProjectsContainer(
         ExtensionStore extensionStore,
@@ -30,26 +31,26 @@ public class GradleProjectsContainer extends AbstractExtensionContextContainer<G
         super(extensionStore, context);
     }
 
-    public GradleProject newGradleProject() {
-        val dirPrefix = getDirPrefix();
-        return newGradleProject(dirPrefix);
-    }
-
-    @SneakyThrows
-    private GradleProject newGradleProject(ProjectDirPrefix dirPrefix) {
-        val projectDir = dirPrefix.createTempDir().toFile();
-        val gradleProject = new GradleProject(projectDir);
-        registerResource(gradleProject);
-        return gradleProject;
-    }
-
-
-    public GradleProject resolveParameterGradleProject(ParameterContext parameterContext) {
+    public AbstractGradleProject<?, ?, ?, ?> resolveParameterGradleProject(ParameterContext parameterContext) {
         val annotatedParam = new AnnotatedParam(parameterContext.getParameter());
+        val parameterType = parameterContext.getParameter().getType();
+
         val dirPrefix = getDirPrefix()
             .newChildPrefix()
             .push(annotatedParam.getName());
-        return newGradleProject(dirPrefix);
+        val projectDir = dirPrefix.createTempDir().toFile();
+
+        final AbstractGradleProject<?, ?, ?, ?> gradleProject;
+        if (parameterType == GradleProject.class) {
+            gradleProject = new GradleProject(projectDir);
+        } else if (parameterType == GradleKtsProject.class) {
+            gradleProject = new GradleKtsProject(projectDir);
+        } else {
+            throw new IllegalStateException("Unsupported parameter type: " + parameterType);
+        }
+
+        registerResource(gradleProject);
+        return gradleProject;
     }
 
 }

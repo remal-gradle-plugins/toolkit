@@ -25,7 +25,7 @@ buildscript {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-tasks.named('generateJava') {
+generateSources.forMainSourceSet.java {
     List<Class<?>> lambdaClasses = [
         Class.forName('org.gradle.api.Action'),
         Class.forName('java.lang.Runnable'),
@@ -79,15 +79,12 @@ tasks.named('generateJava') {
         Class.forName('java.nio.file.DirectoryStream$Filter'),
         Class.forName('java.nio.file.PathMatcher'),
     ]
-
-    inputs.files(lambdaClasses.collect { it.protectionDomain?.codeSource?.location }.findAll { it != null }.toSet()).optional()
+    withInputClasspathFiles('lambdaClassesClasspath', lambdaClasses)
 
     classFile(project.calculateBaseJavaPackage(), 'SneakyThrowUtils') {
-        it.writePackage()
-        it.println("")
-        it.writeStaticImport('javax.annotation.meta.When', 'UNKNOWN')
-        it.writeStaticImport('lombok.AccessLevel', 'PRIVATE')
-        it.println("")
+        addStaticImport('javax.annotation.meta.When', 'UNKNOWN')
+        addStaticImport('lombok.AccessLevel', 'PRIVATE')
+
         (lambdaClasses.collect { it.name } + [
             'lombok.Lombok',
             'lombok.NoArgsConstructor',
@@ -97,23 +94,24 @@ tasks.named('generateJava') {
             .sort()
             .findAll { !it.matches(/^java\.lang\.[^.]+$/) }
             .collect { it.replaceFirst(/^(.+)\$.+$/, '$1') }
-            .forEach { name -> it.writeImport(name) }
-        it.println("")
-        it.println("@NoArgsConstructor(access = PRIVATE)")
-        it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "checkstyle:OverloadMethodsDeclarationOrder", "overloads", "java:S1611", "java:S6539")
-        it.writeBlock("public abstract class ${it.simpleName}") {
-            it.println("")
-            it.println("/**")
-            it.println(" * See {@link Lombok#sneakyThrow(Throwable)}.")
-            it.println(" */")
-            it.println("@CheckReturnValue")
-            it.writeBlock("public static RuntimeException sneakyThrow(Throwable exception)") {
-                it.println("return sneakyThrow0(exception);")
+            .forEach { name -> addImport(name) }
+
+        line("@NoArgsConstructor(access = PRIVATE)")
+        suppressWarningsLine("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "checkstyle:OverloadMethodsDeclarationOrder", "overloads", "java:S1611", "java:S6539")
+        block("public abstract class ${simpleName}") {
+            line()
+
+            line("/**")
+            line(" * See {@link Lombok#sneakyThrow(Throwable)}.")
+            line(" */")
+            line("@CheckReturnValue")
+            block("public static RuntimeException sneakyThrow(Throwable exception)") {
+                line("return sneakyThrow0(exception);")
             }
-            it.println("")
-            it.writeSuppressWarnings("unchecked", "TypeParameterUnusedInFormals")
-            it.writeBlock("private static <T extends Throwable> T sneakyThrow0(Throwable exception) throws T") {
-                it.println("throw (T) exception;")
+            line()
+            suppressWarningsLine("unchecked", "TypeParameterUnusedInFormals")
+            block("private static <T extends Throwable> T sneakyThrow0(Throwable exception) throws T") {
+                line("throw (T) exception;")
             }
 
             Set<String> usedNames = new LinkedHashSet<>()
@@ -147,39 +145,41 @@ tasks.named('generateJava') {
                 String originalSimpleName = lambdaClass.name.replaceFirst(/^.+\.([^.]+)$/, '$1').replace('$', '.')
                 String resultSimpleName = originalSimpleName.replace('.', '')
 
-                it.println("")
-                it.println("")
-                it.println("/**")
-                it.println(" * Throwing {@link Throwable} alternative for {@link ${originalSimpleName}}.")
-                it.println(" */")
-                it.println("@FunctionalInterface")
-                it.writeBlock("public interface SneakyThrows${resultSimpleName}${typeParamsString}") {
+                line()
+                line()
+                line("/**")
+                line(" * Throwing {@link Throwable} alternative for {@link ${originalSimpleName}}.")
+                line(" */")
+                line("@FunctionalInterface")
+                block("public interface SneakyThrows${resultSimpleName}${typeParamsString}") {
                     if (!resolvedMethod.returnType.primitive) {
-                        it.println("@Nonnull(when = UNKNOWN)")
+                        line("@Nonnull(when = UNKNOWN)")
                     }
-                    it.println("${resolvedMethod.genericReturnType} ${method.name}($paramsString) throws Throwable;")
+                    line("${resolvedMethod.genericReturnType} ${method.name}($paramsString) throws Throwable;")
                 }
 
-                it.println("")
-                it.println("@CheckReturnValue")
-                it.writeBlock("public static${!typeParamsString.isEmpty() ? ' ' + typeParamsString : ''} ${originalSimpleName}${typeParamsString} sneakyThrows(SneakyThrows${resultSimpleName}${typeParamsString} ${resultSimpleName.uncapitalize()})") {
-                    it.println("return ($paramNamesString) -> {")
-                    it.println("    try {")
-                    it.println("        ${resolvedMethod.genericReturnType != void.class ? 'return ' : ''}${resultSimpleName.uncapitalize()}.${method.name}($paramNamesString);")
-                    it.println("    } catch (Throwable exception) {")
-                    it.println("        throw sneakyThrow(exception);")
-                    it.println("    }")
-                    it.println("};")
+                line()
+                line("@CheckReturnValue")
+                block("public static${!typeParamsString.isEmpty() ? ' ' + typeParamsString : ''} ${originalSimpleName}${typeParamsString} sneakyThrows(SneakyThrows${resultSimpleName}${typeParamsString} ${resultSimpleName.uncapitalize()})") {
+                    line("return ($paramNamesString) -> {")
+                    line("    try {")
+                    line("        ${resolvedMethod.genericReturnType != void.class ? 'return ' : ''}${resultSimpleName.uncapitalize()}.${method.name}($paramNamesString);")
+                    line("    } catch (Throwable exception) {")
+                    line("        throw sneakyThrow(exception);")
+                    line("    }")
+                    line("};")
                 }
 
                 if (usedNames.add(resultSimpleName)) {
-                    it.println("")
-                    it.println("@CheckReturnValue")
-                    it.writeBlock("public static${!typeParamsString.isEmpty() ? ' ' + typeParamsString : ''} ${originalSimpleName}${typeParamsString} sneakyThrows${resultSimpleName}(SneakyThrows${resultSimpleName}${typeParamsString} ${resultSimpleName.uncapitalize()})") {
-                        it.println("return sneakyThrows(${resultSimpleName.uncapitalize()});")
+                    line()
+                    line("@CheckReturnValue")
+                    block("public static${!typeParamsString.isEmpty() ? ' ' + typeParamsString : ''} ${originalSimpleName}${typeParamsString} sneakyThrows${resultSimpleName}(SneakyThrows${resultSimpleName}${typeParamsString} ${resultSimpleName.uncapitalize()})") {
+                        line("return sneakyThrows(${resultSimpleName.uncapitalize()});")
                     }
                 }
             }
+
+            line()
         }
     }
 }

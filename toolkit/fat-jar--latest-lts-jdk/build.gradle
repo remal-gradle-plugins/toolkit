@@ -46,8 +46,9 @@ Provider<File> latestLtsJmodsDir = latestLtsJavaCompiler.map {
 FileTree jmodsFileTree = files(latestLtsJmodsDir).asFileTree
     .matching { include('*.jmod') }
 
-tasks.named('generateJava') {
-    inputs.files(jmodsFileTree).withNormalizer(ClasspathNormalizer).optional()
+generateSources.forMainSourceSet.java {
+    withInputClasspathFiles('jmodsFileTree', jmodsFileTree)
+
     classFile(project.calculateBaseJavaPackage() + '.reflection', 'LatestLtsJdkModules') {
         Map<String, Set<String>> modulePackages = new TreeMap<>()
         jmodsFileTree.files.forEach { File jmodFile ->
@@ -95,50 +96,51 @@ tasks.named('generateJava') {
             }
         }
 
-        it.writePackage()
-        it.println("")
-        it.writeStaticImport("java.util.Arrays", "asList")
-        it.writeStaticImport("java.util.Collections", "unmodifiableMap")
-        it.writeStaticImport("java.util.Collections", "unmodifiableSet")
-        it.writeStaticImport("lombok.AccessLevel", "PRIVATE")
-        it.println("")
-        it.writeImport("java.util.LinkedHashMap")
-        it.writeImport("java.util.LinkedHashSet")
-        it.writeImport("java.util.Map")
-        it.writeImport("java.util.Set")
-        it.writeImport("lombok.NoArgsConstructor")
-        it.writeImport("lombok.val")
-        it.writeImport("name.remal.gradle_plugins.toolkit.annotations.ReliesOnExternalDependency")
-        it.println("")
-        it.println("@ReliesOnExternalDependency")
-        it.println("@NoArgsConstructor(access = PRIVATE)")
-        it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "java:S107", "java:S1128", "java:S1611")
-        it.writeBlock("abstract class ${it.simpleName}") {
+        addStaticImport("java.util.Arrays", "asList")
+        addStaticImport("java.util.Collections", "unmodifiableMap")
+        addStaticImport("java.util.Collections", "unmodifiableSet")
+        addStaticImport("lombok.AccessLevel", "PRIVATE")
+
+        addImport("java.util.LinkedHashMap")
+        addImport("java.util.LinkedHashSet")
+        addImport("java.util.Map")
+        addImport("java.util.Set")
+        addImport("lombok.NoArgsConstructor")
+        addImport("lombok.val")
+        addImport("name.remal.gradle_plugins.toolkit.annotations.ReliesOnExternalDependency")
+
+        line("@ReliesOnExternalDependency")
+        line("@NoArgsConstructor(access = PRIVATE)")
+        suppressWarningsLine("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "java:S107", "java:S1128", "java:S1611")
+        block("abstract class ${simpleName}") {
+
             /*
-            it.println("")
-            it.println("public static final Map<String, Set<String>> LATEST_LTS_JDK_MODULE_PACKAGES;")
-            it.println("")
-            it.writeBlock("static") {
-                it.println("val mapping = new LinkedHashMap<String, Set<String>>();")
+            line()
+            line("public static final Map<String, Set<String>> LATEST_LTS_JDK_MODULE_PACKAGES;")
+            line()
+            block("static") {
+                line("val mapping = new LinkedHashMap<String, Set<String>>();")
                 modulePackages.forEach { moduleName, packageNames ->
-                    it.println("mapping.put(\"${it.escapeJava(moduleName)}\", unmodifiableSet(new LinkedHashSet<>(asList(")
-                    it.println("    " + packageNames.collect { name -> "\"${it.escapeJava(name)}\"" }.join(',\n    '))
-                    it.println("))));")
+                    line("mapping.put(\"${escapeString(moduleName)}\", unmodifiableSet(new LinkedHashSet<>(asList(")
+                    line("    " + packageNames.collect { name -> "\"${escapeString(name)}\"" }.join(',\n    '))
+                    line("))));")
                 }
-                it.println("LATEST_LTS_JDK_MODULE_PACKAGES = unmodifiableMap(mapping);")
+                line("LATEST_LTS_JDK_MODULE_PACKAGES = unmodifiableMap(mapping);")
             }
             */
 
-            it.println("")
-            it.println("public static final Map<String, String> LATEST_LTS_JDK_PACKAGE_MODULES;")
-            it.println("")
-            it.writeBlock("static") {
-                it.println("val mapping = new LinkedHashMap<String, String>();")
+            line()
+            line("public static final Map<String, String> LATEST_LTS_JDK_PACKAGE_MODULES;")
+            line()
+            block("static") {
+                line("val mapping = new LinkedHashMap<String, String>();")
                 packageModules.forEach { packageName, moduleName ->
-                    it.println("mapping.put(\"${it.escapeJava(packageName)}\", \"${it.escapeJava(moduleName)}\");")
+                    line("mapping.put(\"${escapeString(packageName)}\", \"${escapeString(moduleName)}\");")
                 }
-                it.println("LATEST_LTS_JDK_PACKAGE_MODULES = unmodifiableMap(mapping);")
+                line("LATEST_LTS_JDK_PACKAGE_MODULES = unmodifiableMap(mapping);")
             }
+
+            line()
         }
     }
 }
