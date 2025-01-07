@@ -131,6 +131,7 @@ generateSources.forMainSourceSet.java {
         addStaticImport("java.lang.String", "format")
         addStaticImport("${toolkitBaseJavaPackage.get()}.ObjectUtils", "unwrapProviders")
         addStaticImport("${toolkitBaseJavaPackage.get()}.ResourceUtils", "getResourceUrl")
+
         addImport("lombok.val")
         addImport("org.gradle.api.JavaVersion")
         addImport("org.gradle.api.Plugin")

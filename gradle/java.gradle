@@ -26,7 +26,6 @@ buildscript {
 allprojects {
     pluginManager.withPlugin('java') {
         apply plugin: 'name.remal.test-source-sets'
-        apply plugin: 'name.remal.generate-sources'
 
         java {
             sourceCompatibility = targetCompatibility = project.javaRuntimeMinVersion
