@@ -31,7 +31,7 @@ generateSources.forMainSourceSet.java {
         addImport("lombok.val")
 
         line("@NoArgsConstructor(access = PRIVATE)")
-        block("abstract class ${simpleName}") {
+        block("public abstract class ${simpleName}") {
             line()
             line("private static final Map<String, String> VERSIONS = ImmutableMap.<String, String>builder()")
             indent {

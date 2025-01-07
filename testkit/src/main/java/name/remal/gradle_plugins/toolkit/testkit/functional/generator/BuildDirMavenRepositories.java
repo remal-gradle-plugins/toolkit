@@ -1,4 +1,4 @@
-package name.remal.gradle_plugins.toolkit.testkit.functional;
+package name.remal.gradle_plugins.toolkit.testkit.functional.generator;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static lombok.AccessLevel.PRIVATE;

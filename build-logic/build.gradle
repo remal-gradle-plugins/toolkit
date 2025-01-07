@@ -81,6 +81,7 @@ MapProperty<File, String> scriptsToInclude = objects.mapProperty(File, String).v
 }).with { it.finalizeValueOnRead(); it }
 
 generateSources.forMainSourceSet.resources {
+    dependsOn(configurations.compileClasspath)
     withInputClasspathFiles('compileClasspath', configurations.compileClasspath)
 
     MapProperty<String, String> toolkitProps = project.objects.mapProperty(String, String).value(provider {
@@ -99,10 +100,10 @@ generateSources.forMainSourceSet.resources {
             String content = includedBuildScriptFile.getText('UTF-8')
 
             content = content.replaceAll(/\$\{\s*(?:project\s*\.\s*)?(tookitGroup|tookitVersion)\s*\(\s*\)\s*\}/) { matcher ->
-                props.get()[matcher[1]]
+                toolkitProps.get()[matcher[1]]
             }
             content = content.replaceAll(/\b(?:project\s*\.\s*)?(tookitGroup|tookitVersion|tookitUrl)\s*\(\s*\)/) { matcher ->
-                '\'' + props.get()[matcher[1]] + '\''
+                '\'' + toolkitProps.get()[matcher[1]] + '\''
             }
 
             write(content)
@@ -116,9 +117,7 @@ generateSources.forMainSourceSet.java {
     Property<String> javaApiMinVersion = project.objects.property(String).value(provider { project.property('java-runtime.min-version').toString() }).with { it.finalizeValueOnRead(); it }
     withInputProperty('javaApiMinVersion', javaApiMinVersion)
 
-    Property<String> gradleApiMinVersion = project.objects.property(String).value(provider {
-        project.property('gradle-api.min-version').toString()
-    }).with { it.finalizeValueOnRead(); it }
+    Property<String> gradleApiMinVersion = project.objects.property(String).value(provider { project.property('gradle-api.min-version').toString() }).with { it.finalizeValueOnRead(); it }
     withInputProperty('gradleApiMinVersion', gradleApiMinVersion)
 
     Property<String> toolkitVersion = project.objects.property(String).value(provider { project.version?.toString() }).with { it.finalizeValueOnRead(); it }
@@ -175,7 +174,7 @@ generateSources.forMainSourceSet.java {
 
                 line("project.apply(it -> {")
                 indent {
-                    scriptsToInclude.values().forEach { resource ->
+                    scriptsToInclude.get().values().forEach { resource ->
                         line("it.from(getResourceUrl(\"/${escapeString(resource)}\", ${simpleName}.class));")
                     }
                 }

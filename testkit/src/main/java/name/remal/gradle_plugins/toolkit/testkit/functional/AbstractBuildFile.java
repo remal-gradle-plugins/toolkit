@@ -2,7 +2,7 @@ package name.remal.gradle_plugins.toolkit.testkit.functional;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
-import static name.remal.gradle_plugins.toolkit.testkit.functional.BuildDirMavenRepositories.getBuildDirMavenRepositories;
+import static name.remal.gradle_plugins.toolkit.testkit.functional.generator.BuildDirMavenRepositories.getBuildDirMavenRepositories;
 
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.io.File;
