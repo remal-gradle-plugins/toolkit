@@ -56,11 +56,6 @@ public class ProjectsContainer extends AbstractExtensionContextContainer<Project
         invocationParameterProjects.clear();
     }
 
-    public Project newProject(@Nullable Project parentProject) {
-        val dirPrefix = getDirPrefix();
-        return newProject(parentProject, dirPrefix);
-    }
-
     @ReliesOnInternalGradleApi
     @SneakyThrows
     private synchronized Project newProject(@Nullable Project parentProject, ProjectDirPrefix dirPrefix) {

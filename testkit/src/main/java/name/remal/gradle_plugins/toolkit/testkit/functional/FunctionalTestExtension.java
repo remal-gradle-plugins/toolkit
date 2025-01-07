@@ -19,7 +19,8 @@ public class FunctionalTestExtension extends AbstractProjectDirPrefixExtension i
         ExtensionContext extensionContext
     ) throws ParameterResolutionException {
         val paramType = parameterContext.getParameter().getType();
-        return paramType == GradleProject.class;
+        return paramType == GradleProject.class
+            || paramType == GradleKtsProject.class;
     }
 
     @Override

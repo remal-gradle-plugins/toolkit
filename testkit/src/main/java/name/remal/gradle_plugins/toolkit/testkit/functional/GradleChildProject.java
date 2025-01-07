@@ -1,18 +1,24 @@
 package name.remal.gradle_plugins.toolkit.testkit.functional;
 
 import java.io.File;
-import lombok.Getter;
+import name.remal.gradle_plugins.generate_sources.generators.java_like.groovy.GroovyContent;
+import name.remal.gradle_plugins.toolkit.testkit.functional.generator.groovy.GradleChildBuildFileContentGroovy;
 
-@Getter
-public class GradleChildProject extends AbstractGradleProject<GradleChildProject, ChildBuildFile> {
+public class GradleChildProject
+    extends AbstractChildGradleProject<GroovyContent, GradleChildBuildFileContentGroovy> {
 
-    GradleChildProject(File projectDir) {
+    public GradleChildProject(File projectDir) {
         super(projectDir);
     }
 
     @Override
-    protected ChildBuildFile createBuildFile(File projectDir) {
-        return new ChildBuildFile(projectDir);
+    protected GradleChildBuildFileContentGroovy createBuildFileContent() {
+        return new GradleChildBuildFileContentGroovy();
+    }
+
+    @Override
+    protected String getBuildFileName() {
+        return "build.gradle";
     }
 
 }

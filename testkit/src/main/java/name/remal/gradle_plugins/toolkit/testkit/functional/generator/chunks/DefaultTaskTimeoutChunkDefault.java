@@ -12,11 +12,14 @@ import name.remal.gradle_plugins.generate_sources.generators.java_like.JavaLikeC
 public class DefaultTaskTimeoutChunkDefault<Block extends JavaLikeContent<Block>>
     implements DefaultTaskTimeoutChunk {
 
+    private static final Duration DEFAULT_TASK_TIMEOUT = Duration.ofMinutes(1);
+
+
     private final Supplier<Block> blockFactory;
 
     @Setter
     @Nullable
-    private Duration defaultTaskTimeout;
+    private Duration defaultTaskTimeout = DEFAULT_TASK_TIMEOUT;
 
     @Override
     public String toString() {
