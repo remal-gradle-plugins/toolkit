@@ -1,9 +1,13 @@
 package name.remal.gradle_plugins.toolkit.reflection;
 
 import static java.lang.String.format;
+import static java.util.Collections.unmodifiableList;
 
 import com.google.auto.service.AutoService;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.val;
+import org.jetbrains.annotations.Unmodifiable;
 
 @AutoService(WhoCalled.class)
 @SuppressWarnings({"unused", "removal", "java:S5738", "RedundantSuppression"})
@@ -12,8 +16,19 @@ final class WhoCalledSecurityManager extends SecurityManager implements WhoCalle
     private static final int OFFSET = 1;
 
     @Override
+    @Unmodifiable
+    public List<Class<?>> getCallingClasses(int depth) {
+        val result = new ArrayList<Class<?>>();
+        val classes = getClassContext();
+        for (int i = OFFSET + depth; i < classes.length; i++) {
+            result.add(classes[i]);
+        }
+        return unmodifiableList(result);
+    }
+
+    @Override
     public Class<?> getCallingClass(int depth) {
-        Class<?>[] classes = getClassContext();
+        val classes = getClassContext();
         val index = OFFSET + depth;
         if (index >= classes.length) {
             throw new IllegalArgumentException(format(

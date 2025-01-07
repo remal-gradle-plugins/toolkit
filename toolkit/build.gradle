@@ -42,31 +42,6 @@ project.fatJarWith(project(':toolkit:fat-jar--latest-lts-jdk'))
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-tasks.named('generateJava') { Task it ->
-    Property<String> toolkitGroupId = project.objects.property(String).value(provider { project.group?.toString() }).with { it.finalizeValueOnRead(); it }
-    Property<String> toolkitArtifactId = project.objects.property(String).value(provider { project.name }).with { it.finalizeValueOnRead(); it }
-    Property<String> toolkitVersion = project.objects.property(String).value(provider { project.version?.toString() }).with { it.finalizeValueOnRead(); it }
-    inputs.property('toolkitGroupId', toolkitGroupId).optional(true)
-    inputs.property('toolkitArtifactId', toolkitArtifactId).optional(true)
-    inputs.property('toolkitVersion', toolkitVersion).optional(true)
-    classFile(project.calculateBaseJavaPackage(), 'ToolkitBuildInfo') {
-        it.writePackage()
-        it.println("")
-        it.writeStaticImport("lombok.AccessLevel", "PRIVATE")
-        it.println("")
-        it.writeImport("lombok.NoArgsConstructor")
-        it.println("")
-        it.println("@NoArgsConstructor(access = PRIVATE)")
-        it.writeBlock("abstract class ${it.simpleName}") {
-            it.println("public static final String TOOLKIT_GROUP_ID = \"${it.escapeJava(toolkitGroupId.get())}\";")
-            it.println("public static final String TOOLKIT_ARTIFACT_IT = \"${it.escapeJava(toolkitArtifactId.get())}\";")
-            it.println("public static final String TOOLKIT_VERSION = \"${it.escapeJava(toolkitVersion.get())}\";")
-        }
-    }
-}
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 Configuration saxonConf = configurations.create('saxon') {
     dependencies.add(project.dependencies.create('net.sf.saxon:Saxon-HE:12.5'))
 }
