@@ -10,8 +10,6 @@ apply plugin: 'name.remal.generate-sources'
     'build-generate-SneakyThrowUtils.gradle',
 ].forEach { fileName ->
     apply from: fileName
-    tasks.named('generateJava').configure { it.inputs.file(fileName) }
-    tasks.named('generateResources').configure { it.inputs.file(fileName) }
 }
 
 dependencies {
