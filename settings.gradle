@@ -40,7 +40,6 @@ include(
     ':toolkit:cross-compile--gradle-7.3-lte',
     ':toolkit:cross-compile--gradle-7.9999-lt',
     ':toolkit:cross-compile--gradle-8.10-lte',
-    ':classpath',
     ':testkit',
     ':build-logic',
 )

@@ -1,8 +1,0 @@
-apply plugin: 'java-library'
-apply plugin: 'maven-publish'
-
-dependencies {
-    classesRelocation project(':toolkit')
-
-    testImplementation project(':toolkit')
-}
