@@ -170,6 +170,7 @@ public abstract class FileTreeElementUtils {
                 );
 
                 mv.visitInsn(RETURN);
+                mv.visitMaxs(0, 0);
                 mv.visitEnd();
             }
 
@@ -193,6 +194,7 @@ public abstract class FileTreeElementUtils {
                 );
 
                 mv.visitInsn(getType(methodToImplement.getReturnType()).getOpcode(IRETURN));
+                mv.visitMaxs(0, 0);
                 mv.visitEnd();
             }
 
@@ -225,6 +227,7 @@ public abstract class FileTreeElementUtils {
                 );
 
                 mv.visitInsn(getType(methodToImplement.getReturnType()).getOpcode(IRETURN));
+                mv.visitMaxs(0, 0);
                 mv.visitEnd();
             }
 
@@ -257,6 +260,7 @@ public abstract class FileTreeElementUtils {
                 );
 
                 mv.visitInsn(getType(methodToImplement.getReturnType()).getOpcode(IRETURN));
+                mv.visitMaxs(0, 0);
                 mv.visitEnd();
             }
 
@@ -293,6 +297,7 @@ public abstract class FileTreeElementUtils {
                 mv.visitInsn(IXOR);
 
                 mv.visitInsn(getType(methodToImplement.getReturnType()).getOpcode(IRETURN));
+                mv.visitMaxs(0, 0);
                 mv.visitEnd();
             }
 
@@ -359,6 +364,7 @@ public abstract class FileTreeElementUtils {
                 );
 
                 mv.visitInsn(getType(methodToImplement.getReturnType()).getOpcode(IRETURN));
+                mv.visitMaxs(0, 0);
                 mv.visitEnd();
             }
 
