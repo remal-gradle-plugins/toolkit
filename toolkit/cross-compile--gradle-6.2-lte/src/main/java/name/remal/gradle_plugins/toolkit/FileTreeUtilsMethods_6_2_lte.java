@@ -18,7 +18,7 @@ import org.jetbrains.annotations.Unmodifiable;
 
 @ReliesOnInternalGradleApi
 @AutoService(FileTreeUtilsMethods.class)
-final class FileTreeUtilsMethods_6_2_lte extends FileTreeUtilsMethods {
+final class FileTreeUtilsMethods_6_2_lte implements FileTreeUtilsMethods {
 
     @Override
     @Unmodifiable
@@ -50,7 +50,7 @@ final class FileTreeUtilsMethods_6_2_lte extends FileTreeUtilsMethods {
                 @Nullable FileTreeInternal fileTree
             ) {
                 if (root != null) {
-                    roots.add(normalizeFile(root));
+                    roots.add(normalizeFileTreeFile(root));
                 }
             }
 
@@ -60,7 +60,7 @@ final class FileTreeUtilsMethods_6_2_lte extends FileTreeUtilsMethods {
                 @Nullable FileTreeInternal fileTree
             ) {
                 if (file != null) {
-                    roots.add(normalizeFile(file));
+                    roots.add(normalizeFileTreeFile(file));
                 }
             }
         });

@@ -17,6 +17,7 @@ final class WhoCalledSecurityManager extends SecurityManager implements WhoCalle
 
     @Override
     @Unmodifiable
+    @SuppressWarnings("ManualArrayToCollectionCopy")
     public List<Class<?>> getCallingClasses(int depth) {
         val result = new ArrayList<Class<?>>();
         val classes = getClassContext();
@@ -41,9 +42,9 @@ final class WhoCalledSecurityManager extends SecurityManager implements WhoCalle
     }
 
     @Override
-    public boolean isCalledBy(Class<?> type) {
+    public boolean isCalledBy(int depth, Class<?> type) {
         Class<?>[] classes = getClassContext();
-        for (int i = OFFSET + 1; i < classes.length; i++) {
+        for (int i = OFFSET + depth; i < classes.length; i++) {
             if (classes[i] == type) {
                 return true;
             }

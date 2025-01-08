@@ -5,6 +5,8 @@ import static java.util.Arrays.stream;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
+import static name.remal.gradle_plugins.toolkit.BytecodeTestUtils.wrapWithTestClassVisitors;
+import static name.remal.gradle_plugins.toolkit.InTestFlags.isInTest;
 import static name.remal.gradle_plugins.toolkit.LazyValue.lazyValue;
 import static name.remal.gradle_plugins.toolkit.SneakyThrowUtils.sneakyThrow;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.defineClass;
@@ -34,7 +36,6 @@ import static org.objectweb.asm.Type.getType;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableList;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
@@ -50,6 +51,7 @@ import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.jetbrains.annotations.Contract;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
@@ -61,7 +63,6 @@ import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.ParameterNode;
 import org.objectweb.asm.tree.VarInsnNode;
-import org.objectweb.asm.util.CheckClassAdapter;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class LazyProxy {
@@ -168,6 +169,8 @@ public abstract class LazyProxy {
         .weakKeys()
         .build(CacheLoader.from(LazyProxy::generateProxyClass));
 
+    private static final boolean IN_TEST = isInTest();
+
     private static final String LAZY_VALUE_FIELD_NODE = "lazyValue";
 
     private static final Method LAZY_VALUE_GET_METHOD;
@@ -176,7 +179,7 @@ public abstract class LazyProxy {
     static {
         try {
             LAZY_VALUE_GET_METHOD = LazyValue.class.getMethod("get");
-            OBJECT_METHODS_TO_IMPLEMENT = ImmutableList.of(
+            OBJECT_METHODS_TO_IMPLEMENT = singletonList(
                 Object.class.getMethod("toString")
             );
         } catch (NoSuchMethodException e) {
@@ -314,7 +317,11 @@ public abstract class LazyProxy {
         }
 
         val classWriter = new ClassWriter(COMPUTE_MAXS | COMPUTE_FRAMES);
-        classNode.accept(new CheckClassAdapter(classWriter));
+        ClassVisitor classVisitor = classWriter;
+        if (IN_TEST) {
+            classVisitor = wrapWithTestClassVisitors(classVisitor);
+        }
+        classNode.accept(classVisitor);
         val bytecode = classWriter.toByteArray();
 
         ClassLoader classLoader = interfaceClass.getClassLoader();

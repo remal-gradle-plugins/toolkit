@@ -10,8 +10,11 @@ import static java.util.Collections.singletonList;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import static java.util.stream.Collectors.toList;
 import static lombok.AccessLevel.PRIVATE;
+import static name.remal.gradle_plugins.toolkit.BytecodeTestUtils.wrapWithTestClassVisitors;
 import static name.remal.gradle_plugins.toolkit.CrossCompileServices.loadCrossCompileService;
 import static name.remal.gradle_plugins.toolkit.ExtensionContainerUtils.getExtension;
+import static name.remal.gradle_plugins.toolkit.InTestFlags.isInTest;
+import static name.remal.gradle_plugins.toolkit.LazyProxy.asLazyProxy;
 import static name.remal.gradle_plugins.toolkit.ReportUtils.setReportDestination;
 import static name.remal.gradle_plugins.toolkit.ReportUtils.setReportEnabled;
 import static name.remal.gradle_plugins.toolkit.StringUtils.trimWith;
@@ -77,6 +80,7 @@ import org.gradle.api.reporting.Reporting;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
@@ -89,15 +93,17 @@ import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.ParameterNode;
 import org.objectweb.asm.tree.VarInsnNode;
-import org.objectweb.asm.util.CheckClassAdapter;
 
 @ReliesOnInternalGradleApi
 @NoArgsConstructor(access = PRIVATE)
 @CustomLog
 public abstract class ReportContainerUtils {
 
-    private static final ReportContainerUtilsMethods METHODS =
-        loadCrossCompileService(ReportContainerUtilsMethods.class);
+    private static final ReportContainerUtilsMethods METHODS = asLazyProxy(
+        ReportContainerUtilsMethods.class,
+        () -> loadCrossCompileService(ReportContainerUtilsMethods.class)
+    );
+
 
     public static <
         C extends ReportContainer<?>,
@@ -256,11 +262,14 @@ public abstract class ReportContainerUtils {
         return WITH_REPORT_GETTERS_CLASSES.getUnchecked(reportContainerType);
     }
 
+    private static final boolean IN_TEST = isInTest();
+
     private static final LoadingCache<Class<?>, Class<?>> WITH_REPORT_GETTERS_CLASSES = CacheBuilder.newBuilder()
         .weakKeys()
         .build(CacheLoader.from(ReportContainerUtils::generateWithReportGettersClass));
 
     @SneakyThrows
+    @SuppressWarnings("java:S3776")
     private static Class<?> generateWithReportGettersClass(Class<?> reportContainerType) {
         val classNode = new ClassNode();
         classNode.version = V1_8;
@@ -412,7 +421,11 @@ public abstract class ReportContainerUtils {
         }
 
         val classWriter = new ClassWriter(COMPUTE_MAXS | COMPUTE_FRAMES);
-        classNode.accept(new CheckClassAdapter(classWriter));
+        ClassVisitor classVisitor = classWriter;
+        if (IN_TEST) {
+            classVisitor = wrapWithTestClassVisitors(classVisitor);
+        }
+        classNode.accept(classVisitor);
         val bytecode = classWriter.toByteArray();
 
         ClassLoader classLoader = reportContainerType.getClassLoader();

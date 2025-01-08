@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Unmodifiable;
 
 @ReliesOnInternalGradleApi
 @AutoService(FileTreeUtilsMethods.class)
-final class FileTreeUtilsMethods_7_9999_lt extends FileTreeUtilsMethods {
+final class FileTreeUtilsMethods_7_9999_lt implements FileTreeUtilsMethods {
 
     @Override
     @Unmodifiable
@@ -49,7 +49,7 @@ final class FileTreeUtilsMethods_7_9999_lt extends FileTreeUtilsMethods {
                     .map(DirectoryFileTree::getDir)
                     .orElse(null);
                 if (dir != null) {
-                    roots.add(normalizeFile(dir));
+                    roots.add(normalizeFileTreeFile(dir));
                 }
             }
 
@@ -60,7 +60,7 @@ final class FileTreeUtilsMethods_7_9999_lt extends FileTreeUtilsMethods {
                 @Nullable FileTreeInternal fileTree
             ) {
                 if (root != null) {
-                    roots.add(normalizeFile(root));
+                    roots.add(normalizeFileTreeFile(root));
                 }
             }
 
@@ -71,7 +71,7 @@ final class FileTreeUtilsMethods_7_9999_lt extends FileTreeUtilsMethods {
                 @Nullable FileSystemMirroringFileTree sourceTree
             ) {
                 if (file != null) {
-                    roots.add(normalizeFile(file));
+                    roots.add(normalizeFileTreeFile(file));
                 }
             }
         });

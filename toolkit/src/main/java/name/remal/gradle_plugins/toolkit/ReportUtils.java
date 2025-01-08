@@ -2,6 +2,7 @@ package name.remal.gradle_plugins.toolkit;
 
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.CrossCompileServices.loadCrossCompileService;
+import static name.remal.gradle_plugins.toolkit.LazyProxy.asLazyProxy;
 
 import java.io.File;
 import javax.annotation.Nullable;
@@ -13,7 +14,10 @@ import org.gradle.api.reporting.Report;
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ReportUtils {
 
-    private static final ReportUtilsMethods METHODS = loadCrossCompileService(ReportUtilsMethods.class);
+    private static final ReportUtilsMethods METHODS = asLazyProxy(
+        ReportUtilsMethods.class,
+        () -> loadCrossCompileService(ReportUtilsMethods.class)
+    );
 
 
     public static boolean isReportEnabled(Report report) {

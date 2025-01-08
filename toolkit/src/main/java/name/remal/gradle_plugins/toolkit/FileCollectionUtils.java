@@ -5,6 +5,7 @@ import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.CrossCompileServices.loadCrossCompileService;
+import static name.remal.gradle_plugins.toolkit.LazyProxy.asLazyProxy;
 
 import com.google.common.collect.ImmutableMap;
 import java.io.File;
@@ -24,7 +25,10 @@ import org.jetbrains.annotations.Unmodifiable;
 @NoArgsConstructor(access = PRIVATE)
 public abstract class FileCollectionUtils {
 
-    private static final FileCollectionUtilsMethods METHODS = loadCrossCompileService(FileCollectionUtilsMethods.class);
+    private static final FileCollectionUtilsMethods METHODS = asLazyProxy(
+        FileCollectionUtilsMethods.class,
+        () -> loadCrossCompileService(FileCollectionUtilsMethods.class)
+    );
 
     @Unmodifiable
     public static Set<Configuration> getConfigurationsUsedIn(@Nullable FileCollection fileCollection) {

@@ -10,6 +10,6 @@ interface WhoCalled {
 
     Class<?> getCallingClass(int depth);
 
-    boolean isCalledBy(Class<?> type);
+    boolean isCalledBy(int depth, Class<?> type);
 
 }

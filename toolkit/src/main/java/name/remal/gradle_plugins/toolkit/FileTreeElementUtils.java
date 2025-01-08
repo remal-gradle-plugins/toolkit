@@ -4,6 +4,8 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.unmodifiableSet;
 import static java.util.stream.Collectors.toCollection;
 import static lombok.AccessLevel.PRIVATE;
+import static name.remal.gradle_plugins.toolkit.BytecodeTestUtils.wrapWithTestClassVisitors;
+import static name.remal.gradle_plugins.toolkit.InTestFlags.isInTest;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.defineClass;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.tryLoadClass;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.unwrapGeneratedSubclass;
@@ -45,7 +47,6 @@ import org.gradle.api.file.RelativePath;
 import org.jetbrains.annotations.VisibleForTesting;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.util.CheckClassAdapter;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class FileTreeElementUtils {
@@ -100,11 +101,15 @@ public abstract class FileTreeElementUtils {
 
         public static final Class<FileTreeElement> CLASS = createClass();
 
+        private static final boolean IN_TEST = isInTest();
+
         @SneakyThrows
         private static Class<FileTreeElement> createClass() {
             val classWriter = new ClassWriter(COMPUTE_MAXS | COMPUTE_FRAMES);
             ClassVisitor classVisitor = classWriter;
-            classVisitor = new CheckClassAdapter(classVisitor);
+            if (IN_TEST) {
+                classVisitor = wrapWithTestClassVisitors(classVisitor);
+            }
 
             val classInternalName = getInternalName(FileTreeElement.class) + "$$MockForRelativePath";
             val classSuperName = FileTreeElement.class.isInterface()

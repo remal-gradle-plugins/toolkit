@@ -2,6 +2,7 @@ package name.remal.gradle_plugins.toolkit;
 
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.CrossCompileServices.loadCrossCompileService;
+import static name.remal.gradle_plugins.toolkit.LazyProxy.asLazyProxy;
 
 import java.io.File;
 import java.util.Set;
@@ -11,7 +12,10 @@ import org.gradle.plugins.ide.idea.model.IdeaModule;
 @NoArgsConstructor(access = PRIVATE)
 public abstract class IdeaModuleUtils {
 
-    private static final IdeaModuleUtilsMethods METHODS = loadCrossCompileService(IdeaModuleUtilsMethods.class);
+    private static final IdeaModuleUtilsMethods METHODS = asLazyProxy(
+        IdeaModuleUtilsMethods.class,
+        () -> loadCrossCompileService(IdeaModuleUtilsMethods.class)
+    );
 
 
     public static Set<File> getTestSourceDirs(IdeaModule ideaModule) {

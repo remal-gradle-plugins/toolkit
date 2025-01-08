@@ -2,6 +2,7 @@ package name.remal.gradle_plugins.toolkit;
 
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.CrossCompileServices.loadCrossCompileService;
+import static name.remal.gradle_plugins.toolkit.LazyProxy.asLazyProxy;
 
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
@@ -11,7 +12,11 @@ import org.jetbrains.annotations.Contract;
 @NoArgsConstructor(access = PRIVATE)
 public abstract class PropertyUtils {
 
-    private static final PropertyUtilsMethods METHODS = loadCrossCompileService(PropertyUtilsMethods.class);
+    private static final PropertyUtilsMethods METHODS = asLazyProxy(
+        PropertyUtilsMethods.class,
+        () -> loadCrossCompileService(PropertyUtilsMethods.class)
+    );
+
 
     @Contract("_->param1")
     public static <P extends Property<?>> P finalizeValue(P property) {

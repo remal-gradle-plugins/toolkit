@@ -2,6 +2,7 @@ package name.remal.gradle_plugins.toolkit;
 
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.CrossCompileServices.loadCrossCompileService;
+import static name.remal.gradle_plugins.toolkit.LazyProxy.asLazyProxy;
 
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
@@ -10,8 +11,11 @@ import org.gradle.api.provider.ProviderFactory;
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ProviderFactoryUtils {
 
-    private static final ProviderFactoryUtilsMethods METHODS =
-        loadCrossCompileService(ProviderFactoryUtilsMethods.class);
+    private static final ProviderFactoryUtilsMethods METHODS = asLazyProxy(
+        ProviderFactoryUtilsMethods.class,
+        () -> loadCrossCompileService(ProviderFactoryUtilsMethods.class)
+    );
+
 
     @Nullable
     public static String getEnvironmentVariable(ProviderFactory providers, String name) {

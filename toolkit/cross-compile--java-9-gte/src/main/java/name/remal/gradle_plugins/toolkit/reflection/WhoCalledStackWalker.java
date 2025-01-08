@@ -21,7 +21,7 @@ final class WhoCalledStackWalker implements WhoCalled {
     @Unmodifiable
     public List<Class<?>> getCallingClasses(int depth) {
         val classes = StackWalker.getInstance(RETAIN_CLASS_REFERENCE).walk(stream -> stream
-            .skip(OFFSET + 1)
+            .skip(OFFSET + depth)
             .map(StackFrame::getDeclaringClass)
             .collect(toList())
         );
@@ -31,26 +31,25 @@ final class WhoCalledStackWalker implements WhoCalled {
     @Override
     public Class<?> getCallingClass(int depth) {
         val classes = StackWalker.getInstance(RETAIN_CLASS_REFERENCE).walk(stream -> stream
-            .skip(OFFSET)
-            .limit(depth + 1L)
+            .skip(OFFSET + depth)
+            .limit(1)
             .map(StackFrame::getDeclaringClass)
             .toArray(Class<?>[]::new)
         );
-        val index = depth;
-        if (depth >= classes.length) {
+        if (classes.length == 0) {
             throw new IllegalArgumentException(format(
                 "Stack depth is %d, can't get element of depth %d",
                 classes.length,
                 depth
             ));
         }
-        return classes[index];
+        return classes[0];
     }
 
     @Override
-    public boolean isCalledBy(Class<?> type) {
+    public boolean isCalledBy(int depth, Class<?> type) {
         return StackWalker.getInstance(RETAIN_CLASS_REFERENCE).walk(stream -> stream
-            .skip(OFFSET)
+            .skip(OFFSET + depth)
             .anyMatch(frame -> frame.getDeclaringClass() == type)
         );
     }
