@@ -12,6 +12,7 @@ import static name.remal.gradle_plugins.toolkit.UrlUtils.openInputStreamForUrl;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,6 +20,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URL;
@@ -75,12 +77,12 @@ public abstract class PropertiesUtils {
     }
 
 
-    public static void storeProperties(Map<Object, Object> properties, File file) {
+    public static void storeProperties(Map<?, ?> properties, File file) {
         storeProperties(properties, file.toPath());
     }
 
     @SneakyThrows
-    public static void storeProperties(Map<Object, Object> properties, Path path) {
+    public static void storeProperties(Map<?, ?> properties, Path path) {
         path = normalizePath(path);
         createParentDirectories(path);
         try (val outputStream = newOutputStream(path)) {
@@ -89,14 +91,14 @@ public abstract class PropertiesUtils {
     }
 
     @SneakyThrows
-    public static void storeProperties(Map<Object, Object> properties, @WillClose OutputStream outputStream) {
+    public static void storeProperties(Map<?, ?> properties, @WillClose OutputStream outputStream) {
         try (val writer = new OutputStreamWriter(outputStream, ISO_8859_1)) {
             storeProperties(properties, writer);
         }
     }
 
     @SneakyThrows
-    public static void storeProperties(Map<Object, Object> properties, @WillClose Writer writer) {
+    public static void storeProperties(Map<?, ?> properties, @WillClose Writer writer) {
         try (val bw = writer instanceof BufferedWriter ? (BufferedWriter) writer : new BufferedWriter(writer)) {
             val map = new TreeMap<String, String>();
             properties.forEach((key, value) -> map.put(key.toString(), value.toString()));
@@ -137,6 +139,23 @@ public abstract class PropertiesUtils {
             } else {
                 writer.append(ch);
             }
+        }
+    }
+
+
+    @SneakyThrows
+    public static byte[] storePropertiesToBytes(Map<?, ?> properties) {
+        try (val out = new ByteArrayOutputStream()) {
+            storeProperties(properties, out);
+            return out.toByteArray();
+        }
+    }
+
+    @SneakyThrows
+    public static String storePropertiesToString(Map<?, ?> properties) {
+        try (val writer = new StringWriter()) {
+            storeProperties(properties, writer);
+            return writer.toString();
         }
     }
 
