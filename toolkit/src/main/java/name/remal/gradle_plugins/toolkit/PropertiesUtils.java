@@ -28,13 +28,13 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
-import javax.annotation.WillClose;
 import javax.annotation.WillNotClose;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
 
 @NoArgsConstructor(access = PRIVATE)
+@SuppressWarnings("java:S2093")
 public abstract class PropertiesUtils {
 
     public static Properties loadProperties(File file) {
@@ -62,18 +62,18 @@ public abstract class PropertiesUtils {
     }
 
     @SneakyThrows
-    public static Properties loadProperties(@WillClose InputStream inputStream) {
-        try (val reader = new InputStreamReader(inputStream, UTF_8)) {
-            return loadProperties(reader);
-        }
+    public static Properties loadProperties(@WillNotClose InputStream inputStream) {
+        val reader = new InputStreamReader(inputStream, UTF_8);
+        return loadProperties(reader);
     }
 
     @SneakyThrows
-    public static Properties loadProperties(@WillClose Reader reader) {
+    public static Properties loadProperties(@WillNotClose Reader reader) {
         val properties = new Properties();
-        try (val br = reader instanceof BufferedReader ? (BufferedReader) reader : new BufferedReader(reader)) {
-            properties.load(br);
-        }
+        reader = reader instanceof BufferedReader
+            ? (BufferedReader) reader
+            : new BufferedReader(reader);
+        properties.load(reader);
         return properties;
     }
 
@@ -92,23 +92,27 @@ public abstract class PropertiesUtils {
     }
 
     @SneakyThrows
-    public static void storeProperties(Map<?, ?> properties, @WillClose OutputStream outputStream) {
-        try (val writer = new OutputStreamWriter(outputStream, ISO_8859_1)) {
-            storeProperties(properties, writer);
-        }
+    public static void storeProperties(Map<?, ?> properties, @WillNotClose OutputStream outputStream) {
+        val writer = new OutputStreamWriter(outputStream, ISO_8859_1);
+        storeProperties(properties, writer);
     }
 
     @SneakyThrows
-    public static void storeProperties(Map<?, ?> properties, @WillClose Writer writer) {
-        try (val bw = writer instanceof BufferedWriter ? (BufferedWriter) writer : new BufferedWriter(writer)) {
+    public static void storeProperties(Map<?, ?> properties, @WillNotClose Writer writer) {
+        writer = writer instanceof BufferedWriter
+            ? (BufferedWriter) writer
+            : new BufferedWriter(writer);
+        try {
             val map = new TreeMap<String, String>();
             properties.forEach((key, value) -> map.put(key.toString(), value.toString()));
             for (val entry : map.entrySet()) {
-                writeEscaped(entry.getKey(), true, bw);
-                bw.append('=');
-                writeEscaped(entry.getValue(), false, bw);
-                bw.append('\n');
+                writeEscaped(entry.getKey(), true, writer);
+                writer.append('=');
+                writeEscaped(entry.getValue(), false, writer);
+                writer.append('\n');
             }
+        } finally {
+            writer.flush();
         }
     }
 
