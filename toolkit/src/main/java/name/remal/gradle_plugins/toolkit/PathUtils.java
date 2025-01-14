@@ -6,6 +6,8 @@ import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.deleteIfExists;
 import static java.nio.file.Files.getLastModifiedTime;
 import static java.nio.file.Files.walkFileTree;
+import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static lombok.AccessLevel.PRIVATE;
 
 import com.google.errorprone.annotations.CheckReturnValue;
@@ -47,18 +49,28 @@ public abstract class PathUtils {
 
     @SneakyThrows
     public static void copyRecursively(Path source, Path destination, CopyOption... options) {
+        val withDefaultOptions = options.length == 0
+            ? new CopyOption[]{COPY_ATTRIBUTES, REPLACE_EXISTING}
+            : options;
+
         val normalizedSource = normalizePath(source);
         val normalizedDestination = normalizePath(destination);
         walkFileTree(normalizedSource, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                createDirectories(normalizedDestination.resolve(normalizedSource.relativize(dir).toString()));
+                createDirectories(
+                    normalizedDestination.resolve(normalizedSource.relativize(dir).toString())
+                );
                 return CONTINUE;
             }
 
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                copy(file, normalizedDestination.resolve(normalizedSource.relativize(file).toString()), options);
+                copy(
+                    file,
+                    normalizedDestination.resolve(normalizedSource.relativize(file).toString()),
+                    withDefaultOptions
+                );
                 return CONTINUE;
             }
         });
@@ -89,7 +101,7 @@ public abstract class PathUtils {
                     }
 
                     @Override
-                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                    public FileVisitResult postVisitDirectory(Path dir, @Nullable IOException exc) throws IOException {
                         deleteIfExists(dir);
                         return CONTINUE;
                     }
