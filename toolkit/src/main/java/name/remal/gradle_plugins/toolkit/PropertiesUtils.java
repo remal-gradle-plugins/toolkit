@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
 import javax.annotation.WillClose;
+import javax.annotation.WillNotClose;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
@@ -111,7 +112,11 @@ public abstract class PropertiesUtils {
         }
     }
 
-    private static void writeEscaped(String string, boolean escapeSpace, Writer writer) throws IOException {
+    private static void writeEscaped(
+        String string,
+        boolean escapeSpace,
+        @WillNotClose Writer writer
+    ) throws IOException {
         for (int index = 0; index < string.length(); index++) {
             val ch = string.charAt(index);
             if (ch == '\\'

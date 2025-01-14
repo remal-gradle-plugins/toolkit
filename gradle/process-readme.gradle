@@ -20,7 +20,7 @@ allprojects {
                 }
 
                 File readmeFile = details.file
-                logger.lifecycle('Processing {}', readmeFile)
+                logger.lifecycle('Processing {}', details.relativePath)
                 readmeFileProcessors.forEach { fileProcessor -> fileProcessor(readmeFile) }
             }
         }
@@ -60,6 +60,7 @@ allprojects {
                     if (tag.contains('code-')) {
                         propertyValue = "`$propertyValue`"
                     }
+                    logger.lifecycle('    Value: {}', propertyValue)
                     return "<!--$tag:$property-->$propertyValue<!--/$tag-->"
                 }
 
