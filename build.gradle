@@ -27,7 +27,7 @@ buildscript {
             'name.remal.gradle-plugins.lombok:lombok:2.2.16',
             'name.remal.gradle-plugins.merge-resources:merge-resources:4.0.4',
             'name.remal.gradle-plugins.test-source-sets:test-source-sets:4.1.10',
-            'name.remal.gradle-plugins.sonarlint:sonarlint:4.3.4',
+            'name.remal.gradle-plugins.sonarlint:sonarlint:4.3.5',
             'name.remal.gradle-plugins.build-time-constants:build-time-constants:1.0.0',
             'name.remal.gradle-plugins.classes-relocation:classes-relocation:2.0.0-rc-2',
             'name.remal.gradle-plugins.idea-settings:idea-settings:3.0.16',
