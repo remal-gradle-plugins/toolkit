@@ -2,7 +2,7 @@ import org.gradle.util.GradleVersion
 
 class ResourceLoader {}
 
-tasks.named('generateJava') {
+generateSources.forMainSourceSet.java {
     ListProperty<GradleVersion> gradleVersions = project.objects.listProperty(GradleVersion).value(provider {
         project.getMinorGradleVersions()
             .findAll { it >= GradleVersion.version('6.6') }
@@ -20,32 +20,29 @@ tasks.named('generateJava') {
         }
     )).optional()
 
-    Property<String> baseJavaPackage = project.objects.property(String).value(provider {
-        project.calculateBaseJavaPackage()
-    }).with { it.finalizeValueOnRead(); it }
+    String baseJavaPackage = project.calculateBaseJavaPackage()
 
-    classFile(baseJavaPackage.get(), 'CorePluginConfigurationCacheSupport') {
-        it.writePackage()
-        it.println("")
-        it.writeStaticImport('lombok.AccessLevel', 'PRIVATE')
-        it.writeStaticImport("${baseJavaPackage.get()}.GradleCompatibilityMode", 'PARTIALLY_SUPPORTED')
-        it.writeStaticImport("${baseJavaPackage.get()}.GradleCompatibilityMode", 'SUPPORTED')
-        it.writeStaticImport("${baseJavaPackage.get()}.GradleCompatibilityMode", 'UNSUPPORTED')
-        it.println("")
-        it.writeImport("lombok.NoArgsConstructor")
-        it.writeImport("org.gradle.util.GradleVersion")
-        it.println("")
-        it.println("@NoArgsConstructor(access = PRIVATE)")
-        it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "checkstyle:MissingSwitchDefault", "java:S3776", "java:S131", "java:S1479", "DuplicateBranchesInSwitch")
-        it.writeBlock("abstract class ${it.simpleName}") {
-            it.println("")
+    classFile(baseJavaPackage, 'CorePluginConfigurationCacheSupport') {
+        addStaticImport('lombok.AccessLevel', 'PRIVATE')
+        addStaticImport("${baseJavaPackage}.GradleCompatibilityMode", 'PARTIALLY_SUPPORTED')
+        addStaticImport("${baseJavaPackage}.GradleCompatibilityMode", 'SUPPORTED')
+        addStaticImport("${baseJavaPackage}.GradleCompatibilityMode", 'UNSUPPORTED')
+
+        addImport("lombok.NoArgsConstructor")
+        addImport("org.gradle.util.GradleVersion")
+
+        line("@NoArgsConstructor(access = PRIVATE)")
+        suppressWarningsLine("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "checkstyle:MissingSwitchDefault", "java:S3776", "java:S131", "java:S1479", "DuplicateBranchesInSwitch")
+        block("abstract class ${simpleName}") {
+            line()
+
             gradleVersions.get().forEach { GradleVersion gradleVersion ->
-                it.println("private static final GradleVersion GRADLE_${gradleVersion.version.replace('.', '_')} = GradleVersion.version(\"${gradleVersion.version}\");")
+                line("private static final GradleVersion GRADLE_${gradleVersion.version.replace('.', '_')} = GradleVersion.version(\"${gradleVersion.version}\");")
             }
 
-            it.println("")
-            it.writeBlock("public static GradleCompatibilityMode get(GradleVersion gradleVersion, String pluginId)") {
-                it.println("gradleVersion = gradleVersion.getBaseVersion();")
+            line()
+            block("public static GradleCompatibilityMode get(GradleVersion gradleVersion, String pluginId)") {
+                line("gradleVersion = gradleVersion.getBaseVersion();")
                 gradleVersions.get().forEach { GradleVersion gradleVersion ->
                     def documentationDocument = loadHtmlFromUrl(getDocumentationUrl(gradleVersion))
                     def tableElements = documentationDocument.select('h2#config_cache\\:plugins + .sectionbody table:not(.tableblock)')
@@ -130,16 +127,18 @@ tasks.named('generateJava') {
                             throw new GradleException("Plugin is missing for $gradleVersion: $requiredPluginId")
                         }
                     }
-                    it.writeBlock("if (gradleVersion.compareTo(GRADLE_${gradleVersion.version.replace('.', '_')}) >= 0)") {
-                        it.writeBlock("switch (pluginId)") {
+                    block("if (gradleVersion.compareTo(GRADLE_${gradleVersion.version.replace('.', '_')}) >= 0)") {
+                        block("switch (pluginId)") {
                             plugins.forEach { pluginId, status ->
-                                it.println("case \"${pluginId}\": return ${status};")
+                                line("case \"${pluginId}\": return ${status};")
                             }
                         }
                     }
                 }
-                it.println('return UNSUPPORTED;')
+                line('return UNSUPPORTED;')
             }
+
+            line()
         }
     }
 }

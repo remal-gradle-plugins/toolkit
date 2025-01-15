@@ -1,14 +1,12 @@
 import org.gradle.util.GradleVersion
 
-tasks.named('generateJava') {
+generateSources.forMainSourceSet.java {
     String documentationUrl = 'https://docs.gradle.org/current/userguide/compatibility.html'
     outputs.file(project.getCacheFileForDownloadedUrl(documentationUrl)).optional()
 
-    Property<String> baseJavaPackage = project.objects.property(String).value(provider {
-        project.calculateBaseJavaPackage()
-    }).with { it.finalizeValueOnRead(); it }
+    String baseJavaPackage = project.calculateBaseJavaPackage()
 
-    classFile(baseJavaPackage.get(), 'GradleCompatibilityJava') {
+    classFile(baseJavaPackage, 'GradleCompatibilityJava') {
         SortedMap<GradleVersion, Integer> compatibility = new TreeMap<>(Comparator.reverseOrder())
         def documentationDocument = loadHtmlFromUrl(documentationUrl)
         def tableElements = documentationDocument.select('h2#java_runtime + .sectionbody table.tableblock')
@@ -48,49 +46,51 @@ tasks.named('generateJava') {
             }
         }
 
-        it.writePackage()
-        it.println("")
-        it.writeStaticImport('lombok.AccessLevel', 'PRIVATE')
-        it.writeStaticImport("${baseJavaPackage.get()}.GradleCompatibilityMode", 'SUPPORTED')
-        it.writeStaticImport("${baseJavaPackage.get()}.GradleCompatibilityMode", 'UNKNOWN')
-        it.writeStaticImport("${baseJavaPackage.get()}.GradleCompatibilityMode", 'UNSUPPORTED')
-        it.println("")
-        it.writeImport("lombok.NoArgsConstructor")
-        it.writeImport("org.gradle.util.GradleVersion")
-        it.println("")
-        it.println("@NoArgsConstructor(access = PRIVATE)")
-        it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "checkstyle:RightCurly", "java:S3776", "java:S131", "java:S1479")
-        it.writeBlock("abstract class ${it.simpleName}") {
+        addStaticImport('lombok.AccessLevel', 'PRIVATE')
+        addStaticImport("${baseJavaPackage}.GradleCompatibilityMode", 'SUPPORTED')
+        addStaticImport("${baseJavaPackage}.GradleCompatibilityMode", 'UNKNOWN')
+        addStaticImport("${baseJavaPackage}.GradleCompatibilityMode", 'UNSUPPORTED')
+
+        addImport("lombok.NoArgsConstructor")
+        addImport("org.gradle.util.GradleVersion")
+
+        line("@NoArgsConstructor(access = PRIVATE)")
+        suppressWarningsLine("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "checkstyle:RightCurly", "java:S3776", "java:S131", "java:S1479")
+        block("abstract class ${simpleName}") {
+            line()
+
             compatibility.keySet().forEach { GradleVersion gradleVersion ->
-                it.println("private static final GradleVersion GRADLE_${gradleVersion.version.replace('.', '_')} = GradleVersion.version(\"${gradleVersion.version}\");")
+                line("private static final GradleVersion GRADLE_${gradleVersion.version.replace('.', '_')} = GradleVersion.version(\"${gradleVersion.version}\");")
             }
 
-            it.println("")
-            it.writeBlock("public static GradleCompatibilityMode get(GradleVersion gradleVersion, int javaVersion)") {
-                it.println("gradleVersion = gradleVersion.getBaseVersion();")
+            line()
+            block("public static GradleCompatibilityMode get(GradleVersion gradleVersion, int javaVersion)") {
+                line("gradleVersion = gradleVersion.getBaseVersion();")
 
                 Map.Entry<GradleVersion, Integer> firstEntry = compatibility.firstEntry()
-                it.writeBlock("if (gradleVersion.compareTo(GRADLE_${firstEntry.key.version.replace('.', '_')}) > 0)") {
-                    it.writeBlock("if (javaVersion <= ${firstEntry.value})") {
-                        it.println("return SUPPORTED;")
+                block("if (gradleVersion.compareTo(GRADLE_${firstEntry.key.version.replace('.', '_')}) > 0)") {
+                    block("if (javaVersion <= ${firstEntry.value})") {
+                        line("return SUPPORTED;")
                     }
-                    it.println("return UNKNOWN;")
+                    line("return UNKNOWN;")
                 }
 
                 compatibility.forEach { GradleVersion gradleVersion, Integer javaVersion ->
-                    it.writeBlock("else if (gradleVersion.compareTo(GRADLE_${gradleVersion.version.replace('.', '_')}) >= 0)") {
-                        it.writeBlock("if (javaVersion <= ${javaVersion})") {
-                            it.println("return SUPPORTED;")
+                    block("else if (gradleVersion.compareTo(GRADLE_${gradleVersion.version.replace('.', '_')}) >= 0)") {
+                        block("if (javaVersion <= ${javaVersion})") {
+                            line("return SUPPORTED;")
                         }
                     }
                 }
 
-                it.writeBlock("else") {
-                    it.println("return UNKNOWN;")
+                block("else") {
+                    line("return UNKNOWN;")
                 }
 
-                it.println("return UNSUPPORTED;")
+                line("return UNSUPPORTED;")
             }
+
+            line()
         }
     }
 }

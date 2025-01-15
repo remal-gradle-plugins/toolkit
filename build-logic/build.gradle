@@ -70,139 +70,170 @@ configurations.gradlePluginApiDependencies {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-Map<File, String> scriptsToInclude = [:]
-rootProject.ext['includedBuildScripts'].forEach { String includedBuildScript ->
-    File includedBuildScriptFile = rootProject.file(includedBuildScript)
-    String includedBuildScriptResource = includedBuildScript.replaceFirst(/^gradle\//, '')
-    scriptsToInclude[includedBuildScriptFile] = "${project.calculateBaseJavaPackage().replace('.', '/')}/${includedBuildScriptResource}"
-}
+MapProperty<File, String> scriptsToInclude = objects.mapProperty(File, String).value(provider {
+    Map<File, String> result = [:]
+    rootProject.ext['includedBuildScripts'].forEach { String includedBuildScript ->
+        File includedBuildScriptFile = rootProject.file(includedBuildScript)
+        String includedBuildScriptResource = includedBuildScript.replaceFirst(/^gradle\//, '')
+        result[includedBuildScriptFile] = "${project.calculateBaseJavaPackage().replace('.', '/')}/${includedBuildScriptResource}"
+    }
+    return result
+}).with { it.finalizeValueOnRead(); it }
 
-tasks.named('generateResources') {
-    inputs.files(configurations.compileClasspath).optional().withPropertyName('compileClasspath')
-    MapProperty<String, String> props = project.objects.mapProperty(String, String).value(provider {
+generateSources.forMainSourceSet.resources {
+    dependsOn(configurations.compileClasspath)
+    withInputClasspathFiles('compileClasspath', configurations.compileClasspath)
+
+    MapProperty<String, String> toolkitProps = project.objects.mapProperty(String, String).value(provider {
         [
             tookitGroup: project.tookitGroup(),
             tookitVersion: project.tookitVersion(),
             tookitUrl: project.tookitUrl(),
         ]
     }).with { it.finalizeValueOnRead(); it }
-    inputs.property('props', props)
-    scriptsToInclude.forEach { includedBuildScriptFile, resource ->
-        inputs.file(includedBuildScriptFile)
-        binaryFile(resource) { OutputStream outputStream ->
+    withInputProperty('toolkitProps', toolkitProps)
+
+    scriptsToInclude.get().forEach { includedBuildScriptFile, resource ->
+        withInputFile("scriptsToInclude:$resource", includedBuildScriptFile)
+
+        textFile(resource) {
             String content = includedBuildScriptFile.getText('UTF-8')
 
             content = content.replaceAll(/\$\{\s*(?:project\s*\.\s*)?(tookitGroup|tookitVersion)\s*\(\s*\)\s*\}/) { matcher ->
-                props.get()[matcher[1]]
+                toolkitProps.get()[matcher[1]]
             }
             content = content.replaceAll(/\b(?:project\s*\.\s*)?(tookitGroup|tookitVersion|tookitUrl)\s*\(\s*\)/) { matcher ->
-                '\'' + props.get()[matcher[1]] + '\''
+                '\'' + toolkitProps.get()[matcher[1]] + '\''
             }
 
-            outputStream.write(content.getBytes('UTF-8'))
+            write(content)
         }
     }
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-tasks.named('generateJava') {
+generateSources.forMainSourceSet.java {
     Property<String> javaApiMinVersion = project.objects.property(String).value(provider { project.property('java-runtime.min-version').toString() }).with { it.finalizeValueOnRead(); it }
+    withInputProperty('javaApiMinVersion', javaApiMinVersion)
+
     Property<String> gradleApiMinVersion = project.objects.property(String).value(provider { project.property('gradle-api.min-version').toString() }).with { it.finalizeValueOnRead(); it }
+    withInputProperty('gradleApiMinVersion', gradleApiMinVersion)
+
     Property<String> toolkitVersion = project.objects.property(String).value(provider { project.version?.toString() }).with { it.finalizeValueOnRead(); it }
-    inputs.property('toolkitVersion', toolkitVersion)
+    withInputProperty('toolkitVersion', toolkitVersion)
+
     Property<String> toolkitBaseJavaPackage = project.objects.property(String).value(provider {
         project.calculateBaseJavaPackageFor(project(':toolkit'))
     }).with { it.finalizeValueOnRead(); it }
-    inputs.property('toolkitBaseJavaPackage', toolkitBaseJavaPackage)
+    withInputProperty('toolkitBaseJavaPackage', toolkitBaseJavaPackage)
+
     classFile(project.calculateBaseJavaPackage(), 'BuildLogicPlugin') {
-        it.writePackage()
-        it.println("")
-        it.writeStaticImport("java.lang.String", "format")
-        it.writeStaticImport("${toolkitBaseJavaPackage.get()}.ObjectUtils", "unwrapProviders")
-        it.writeStaticImport("${toolkitBaseJavaPackage.get()}.ResourceUtils", "getResourceUrl")
-        it.println("")
-        it.writeImport("lombok.val")
-        it.writeImport("org.gradle.api.JavaVersion")
-        it.writeImport("org.gradle.api.Plugin")
-        it.writeImport("org.gradle.api.Project")
-        it.writeImport("org.gradle.util.GradleVersion")
-        it.println("")
-        it.writeSuppressWarnings("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "InjectedReferences")
-        it.writeBlock("public class ${it.simpleName} implements Plugin<Project>") {
-            it.writeBlock("public void apply(Project project)") {
-                it.println("val currentJavaVersion = JavaVersion.current();")
-                it.println("val minToolkitJavaVersion = JavaVersion.toVersion(\"${it.escapeJava(javaApiMinVersion.get())}\");")
-                it.writeBlock("if (currentJavaVersion.compareTo(minToolkitJavaVersion) < 0)") {
-                    it.println("throw new IllegalStateException(format(")
-                    it.println("    \"Current Java version is %s, which is less than minimum supported Java version by toolkit: %s\",")
-                    it.println("    currentJavaVersion,")
-                    it.println("    minToolkitJavaVersion")
-                    it.println("));")
+        addStaticImport("java.lang.String", "format")
+        addStaticImport("${toolkitBaseJavaPackage.get()}.ObjectUtils", "unwrapProviders")
+        addStaticImport("${toolkitBaseJavaPackage.get()}.ResourceUtils", "getResourceUrl")
+
+        addImport("lombok.val")
+        addImport("org.gradle.api.JavaVersion")
+        addImport("org.gradle.api.Plugin")
+        addImport("org.gradle.api.Project")
+        addImport("org.gradle.util.GradleVersion")
+
+        suppressWarningsLine("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "InjectedReferences")
+        block("public class ${simpleName} implements Plugin<Project>") {
+            line()
+
+            block("public void apply(Project project)") {
+                line("val currentJavaVersion = JavaVersion.current();")
+                line("val minToolkitJavaVersion = JavaVersion.toVersion(\"${escapeString(javaApiMinVersion.get())}\");")
+                block("if (currentJavaVersion.compareTo(minToolkitJavaVersion) < 0)") {
+                    line("throw new IllegalStateException(format(")
+                    indent {
+                        line("\"Current Java version is %s, which is less than minimum supported Java version by toolkit: %s\",")
+                        line("currentJavaVersion,")
+                        line("minToolkitJavaVersion")
+                    }
+                    line("));")
                 }
 
-                it.println("")
+                line()
 
-                it.println("val currentGradleVersion = GradleVersion.current().getBaseVersion();")
-                it.println("val minToolkitGradleVersion = GradleVersion.version(\"${it.escapeJava(gradleApiMinVersion.get())}\").getBaseVersion();")
-                it.writeBlock("if (currentGradleVersion.compareTo(minToolkitGradleVersion) < 0)") {
-                    it.println("throw new IllegalStateException(format(")
-                    it.println("    \"Current Gradle version is %s, which is less than minimum supported Gradle version by toolkit: %s\",")
-                    it.println("    currentGradleVersion.getVersion(),")
-                    it.println("    minToolkitGradleVersion.getVersion()")
-                    it.println("));")
+                line("val currentGradleVersion = GradleVersion.current().getBaseVersion();")
+                line("val minToolkitGradleVersion = GradleVersion.version(\"${escapeString(gradleApiMinVersion.get())}\").getBaseVersion();")
+                block("if (currentGradleVersion.compareTo(minToolkitGradleVersion) < 0)") {
+                    line("throw new IllegalStateException(format(")
+                    indent {
+                        line("\"Current Gradle version is %s, which is less than minimum supported Gradle version by toolkit: %s\",")
+                        line("currentGradleVersion.getVersion(),")
+                        line("minToolkitGradleVersion.getVersion()")
+                    }
+                    line("));")
                 }
 
-                it.println("")
+                line()
 
-                it.println("project.apply(it -> {")
-                scriptsToInclude.values().forEach { resource ->
-                    it.println("    it.from(getResourceUrl(\"/${it.escapeJava(resource)}\", ${it.simpleName}.class));")
+                line("project.apply(it -> {")
+                indent {
+                    scriptsToInclude.get().values().forEach { resource ->
+                        line("it.from(getResourceUrl(\"/${escapeString(resource)}\", ${simpleName}.class));")
+                    }
                 }
-                it.println("});");
+                line("});");
 
-                it.println("")
+                line()
 
-                it.println("Object minPluginJavaVersionUntyped = unwrapProviders(project.findProperty(\"java-runtime.min-version\"));")
-                it.writeBlock("if (minPluginJavaVersionUntyped != null)") {
-                    it.println("val minPluginJavaVersion = JavaVersion.toVersion(minPluginJavaVersionUntyped);")
-                    it.writeBlock("if (minPluginJavaVersion.compareTo(minToolkitJavaVersion) < 0)") {
-                        it.println("throw new IllegalStateException(format(")
-                        it.println("    \"Min supported Java version by the plugin is %s, which is less than minimum supported Java version by toolkit: %s\",")
-                        it.println("    currentJavaVersion,")
-                        it.println("    minToolkitJavaVersion")
-                        it.println("));")
+                line("Object minPluginJavaVersionUntyped = unwrapProviders(project.findProperty(\"java-runtime.min-version\"));")
+                block("if (minPluginJavaVersionUntyped != null)") {
+                    line("val minPluginJavaVersion = JavaVersion.toVersion(minPluginJavaVersionUntyped);")
+                    block("if (minPluginJavaVersion.compareTo(minToolkitJavaVersion) < 0)") {
+                        line("throw new IllegalStateException(format(")
+                        indent {
+                            line("\"Min supported Java version by the plugin is %s, which is less than minimum supported Java version by toolkit: %s\",")
+                            line("currentJavaVersion,")
+                            line("minToolkitJavaVersion")
+                        }
+                        line("));")
                     }
                 }
 
-                it.println("")
+                line()
 
-                it.println("Object minPluginGradleVersionUntyped = unwrapProviders(project.findProperty(\"gradle-api.min-version\"));")
-                it.writeBlock("if (minPluginGradleVersionUntyped instanceof GradleVersion)") {
-                    it.println("minPluginGradleVersionUntyped = ((GradleVersion) minPluginGradleVersionUntyped).getBaseVersion().getVersion();")
+                line("Object minPluginGradleVersionUntyped = unwrapProviders(project.findProperty(\"gradle-api.min-version\"));")
+                block("if (minPluginGradleVersionUntyped instanceof GradleVersion)") {
+                    line("minPluginGradleVersionUntyped = ((GradleVersion) minPluginGradleVersionUntyped).getBaseVersion().getVersion();")
                 }
-                it.writeBlock("if (minPluginGradleVersionUntyped != null)") {
-                    it.println("val minPluginGradleVersion = GradleVersion.version(minPluginGradleVersionUntyped.toString()).getBaseVersion();")
-                    it.writeBlock("if (minPluginGradleVersion.compareTo(minToolkitGradleVersion) < 0)") {
-                        it.println("throw new IllegalStateException(format(")
-                        it.println("    \"Min supported Gradle version by the plugin is %s, which is less than minimum supported Gradle version by toolkit: %s\",")
-                        it.println("    currentGradleVersion.getVersion(),")
-                        it.println("    minToolkitGradleVersion.getVersion()")
-                        it.println("));")
+                block("if (minPluginGradleVersionUntyped != null)") {
+                    line("val minPluginGradleVersion = GradleVersion.version(minPluginGradleVersionUntyped.toString()).getBaseVersion();")
+                    block("if (minPluginGradleVersion.compareTo(minToolkitGradleVersion) < 0)") {
+                        line("throw new IllegalStateException(format(")
+                        indent {
+                            line("\"Min supported Gradle version by the plugin is %s, which is less than minimum supported Gradle version by toolkit: %s\",")
+                            line("currentGradleVersion.getVersion(),")
+                            line("minToolkitGradleVersion.getVersion()")
+                        }
+                        line("));")
                     }
                 }
 
-                it.println("")
+                line()
 
-                it.println("project.allprojects(proj -> ")
-                it.println("    proj.getConfigurations()")
-                it.println("        .getByName(\"projectDependencyConstraints\")")
-                it.println("        .getDependencies()")
-                it.println("        .add(")
-                it.println("            proj.getDependencies().platform(\"name.remal.gradle-plugins.toolkit:toolkit-bom:${toolkitVersion.get()}\")")
-                it.println("        )")
-                it.println(");")
+                line("project.allprojects(proj -> ")
+                indent {
+                    line("proj.getConfigurations()")
+                    indent {
+                        line(".getByName(\"projectDependencyConstraints\")")
+                        line(".getDependencies()")
+                        line(".add(")
+                        indent {
+                            line("proj.getDependencies().platform(\"name.remal.gradle-plugins.toolkit:toolkit-bom:${toolkitVersion.get()}\")")
+                        }
+                        line(")")
+                    }
+                }
+                line(");")
             }
+
+            line()
         }
     }
 }

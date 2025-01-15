@@ -7,16 +7,15 @@ import org.junit.jupiter.api.Test;
 @RequiredArgsConstructor
 class BuildLogicPluginSimpleFunctionalTest {
 
-    private final GradleProject project;
+    final GradleProject project;
 
     @Test
     void applyPlugin() {
         project.forBuildFile(build -> {
             build.applyPlugin("name.remal.toolkit.build-logic");
-            build.registerDefaultTask("allClasses");
         });
         project.withoutConfigurationCache();
-        project.assertBuildSuccessfully();
+        project.assertBuildSuccessfully("allClasses");
     }
 
 }
