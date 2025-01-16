@@ -161,7 +161,7 @@ allprojects {
 
             compileOnlyAll 'com.google.code.findbugs:jsr305:3.0.2'
             compileOnlyAll 'org.jetbrains:annotations:26.0.1'
-            optionalHidden 'com.github.spotbugs:spotbugs-annotations:4.8.6'
+            optionalHidden 'com.github.spotbugs:spotbugs-annotations:4.9.0'
 
             annotationProcessorAll "com.google.auto.service:auto-service:$autoService"
             compileOnlyAll "com.google.auto.service:auto-service-annotations:$autoService"
