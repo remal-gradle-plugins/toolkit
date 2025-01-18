@@ -21,6 +21,7 @@ import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.internal.classloader.ClassLoaderHierarchy;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
+import org.jetbrains.annotations.Contract;
 
 @CustomLog
 @NoArgsConstructor(access = PRIVATE)
@@ -34,6 +35,7 @@ public abstract class DebugUtils {
         void execute() throws Throwable;
     }
 
+    @Contract(pure = true)
     public static boolean isDebugEnabled() {
         return IS_DEBUG_ENABLED;
     }
