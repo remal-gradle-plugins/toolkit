@@ -8,15 +8,18 @@ import java.net.URL;
 import java.nio.file.Path;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
+import org.jetbrains.annotations.Contract;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class UriUtils {
 
+    @Contract(pure = true)
     @SneakyThrows
     public static URI parseUri(String string) {
         return new URI(string);
     }
 
+    @Contract(pure = true)
     @SneakyThrows
     public static URI toUri(URL url) {
         return url.toURI();

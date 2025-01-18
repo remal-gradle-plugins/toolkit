@@ -3,6 +3,7 @@ package name.remal.gradle_plugins.toolkit;
 import static name.remal.gradle_plugins.toolkit.PluginUtils.findPluginIdFor;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.unwrapGeneratedSubclass;
 
+import com.google.errorprone.annotations.concurrent.LazyInit;
 import javax.annotation.Nullable;
 import lombok.EqualsAndHashCode;
 import lombok.val;
@@ -25,6 +26,7 @@ public final class PluginDescription {
     private static final String UNINITIALIZED_ID = "~!@#$%^&*()_+";
 
     @Nullable
+    @LazyInit
     private volatile String id = UNINITIALIZED_ID;
 
     @Nullable

@@ -9,16 +9,19 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import lombok.NoArgsConstructor;
 import lombok.val;
+import org.jetbrains.annotations.Contract;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class EnumerationUtils {
 
     @SafeVarargs
+    @Contract(pure = true)
     @SuppressWarnings("varargs")
     public static <E> Enumeration<E> compoundEnumeration(Enumeration<E>... enumerations) {
         return new CompoundEnumeration<>(asList(enumerations));
     }
 
+    @Contract(pure = true)
     public static <E> Enumeration<E> compoundEnumeration(Iterable<Enumeration<E>> enumerations) {
         return new CompoundEnumeration<>(enumerations);
     }

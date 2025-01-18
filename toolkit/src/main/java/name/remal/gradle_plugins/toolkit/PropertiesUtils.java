@@ -32,6 +32,7 @@ import javax.annotation.WillNotClose;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
+import org.jetbrains.annotations.Contract;
 
 @NoArgsConstructor(access = PRIVATE)
 @SuppressWarnings("java:S2093")
@@ -152,6 +153,7 @@ public abstract class PropertiesUtils {
     }
 
 
+    @Contract(pure = true)
     @SneakyThrows
     public static byte[] storePropertiesToBytes(Map<?, ?> properties) {
         try (val out = new ByteArrayOutputStream()) {
@@ -160,6 +162,7 @@ public abstract class PropertiesUtils {
         }
     }
 
+    @Contract(pure = true)
     @SneakyThrows
     public static String storePropertiesToString(Map<?, ?> properties) {
         try (val writer = new StringWriter()) {

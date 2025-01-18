@@ -8,11 +8,13 @@ import lombok.NoArgsConstructor;
 import lombok.val;
 import net.htmlparser.jericho.Source;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.Contract;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class HtmlToTextUtils {
 
     @Language("TEXT")
+    @Contract(pure = true)
     @SuppressWarnings("java:S109")
     public static String convertHtmlToText(@Language("HTML") String html) {
         val text = new Source(html).getRenderer()
@@ -31,6 +33,7 @@ public abstract class HtmlToTextUtils {
     }
 
     @Language("HTML")
+    @Contract(pure = true)
     public static String convertTextToHtml(@Language("TEXT") String text) {
         text = normalizeString(text);
         return escapeHtml(text)

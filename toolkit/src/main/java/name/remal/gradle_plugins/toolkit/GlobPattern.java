@@ -10,6 +10,7 @@ import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
 import org.gradle.api.file.RelativePath;
+import org.jetbrains.annotations.Contract;
 
 @RequiredArgsConstructor(access = PRIVATE)
 @EqualsAndHashCode(of = "pattern")
@@ -19,6 +20,7 @@ public final class GlobPattern {
     private static final byte STAR_MODE_MULTIPLE_MASK = STAR_MODE_START_OF_PART_MASK << 1;
     private static final byte STAR_MODE_MULTIPLE_WITH_SLASH_MASK = STAR_MODE_MULTIPLE_MASK << 1;
 
+    @Contract(pure = true)
     @SuppressWarnings({"java:S127", "java:S3776", "java:S6541"})
     public static GlobPattern compile(String pattern) {
         // trailing / or \ assumes **

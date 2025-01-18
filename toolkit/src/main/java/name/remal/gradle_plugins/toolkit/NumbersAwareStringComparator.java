@@ -12,14 +12,17 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import lombok.NoArgsConstructor;
 import lombok.val;
+import org.jetbrains.annotations.Contract;
 
 @NoArgsConstructor(access = PRIVATE)
 public class NumbersAwareStringComparator implements Comparator<String> {
 
+    @Contract(pure = true)
     public static Comparator<String> numbersAwareStringComparator() {
         return INSTANCE;
     }
 
+    @Contract(pure = true)
     public static <T> Comparator<T> numbersAwareStringComparator(Function<? super T, String> extractor) {
         return (o1, o2) -> INSTANCE.compare(extractor.apply(o1), extractor.apply(o2));
     }

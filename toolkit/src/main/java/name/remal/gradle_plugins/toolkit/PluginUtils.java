@@ -21,6 +21,7 @@ import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.gradle.api.Plugin;
+import org.jetbrains.annotations.Contract;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class PluginUtils {
@@ -31,6 +32,7 @@ public abstract class PluginUtils {
         .weakKeys()
         .build(CacheLoader.from(PluginUtils::getAllPluginClassNamesFor));
 
+    @Contract(pure = true)
     @SneakyThrows
     public static Map<String, String> getAllPluginClassNames(@Nullable ClassLoader classLoader) {
         if (classLoader == null) {
@@ -39,11 +41,13 @@ public abstract class PluginUtils {
         return PLUGIN_CLASS_NAMES.getUnchecked(classLoader);
     }
 
+    @Contract(pure = true)
     public static Map<String, String> getAllPluginClassNames() {
         val callingClass = getCallingClass(2);
         return getAllPluginClassNames(callingClass.getClassLoader());
     }
 
+    @Contract(pure = true)
     @SneakyThrows
     private static Map<String, String> getAllPluginClassNamesFor(ClassLoader classLoader) {
         Map<String, String> result = new TreeMap<>();
@@ -82,6 +86,7 @@ public abstract class PluginUtils {
     }
 
 
+    @Contract(pure = true)
     @Nullable
     public static String findPluginIdFor(Class<? extends Plugin<?>> pluginType) {
         val pluginClassNames = getAllPluginClassNames(pluginType.getClassLoader());
@@ -95,6 +100,7 @@ public abstract class PluginUtils {
     }
 
 
+    @Contract(pure = true)
     public static String getPluginIdWithoutCorePrefix(String pluginId) {
         if (pluginId.startsWith(CORE_PLUGIN_ID_PREFIX)) {
             return pluginId.substring(CORE_PLUGIN_ID_PREFIX.length());
@@ -103,6 +109,7 @@ public abstract class PluginUtils {
         }
     }
 
+    @Contract(pure = true)
     public static boolean isCorePluginId(String pluginId) {
         pluginId = getPluginIdWithoutCorePrefix(pluginId);
         return PluginUtils.class.getResource(format(

@@ -13,10 +13,12 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.model.ObjectFactory;
+import org.jetbrains.annotations.Contract;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class AttributeContainerUtils {
 
+    @Contract(pure = true)
     public static Action<AttributeContainer> javaApiLibrary(ObjectFactory objects) {
         return attrs -> {
             attrs.attribute(
@@ -30,6 +32,7 @@ public abstract class AttributeContainerUtils {
         };
     }
 
+    @Contract(pure = true)
     public static Action<AttributeContainer> javaRuntimeLibrary(ObjectFactory objects) {
         return attrs -> {
             attrs.attribute(

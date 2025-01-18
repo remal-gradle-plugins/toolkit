@@ -1,6 +1,7 @@
 package name.remal.gradle_plugins.toolkit;
 
 import static java.lang.String.format;
+import static java.util.Objects.requireNonNull;
 
 import java.util.Comparator;
 import javax.annotation.Nullable;
@@ -8,15 +9,17 @@ import lombok.val;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
+import org.jetbrains.annotations.Contract;
 
 @ReliesOnInternalGradleApi
 public final class Version implements Comparable<Version> {
 
     private static final VersionParser PARSER = new VersionParser();
 
+    @Contract(pure = true)
     public static Version parse(String version) {
         val versionImpl = PARSER.transform(version);
-        return new Version(versionImpl);
+        return new Version(requireNonNull(versionImpl));
     }
 
 

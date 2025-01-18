@@ -5,9 +5,11 @@ import static name.remal.gradle_plugins.toolkit.LazyNullableValue.lazyNullableVa
 
 import java.util.concurrent.Callable;
 import javax.annotation.Nonnull;
+import org.jetbrains.annotations.Contract;
 
 public final class CacheableCallable<V> implements Callable<V> {
 
+    @Contract(pure = true)
     public static <V> Callable<V> toCacheableCallable(Callable<V> delegate) {
         return new CacheableCallable<>(delegate);
     }

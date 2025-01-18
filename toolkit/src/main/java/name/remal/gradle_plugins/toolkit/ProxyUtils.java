@@ -14,10 +14,12 @@ import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
 import org.gradle.api.Action;
+import org.jetbrains.annotations.Contract;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ProxyUtils {
 
+    @Contract(pure = true)
     @SuppressWarnings("ReferenceEquality")
     public static boolean areMethodsSimilar(@Nullable Method method1, @Nullable Method method2) {
         if (method1 == method2) {
@@ -33,23 +35,27 @@ public abstract class ProxyUtils {
 
     private static final Method EQUALS_METHOD = getMethod(Object.class, "equals", Object.class);
 
+    @Contract(pure = true)
     public static boolean isEqualsMethod(Method method) {
         return areMethodsSimilar(method, EQUALS_METHOD);
     }
 
     private static final Method HASH_CODE_METHOD = getMethod(Object.class, "hashCode");
 
+    @Contract(pure = true)
     public static boolean isHashCodeMethod(Method method) {
         return areMethodsSimilar(method, HASH_CODE_METHOD);
     }
 
     private static final Method TO_STRING_METHOD = getMethod(Object.class, "toString");
 
+    @Contract(pure = true)
     public static boolean isToStringMethod(Method method) {
         return areMethodsSimilar(method, TO_STRING_METHOD);
     }
 
 
+    @Contract(pure = true)
     public static <T> T toDynamicInterface(
         Object object,
         Class<T> interfaceClass
@@ -57,6 +63,7 @@ public abstract class ProxyUtils {
         return toDynamicInterface(object, interfaceClass, __ -> { });
     }
 
+    @Contract(pure = true)
     public static <T> T toDynamicInterface(
         Object object,
         Class<T> interfaceClass,

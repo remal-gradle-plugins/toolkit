@@ -26,7 +26,7 @@ public abstract class ComponentIdentifierUtils {
     private static final TypedMethod0<OpaqueComponentIdentifier, String> getDisplayName =
         findMethod(OpaqueComponentIdentifier.class, String.class, "getDisplayName");
 
-    @Contract("null->false")
+    @Contract(value = "null->false", pure = true)
     @ReliesOnInternalGradleApi
     public static boolean isEmbeddedGradleComponentIdentifier(@Nullable ComponentIdentifier componentId) {
         if (componentId == null) {
@@ -58,7 +58,7 @@ public abstract class ComponentIdentifierUtils {
         return false;
     }
 
-    @Contract("null->false")
+    @Contract(value = "null->false", pure = true)
     @ReliesOnInternalGradleApi
     public static boolean isEmbeddedGradleApiComponentIdentifier(@Nullable ComponentIdentifier componentId) {
         if (componentId == null) {
@@ -85,7 +85,7 @@ public abstract class ComponentIdentifierUtils {
         return false;
     }
 
-    @Contract("null->false")
+    @Contract(value = "null->false", pure = true)
     @ReliesOnInternalGradleApi
     public static boolean isEmbeddedGradleTestKitComponentIdentifier(@Nullable ComponentIdentifier componentId) {
         if (componentId == null) {
@@ -112,7 +112,7 @@ public abstract class ComponentIdentifierUtils {
         return false;
     }
 
-    @Contract("null->false")
+    @Contract(value = "null->false", pure = true)
     @ReliesOnInternalGradleApi
     public static boolean isEmbeddedLocalGroovyComponentIdentifier(@Nullable ComponentIdentifier componentId) {
         if (componentId == null) {
@@ -140,14 +140,14 @@ public abstract class ComponentIdentifierUtils {
     }
 
 
-    @Contract("null->false")
+    @Contract(value = "null->false", pure = true)
     public static boolean isExternalGradleComponentIdentifier(@Nullable ComponentIdentifier componentId) {
         return isExternalGradleApiComponentIdentifier(componentId)
             || isExternalGradleTestKitComponentIdentifier(componentId)
             || isExternalLocalGroovyComponentIdentifier(componentId);
     }
 
-    @Contract("null->false")
+    @Contract(value = "null->false", pure = true)
     public static boolean isExternalGradleApiComponentIdentifier(@Nullable ComponentIdentifier componentId) {
         if (componentId == null) {
             return false;
@@ -165,7 +165,7 @@ public abstract class ComponentIdentifierUtils {
         return false;
     }
 
-    @Contract("null->false")
+    @Contract(value = "null->false", pure = true)
     public static boolean isExternalGradleTestKitComponentIdentifier(@Nullable ComponentIdentifier componentId) {
         if (componentId == null) {
             return false;
@@ -183,7 +183,7 @@ public abstract class ComponentIdentifierUtils {
         return false;
     }
 
-    @Contract("null->false")
+    @Contract(value = "null->false", pure = true)
     public static boolean isExternalLocalGroovyComponentIdentifier(@Nullable ComponentIdentifier componentId) {
         if (componentId == null) {
             return false;
@@ -202,25 +202,25 @@ public abstract class ComponentIdentifierUtils {
     }
 
 
-    @Contract("null->false")
+    @Contract(value = "null->false", pure = true)
     public static boolean isGradleComponentIdentifier(@Nullable ComponentIdentifier componentId) {
         return isEmbeddedGradleComponentIdentifier(componentId)
             || isExternalGradleComponentIdentifier(componentId);
     }
 
-    @Contract("null->false")
+    @Contract(value = "null->false", pure = true)
     public static boolean isGradleApiComponentIdentifier(@Nullable ComponentIdentifier componentId) {
         return isEmbeddedGradleApiComponentIdentifier(componentId)
             || isExternalGradleApiComponentIdentifier(componentId);
     }
 
-    @Contract("null->false")
+    @Contract(value = "null->false", pure = true)
     public static boolean isGradleTestKitComponentIdentifier(@Nullable ComponentIdentifier componentId) {
         return isEmbeddedGradleTestKitComponentIdentifier(componentId)
             || isExternalGradleTestKitComponentIdentifier(componentId);
     }
 
-    @Contract("null->false")
+    @Contract(value = "null->false", pure = true)
     public static boolean isLocalGroovyComponentIdentifier(@Nullable ComponentIdentifier componentId) {
         return isEmbeddedLocalGroovyComponentIdentifier(componentId)
             || isExternalLocalGroovyComponentIdentifier(componentId);

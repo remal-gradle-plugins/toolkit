@@ -21,6 +21,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.val;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.jetbrains.annotations.Contract;
 
 @Getter
 @EqualsAndHashCode
@@ -140,11 +141,13 @@ public class JacocoJvmArg implements CommandLineArgumentProvider {
         return parseJacocoJvmArgFromCurrentJvmArgs() != null;
     }
 
+    @Contract(pure = true)
     @Nullable
     public static JacocoJvmArg parseJacocoJvmArgFromCurrentJvmArgs() {
         return parseJacocoJvmArgFromJvmArgs(getRuntimeMXBean().getInputArguments());
     }
 
+    @Contract(pure = true)
     @Nullable
     public static JacocoJvmArg parseJacocoJvmArgFromJvmArgs(Collection<String> jvmArgs) {
         return jvmArgs.stream()

@@ -2,13 +2,16 @@ package name.remal.gradle_plugins.toolkit;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import org.jetbrains.annotations.Contract;
 
 public final class LateInit<T> extends AbstractLateInit<T> {
 
+    @Contract(pure = true)
     public static <T> LateInit<T> lateInit(String name) {
         return new LateInit<>(name);
     }
 
+    @Contract(pure = true)
     public static <T> LateInit<T> lateInit() {
         return new LateInit<>(null);
     }

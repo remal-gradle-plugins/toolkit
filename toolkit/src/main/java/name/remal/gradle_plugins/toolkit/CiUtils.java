@@ -8,6 +8,7 @@ import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
+import org.jetbrains.annotations.Contract;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class CiUtils {
@@ -29,12 +30,14 @@ public abstract class CiUtils {
         return Optional.ofNullable(CI_SYSTEM);
     }
 
+    @Contract(pure = true)
     public static boolean isRunningOnCi() {
         return getCiSystem()
             .map(CiSystem::isDetected)
             .orElse(false);
     }
 
+    @Contract(pure = true)
     public static boolean isNotRunningOnCi() {
         return !isRunningOnCi();
     }

@@ -17,15 +17,18 @@ import java.nio.file.Path;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.val;
+import org.jetbrains.annotations.Contract;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class UrlUtils {
 
+    @Contract(pure = true)
     @SneakyThrows
     public static URL parseUrl(String string) {
         return new URL(string);
     }
 
+    @Contract(pure = true)
     @SneakyThrows
     public static URL toUrl(URI uri) {
         return uri.toURL();

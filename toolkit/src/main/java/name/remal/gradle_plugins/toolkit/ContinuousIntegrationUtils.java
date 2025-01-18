@@ -5,10 +5,12 @@ import static name.remal.gradle_plugins.toolkit.PredicateUtils.not;
 
 import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
+import org.jetbrains.annotations.Contract;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ContinuousIntegrationUtils {
 
+    @Contract(pure = true)
     @SuppressWarnings({"SimplifyStreamApiCallChains", "java:S4034"})
     public static boolean isRunningOnCi() {
         return Stream.of(
@@ -67,6 +69,7 @@ public abstract class ContinuousIntegrationUtils {
             .isPresent();
     }
 
+    @Contract(pure = true)
     public static boolean isNotRunningOnCi() {
         return !isRunningOnCi();
     }
