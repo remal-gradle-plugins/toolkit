@@ -8,6 +8,7 @@ import static name.remal.gradle_plugins.toolkit.FileUtils.normalizeFile;
 import static name.remal.gradle_plugins.toolkit.ObjectUtils.unwrapProviders;
 import static name.remal.gradle_plugins.toolkit.PathUtils.createParentDirectories;
 import static name.remal.gradle_plugins.toolkit.PathUtils.normalizePath;
+import static name.remal.gradle_plugins.toolkit.PredicateUtils.not;
 import static name.remal.gradle_plugins.toolkit.PropertiesUtils.storeProperties;
 
 import com.google.errorprone.annotations.ForOverride;
@@ -18,6 +19,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import javax.annotation.Nullable;
 import lombok.Getter;
@@ -26,6 +28,8 @@ import lombok.val;
 import name.remal.gradle_plugins.generate_sources.generators.TextContent;
 import name.remal.gradle_plugins.generate_sources.generators.TextContentDefault;
 import name.remal.gradle_plugins.generate_sources.generators.java_like.JavaLikeContent;
+import name.remal.gradle_plugins.generate_sources.generators.java_like.java.JavaClassFileContent;
+import name.remal.gradle_plugins.generate_sources.generators.java_like.java.JavaClassFileContentDefault;
 import name.remal.gradle_plugins.toolkit.testkit.functional.generator.GradleBuildFileContent;
 import org.gradle.api.Action;
 import org.gradle.api.logging.Logger;
@@ -143,11 +147,56 @@ public abstract class AbstractBaseGradleProject<
     public void writeTextFile(String relativeFilePath, Action<TextContent> contentAction, Charset charset) {
         val content = new TextContentDefault();
         contentAction.execute(content);
-        writeTextFile(relativeFilePath, content.toString(), charset);
+        writeTextFile(relativeFilePath, content, charset);
     }
 
     public void writeTextFile(String relativeFilePath, Action<TextContent> contentAction) {
         writeTextFile(relativeFilePath, contentAction, DEFAULT_TEST_FILE_CHARSET);
+    }
+
+    public void writeJavaClassSourceFile(
+        String relativeSourcesRootPath,
+        JavaClassFileContent content,
+        Charset charset
+    ) {
+        val relativeFilePath = new StringBuilder()
+            .append(relativeSourcesRootPath).append("/");
+        Optional.of(content.getPackageName())
+            .filter(not(String::isEmpty))
+            .ifPresent(packageName ->
+                relativeFilePath.append(packageName.replace('.', '/')).append('/')
+            );
+        relativeFilePath.append(content.getSimpleName()).append(".java");
+        writeTextFile(relativeFilePath.toString(), content.toString(), charset);
+    }
+
+    public void writeJavaClassSourceFile(String relativeSourcesRootPath, JavaClassFileContent content) {
+        writeTextFile(relativeSourcesRootPath, content, DEFAULT_TEST_FILE_CHARSET);
+    }
+
+    public void writeJavaClassSourceFile(
+        String relativeSourcesRootPath,
+        @Nullable String packageName,
+        String simpleName,
+        Action<JavaClassFileContent> contentAction,
+        Charset charset
+    ) {
+        val content = new JavaClassFileContentDefault(packageName, simpleName);
+        contentAction.execute(content);
+        writeJavaClassSourceFile(relativeSourcesRootPath, content, charset);
+    }
+
+    public void writeJavaClassSourceFile(
+        String relativeSourcesRootPath,
+        @Nullable String packageName,
+        String simpleName,
+        Action<JavaClassFileContent> contentAction
+    ) {
+        writeJavaClassSourceFile(relativeSourcesRootPath,
+            packageName,
+            simpleName,
+            contentAction,
+            DEFAULT_TEST_FILE_CHARSET);
     }
 
 
