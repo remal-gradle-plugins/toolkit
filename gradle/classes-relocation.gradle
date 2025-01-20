@@ -14,15 +14,10 @@ allprojects {
             return
         }
 
-
-        try {
-            apply plugin: 'name.remal.classes-relocation.v2'
-        } catch (UnknownPluginException ignored) {
-            apply plugin: 'name.remal.classes-relocation'
-        }
+        apply plugin: 'name.remal.classes-relocation'
     }
 
-    withAnyOfPlugins(['name.remal.classes-relocation.v2', 'name.remal.classes-relocation']) {
+    pluginManager.withPlugin('name.remal.classes-relocation') {
         classesRelocation {
             basePackageForRelocatedClasses.set(provider { "${project.calculateBaseJavaPackage()}.internal._relocated" })
         }

@@ -1,13 +1,9 @@
 allprojects {
     pluginManager.withPlugin('java') {
-        try {
-            apply plugin: 'name.remal.build-time-constants.v2'
-        } catch (UnknownPluginException ignored) {
-            apply plugin: 'name.remal.build-time-constants'
-        }
+        apply plugin: 'name.remal.build-time-constants'
     }
 
-    withAnyOfPlugins(['name.remal.build-time-constants.v2', 'name.remal.build-time-constants']) {
+    pluginManager.withPlugin('name.remal.build-time-constants') {
         buildTimeConstants {
             properties([
                 'project.group': provider { project.group?.toString() ?: '' },
