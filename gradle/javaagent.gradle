@@ -1,0 +1,36 @@
+import java.util.jar.JarFile
+
+allprojects {
+    Closure configureAgents = { FileCollection classpath, JavaForkOptions options ->
+        classpath.filter { it.file }.forEach { File file ->
+            if (options.allJvmArgs.contains("-javaagent:${file.path}".toString())
+                || options.allJvmArgs.contains("-javaagent:${file.absolutePath}".toString())
+            ) {
+                return
+            }
+
+            new JarFile(file).withCloseable { jarFile ->
+                jarFile.manifest?.mainAttributes?.with { mainAttrs ->
+                    boolean isAgent = ['Premain-Class', 'Agent-Class', 'Launcher-Agent-Class'].any { mainAttrs.getValue(it) != null }
+                    if (isAgent) {
+                        options.jvmArgs("-javaagent:${file.absolutePath}".toString())
+                    }
+                }
+            }
+        }
+    }
+
+    tasks.withType(Test).configureEach { Test task ->
+        task.onlyIf {
+            configureAgents(task.classpath, task)
+            return true
+        }
+    }
+
+    tasks.withType(JavaExec).configureEach { JavaExec task ->
+        task.onlyIf {
+            configureAgents(task.classpath, task)
+            return true
+        }
+    }
+}

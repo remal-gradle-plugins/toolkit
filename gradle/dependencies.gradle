@@ -67,6 +67,7 @@ allprojects {
 
     dependencies {
         components.all(GradleApiAlignmentRule)
+        components.all(BytebuddyAlignmentRule)
         components.all(ErrorproneAlignmentRule)
         components.all(SpotBugsAlignmentRule)
         components.all(JacocoAlignmentRule)
@@ -77,6 +78,16 @@ class GradleApiAlignmentRule implements ComponentMetadataRule {
     void execute(ComponentMetadataContext context) {
         context.details.with {
             if (id.group == 'name.remal.gradle-api') {
+                belongsTo("${id.group}:bom:${id.version}")
+            }
+        }
+    }
+}
+
+class BytebuddyAlignmentRule implements ComponentMetadataRule {
+    void execute(ComponentMetadataContext context) {
+        context.details.with {
+            if (id.group == 'net.bytebuddy') {
                 belongsTo("${id.group}:bom:${id.version}")
             }
         }

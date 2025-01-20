@@ -4,6 +4,9 @@ allprojects {
             task.exclude('**/internal', '**/internal/**/*')
 
             task.options.addBooleanOption('Xdoclint:none', true)
+            task.options.showFromProtected()
+            task.options.locale = 'en_US'
+            task.options.encoding = 'UTF-8'
 
             task.onlyIf {
                 int languageVersion = task.javadocTool.getOrNull()?.metadata?.languageVersion?.asInt()

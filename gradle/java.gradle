@@ -31,7 +31,7 @@ allprojects {
             sourceCompatibility = targetCompatibility = project.javaRuntimeMinVersion
 
             consistentResolution {
-                useCompileClasspathVersions()
+                //useCompileClasspathVersions()
             }
         }
 
@@ -39,22 +39,20 @@ allprojects {
             mavenCentral()
             gradlePluginPortal()
 
-            maven {
-                name = 'Gradle API'
-                url = 'https://maven.pkg.github.com/remal-gradle-api/packages'
-                credentials {
-                    username = System.getenv('GITHUB_ACTOR') ?: 'x-access-token'
-                    password = System.getenv('READ_PACKAGES_GITHUB_TOKEN') ?:
-                        'g' + 'hp_xmGQ2dHvCiK685' + 'qNEFuA3IAvv6Vfg62WM1hG'
+            exclusiveContent {
+                forRepository {
+                    maven {
+                        name = 'Gradle API'
+                        url = 'https://maven.pkg.github.com/remal-gradle-api/packages'
+                        credentials {
+                            username = System.getenv('GITHUB_ACTOR') ?: 'x-access-token'
+                            password = System.getenv('READ_PACKAGES_GITHUB_TOKEN') ?:
+                                'g' + 'hp_xmGQ2dHvCiK685' + 'qNEFuA3IAvv6Vfg62WM1hG'
+                        }
+                    }
                 }
-            }
-        }
-        repositories.all {
-            content {
-                if (name == 'Gradle API') {
+                filter {
                     includeGroup('name.remal.gradle-api')
-                } else {
-                    excludeGroup('name.remal.gradle-api')
                 }
             }
         }
@@ -193,7 +191,7 @@ allprojects {
             conf.canBeConsumed = false
             conf.dependencies.addAll(
                 [
-                    project.dependencies.platform('org.mockito:mockito-bom:4' + '.' + '11.0'),
+                    project.dependencies.platform('org.mockito!mockito-bom!4.11.0'.replace('!', ':')),
                     project.dependencies.create('org.mockito:mockito-junit-jupiter'),
                     project.dependencies.create('org.mockito:mockito-inline'),
                 ]
@@ -221,19 +219,9 @@ allprojects {
             }
             configurations.testImplementation.extendsFrom(conf)
         }
-        tasks.withType(Test).configureEach {
-            onlyIf {
-                Collection<File> mockitoAgentFiles = configurations.testRuntimeClasspath.resolvedConfiguration
-                    .lenientConfiguration
-                    .allModuleDependencies
-                    .findAll { "${it.moduleGroup}:${it.moduleName}" == 'net.bytebuddy:byte-buddy-agent' }
-                    .collect { it.allModuleArtifacts.findAll { it.type === 'jar' }.collect { it.file } }
-                    .flatten()
-                mockitoAgentFiles.forEach {
-                    jvmArgs("-javaagent:${it.absolutePath}")
-                }
-                return true
-            }
+
+        configurations.testImplementation.dependencies.withType(ModuleDependency).configureEach { ModuleDependency dep ->
+            dep.exclude(group: 'net.bytebuddy') // this will be taken from Mockito
         }
 
 
