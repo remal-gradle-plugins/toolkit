@@ -132,6 +132,14 @@ public abstract class AbstractBaseGradleProject<
         writeTextFile(relativeFilePath, content, DEFAULT_TEST_FILE_CHARSET);
     }
 
+    public void writeTextFile(String relativeFilePath, TextContent content, Charset charset) {
+        writeTextFile(relativeFilePath, content.toString(), charset);
+    }
+
+    public void writeTextFile(String relativeFilePath, TextContent content) {
+        writeTextFile(relativeFilePath, content, DEFAULT_TEST_FILE_CHARSET);
+    }
+
     public void writeTextFile(String relativeFilePath, Action<TextContent> contentAction, Charset charset) {
         val content = new TextContentDefault();
         contentAction.execute(content);
