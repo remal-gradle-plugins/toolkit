@@ -23,6 +23,8 @@ import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.val;
+import name.remal.gradle_plugins.generate_sources.generators.TextContent;
+import name.remal.gradle_plugins.generate_sources.generators.TextContentDefault;
 import name.remal.gradle_plugins.generate_sources.generators.java_like.JavaLikeContent;
 import name.remal.gradle_plugins.toolkit.testkit.functional.generator.GradleBuildFileContent;
 import org.gradle.api.Action;
@@ -34,6 +36,9 @@ public abstract class AbstractBaseGradleProject<
     Block extends JavaLikeContent<Block>,
     BuildFileType extends GradleBuildFileContent<Block>
     > {
+
+    private static final Charset DEFAULT_TEST_FILE_CHARSET = UTF_8;
+
 
     @ForOverride
     protected abstract BuildFileType createBuildFileContent();
@@ -124,7 +129,17 @@ public abstract class AbstractBaseGradleProject<
     }
 
     public void writeTextFile(String relativeFilePath, String content) {
-        writeTextFile(relativeFilePath, content, UTF_8);
+        writeTextFile(relativeFilePath, content, DEFAULT_TEST_FILE_CHARSET);
+    }
+
+    public void writeTextFile(String relativeFilePath, Action<TextContent> contentAction, Charset charset) {
+        val content = new TextContentDefault();
+        contentAction.execute(content);
+        writeTextFile(relativeFilePath, content.toString(), charset);
+    }
+
+    public void writeTextFile(String relativeFilePath, Action<TextContent> contentAction) {
+        writeTextFile(relativeFilePath, contentAction, DEFAULT_TEST_FILE_CHARSET);
     }
 
 
