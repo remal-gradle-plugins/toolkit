@@ -4,11 +4,11 @@ import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.readAllBytes;
 import static java.nio.file.Files.write;
+import static java.util.function.Predicate.not;
 import static name.remal.gradle_plugins.toolkit.FileUtils.normalizeFile;
 import static name.remal.gradle_plugins.toolkit.ObjectUtils.unwrapProviders;
 import static name.remal.gradle_plugins.toolkit.PathUtils.createParentDirectories;
 import static name.remal.gradle_plugins.toolkit.PathUtils.normalizePath;
-import static name.remal.gradle_plugins.toolkit.PredicateUtils.not;
 import static name.remal.gradle_plugins.toolkit.PropertiesUtils.storeProperties;
 
 import com.google.errorprone.annotations.ForOverride;

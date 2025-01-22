@@ -1,8 +1,8 @@
 package name.remal.gradle_plugins.toolkit.reflection;
 
 import static java.util.Arrays.stream;
+import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toUnmodifiableList;
-import static name.remal.gradle_plugins.toolkit.PredicateUtils.not;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;

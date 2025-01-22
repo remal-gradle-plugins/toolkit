@@ -3,10 +3,10 @@ package name.remal.gradle_plugins.toolkit;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.lang.String.format;
 import static java.lang.reflect.Proxy.newProxyInstance;
+import static java.util.function.Predicate.not;
 import static lombok.AccessLevel.PUBLIC;
 import static name.remal.gradle_plugins.toolkit.ObjectUtils.isNotEmpty;
 import static name.remal.gradle_plugins.toolkit.PredicateUtils.equalsTo;
-import static name.remal.gradle_plugins.toolkit.PredicateUtils.not;
 import static name.remal.gradle_plugins.toolkit.ProxyUtils.toDynamicInterface;
 
 import com.google.common.annotations.VisibleForTesting;

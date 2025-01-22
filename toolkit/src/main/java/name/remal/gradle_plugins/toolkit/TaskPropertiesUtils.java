@@ -2,11 +2,11 @@ package name.remal.gradle_plugins.toolkit;
 
 import static java.lang.String.format;
 import static java.util.Collections.unmodifiableList;
+import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.build_time_constants.api.BuildTimeConstants.getClassName;
 import static name.remal.gradle_plugins.toolkit.ObjectUtils.isNotEmpty;
-import static name.remal.gradle_plugins.toolkit.PredicateUtils.not;
 import static name.remal.gradle_plugins.toolkit.ThrowableUtils.unwrapReflectionException;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.getClassHierarchy;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.getPropertyNameForGetter;

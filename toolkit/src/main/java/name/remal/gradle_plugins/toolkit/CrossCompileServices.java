@@ -4,6 +4,7 @@ import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Comparator.comparing;
 import static java.util.Objects.requireNonNull;
+import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toUnmodifiableList;
@@ -13,7 +14,6 @@ import static name.remal.gradle_plugins.toolkit.CrossCompileVersionComparisonRes
 import static name.remal.gradle_plugins.toolkit.CrossCompileVersionComparisonResult.DEPENDENCY_GREATER_THAN_CURRENT;
 import static name.remal.gradle_plugins.toolkit.CrossCompileVersionComparisonResult.DEPENDENCY_LESS_THAN_CURRENT;
 import static name.remal.gradle_plugins.toolkit.FunctionUtils.toSubstringedBefore;
-import static name.remal.gradle_plugins.toolkit.PredicateUtils.not;
 import static name.remal.gradle_plugins.toolkit.ResourceUtils.readResource;
 import static name.remal.gradle_plugins.toolkit.UrlUtils.readStringFromUrl;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.makeAccessible;

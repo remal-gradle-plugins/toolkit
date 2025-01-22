@@ -1,7 +1,7 @@
 package name.remal.gradle_plugins.toolkit;
 
+import static java.util.function.Predicate.not;
 import static lombok.AccessLevel.PRIVATE;
-import static name.remal.gradle_plugins.toolkit.PredicateUtils.not;
 
 import java.util.stream.Stream;
 import lombok.NoArgsConstructor;

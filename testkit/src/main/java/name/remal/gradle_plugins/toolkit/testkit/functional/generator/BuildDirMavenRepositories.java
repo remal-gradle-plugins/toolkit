@@ -1,8 +1,8 @@
 package name.remal.gradle_plugins.toolkit.testkit.functional.generator;
 
+import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static lombok.AccessLevel.PRIVATE;
-import static name.remal.gradle_plugins.toolkit.PredicateUtils.not;
 
 import com.google.common.base.Splitter;
 import java.io.File;

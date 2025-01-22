@@ -2,8 +2,8 @@ package name.remal.gradle_plugins.toolkit;
 
 import static java.lang.Character.toUpperCase;
 import static java.lang.String.format;
+import static java.util.function.Predicate.not;
 import static lombok.AccessLevel.PRIVATE;
-import static name.remal.gradle_plugins.toolkit.PredicateUtils.not;
 import static name.remal.gradle_plugins.toolkit.ThrowableUtils.unwrapReflectionException;
 import static name.remal.gradle_plugins.toolkit.reflection.MembersFinder.findMethod;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.getClassHierarchy;

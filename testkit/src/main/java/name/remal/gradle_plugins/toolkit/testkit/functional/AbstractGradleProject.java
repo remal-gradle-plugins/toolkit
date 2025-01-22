@@ -4,6 +4,7 @@ import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.function.Function.identity;
+import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static lombok.AccessLevel.NONE;
 import static name.remal.gradle_plugins.toolkit.GradleCompatibilityMode.SUPPORTED;
@@ -17,7 +18,6 @@ import static name.remal.gradle_plugins.toolkit.JacocoJvmArg.parseJacocoJvmArgFr
 import static name.remal.gradle_plugins.toolkit.ObjectUtils.isEmpty;
 import static name.remal.gradle_plugins.toolkit.PathUtils.copyRecursively;
 import static name.remal.gradle_plugins.toolkit.PathUtils.deleteRecursively;
-import static name.remal.gradle_plugins.toolkit.PredicateUtils.not;
 import static name.remal.gradle_plugins.toolkit.StringUtils.trimRightWith;
 import static name.remal.gradle_plugins.toolkit.testkit.functional.GradleRunnerUtils.withJvmArguments;
 
