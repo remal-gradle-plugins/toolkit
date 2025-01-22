@@ -1,0 +1,215 @@
+import static org.objectweb.asm.ClassReader.SKIP_CODE
+import static org.objectweb.asm.ClassReader.SKIP_DEBUG
+import static org.objectweb.asm.ClassReader.SKIP_FRAMES
+
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentMap
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.tree.ClassNode
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+buildscript {
+    dependencies {
+        classpath platform("org.ow2.asm:asm-bom:9.7.1")
+        classpath 'org.ow2.asm:asm-tree'
+        classpath 'org.ow2.asm:asm-commons'
+    }
+    repositories {
+        mavenCentral()
+    }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+allprojects {
+    pluginManager.withPlugin('java') {
+        apply plugin: 'name.remal.test-source-sets'
+
+        configurations.create('testConstraints') { Configuration conf ->
+            conf.canBeResolved = false
+            conf.canBeConsumed = false
+            conf.description = "Constraints for test dependencies"
+            testSourceSets.all { SourceSet sourceSet ->
+                configurations[sourceSet.compileClasspathConfigurationName].extendsFrom(conf)
+                configurations[sourceSet.runtimeClasspathConfigurationName].extendsFrom(conf)
+            }
+        }
+
+        dependencies {
+            testConstraints platform('org.junit:junit-bom:5.11.4')
+
+            testImplementation 'org.junit.jupiter:junit-jupiter-api'
+            testImplementation 'org.junit.jupiter:junit-jupiter-params'
+            testImplementation 'org.assertj:assertj-core:3.27.3'
+            testImplementation 'org.apache.commons:commons-lang3:3.17.0'
+            testImplementation 'org.apache.commons:commons-text:1.13.0'
+            testImplementation 'com.google.guava:guava:33.4.0-jre'
+
+            testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+            testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+        }
+
+        configurations.create('mockito') { Configuration conf ->
+            conf.canBeResolved = false
+            conf.canBeConsumed = false
+            conf.dependencies.addAll([
+                project.dependencies.platform('org.mockito:mockito-bom:5.15.2'),
+                project.dependencies.create('org.mockito:mockito-junit-jupiter'),
+            ])
+            configurations.testImplementation.extendsFrom(conf)
+        }
+
+        configurations.testImplementation.dependencies.withType(ModuleDependency).configureEach { ModuleDependency dep ->
+            dep.exclude(group: 'net.bytebuddy') // this will be taken from Mockito
+        }
+
+
+        tasks.withType(Test).configureEach {
+            Property<JavaVersion> javaRuntimeVersion = project.objects.property(JavaVersion).value(provider {
+                project.javaRuntimeVersion
+            }).with { it.finalizeValueOnRead(); it }
+
+            javaLauncher = javaToolchains.launcherFor {
+                languageVersion = JavaLanguageVersion.of(javaRuntimeVersion.get().majorVersion)
+                //vendor = project.defaultJvmVendor
+            }
+
+            if (javaRuntimeVersion.get().isJava9Compatible()) {
+                if (javaRuntimeVersion.get() <= JavaVersion.VERSION_16) {
+                    jvmArgs('--illegal-access=deny')
+                }
+
+                /*
+                 * Required for `org.gradle.testfixtures.ProjectBuilder`.
+                 * See https://github.com/gradle/gradle/issues/18647
+                 */
+                jvmArgs('--add-opens=java.base/java.lang=ALL-UNNAMED')
+            }
+
+            exclude { FileTreeElement element ->
+                if (element.directory) {
+                    return false
+                }
+                if (element.name.endsWith(".class")) {
+                    ClassNode classNode = new ClassNode()
+                    element.open().withCloseable {
+                        new ClassReader(it).accept(classNode, SKIP_CODE | SKIP_DEBUG | SKIP_FRAMES)
+                    }
+                    Integer minSupportedJavaVersion = classNode.visibleAnnotations
+                        ?.find { it.desc == 'Lname/remal/gradle_plugins/toolkit/testkit/MinSupportedJavaVersion;' }
+                        ?.with {
+                            for (int i = 0; i < it.values.size() - 1; i += 2) {
+                                if (it.values[i] == 'value' && it.values[i + 1] instanceof Integer) {
+                                    return it.values[i + 1]
+                                }
+                            }
+                            return null
+                        }
+                    if (minSupportedJavaVersion != null) {
+                        if (javaRuntimeVersion.get().majorVersion.toInteger() < minSupportedJavaVersion) {
+                            return true
+                        }
+                    }
+                    Integer maxSupportedJavaVersion = classNode.visibleAnnotations
+                        ?.find { it.desc == 'Lname/remal/gradle_plugins/toolkit/testkit/MaxSupportedJavaVersion;' }
+                        ?.with {
+                            for (int i = 0; i < it.values.size() - 1; i += 2) {
+                                if (it.values[i] == 'value' && it.values[i + 1] instanceof Integer) {
+                                    return it.values[i + 1]
+                                }
+                            }
+                            return null
+                        }
+                    if (maxSupportedJavaVersion != null) {
+                        if (javaRuntimeVersion.get().majorVersion.toInteger() > maxSupportedJavaVersion) {
+                            return true
+                        }
+                    }
+                }
+                return false
+            }
+
+            useJUnitPlatform()
+            systemProperty('junit.jupiter.extensions.autodetection.enabled', 'true')
+            enableAssertions = true
+
+            testLogging {
+                showExceptions = true
+                showCauses = true
+                showStackTraces = true
+                exceptionFormat = 'FULL'
+                stackTraceFilters('GROOVY')
+                events('FAILED')
+            }
+
+            Set<Object> testsWithStdErr = Collections.newSetFromMap(new ConcurrentHashMap<>())
+            ConcurrentMap<Object, List<String>> testsMessages = new ConcurrentHashMap<>()
+            onOutput { TestDescriptor descr, TestOutputEvent event ->
+                if (event.destination.name() == 'StdErr') {
+                    testsWithStdErr.add(descr.id)
+                }
+
+                List<String> testMessages = testsMessages.computeIfAbsent(descr.id, { new ArrayList<>() })
+                testMessages.add(event.getMessage())
+            }
+            afterTest { TestDescriptor descr, TestResult result ->
+                if (result.resultType.name() == 'FAILURE' || testsWithStdErr.contains(descr.id)) {
+                    List<String> testMessages = testsMessages.get(descr.id)
+                    if (testMessages != null) {
+                        println()
+                        println("Output of $descr.className > $descr.displayName:")
+                        testMessages.forEach { print(" > $it") }
+                    }
+                }
+            }
+        }
+
+
+        project.testSourceSets.all { SourceSet sourceSet ->
+            String testType = sourceSet.name.replaceFirst(/Test$/, '')
+            if (sourceSet.name == 'test') {
+                testType = 'unit'
+            }
+            tasks.named(sourceSet.name, Test).configure { Test task ->
+                task.environment('NAME_REMAL_GRADLE_PLUGINS_TEST', 'true')
+                task.environment("NAME_REMAL_GRADLE_PLUGINS_TEST_${testType.toUpperCase()}", 'true')
+
+                task.onlyIf {
+                    Properties testClasspathProperties = new Properties()
+
+                    Set<String> processedNotations = new LinkedHashSet<>()
+                    ; [
+                        sourceSet.compileClasspathConfigurationName,
+                        sourceSet.runtimeClasspathConfigurationName,
+                    ].collect { configurations[it] }.forEach { conf ->
+                        conf.resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { resolvedDep ->
+                            String notation = "${resolvedDep.moduleGroup}:${resolvedDep.moduleName}".toString()
+                            if (!processedNotations.add(notation)) {
+                                return
+                            }
+
+                            testClasspathProperties.setProperty("${notation}|version", resolvedDep.moduleVersion)
+                            testClasspathProperties.setProperty("${notation}|full-notation", "${notation}:${resolvedDep.moduleVersion}")
+
+                            String paths = resolvedDep.allModuleArtifacts.collect { it.file.absolutePath }.join('\n')
+                            testClasspathProperties.setProperty("${notation}|paths", paths)
+
+                            //String withoutDependenciesPaths = resolvedDep.moduleArtifacts.collect { it.file.absolutePath }.join('\n')
+                            //testClasspathProperties.setProperty("${notation}|without-dependencies.paths", withoutDependenciesPaths)
+                        }
+                    }
+
+                    File testClasspathPropertiesFile = new File(task.temporaryDir, 'name.remal.gradle-plugins.test-classpath.properties').absoluteFile
+                    testClasspathPropertiesFile.parentFile.mkdirs()
+                    testClasspathPropertiesFile.newWriter('ISO-8859-1').withCloseable { writer ->
+                        testClasspathProperties.store(writer, null)
+                    }
+                    task.environment('NAME_REMAL_GRADLE_PLUGINS_TEST_CLASSPATH_FILE', testClasspathPropertiesFile.path)
+
+                    return true
+                }
+            }
+        }
+    }
+}

@@ -13,6 +13,7 @@ public abstract class InTestFlags {
     public static final String IS_IN_TEST_ENV_VAR = "NAME_REMAL_GRADLE_PLUGINS_TEST";
     public static final String IS_IN_UNIT_TEST_ENV_VAR = "NAME_REMAL_GRADLE_PLUGINS_TEST_UNIT";
     public static final String IS_IN_INTEGRATION_TEST_ENV_VAR = "NAME_REMAL_GRADLE_PLUGINS_TEST_INTEGRATION";
+    public static final String IS_IN_COMPONENT_TEST_ENV_VAR = "NAME_REMAL_GRADLE_PLUGINS_TEST_COMPONENT";
     public static final String IS_IN_FUNCTIONAL_TEST_ENV_VAR = "NAME_REMAL_GRADLE_PLUGINS_TEST_FUNCTIONAL";
 
     @Contract(pure = true)
@@ -28,6 +29,11 @@ public abstract class InTestFlags {
     @Contract(pure = true)
     public static boolean isInIntegrationTest() {
         return parseBoolean(getenv(IS_IN_INTEGRATION_TEST_ENV_VAR));
+    }
+
+    @Contract(pure = true)
+    public static boolean isInComponentTest() {
+        return parseBoolean(getenv(IS_IN_COMPONENT_TEST_ENV_VAR));
     }
 
     @Contract(pure = true)
