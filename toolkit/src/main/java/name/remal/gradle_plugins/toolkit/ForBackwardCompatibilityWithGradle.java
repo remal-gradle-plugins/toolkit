@@ -10,7 +10,7 @@ import org.intellij.lang.annotations.Pattern;
 @Retention(RUNTIME)
 @Inherited
 @Documented
-public @interface MaxGradleVersion {
+public @interface ForBackwardCompatibilityWithGradle {
 
     @Pattern("\\d+(\\.\\d+)+")
     String value();
