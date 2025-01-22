@@ -21,7 +21,6 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import lombok.SneakyThrows;
-import lombok.val;
 import org.gradle.api.XmlProvider;
 import org.intellij.lang.annotations.Language;
 import org.w3c.dom.Document;
@@ -33,11 +32,11 @@ public class XmlProviderImpl implements XmlProvider {
     @SneakyThrows
     public static XmlProvider newXmlProviderForFile(Path path) {
         path = normalizePath(path);
-        val contentBytes = readAllBytes(path);
-        val charset = Optional.ofNullable(parseXml(contentBytes).getXmlEncoding())
+        var contentBytes = readAllBytes(path);
+        var charset = Optional.ofNullable(parseXml(contentBytes).getXmlEncoding())
             .map(Charset::forName)
             .orElse(UTF_8);
-        val contentString = new String(contentBytes, charset);
+        var contentString = new String(contentBytes, charset);
         return new XmlProviderImpl(contentString);
     }
 
@@ -88,7 +87,7 @@ public class XmlProviderImpl implements XmlProvider {
         } else if (node != null) {
             writer.write(prettyXmlString(node, xmlFormat));
         } else if (element != null) {
-            val document = getNodeOwnerDocument(element);
+            var document = getNodeOwnerDocument(element);
             writer.write(prettyXmlString(document, xmlFormat));
         } else {
             throw new IllegalStateException();
@@ -101,7 +100,7 @@ public class XmlProviderImpl implements XmlProvider {
 
     @SneakyThrows
     public void writeTo(OutputStream outputStream, XmlFormat xmlFormat) {
-        try (val writer = new OutputStreamWriter(outputStream, xmlFormat.getCharset())) {
+        try (var writer = new OutputStreamWriter(outputStream, xmlFormat.getCharset())) {
             writeTo(writer, xmlFormat);
         }
     }
@@ -136,7 +135,7 @@ public class XmlProviderImpl implements XmlProvider {
     @Override
     public Element asElement() {
         if (element == null) {
-            val document = parseXml(asString().toString());
+            var document = parseXml(asString().toString());
             element = requireNonNull(document.getDocumentElement(), "document element");
             string = null;
         }

@@ -4,12 +4,11 @@ import static name.remal.gradle_plugins.toolkit.testkit.TaskValidations.executeA
 import static name.remal.gradle_plugins.toolkit.testkit.TaskValidations.executeOnlyIfSpecs;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.google.common.collect.ImmutableList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.intellij.lang.annotations.Pattern;
@@ -22,7 +21,7 @@ class OrderedActionUtilsTest {
 
     @Test
     void doFirstLastOrdered() {
-        val task = project.getTasks().register("test").get();
+        var task = project.getTasks().register("test").get();
 
         Set<String> executedDoFirstActions = new LinkedHashSet<>();
         OrderedActionUtils.doFirstOrdered(task, new OrderedAction<Task>() {
@@ -46,7 +45,7 @@ class OrderedActionUtilsTest {
 
             @Override
             public Collection<String> getShouldBeExecutedBefore() {
-                return ImmutableList.of("2");
+                return List.of("2");
             }
 
             @Override
@@ -77,7 +76,7 @@ class OrderedActionUtilsTest {
 
             @Override
             public Collection<String> getShouldBeExecutedAfter() {
-                return ImmutableList.of("1");
+                return List.of("1");
             }
 
             @Override

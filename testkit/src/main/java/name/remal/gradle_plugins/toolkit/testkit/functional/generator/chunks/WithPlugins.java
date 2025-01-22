@@ -3,7 +3,6 @@ package name.remal.gradle_plugins.toolkit.testkit.functional.generator.chunks;
 import java.util.Set;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
-import lombok.val;
 import org.jetbrains.annotations.Unmodifiable;
 
 public interface WithPlugins {
@@ -40,7 +39,7 @@ public interface WithPlugins {
     Set<String> getAppliedPlugins();
 
     default boolean isPluginApplied(String pluginId) {
-        val appliedPlugins = getAppliedPlugins();
+        var appliedPlugins = getAppliedPlugins();
         return appliedPlugins.contains(pluginId)
             || appliedPlugins.contains("org.gradle." + pluginId);
     }

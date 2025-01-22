@@ -8,7 +8,6 @@ import com.google.errorprone.annotations.concurrent.LazyInit;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.SneakyThrows;
-import lombok.val;
 
 abstract class LazyValueBase<T> {
 
@@ -48,7 +47,7 @@ abstract class LazyValueBase<T> {
 
     @Override
     public final String toString() {
-        val value = this.value;
+        var value = this.value;
         if (value == NOT_INITIALIZED) {
             return "<not initialized>";
         }

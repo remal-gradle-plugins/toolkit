@@ -5,14 +5,13 @@ import static lombok.AccessLevel.PRIVATE;
 
 import java.util.Optional;
 import lombok.NoArgsConstructor;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.ObjectUtils;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class GradleDependencyVersions {
 
     public static String getCorrespondingKotlinVersion() {
-        val propertyName = "corresponding-kotlin.version";
+        var propertyName = "corresponding-kotlin.version";
 
         return getNotEmptySystemProperty(propertyName)
             .orElseThrow(() -> new AssertionError(format(
@@ -22,7 +21,7 @@ public abstract class GradleDependencyVersions {
     }
 
     public static String getJUnitVersion() {
-        val propertyName = "junit.version";
+        var propertyName = "junit.version";
 
         return getNotEmptySystemProperty(propertyName)
             .orElseThrow(() -> new AssertionError(format(
@@ -32,7 +31,7 @@ public abstract class GradleDependencyVersions {
     }
 
     public static String getExternalPluginToTestVersion(String pluginId) {
-        val propertyName = "external-plugin-version-" + pluginId;
+        var propertyName = "external-plugin-version-" + pluginId;
 
         return getNotEmptySystemProperty(propertyName)
             .orElseThrow(() -> new AssertionError(format(

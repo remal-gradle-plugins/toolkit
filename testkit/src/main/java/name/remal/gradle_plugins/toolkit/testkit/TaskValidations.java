@@ -15,7 +15,6 @@ import java.util.Collection;
 import lombok.CustomLog;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.StringUtils;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.Task;
@@ -38,21 +37,21 @@ public abstract class TaskValidations {
 
     @SuppressWarnings("unchecked")
     public static boolean executeOnlyIfSpecs(Task task) {
-        val taskInternal = (TaskInternal) task;
-        val spec = invokeMethod(taskInternal, Spec.class, "getOnlyIf");
+        var taskInternal = (TaskInternal) task;
+        var spec = invokeMethod(taskInternal, Spec.class, "getOnlyIf");
         return spec.isSatisfiedBy(taskInternal);
     }
 
     public static void executeActions(Task task) {
-        val actions = task.getActions();
-        for (val action : actions) {
+        var actions = task.getActions();
+        for (var action : actions) {
             action.execute(task);
         }
     }
 
 
     public static <T extends Task> T markTaskAsSkipped(T task) {
-        val state = ((TaskInternal) task).getState();
+        var state = ((TaskInternal) task).getState();
         if (state.getOutcome() == null) {
             state.setOutcome(TaskExecutionOutcome.SKIPPED);
         }
@@ -60,7 +59,7 @@ public abstract class TaskValidations {
     }
 
     public static <T extends Task> T markTaskAsExecuted(T task) {
-        val state = ((TaskInternal) task).getState();
+        var state = ((TaskInternal) task).getState();
         if (state.getOutcome() == null) {
             state.setOutcome(TaskExecutionOutcome.EXECUTED);
         }
@@ -88,14 +87,14 @@ public abstract class TaskValidations {
     @SneakyThrows
     @SuppressWarnings("Slf4jFormatShouldBeConst")
     static void assertNoTaskPropertiesProblemsImpl(Task task, boolean rethrowExceptions) {
-        val taskType = unwrapGeneratedSubclass(task.getClass());
+        var taskType = unwrapGeneratedSubclass(task.getClass());
 
         final Collection<?> problems;
         try {
             if (isCurrentGradleVersionGreaterThanOrEqualTo("8.12")) {
-                val services = ((ProjectInternal) task.getProject()).getServices();
-                val problemsService = (InternalProblems) services.get(Problems.class);
-                val problemsProgressEventEmitterHolderClass = Class.forName(
+                var services = ((ProjectInternal) task.getProject()).getServices();
+                var problemsService = (InternalProblems) services.get(Problems.class);
+                var problemsProgressEventEmitterHolderClass = Class.forName(
                     "org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder"
                 );
                 invokeStaticMethod(
@@ -105,11 +104,11 @@ public abstract class TaskValidations {
                 );
             }
 
-            val taskNode = getLocalTaskNode(task);
+            var taskNode = getLocalTaskNode(task);
             taskNode.resolveMutations();
 
-            val validationContext = taskNode.getValidationContext();
-            val typeValidationContext = validationContext.forType(taskType, false);
+            var validationContext = taskNode.getValidationContext();
+            var typeValidationContext = validationContext.forType(taskType, false);
             taskNode.getTaskProperties().validateType(typeValidationContext);
 
             problems = invokeMethod(validationContext, Collection.class, "getProblems");
@@ -141,9 +140,9 @@ public abstract class TaskValidations {
 
     @SuppressWarnings("unchecked")
     private static LocalTaskNode getLocalTaskNode(Task task) {
-        val taskNodeFactory = ((ProjectInternal) task.getProject()).getServices().get(TaskNodeFactory.class);
+        var taskNodeFactory = ((ProjectInternal) task.getProject()).getServices().get(TaskNodeFactory.class);
 
-        val getOrCreateNodeWithOrdinal = findMethod(
+        var getOrCreateNodeWithOrdinal = findMethod(
             (Class<TaskNodeFactory>) taskNodeFactory.getClass(),
             TaskNode.class,
             "getOrCreateNode",

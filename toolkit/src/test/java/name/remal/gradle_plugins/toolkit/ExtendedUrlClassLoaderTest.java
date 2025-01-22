@@ -6,7 +6,7 @@ import static java.util.Collections.list;
 import static java.util.jar.Attributes.Name;
 import static java.util.jar.Attributes.Name.MANIFEST_VERSION;
 import static java.util.jar.JarFile.MANIFEST_NAME;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toUnmodifiableList;
 import static name.remal.gradle_plugins.toolkit.ExtendedUrlClassLoader.LoadingOrder.PARENT_FIRST;
 import static name.remal.gradle_plugins.toolkit.ExtendedUrlClassLoader.LoadingOrder.PARENT_ONLY;
 import static name.remal.gradle_plugins.toolkit.ExtendedUrlClassLoader.LoadingOrder.SELF_FIRST;
@@ -32,7 +32,6 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 import lombok.SneakyThrows;
-import lombok.val;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -60,8 +59,8 @@ class ExtendedUrlClassLoaderTest {
 
     @Test
     void testParentFirstLoadClass() throws Exception {
-        try (val parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
-            try (val classLoader = new ExtendedUrlClassLoader(PARENT_FIRST, classLoaderFileUrls, parentClassLoader)) {
+        try (var parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
+            try (var classLoader = new ExtendedUrlClassLoader(PARENT_FIRST, classLoaderFileUrls, parentClassLoader)) {
                 assertSame(
                     String.class.getClassLoader(),
                     classLoader.loadClass(String.class.getName()).getClassLoader()
@@ -75,8 +74,8 @@ class ExtendedUrlClassLoaderTest {
 
     @Test
     void testSelfFirstLoadClass() throws Exception {
-        try (val parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
-            try (val classLoader = new ExtendedUrlClassLoader(SELF_FIRST, classLoaderFileUrls, parentClassLoader)) {
+        try (var parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
+            try (var classLoader = new ExtendedUrlClassLoader(SELF_FIRST, classLoaderFileUrls, parentClassLoader)) {
                 assertSame(
                     String.class.getClassLoader(),
                     classLoader.loadClass(String.class.getName()).getClassLoader()
@@ -90,8 +89,8 @@ class ExtendedUrlClassLoaderTest {
 
     @Test
     void testParentOnlyLoadClass() throws Exception {
-        try (val parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
-            try (val classLoader = new ExtendedUrlClassLoader(PARENT_ONLY, classLoaderFileUrls, parentClassLoader)) {
+        try (var parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
+            try (var classLoader = new ExtendedUrlClassLoader(PARENT_ONLY, classLoaderFileUrls, parentClassLoader)) {
                 assertSame(
                     String.class.getClassLoader(),
                     classLoader.loadClass(String.class.getName()).getClassLoader()
@@ -113,8 +112,8 @@ class ExtendedUrlClassLoaderTest {
 
     @Test
     void testSelfOnlyLoadClass() throws Exception {
-        try (val parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
-            try (val classLoader = new ExtendedUrlClassLoader(SELF_ONLY, classLoaderFileUrls, parentClassLoader)) {
+        try (var parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
+            try (var classLoader = new ExtendedUrlClassLoader(SELF_ONLY, classLoaderFileUrls, parentClassLoader)) {
                 assertSame(
                     String.class.getClassLoader(),
                     classLoader.loadClass(String.class.getName()).getClassLoader()
@@ -137,8 +136,8 @@ class ExtendedUrlClassLoaderTest {
 
     @Test
     void testParentFirstGetResource() throws Exception {
-        try (val parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
-            try (val classLoader = new ExtendedUrlClassLoader(PARENT_FIRST, classLoaderFileUrls, parentClassLoader)) {
+        try (var parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
+            try (var classLoader = new ExtendedUrlClassLoader(PARENT_FIRST, classLoaderFileUrls, parentClassLoader)) {
                 assertThat(classLoader.getResource(TEST_CLASS_RESOURCE_NAME))
                     .isNotNull()
                     .asString()
@@ -157,8 +156,8 @@ class ExtendedUrlClassLoaderTest {
 
     @Test
     void testSelfFirstGetResource() throws Exception {
-        try (val parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
-            try (val classLoader = new ExtendedUrlClassLoader(SELF_FIRST, classLoaderFileUrls, parentClassLoader)) {
+        try (var parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
+            try (var classLoader = new ExtendedUrlClassLoader(SELF_FIRST, classLoaderFileUrls, parentClassLoader)) {
                 assertThat(classLoader.getResource(TEST_CLASS_RESOURCE_NAME))
                     .isNotNull()
                     .asString()
@@ -177,8 +176,8 @@ class ExtendedUrlClassLoaderTest {
 
     @Test
     void testParentOnlyGetResource() throws Exception {
-        try (val parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
-            try (val classLoader = new ExtendedUrlClassLoader(PARENT_ONLY, classLoaderFileUrls, parentClassLoader)) {
+        try (var parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
+            try (var classLoader = new ExtendedUrlClassLoader(PARENT_ONLY, classLoaderFileUrls, parentClassLoader)) {
                 assertThat(classLoader.getResource(TEST_CLASS_RESOURCE_NAME))
                     .isNotNull()
                     .asString()
@@ -195,8 +194,8 @@ class ExtendedUrlClassLoaderTest {
 
     @Test
     void testSelfOnlyGetResource() throws Exception {
-        try (val parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
-            try (val classLoader = new ExtendedUrlClassLoader(SELF_ONLY, classLoaderFileUrls, parentClassLoader)) {
+        try (var parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
+            try (var classLoader = new ExtendedUrlClassLoader(SELF_ONLY, classLoaderFileUrls, parentClassLoader)) {
                 assertThat(classLoader.getResource(TEST_CLASS_RESOURCE_NAME))
                     .isNotNull()
                     .asString()
@@ -214,11 +213,11 @@ class ExtendedUrlClassLoaderTest {
 
     @Test
     void testParentFirstGetResources() throws Exception {
-        try (val parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
-            try (val classLoader = new ExtendedUrlClassLoader(PARENT_FIRST, classLoaderFileUrls, parentClassLoader)) {
-                val manifests = list(classLoader.getResources(MANIFEST_NAME)).stream()
+        try (var parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
+            try (var classLoader = new ExtendedUrlClassLoader(PARENT_FIRST, classLoaderFileUrls, parentClassLoader)) {
+                var manifests = list(classLoader.getResources(MANIFEST_NAME)).stream()
                     .map(ExtendedUrlClassLoaderTest::readManifest)
-                    .collect(toList());
+                    .collect(toUnmodifiableList());
                 assertThat(manifests)
                     .hasSizeGreaterThan(2);
                 assertEquals(
@@ -243,11 +242,11 @@ class ExtendedUrlClassLoaderTest {
 
     @Test
     void testSelfFirstGetResources() throws Exception {
-        try (val parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
-            try (val classLoader = new ExtendedUrlClassLoader(SELF_FIRST, classLoaderFileUrls, parentClassLoader)) {
-                val manifests = list(classLoader.getResources(MANIFEST_NAME)).stream()
+        try (var parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
+            try (var classLoader = new ExtendedUrlClassLoader(SELF_FIRST, classLoaderFileUrls, parentClassLoader)) {
+                var manifests = list(classLoader.getResources(MANIFEST_NAME)).stream()
                     .map(ExtendedUrlClassLoaderTest::readManifest)
-                    .collect(toList());
+                    .collect(toUnmodifiableList());
                 assertThat(manifests)
                     .hasSizeGreaterThan(2);
                 assertEquals(
@@ -272,11 +271,11 @@ class ExtendedUrlClassLoaderTest {
 
     @Test
     void testParentOnlyGetResources() throws Exception {
-        try (val parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
-            try (val classLoader = new ExtendedUrlClassLoader(PARENT_ONLY, classLoaderFileUrls, parentClassLoader)) {
-                val manifests = list(classLoader.getResources(MANIFEST_NAME)).stream()
+        try (var parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
+            try (var classLoader = new ExtendedUrlClassLoader(PARENT_ONLY, classLoaderFileUrls, parentClassLoader)) {
+                var manifests = list(classLoader.getResources(MANIFEST_NAME)).stream()
                     .map(ExtendedUrlClassLoaderTest::readManifest)
-                    .collect(toList());
+                    .collect(toUnmodifiableList());
                 assertThat(manifests)
                     .hasSizeGreaterThan(1);
                 assertEquals(
@@ -301,11 +300,11 @@ class ExtendedUrlClassLoaderTest {
 
     @Test
     void testSelfOnlyGetResources() throws Exception {
-        try (val parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
-            try (val classLoader = new ExtendedUrlClassLoader(SELF_ONLY, classLoaderFileUrls, parentClassLoader)) {
-                val manifests = list(classLoader.getResources(MANIFEST_NAME)).stream()
+        try (var parentClassLoader = new URLClassLoader(parentClassLoaderFileUrls)) {
+            try (var classLoader = new ExtendedUrlClassLoader(SELF_ONLY, classLoaderFileUrls, parentClassLoader)) {
+                var manifests = list(classLoader.getResources(MANIFEST_NAME)).stream()
                     .map(ExtendedUrlClassLoaderTest::readManifest)
-                    .collect(toList());
+                    .collect(toUnmodifiableList());
                 assertThat(manifests)
                     .hasSize(1);
                 assertEquals(
@@ -333,13 +332,13 @@ class ExtendedUrlClassLoaderTest {
     static void beforeAll() throws Throwable {
         tempDir = createTempDirectory(ExtendedUrlClassLoaderTest.class.getSimpleName() + '-');
 
-        val parentClassLoaderFile = tempDir.resolve("parent.jar");
-        try (val fileOutputStream = newOutputStream(parentClassLoaderFile)) {
+        var parentClassLoaderFile = tempDir.resolve("parent.jar");
+        try (var fileOutputStream = newOutputStream(parentClassLoaderFile)) {
             parentClassLoaderFileUrls = new URL[]{parentClassLoaderFileUrl = parentClassLoaderFile.toUri().toURL()};
-            val manifest = new Manifest();
+            var manifest = new Manifest();
             manifest.getMainAttributes().put(MANIFEST_VERSION, "1.0");
             manifest.getMainAttributes().put(new Name(ExtendedUrlClassLoaderTest.class.getSimpleName()), "parent");
-            try (val jarOutputStream = new JarOutputStream(fileOutputStream, manifest)) {
+            try (var jarOutputStream = new JarOutputStream(fileOutputStream, manifest)) {
                 jarOutputStream.putNextEntry(new JarEntry(TEST_CLASS_RESOURCE_NAME));
                 jarOutputStream.write(generateBytecode(TEST_CLASS_NAME));
 
@@ -348,13 +347,13 @@ class ExtendedUrlClassLoaderTest {
             }
         }
 
-        val classLoaderFile = tempDir.resolve("child.jar");
-        try (val fileOutputStream = newOutputStream(classLoaderFile)) {
+        var classLoaderFile = tempDir.resolve("child.jar");
+        try (var fileOutputStream = newOutputStream(classLoaderFile)) {
             classLoaderFileUrls = new URL[]{classLoaderFileUrl = classLoaderFile.toUri().toURL()};
-            val manifest = new Manifest();
+            var manifest = new Manifest();
             manifest.getMainAttributes().put(MANIFEST_VERSION, "1.0");
             manifest.getMainAttributes().put(new Name(ExtendedUrlClassLoaderTest.class.getSimpleName()), "child");
-            try (val jarOutputStream = new JarOutputStream(fileOutputStream, manifest)) {
+            try (var jarOutputStream = new JarOutputStream(fileOutputStream, manifest)) {
                 jarOutputStream.putNextEntry(new JarEntry(TEST_CLASS_RESOURCE_NAME));
                 jarOutputStream.write(generateBytecode(TEST_CLASS_NAME));
 
@@ -371,20 +370,20 @@ class ExtendedUrlClassLoaderTest {
     }
 
     private static byte[] generateBytecode(String className) {
-        val classNode = new ClassNode();
+        var classNode = new ClassNode();
         classNode.version = V1_8;
         classNode.access = ACC_ABSTRACT | ACC_INTERFACE;
         classNode.name = className.replace('.', '/');
         classNode.superName = "java/lang/Object";
 
-        val classWriter = new ClassWriter(COMPUTE_MAXS | COMPUTE_FRAMES);
+        var classWriter = new ClassWriter(COMPUTE_MAXS | COMPUTE_FRAMES);
         classNode.accept(classWriter);
         return classWriter.toByteArray();
     }
 
     @SneakyThrows
     private static Manifest readManifest(URL url) {
-        try (val inputStream = openInputStreamForUrl(url)) {
+        try (var inputStream = openInputStreamForUrl(url)) {
             return new Manifest(inputStream);
         }
     }

@@ -4,7 +4,6 @@ import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.ImmutableMap;
-import lombok.val;
 import org.junit.jupiter.api.Test;
 
 class StringUtilsTest {
@@ -73,7 +72,7 @@ class StringUtilsTest {
 
     @Test
     void trimWith() {
-        val mapping = ImmutableMap.<String, String>builder()
+        var mapping = ImmutableMap.<String, String>builder()
             .put("", "")
             .put("1", "")
             .put("12", "")
@@ -88,7 +87,7 @@ class StringUtilsTest {
             .put("12a122", "a")
             .put("21a211", "a")
             .build();
-        for (val entry : mapping.entrySet()) {
+        for (var entry : mapping.entrySet()) {
             assertEquals(
                 entry.getKey(),
                 StringUtils.trimWith(entry.getKey(), ""),
@@ -119,7 +118,7 @@ class StringUtilsTest {
 
     @Test
     void trimLeftWith() {
-        val mapping = ImmutableMap.<String, String>builder()
+        var mapping = ImmutableMap.<String, String>builder()
             .put("", "")
             .put("1", "")
             .put("12", "")
@@ -134,7 +133,7 @@ class StringUtilsTest {
             .put("12a122", "a122")
             .put("21a211", "a211")
             .build();
-        for (val entry : mapping.entrySet()) {
+        for (var entry : mapping.entrySet()) {
             assertEquals(
                 entry.getKey(),
                 StringUtils.trimLeftWith(entry.getKey(), ""),
@@ -165,7 +164,7 @@ class StringUtilsTest {
 
     @Test
     void trimRightWith() {
-        val mapping = ImmutableMap.<String, String>builder()
+        var mapping = ImmutableMap.<String, String>builder()
             .put("", "")
             .put("1", "")
             .put("12", "")
@@ -180,7 +179,7 @@ class StringUtilsTest {
             .put("12a122", "12a")
             .put("21a211", "21a")
             .build();
-        for (val entry : mapping.entrySet()) {
+        for (var entry : mapping.entrySet()) {
             assertEquals(
                 entry.getKey(),
                 StringUtils.trimRightWith(entry.getKey(), ""),

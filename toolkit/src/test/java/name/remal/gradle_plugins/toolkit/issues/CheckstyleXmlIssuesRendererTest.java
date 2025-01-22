@@ -9,7 +9,6 @@ import static name.remal.gradle_plugins.toolkit.issues.TextMessage.textMessageOf
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
-import lombok.val;
 import org.junit.jupiter.api.Test;
 
 class CheckstyleXmlIssuesRendererTest {
@@ -18,7 +17,7 @@ class CheckstyleXmlIssuesRendererTest {
 
     @Test
     void minimal() {
-        val issue = newIssueBuilder()
+        var issue = newIssueBuilder()
             .sourceFile(new File("source"))
             .message(textMessageOf("message"))
             .build();
@@ -40,7 +39,7 @@ class CheckstyleXmlIssuesRendererTest {
 
     @Test
     void full() {
-        val issue = newIssueBuilder()
+        var issue = newIssueBuilder()
             .sourceFile(new File("source"))
             .message(textMessageOf("message"))
             .severity(WARNING)

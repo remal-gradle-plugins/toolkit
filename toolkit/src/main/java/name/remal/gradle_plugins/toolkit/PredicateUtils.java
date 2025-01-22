@@ -7,7 +7,6 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
-import lombok.val;
 import org.jetbrains.annotations.Contract;
 
 @NoArgsConstructor(access = PRIVATE)
@@ -33,7 +32,7 @@ public abstract class PredicateUtils {
                 return false;
             }
 
-            val string = charSequence.toString();
+            var string = charSequence.toString();
             return string.startsWith(value.toString());
         };
     }
@@ -45,7 +44,7 @@ public abstract class PredicateUtils {
                 return false;
             }
 
-            val string = charSequence.toString();
+            var string = charSequence.toString();
             return string.endsWith(value.toString());
         };
     }
@@ -57,7 +56,7 @@ public abstract class PredicateUtils {
                 return false;
             }
 
-            val string = charSequence.toString();
+            var string = charSequence.toString();
             return string.contains(value);
         };
     }

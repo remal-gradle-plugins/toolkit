@@ -9,7 +9,6 @@ import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
-import lombok.val;
 import org.jetbrains.annotations.Contract;
 
 @NoArgsConstructor(access = PRIVATE)
@@ -38,7 +37,7 @@ abstract class CheckstyleXmlUtils {
             return null;
         }
 
-        for (val entry : SEVERITIES.entrySet()) {
+        for (var entry : SEVERITIES.entrySet()) {
             if (severity.equalsIgnoreCase(entry.getValue())) {
                 return entry.getKey();
             }

@@ -10,7 +10,6 @@ import static name.remal.gradle_plugins.toolkit.PredicateUtils.not;
 import static name.remal.gradle_plugins.toolkit.ProxyUtils.toDynamicInterface;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -24,7 +23,6 @@ import java.util.TreeMap;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 import org.jetbrains.annotations.Unmodifiable;
 
 @NoArgsConstructor(access = PUBLIC)
@@ -46,10 +44,10 @@ class OrderedActionsTaskExtensionImpl implements OrderedActionsTaskExtension {
     public List<OrderedAction<?>> getActions() {
         SortedMap<Integer, List<OrderedAction<?>>> allStagedActions = new TreeMap<>();
         Set<String> ids = new LinkedHashSet<>();
-        for (val action : actions) {
-            val frozenAction = freezeAction(action);
+        for (var action : actions) {
+            var frozenAction = freezeAction(action);
 
-            val id = frozenAction.getId();
+            var id = frozenAction.getId();
             if (!ids.add(id)) {
                 throw new IllegalStateException(format(
                     "Multiple instances of %s with ID='%s'",
@@ -58,7 +56,7 @@ class OrderedActionsTaskExtensionImpl implements OrderedActionsTaskExtension {
                 ));
             }
 
-            val stage = frozenAction.getStage();
+            var stage = frozenAction.getStage();
             allStagedActions.computeIfAbsent(stage, __ -> new ArrayList<>())
                 .add(frozenAction);
         }
@@ -72,10 +70,10 @@ class OrderedActionsTaskExtensionImpl implements OrderedActionsTaskExtension {
     @VisibleForTesting
     @SuppressWarnings("unchecked")
     static <T> OrderedAction<T> freezeAction(OrderedAction<T> action) {
-        val id = action.getId();
-        val stage = action.getStage();
-        val shouldBeExecutedAfter = ImmutableList.copyOf(action.getShouldBeExecutedAfter());
-        val shouldBeExecutedBefore = ImmutableList.copyOf(action.getShouldBeExecutedBefore());
+        var id = action.getId();
+        var stage = action.getStage();
+        var shouldBeExecutedAfter = List.copyOf(action.getShouldBeExecutedAfter());
+        var shouldBeExecutedBefore = List.copyOf(action.getShouldBeExecutedBefore());
         return (OrderedAction<T>) newProxyInstance(
             OrderedAction.class.getClassLoader(),
             new Class<?>[]{OrderedAction.class},
@@ -115,7 +113,7 @@ class OrderedActionsTaskExtensionImpl implements OrderedActionsTaskExtension {
             return (List<OrderedAction<?>>) stagedActions;
         }
 
-        val dependenciesMap = getDependenciesMap(stagedActions);
+        var dependenciesMap = getDependenciesMap(stagedActions);
         if (dependenciesMap.isEmpty()) {
             return (List<OrderedAction<?>>) stagedActions;
         }
@@ -134,8 +132,8 @@ class OrderedActionsTaskExtensionImpl implements OrderedActionsTaskExtension {
     ) {
         if (currentDependencies == null) {
             while (!stagedActions.isEmpty()) {
-                val action = stagedActions.remove(0);
-                val actionDependencies = dependenciesMap.get(action.getId());
+                var action = stagedActions.remove(0);
+                var actionDependencies = dependenciesMap.get(action.getId());
                 if (isNotEmpty(actionDependencies) && !stagedActions.isEmpty()) {
                     insertSortedStagedActions(result, stagedActions, dependenciesMap, actionDependencies);
                 }
@@ -143,11 +141,11 @@ class OrderedActionsTaskExtensionImpl implements OrderedActionsTaskExtension {
             }
 
         } else {
-            for (val dependencyId : currentDependencies) {
+            for (var dependencyId : currentDependencies) {
                 while (!stagedActions.isEmpty()) {
                     OrderedAction<?> action = null;
                     for (int i = 0; i < stagedActions.size(); ++i) {
-                        val curAction = stagedActions.get(i);
+                        var curAction = stagedActions.get(i);
                         if (Objects.equals(curAction.getId(), dependencyId)) {
                             action = curAction;
                             stagedActions.remove(i);
@@ -159,7 +157,7 @@ class OrderedActionsTaskExtensionImpl implements OrderedActionsTaskExtension {
                         break;
                     }
 
-                    val actionDependencies = dependenciesMap.get(action.getId());
+                    var actionDependencies = dependenciesMap.get(action.getId());
                     if (isNotEmpty(actionDependencies) && !stagedActions.isEmpty()) {
                         insertSortedStagedActions(result, stagedActions, dependenciesMap, actionDependencies);
                     }
@@ -173,7 +171,7 @@ class OrderedActionsTaskExtensionImpl implements OrderedActionsTaskExtension {
     static Map<String, Set<String>> getDependenciesMap(List<? extends OrderedAction<?>> stagedActions) {
         Map<String, Set<String>> dependenciesMap = new LinkedHashMap<>();
         stagedActions.forEach(action -> {
-            val actionId = action.getId();
+            var actionId = action.getId();
             action.getShouldBeExecutedAfter().stream()
                 .filter(Objects::nonNull)
                 .filter(not(equalsTo(actionId)))

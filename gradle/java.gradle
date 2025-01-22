@@ -186,37 +186,13 @@ allprojects {
         }
 
 
-        Configuration mockito4Conf = configurations.create('mockito4') { Configuration conf ->
-            conf.canBeResolved = false
-            conf.canBeConsumed = false
-            conf.dependencies.addAll(
-                [
-                    project.dependencies.platform('org.mockito!mockito-bom!4.11.0'.replace('!', ':')),
-                    project.dependencies.create('org.mockito:mockito-junit-jupiter'),
-                    project.dependencies.create('org.mockito:mockito-inline'),
-                ]
-            )
-        }
-        Configuration mockito5Conf = configurations.create('mockito5') { Configuration conf ->
-            conf.canBeResolved = false
-            conf.canBeConsumed = false
-            conf.dependencies.addAll(
-                [
-                    project.dependencies.platform('org.mockito:mockito-bom:5.15.2'),
-                    project.dependencies.create('org.mockito:mockito-junit-jupiter'),
-                ]
-            )
-        }
         configurations.create('mockito') { Configuration conf ->
             conf.canBeResolved = false
             conf.canBeConsumed = false
-            if ((project.isJavaRuntimeVersionSet && project.javaRuntimeVersion.isJava11Compatible())
-                || (!project.isJavaRuntimeVersionSet && project.javaRuntimeMinVersion.isJava11Compatible())
-            ) {
-                conf.extendsFrom(mockito5Conf)
-            } else {
-                conf.extendsFrom(mockito4Conf)
-            }
+            conf.dependencies.addAll([
+                project.dependencies.platform('org.mockito:mockito-bom:5.15.2'),
+                project.dependencies.create('org.mockito:mockito-junit-jupiter'),
+            ])
             configurations.testImplementation.extendsFrom(conf)
         }
 

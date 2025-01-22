@@ -11,7 +11,6 @@ import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.net.URL;
 import java.util.jar.Manifest;
-import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
@@ -30,14 +29,14 @@ class ModuleNameParserTest {
 
     @Test
     void moduleInfo() {
-        val classNode = new ClassNode();
+        var classNode = new ClassNode();
         classNode.access = ACC_MODULE;
         classNode.name = "module-info";
         classNode.module = new ModuleNode("test.module", 0, null);
 
-        val classWriter = new ClassWriter(COMPUTE_MAXS | COMPUTE_FRAMES);
+        var classWriter = new ClassWriter(COMPUTE_MAXS | COMPUTE_FRAMES);
         classNode.accept(classWriter);
-        val bytes = classWriter.toByteArray();
+        var bytes = classWriter.toByteArray();
 
         assertEquals(
             classNode.module.name,
@@ -51,13 +50,13 @@ class ModuleNameParserTest {
 
     @Test
     void manifest() throws Throwable {
-        val manifest = new Manifest();
+        var manifest = new Manifest();
         manifest.getMainAttributes().putValue("Manifest-Version", "1.0");
         manifest.getMainAttributes().putValue("Automatic-Module-Name", "test.module");
 
-        val out = new ByteArrayOutputStream();
+        var out = new ByteArrayOutputStream();
         manifest.write(out);
-        val bytes = out.toByteArray();
+        var bytes = out.toByteArray();
 
         assertEquals(
             "test.module",

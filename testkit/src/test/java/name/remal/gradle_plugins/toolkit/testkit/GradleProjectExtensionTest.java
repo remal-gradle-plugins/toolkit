@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 import org.gradle.api.Project;
 import org.gradle.api.plugins.JavaLibraryPlugin;
 import org.junit.jupiter.api.Test;
@@ -34,7 +33,7 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
 
     @Test
     void simple_constructor_scenario() {
-        val tests = executeTestsForClass(SimpleConstructorExample.class).testEvents();
+        var tests = executeTestsForClass(SimpleConstructorExample.class).testEvents();
         tests.failed().stream().forEach(event -> event.getPayload(TestExecutionResult.class)
             .flatMap(TestExecutionResult::getThrowable)
             .ifPresent(exception -> {
@@ -63,7 +62,7 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
 
     @Test
     void simple_method_scenario() {
-        val tests = executeTestsForClass(SimpleMethodExample.class).testEvents();
+        var tests = executeTestsForClass(SimpleMethodExample.class).testEvents();
         tests.failed().stream().forEach(event -> event.getPayload(TestExecutionResult.class)
             .flatMap(TestExecutionResult::getThrowable)
             .ifPresent(exception -> {
@@ -102,7 +101,7 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
 
     @Test
     void injected_once() {
-        val tests = executeTestsForClass(InjectedOnceExample.class).testEvents();
+        var tests = executeTestsForClass(InjectedOnceExample.class).testEvents();
         tests.failed().stream().forEach(event -> event.getPayload(TestExecutionResult.class)
             .flatMap(TestExecutionResult::getThrowable)
             .ifPresent(exception -> {
@@ -137,7 +136,7 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
 
     @Test
     void full_constructor_scenario() {
-        val tests = executeTestsForClass(FullConstructorExample.class).testEvents();
+        var tests = executeTestsForClass(FullConstructorExample.class).testEvents();
         tests.failed().stream().forEach(event -> event.getPayload(TestExecutionResult.class)
             .flatMap(TestExecutionResult::getThrowable)
             .ifPresent(exception -> {
@@ -169,7 +168,7 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
 
     @Test
     void full_method_scenario() {
-        val tests = executeTestsForClass(FullMethodExample.class).testEvents();
+        var tests = executeTestsForClass(FullMethodExample.class).testEvents();
         tests.failed().stream().forEach(event ->
             event.getPayload(TestExecutionResult.class)
                 .flatMap(TestExecutionResult::getThrowable)
@@ -195,7 +194,7 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
 
     @Test
     void apply_plugin() {
-        val tests = executeTestsForClass(ApplyPluginExample.class).testEvents();
+        var tests = executeTestsForClass(ApplyPluginExample.class).testEvents();
         tests.failed().stream().forEach(event -> event.getPayload(TestExecutionResult.class)
             .flatMap(TestExecutionResult::getThrowable)
             .ifPresent(exception -> {
@@ -223,7 +222,7 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
 
     @Test
     void references_to_itself() {
-        val tests = executeTestsForClass(ReferencesToItselfExample.class).testEvents();
+        var tests = executeTestsForClass(ReferencesToItselfExample.class).testEvents();
         tests.assertStatistics(stats -> stats.failed(1));
     }
 
@@ -245,7 +244,7 @@ class GradleProjectExtensionTest extends AbstractJupiterTestEngineTests {
 
     @Test
     void invalid_reference() {
-        val tests = executeTestsForClass(InvalidReferenceExample.class).testEvents();
+        var tests = executeTestsForClass(InvalidReferenceExample.class).testEvents();
         tests.assertStatistics(stats -> stats.failed(1));
     }
 

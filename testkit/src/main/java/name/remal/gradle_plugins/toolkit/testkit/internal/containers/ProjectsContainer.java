@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import lombok.SneakyThrows;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import name.remal.gradle_plugins.toolkit.testkit.ApplyPlugin;
 import name.remal.gradle_plugins.toolkit.testkit.ChildProjectOf;
@@ -45,7 +44,7 @@ public class ProjectsContainer extends AbstractExtensionContextContainer<Project
     @Override
     protected void cleanup(Project project, boolean isExceptionThrown) {
         if (!isExceptionThrown) {
-            val projectDir = project.getProjectDir();
+            var projectDir = project.getProjectDir();
             deleteDir(projectDir);
         }
     }
@@ -62,7 +61,7 @@ public class ProjectsContainer extends AbstractExtensionContextContainer<Project
         final Supplier<Project> projectCreator;
         if (parentProject == null) {
             projectCreator = () -> {
-                val projectDir = dirPrefix.createTempDir().toFile();
+                var projectDir = dirPrefix.createTempDir().toFile();
                 return ProjectBuilder.builder()
                     .withProjectDir(projectDir)
                     .withName(projectDir.getName())
@@ -78,7 +77,7 @@ public class ProjectsContainer extends AbstractExtensionContextContainer<Project
         }
 
         return asLazyProxy(ProjectInternal.class, () -> {
-            val project = projectCreator.get();
+            var project = projectCreator.get();
             registerResource(project);
             evaluateProjectIfNeeded(project);
             return (ProjectInternal) project;
@@ -86,7 +85,7 @@ public class ProjectsContainer extends AbstractExtensionContextContainer<Project
     }
 
     private static void evaluateProjectIfNeeded(Project project) {
-        val stateInternal = (ProjectStateInternal) project.getState();
+        var stateInternal = (ProjectStateInternal) project.getState();
         if (stateInternal.isUnconfigured()) {
             stateInternal.toBeforeEvaluate();
             stateInternal.toEvaluate();
@@ -95,8 +94,8 @@ public class ProjectsContainer extends AbstractExtensionContextContainer<Project
 
 
     public synchronized Project resolveParameterProject(ParameterContext parameterContext) {
-        val parameter = parameterContext.getParameter();
-        val annotatedParam = new AnnotatedParam(parameter);
+        var parameter = parameterContext.getParameter();
+        var annotatedParam = new AnnotatedParam(parameter);
 
         final long invocationNumber;
         if (invocationNumbers.containsKey(parameter)) {
@@ -106,7 +105,7 @@ public class ProjectsContainer extends AbstractExtensionContextContainer<Project
         }
         invocationNumbers.put(parameter, invocationNumber);
 
-        val parameterProjects = invocationParameterProjects.computeIfAbsent(
+        var parameterProjects = invocationParameterProjects.computeIfAbsent(
             invocationNumber,
             __ -> new LinkedHashMap<>()
         );
@@ -124,13 +123,13 @@ public class ProjectsContainer extends AbstractExtensionContextContainer<Project
             return paramProject;
         }
 
-        val dirPrefix = getDirPrefix()
+        var dirPrefix = getDirPrefix()
             .newChildPrefix()
             .push(annotatedParam.getName());
 
-        val childProjectOf = annotatedParam.findAnnotation(ChildProjectOf.class);
+        var childProjectOf = annotatedParam.findAnnotation(ChildProjectOf.class);
         if (childProjectOf != null) {
-            val parentProjectParamName = childProjectOf.value();
+            var parentProjectParamName = childProjectOf.value();
             if (annotatedParam.getName().equals(parentProjectParamName)) {
                 throw new IllegalStateException(format(
                     "%s is annotated with @%s that references to itself",
@@ -138,13 +137,13 @@ public class ProjectsContainer extends AbstractExtensionContextContainer<Project
                     ChildProjectOf.class.getSimpleName()
                 ));
             }
-            for (val otherParam : annotatedParam.getDeclaringExecutable().getParameters()) {
+            for (var otherParam : annotatedParam.getDeclaringExecutable().getParameters()) {
                 if (otherParam.isSynthetic()) {
                     continue;
                 }
-                val otherAnnotatedParam = new AnnotatedParam(otherParam);
+                var otherAnnotatedParam = new AnnotatedParam(otherParam);
                 if (otherParam.getName().equals(parentProjectParamName)) {
-                    val parentProject = resolveParameterProject(otherAnnotatedParam, parameterProjects);
+                    var parentProject = resolveParameterProject(otherAnnotatedParam, parameterProjects);
                     paramProject = newProject(parentProject, dirPrefix);
                     break;
                 }
@@ -162,14 +161,14 @@ public class ProjectsContainer extends AbstractExtensionContextContainer<Project
             paramProject = newProject(null, dirPrefix);
         }
 
-        val finalProject = paramProject;
+        var finalProject = paramProject;
         annotatedParam.findRepeatableAnnotations(ApplyPlugin.class).forEach(applyPlugin -> {
-            val id = applyPlugin.value();
+            var id = applyPlugin.value();
             if (!id.isEmpty()) {
                 finalProject.getPluginManager().apply(id);
             }
 
-            val type = applyPlugin.type();
+            var type = applyPlugin.type();
             if (type != ApplyPlugin.NotSetPluginType.class) {
                 finalProject.getPluginManager().apply(type);
             }

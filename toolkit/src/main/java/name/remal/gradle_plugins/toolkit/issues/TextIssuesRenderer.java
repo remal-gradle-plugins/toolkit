@@ -14,7 +14,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.With;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.ObjectUtils;
 import org.intellij.lang.annotations.Language;
 
@@ -32,11 +31,11 @@ public class TextIssuesRenderer implements IssuesRenderer {
     public String renderIssues(Iterable<? extends Issue> issues) {
         return streamIssues(issues)
             .map(issue -> {
-                val sb = new StringBuilder();
+                var sb = new StringBuilder();
 
                 ifPresent(issue.getSeverity(), it -> sb.append(it).append(':'));
 
-                val ruleText = Stream.of(issue.getCategory(), issue.getRule())
+                var ruleText = Stream.of(issue.getCategory(), issue.getRule())
                     .filter(ObjectUtils::isNotEmpty)
                     .collect(joining(" | "));
                 if (!ruleText.isEmpty()) {
@@ -48,7 +47,7 @@ public class TextIssuesRenderer implements IssuesRenderer {
                 ifPresent(issue.getStartLine(), it -> sb.append(':').append(it));
                 ifPresent(issue.getStartColumn(), it -> sb.append(':').append(it));
 
-                val messageText = messageToText(issue.getMessage());
+                var messageText = messageToText(issue.getMessage());
                 if (!messageText.isEmpty()) {
                     if (messageText.contains("\n")) {
                         sb.append('\n').append(indentString(messageText));
@@ -58,7 +57,7 @@ public class TextIssuesRenderer implements IssuesRenderer {
                 }
 
                 if (description) {
-                    val descriptionText = messageToText(issue.getDescription());
+                    var descriptionText = messageToText(issue.getDescription());
                     if (!descriptionText.isEmpty()) {
                         if (!messageText.isEmpty()) {
                             sb.append('\n');

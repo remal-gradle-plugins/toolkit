@@ -28,7 +28,6 @@ generateSources.forMainSourceSet.java {
         addImport("com.google.common.collect.ImmutableMap")
         addImport("java.util.Map")
         addImport("lombok.NoArgsConstructor")
-        addImport("lombok.val")
 
         line("@NoArgsConstructor(access = PRIVATE)")
         block("public abstract class ${simpleName}") {
@@ -43,7 +42,7 @@ generateSources.forMainSourceSet.java {
 
             line()
             block("public static String getSettingsBuildscriptClasspathDependencyVersion(String id)") {
-                line("val version = VERSIONS.get(id);")
+                line("var version = VERSIONS.get(id);")
                 block("if (version == null)") {
                     line("throw new IllegalStateException(\"Settings buildscript dependency is not registered: \" + id);")
                 }

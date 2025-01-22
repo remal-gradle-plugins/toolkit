@@ -4,7 +4,6 @@ import static name.remal.gradle_plugins.toolkit.ExtensionContainerUtils.getExten
 import static name.remal.gradle_plugins.toolkit.reflection.MethodsInvoker.invokeMethod;
 
 import com.google.auto.service.AutoService;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnExternalDependency;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
@@ -23,11 +22,11 @@ final class WhenTestSourceSetRegisteredUnbrokenDomeTestSets implements WhenTestS
         }
 
         project.getPluginManager().withPlugin("org.unbroken-dome.test-sets", __ -> {
-            val testSetsExtension = getExtension(project, "testSets");
+            var testSetsExtension = getExtension(project, "testSets");
             @SuppressWarnings("unchecked")
-            val testSets = (NamedDomainObjectContainer<Object>) testSetsExtension;
+            var testSets = (NamedDomainObjectContainer<Object>) testSetsExtension;
             testSets.all(testSet -> {
-                val testSourceSet = invokeMethod(testSet, SourceSet.class, "getSourceSet");
+                var testSourceSet = invokeMethod(testSet, SourceSet.class, "getSourceSet");
                 action.execute(testSourceSet);
             });
         });

@@ -3,7 +3,6 @@ package name.remal.gradle_plugins.toolkit.testkit;
 import static lombok.AccessLevel.PRIVATE;
 
 import lombok.NoArgsConstructor;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
@@ -20,8 +19,8 @@ public abstract class ProjectValidations {
      * See {@link LifecycleProjectEvaluator#evaluate}
      */
     public static void executeAfterEvaluateActions(Project project) {
-        val stateInternal = (ProjectStateInternal) project.getState();
-        val projectInternal = (ProjectInternal) project;
+        var stateInternal = (ProjectStateInternal) project.getState();
+        var projectInternal = (ProjectInternal) project;
         ProjectEvaluationListener nextBatch = projectInternal.getProjectEvaluationBroadcaster();
         Action<ProjectEvaluationListener> fireAction = listener -> {
             listener.afterEvaluate(projectInternal, stateInternal);

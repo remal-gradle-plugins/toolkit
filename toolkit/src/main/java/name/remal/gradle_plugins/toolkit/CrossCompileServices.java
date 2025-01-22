@@ -2,12 +2,11 @@ package name.remal.gradle_plugins.toolkit;
 
 import static java.lang.String.format;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Collections.unmodifiableList;
 import static java.util.Comparator.comparing;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toCollection;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toUnmodifiableList;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.CrossCompileVersionComparator.standardVersionCrossCompileVersionComparator;
 import static name.remal.gradle_plugins.toolkit.CrossCompileVersionComparisonResult.DEPENDENCY_EQUALS_TO_CURRENT;
@@ -37,7 +36,6 @@ import javax.annotation.Nullable;
 import lombok.CustomLog;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 import org.gradle.api.JavaVersion;
 import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.Unmodifiable;
@@ -60,15 +58,15 @@ public abstract class CrossCompileServices {
         Class<T> service,
         @Nullable CrossCompileVersionComparator dependencyVersionComparator
     ) {
-        val implClassNames = getImplClassNames(service);
-        val impls = parseServiceImpls(service, implClassNames);
-        val fallbackImpl = extractFallbackImpl(service, impls);
+        var implClassNames = getImplClassNames(service);
+        var impls = parseServiceImpls(service, implClassNames);
+        var fallbackImpl = extractFallbackImpl(service, impls);
         impls.removeIf(impl -> impl.getDependencyVersion().isNothingIncluded());
 
         assertNoIntersections(service, impls);
 
 
-        val dependencyVersionComparatorWithDefault = withDefaultCrossCompileVersionComparator(
+        var dependencyVersionComparatorWithDefault = withDefaultCrossCompileVersionComparator(
             dependencyVersionComparator
         );
 
@@ -80,10 +78,10 @@ public abstract class CrossCompileServices {
 
 
         try {
-            val implClass = Class.forName(impl.getClassName(), true, service.getClassLoader());
-            val implCtor = implClass.getDeclaredConstructor();
+            var implClass = Class.forName(impl.getClassName(), true, service.getClassLoader());
+            var implCtor = implClass.getDeclaredConstructor();
             makeAccessible(implCtor);
-            val implInstance = implCtor.newInstance();
+            var implInstance = implCtor.newInstance();
             return service.cast(implInstance);
 
         } catch (Throwable exception) {
@@ -109,25 +107,25 @@ public abstract class CrossCompileServices {
         Class<T> service,
         @Nullable CrossCompileVersionComparator dependencyVersionComparator
     ) {
-        val implClassNames = getImplClassNames(service);
-        val impls = parseServiceImpls(service, implClassNames);
+        var implClassNames = getImplClassNames(service);
+        var impls = parseServiceImpls(service, implClassNames);
 
-        val dependencyVersionComparatorWithDefault = withDefaultCrossCompileVersionComparator(
+        var dependencyVersionComparatorWithDefault = withDefaultCrossCompileVersionComparator(
             dependencyVersionComparator
         );
 
-        val activeImpls = impls.stream()
+        var activeImpls = impls.stream()
             .filter(impl -> impl.isFallback() || isActive(impl, dependencyVersionComparatorWithDefault))
-            .collect(toList());
+            .collect(toUnmodifiableList());
 
         List<T> instances = new ArrayList<>(impls.size());
-        for (val impl : activeImpls) {
+        for (var impl : activeImpls) {
             try {
-                val implClass = Class.forName(impl.getClassName(), true, service.getClassLoader());
-                val implCtor = implClass.getDeclaredConstructor();
+                var implClass = Class.forName(impl.getClassName(), true, service.getClassLoader());
+                var implCtor = implClass.getDeclaredConstructor();
                 makeAccessible(implCtor);
-                val implInstance = implCtor.newInstance();
-                val instance = service.cast(implInstance);
+                var implInstance = implCtor.newInstance();
+                var instance = service.cast(implInstance);
                 instances.add(instance);
 
             } catch (Throwable exception) {
@@ -141,7 +139,7 @@ public abstract class CrossCompileServices {
                 );
             }
         }
-        return unmodifiableList(instances);
+        return List.copyOf(instances);
     }
 
 
@@ -161,11 +159,11 @@ public abstract class CrossCompileServices {
     private static Set<String> getImplClassNames(Class<?> service) {
         Set<String> implClassNames = new LinkedHashSet<>();
 
-        val resourceName = "META-INF/services/" + service.getName();
-        val resourceUrls = requireNonNull(service.getClassLoader()).getResources(resourceName);
+        var resourceName = "META-INF/services/" + service.getName();
+        var resourceUrls = requireNonNull(service.getClassLoader()).getResources(resourceName);
         while (resourceUrls.hasMoreElements()) {
-            val resourceUrl = resourceUrls.nextElement();
-            val content = readStringFromUrl(resourceUrl, UTF_8);
+            var resourceUrl = resourceUrls.nextElement();
+            var content = readStringFromUrl(resourceUrl, UTF_8);
             Splitter.onPattern("[\\r\\n]+").splitToStream(content)
                 .map(toSubstringedBefore("#"))
                 .map(String::trim)
@@ -183,7 +181,7 @@ public abstract class CrossCompileServices {
         Collection<String> implClassNames
     ) {
         Map<String, CrossCompileServiceDependencyVersion> versionInfos = new LinkedHashMap<>();
-        for (val implClassName : implClassNames) {
+        for (var implClassName : implClassNames) {
             final byte[] implClassBytecode;
             try {
                 //noinspection InjectedReferences
@@ -196,10 +194,10 @@ public abstract class CrossCompileServices {
                 continue;
             }
 
-            val dependencyVersionInfoBuilder = CrossCompileServiceDependencyVersion.builder();
-            val isProcessed = new AtomicBoolean();
-            val asmApi = getAsmApi();
-            val classVisitor = new ClassVisitor(asmApi) {
+            var dependencyVersionInfoBuilder = CrossCompileServiceDependencyVersion.builder();
+            var isProcessed = new AtomicBoolean();
+            var asmApi = getAsmApi();
+            var classVisitor = new ClassVisitor(asmApi) {
                 @Nullable
                 @Override
                 public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
@@ -217,7 +215,7 @@ public abstract class CrossCompileServices {
                                         dependencyVersionInfoBuilder.version(Version.parse(value.toString()));
                                         break;
                                     case "versionOperator":
-                                        val versionOperator = value.toString();
+                                        var versionOperator = value.toString();
                                         switch (versionOperator) {
                                             case "lt":
                                                 dependencyVersionInfoBuilder
@@ -272,11 +270,11 @@ public abstract class CrossCompileServices {
 
             CrossCompileServiceDependencyVersion dependencyVersionInfo = dependencyVersionInfoBuilder.build();
 
-            val version = dependencyVersionInfo.getVersion();
+            var version = dependencyVersionInfo.getVersion();
             if (version != null) {
                 dependencyVersionInfo = dependencyVersionInfo.withVersion(version.withoutSuffix());
 
-                val dependency = dependencyVersionInfo.getDependency();
+                var dependency = dependencyVersionInfo.getDependency();
                 if (dependency.equals("java")) {
                     dependencyVersionInfo = dependencyVersionInfo.withMaxVersionNumbersCount(1);
                 } else if (dependency.equals("gradle")) {
@@ -301,7 +299,7 @@ public abstract class CrossCompileServices {
 
     @SneakyThrows
     private static int getAsmApi() {
-        val field = ClassVisitor.class.getDeclaredField("api");
+        var field = ClassVisitor.class.getDeclaredField("api");
         makeAccessible(field);
         return field.getInt(new ClassNode());
     }
@@ -310,9 +308,9 @@ public abstract class CrossCompileServices {
         Class<?> service,
         List<CrossCompileServiceImpl> impls
     ) {
-        val fallbackImpls = impls.stream()
+        var fallbackImpls = impls.stream()
             .filter(CrossCompileServiceImpl::isFallback)
-            .collect(toList());
+            .collect(toUnmodifiableList());
         if (fallbackImpls.isEmpty()) {
             throw new CrossCompileServiceLoadingException(format(
                 "Cross-compile fallback implementation not found for %s",
@@ -328,7 +326,7 @@ public abstract class CrossCompileServices {
             ));
         }
 
-        val fallbackImpl = fallbackImpls.get(0);
+        var fallbackImpl = fallbackImpls.get(0);
         impls.remove(fallbackImpl);
         return fallbackImpl;
     }
@@ -339,8 +337,8 @@ public abstract class CrossCompileServices {
     ) {
         for (int i = 0; i < impls.size() - 1; ++i) {
             for (int g = i + 1; g < impls.size(); ++g) {
-                val thisImpl = impls.get(i);
-                val thatImpl = impls.get(g);
+                var thisImpl = impls.get(i);
+                var thatImpl = impls.get(g);
                 if (thisImpl.getDependencyVersion().intersectsWith(thatImpl.getDependencyVersion())) {
                     throw new CrossCompileServiceLoadingException(format(
                         "Cross-compile implementation versions intersect for %s: %s, %s",
@@ -359,11 +357,11 @@ public abstract class CrossCompileServices {
         CrossCompileVersionComparator dependencyVersionComparator
     ) {
         {
-            val onlySelfIncludedImpls = impls.stream()
+            var onlySelfIncludedImpls = impls.stream()
                 .filter(impl -> impl.getDependencyVersion().isOnlySelfIncluded())
-                .collect(toList());
-            for (val impl : onlySelfIncludedImpls) {
-                val isActive = isActive(impl, dependencyVersionComparator);
+                .collect(toUnmodifiableList());
+            for (var impl : onlySelfIncludedImpls) {
+                var isActive = isActive(impl, dependencyVersionComparator);
                 if (isActive) {
                     return impl;
                 }
@@ -371,12 +369,12 @@ public abstract class CrossCompileServices {
         }
 
         {
-            val earlierIncludedImpls = impls.stream()
+            var earlierIncludedImpls = impls.stream()
                 .filter(impl -> impl.getDependencyVersion().isEarlierIncluded())
                 .sorted(comparing(CrossCompileServiceImpl::getDependencyVersion))
-                .collect(toList());
-            for (val impl : earlierIncludedImpls) {
-                val isActive = isActive(impl, dependencyVersionComparator);
+                .collect(toUnmodifiableList());
+            for (var impl : earlierIncludedImpls) {
+                var isActive = isActive(impl, dependencyVersionComparator);
                 if (isActive) {
                     return impl;
                 }
@@ -384,15 +382,15 @@ public abstract class CrossCompileServices {
         }
 
         {
-            val laterIncludedImpls = impls.stream()
+            var laterIncludedImpls = impls.stream()
                 .filter(impl -> impl.getDependencyVersion().isLaterIncluded())
                 .filter(not(impl -> impl.getDependencyVersion().isEarlierIncluded()))
                 .sorted(comparing(CrossCompileServiceImpl::getDependencyVersion)
                     .reversed()
                 )
-                .collect(toList());
-            for (val impl : laterIncludedImpls) {
-                val isActive = isActive(impl, dependencyVersionComparator);
+                .collect(toUnmodifiableList());
+            for (var impl : laterIncludedImpls) {
+                var isActive = isActive(impl, dependencyVersionComparator);
                 if (isActive) {
                     return impl;
                 }
@@ -408,15 +406,15 @@ public abstract class CrossCompileServices {
         CrossCompileServiceImpl impl,
         CrossCompileVersionComparator dependencyVersionComparator
     ) {
-        val className = impl.getClassName();
-        val dependencyVersion = impl.getDependencyVersion();
-        val dependency = dependencyVersion.getDependency();
-        val version = requireNonNull(dependencyVersion.getVersion()).withoutSuffix();
-        val earlierIncluded = dependencyVersion.isEarlierIncluded();
-        val selfIncluded = dependencyVersion.isSelfIncluded();
-        val laterIncluded = dependencyVersion.isLaterIncluded();
+        var className = impl.getClassName();
+        var dependencyVersion = impl.getDependencyVersion();
+        var dependency = dependencyVersion.getDependency();
+        var version = requireNonNull(dependencyVersion.getVersion()).withoutSuffix();
+        var earlierIncluded = dependencyVersion.isEarlierIncluded();
+        var selfIncluded = dependencyVersion.isSelfIncluded();
+        var laterIncluded = dependencyVersion.isLaterIncluded();
 
-        val comparisonResult = dependencyVersionComparator.compareDependencyVersionToCurrentVersion(
+        var comparisonResult = dependencyVersionComparator.compareDependencyVersionToCurrentVersion(
             dependency,
             version.toString()
         );

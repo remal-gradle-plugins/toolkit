@@ -1,8 +1,6 @@
 package name.remal.gradle_plugins.toolkit;
 
 import static java.lang.String.join;
-import static java.util.Arrays.asList;
-import static java.util.Collections.unmodifiableList;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.ActionUtils.doNothingAction;
 import static name.remal.gradle_plugins.toolkit.reflection.MembersFinder.getStaticMethod;
@@ -11,7 +9,6 @@ import groovy.lang.Closure;
 import java.util.List;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.Action;
 import org.jetbrains.annotations.Contract;
@@ -23,8 +20,8 @@ public abstract class ClosureUtils {
     @SuppressWarnings("rawtypes")
     public static <T> T configureWith(T object, @Nullable Closure closure) {
         if (closure != null) {
-            val configureUtilClass = getConfigureUtilClass();
-            val configureMethod = getStaticMethod(configureUtilClass, "configure", Closure.class, Object.class);
+            var configureUtilClass = getConfigureUtilClass();
+            var configureMethod = getStaticMethod(configureUtilClass, "configure", Closure.class, Object.class);
             configureMethod.invoke(closure, object);
         }
         return object;
@@ -33,22 +30,22 @@ public abstract class ClosureUtils {
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static <T> Action<T> configureUsing(@Nullable Closure closure) {
         if (closure != null) {
-            val configureUtilClass = getConfigureUtilClass();
-            val configureMethod = getStaticMethod(configureUtilClass, Action.class, "configureUsing", Closure.class);
-            return (Action<T>) configureMethod.invoke(closure);
+            var configureUtilClass = getConfigureUtilClass();
+            var configureMethod = getStaticMethod(configureUtilClass, Action.class, "configureUsing", Closure.class);
+            return configureMethod.invoke(closure);
         }
         return doNothingAction();
     }
 
 
     @ReliesOnInternalGradleApi
-    private static final List<String> CONFIGURE_UTIL_CLASS_NAMES = unmodifiableList(asList(
+    private static final List<String> CONFIGURE_UTIL_CLASS_NAMES = List.of(
         "org.gradle.util.internal.ConfigureUtil",
         "org.gradle.util.ConfigureUtil"
-    ));
+    );
 
     private static Class<?> getConfigureUtilClass() {
-        for (val className : CONFIGURE_UTIL_CLASS_NAMES) {
+        for (var className : CONFIGURE_UTIL_CLASS_NAMES) {
             try {
                 return Class.forName(className);
             } catch (ClassNotFoundException expected) {

@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
@@ -24,20 +23,19 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import lombok.val;
 import org.junit.jupiter.api.Test;
 
 class LazyProxyTest {
 
     @Test
     void asLazyProxy_simple() {
-        val lazyProxy = LazyProxy.asLazyProxy(CharSequence.class, () -> "value");
+        var lazyProxy = LazyProxy.asLazyProxy(CharSequence.class, () -> "value");
         assertEquals("value".length(), lazyProxy.length());
     }
 
     @Test
     void asLazyProxy_to_string() {
-        val lazyProxy = LazyProxy.asLazyProxy(CharSequence.class, () -> "value");
+        var lazyProxy = LazyProxy.asLazyProxy(CharSequence.class, () -> "value");
         assertEquals("value", lazyProxy.toString());
     }
 
@@ -55,14 +53,14 @@ class LazyProxyTest {
 
     @Test
     void isLazyProxy() {
-        val lazyProxy = LazyProxy.asLazyProxy(CharSequence.class, () -> "value");
+        var lazyProxy = LazyProxy.asLazyProxy(CharSequence.class, () -> "value");
         assertTrue(LazyProxy.isLazyProxy(lazyProxy), "isLazyProxy: lazyProxy");
         assertFalse(LazyProxy.isLazyProxy("asd"), "isLazyProxy: string");
     }
 
     @Test
     void isLazyProxyInitialized() {
-        val lazyProxy = LazyProxy.asLazyProxy(CharSequence.class, () -> "value");
+        var lazyProxy = LazyProxy.asLazyProxy(CharSequence.class, () -> "value");
         assertFalse(LazyProxy.isLazyProxyInitialized(lazyProxy), "isLazyProxyInitialized");
 
         assertEquals("value".length(), lazyProxy.length());
@@ -80,8 +78,8 @@ class LazyProxyTest {
     @Test
     void asLazyCollectionProxy() {
         {
-            val lazyProxy = LazyProxy.asLazyCollectionProxy(() ->
-                ImmutableList.of("a")
+            var lazyProxy = LazyProxy.asLazyCollectionProxy(() ->
+                List.of("a")
             );
             assertInstanceOf(Collection.class, lazyProxy);
             assertEquals(1, lazyProxy.size());
@@ -99,8 +97,8 @@ class LazyProxyTest {
     @Test
     void asLazyListProxy() {
         {
-            val lazyProxy = LazyProxy.asLazyListProxy(() ->
-                ImmutableList.of("a")
+            var lazyProxy = LazyProxy.asLazyListProxy(() ->
+                List.of("a")
             );
             assertInstanceOf(List.class, lazyProxy);
             assertEquals(1, lazyProxy.size());
@@ -118,7 +116,7 @@ class LazyProxyTest {
     @Test
     void asLazySetProxy() {
         {
-            val lazyProxy = LazyProxy.asLazySetProxy(() ->
+            var lazyProxy = LazyProxy.asLazySetProxy(() ->
                 ImmutableSet.of("a")
             );
             assertInstanceOf(Set.class, lazyProxy);
@@ -137,7 +135,7 @@ class LazyProxyTest {
     @Test
     void asLazySortedSetProxy() {
         {
-            val lazyProxy = LazyProxy.asLazySortedSetProxy(() ->
+            var lazyProxy = LazyProxy.asLazySortedSetProxy(() ->
                 ImmutableSortedSet.of("a")
             );
             assertInstanceOf(SortedSet.class, lazyProxy);
@@ -156,7 +154,7 @@ class LazyProxyTest {
     @Test
     void asLazyMapProxy() {
         {
-            val lazyProxy = LazyProxy.asLazyMapProxy(() ->
+            var lazyProxy = LazyProxy.asLazyMapProxy(() ->
                 ImmutableMap.of("a", "b")
             );
             assertInstanceOf(Map.class, lazyProxy);
@@ -175,7 +173,7 @@ class LazyProxyTest {
     @Test
     void asLazySortedMapProxy() {
         {
-            val lazyProxy = LazyProxy.asLazySortedMapProxy(() ->
+            var lazyProxy = LazyProxy.asLazySortedMapProxy(() ->
                 ImmutableSortedMap.of("a", "b")
             );
             assertInstanceOf(SortedMap.class, lazyProxy);
@@ -194,7 +192,7 @@ class LazyProxyTest {
     @Test
     void asLazyNavigableMapProxy() {
         {
-            val lazyProxy = LazyProxy.asLazyNavigableMapProxy(() ->
+            var lazyProxy = LazyProxy.asLazyNavigableMapProxy(() ->
                 ImmutableSortedMap.of("a", "b")
             );
             assertInstanceOf(NavigableMap.class, lazyProxy);

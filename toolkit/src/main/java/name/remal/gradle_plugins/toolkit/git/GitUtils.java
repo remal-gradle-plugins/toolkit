@@ -16,7 +16,6 @@ import static org.eclipse.jgit.attributes.Attribute.State.UNSET;
 import static org.eclipse.jgit.lib.Constants.DOT_GIT;
 import static org.eclipse.jgit.lib.Constants.DOT_GIT_ATTRIBUTES;
 
-import com.google.common.collect.ImmutableList;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedHashMap;
@@ -28,7 +27,6 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.ObjectUtils;
 import name.remal.gradle_plugins.toolkit.PathUtils;
 import org.eclipse.jgit.attributes.AttributesNode;
@@ -53,7 +51,7 @@ public abstract class GitUtils {
         }
 
         if (isRunningOnCi()) {
-            val ciProjectPath = Stream.of(
+            var ciProjectPath = Stream.of(
                     "CI_PROJECT_DIR",
                     "GITHUB_WORKSPACE"
                 )
@@ -75,7 +73,7 @@ public abstract class GitUtils {
     @SuppressWarnings("java:S3776")
     public static List<GitAttribute> getGitAttributesFor(Path repositoryRoot, String relativePath) {
         repositoryRoot = normalizePath(repositoryRoot);
-        val filePath = normalizePath(repositoryRoot.resolve(relativePath));
+        var filePath = normalizePath(repositoryRoot.resolve(relativePath));
         if (!filePath.startsWith(repositoryRoot)) {
             throw new IllegalArgumentException(format(
                 "Path is outside of the repository root (%s): %s",
@@ -87,9 +85,9 @@ public abstract class GitUtils {
         Path currentDir = filePath.getParent();
         while (currentDir != null && currentDir.startsWith(repositoryRoot)) {
             Map<String, GitAttribute> result = null;
-            val gitAttributesFile = currentDir.resolve(DOT_GIT_ATTRIBUTES);
-            val rules = parseGitAttributesRules(gitAttributesFile);
-            for (val rule : rules) {
+            var gitAttributesFile = currentDir.resolve(DOT_GIT_ATTRIBUTES);
+            var rules = parseGitAttributesRules(gitAttributesFile);
+            for (var rule : rules) {
                 if (!rule.isMatch(relativePath, false)) {
                     continue;
                 }
@@ -98,7 +96,7 @@ public abstract class GitUtils {
                     result = new LinkedHashMap<>();
                 }
 
-                for (val attr : rule.getAttributes()) {
+                for (var attr : rule.getAttributes()) {
                     if (attr.getState() == SET) {
                         result.put(attr.getKey(), newGitBooleanAttributeBuilder()
                             .name(attr.getKey())
@@ -121,7 +119,7 @@ public abstract class GitUtils {
                 }
             }
             if (result != null) {
-                return ImmutableList.copyOf(result.values());
+                return List.copyOf(result.values());
             }
 
             currentDir = currentDir.getParent();
@@ -143,16 +141,16 @@ public abstract class GitUtils {
             return emptyList();
         }
 
-        val attributesNode = new AttributesNode();
-        try (val inputStream = newInputStream(gitAttributesFile)) {
+        var attributesNode = new AttributesNode();
+        try (var inputStream = newInputStream(gitAttributesFile)) {
             attributesNode.parse(inputStream);
         }
-        return ImmutableList.copyOf(attributesNode.getRules());
+        return List.copyOf(attributesNode.getRules());
     }
 
 
     public static boolean isGitRepositoryRoot(Path path) {
-        val dotGit = path.resolve(DOT_GIT);
+        var dotGit = path.resolve(DOT_GIT);
         return isDirectory(dotGit);
     }
 

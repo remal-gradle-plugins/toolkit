@@ -29,7 +29,6 @@ import javax.xml.xpath.XPathFactory;
 import javax.xml.xpath.XPathFactoryConfigurationException;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 import org.intellij.lang.annotations.Language;
 import org.jdom2.input.DOMBuilder;
 import org.jdom2.output.XMLOutputter;
@@ -61,7 +60,7 @@ public abstract class XmlUtils {
     @SneakyThrows
     public static Document parseXml(Path path) {
         path = normalizePath(path);
-        try (val inputStream = newInputStream(path)) {
+        try (var inputStream = newInputStream(path)) {
             return newNonValidatingDocumentBuilder().parse(inputStream, path.toString());
         }
     }
@@ -76,7 +75,7 @@ public abstract class XmlUtils {
 
     @SneakyThrows
     public static Document parseXml(@Language("XML") String content, @Nullable String systemId) {
-        val inputSource = new InputSource(new StringReader(content));
+        var inputSource = new InputSource(new StringReader(content));
         inputSource.setSystemId(systemId);
         return newNonValidatingDocumentBuilder().parse(inputSource);
     }
@@ -90,7 +89,7 @@ public abstract class XmlUtils {
 
     @SneakyThrows
     public static Document parseXml(byte[] content, @Nullable String systemId) {
-        val inputSource = new InputSource(new ByteArrayInputStream(content));
+        var inputSource = new InputSource(new ByteArrayInputStream(content));
         inputSource.setSystemId(systemId);
         return newNonValidatingDocumentBuilder().parse(inputSource);
     }
@@ -115,7 +114,7 @@ public abstract class XmlUtils {
     @Language("XML")
     @SneakyThrows
     public static String prettyXmlString(@Language("XML") String xmlString, XmlFormat format) {
-        val document = newNonValidatingSaxBuilder().build(new StringReader(xmlString));
+        var document = newNonValidatingSaxBuilder().build(new StringReader(xmlString));
         return prettyXmlString(document, XMLOutputter::outputString, format);
     }
 
@@ -248,16 +247,16 @@ public abstract class XmlUtils {
 
     @Language("XML")
     public static String prettyXmlString(DocumentFragment documentFragment, XmlFormat format) {
-        val insertFinalNewline = format.isInsertFinalNewline();
+        var insertFinalNewline = format.isInsertFinalNewline();
         format = format.toBuilder()
             .insertFinalNewline(false)
             .build();
 
-        val result = new StringBuilder();
-        val children = documentFragment.getChildNodes();
+        var result = new StringBuilder();
+        var children = documentFragment.getChildNodes();
         for (int index = 0; index < children.getLength(); ++index) {
-            val child = children.item(index);
-            val childString = prettyXmlString(child, format);
+            var child = children.item(index);
+            var childString = prettyXmlString(child, format);
             if (isNotEmpty(childString)) {
                 if (isNotEmpty(result)) {
                     result.append(format.getLineSeparator());
@@ -279,7 +278,7 @@ public abstract class XmlUtils {
         BiFunction<XMLOutputter, JDOM, String> outputString,
         XmlFormat format
     ) {
-        val jdomNode = toJdom.apply(DOM_BUILDER, node);
+        var jdomNode = toJdom.apply(DOM_BUILDER, node);
         return prettyXmlString(jdomNode, outputString, format);
     }
 
@@ -288,7 +287,7 @@ public abstract class XmlUtils {
         BiFunction<XMLOutputter, T, String> outputString,
         XmlFormat format
     ) {
-        val outputter = new XMLOutputter(
+        var outputter = new XMLOutputter(
             getPrettyFormat()
                 .setEncoding(format.getCharset().name())
                 .setOmitDeclaration(format.isOmitDeclaration())
@@ -315,7 +314,7 @@ public abstract class XmlUtils {
     @Language("XML")
     @SneakyThrows
     public static String compactXmlString(@Language("XML") String xmlString) {
-        val document = newNonValidatingSaxBuilder().build(new StringReader(xmlString));
+        var document = newNonValidatingSaxBuilder().build(new StringReader(xmlString));
         return compactXmlString(document, XMLOutputter::outputString);
     }
 
@@ -393,10 +392,10 @@ public abstract class XmlUtils {
 
     @Language("XML")
     public static String compactXmlString(DocumentFragment documentFragment) {
-        val result = new StringBuilder();
-        val children = documentFragment.getChildNodes();
+        var result = new StringBuilder();
+        var children = documentFragment.getChildNodes();
         for (int index = 0; index < children.getLength(); ++index) {
-            val child = children.item(index);
+            var child = children.item(index);
             result.append(compactXmlString(child));
         }
         return result.toString();
@@ -407,7 +406,7 @@ public abstract class XmlUtils {
         BiFunction<DOMBuilder, DOM, JDOM> toJdom,
         BiFunction<XMLOutputter, JDOM, String> outputString
     ) {
-        val jdomNode = toJdom.apply(DOM_BUILDER, node);
+        var jdomNode = toJdom.apply(DOM_BUILDER, node);
         return compactXmlString(jdomNode, outputString);
     }
 
@@ -415,8 +414,8 @@ public abstract class XmlUtils {
         T node,
         BiFunction<XMLOutputter, T, String> outputString
     ) {
-        val isDocument = node instanceof org.jdom2.Document;
-        val outputter = new XMLOutputter(
+        var isDocument = node instanceof org.jdom2.Document;
+        var outputter = new XMLOutputter(
             getCompactFormat()
                 .setOmitDeclaration(!isDocument)
                 .setOmitEncoding(!isDocument),
@@ -511,7 +510,7 @@ public abstract class XmlUtils {
     private static final DocumentBuilderFactory NON_VALIDATING_DOCUMENT_BUILDER_FACTORY;
 
     static {
-        val factory = DocumentBuilderFactory.newInstance();
+        var factory = DocumentBuilderFactory.newInstance();
         factory.setValidating(false);
         tryToSetXmlSetting(factory, FEATURE_SECURE_PROCESSING, true);
         NON_VALIDATING_DOCUMENT_BUILDER_FACTORY = factory;
@@ -519,7 +518,7 @@ public abstract class XmlUtils {
 
     @SneakyThrows
     private static DocumentBuilder newNonValidatingDocumentBuilder() {
-        val documentBuilder = NON_VALIDATING_DOCUMENT_BUILDER_FACTORY.newDocumentBuilder();
+        var documentBuilder = NON_VALIDATING_DOCUMENT_BUILDER_FACTORY.newDocumentBuilder();
         documentBuilder.setEntityResolver((publicId, systemId) -> new InputSource(new StringReader("")));
         return documentBuilder;
     }

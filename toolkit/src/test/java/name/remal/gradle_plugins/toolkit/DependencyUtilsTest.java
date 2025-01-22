@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.testkit.MinSupportedGradleVersion;
 import org.gradle.api.Project;
 import org.junit.jupiter.api.Test;
@@ -16,7 +15,7 @@ class DependencyUtilsTest {
 
     @Test
     void platform() {
-        val dependency = project.getDependencies().platform("test:test");
+        var dependency = project.getDependencies().platform("test:test");
         assertTrue(DependencyUtils.isPlatformDependency(dependency));
         assertFalse(DependencyUtils.isEnforcedPlatformDependency(dependency));
         assertFalse(DependencyUtils.isDocumentationDependency(dependency));
@@ -24,7 +23,7 @@ class DependencyUtilsTest {
 
     @Test
     void enforcedPlatform() {
-        val dependency = project.getDependencies().enforcedPlatform("test:test");
+        var dependency = project.getDependencies().enforcedPlatform("test:test");
         assertTrue(DependencyUtils.isPlatformDependency(dependency));
         assertTrue(DependencyUtils.isEnforcedPlatformDependency(dependency));
         assertFalse(DependencyUtils.isDocumentationDependency(dependency));

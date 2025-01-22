@@ -17,7 +17,6 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.util.Set;
-import lombok.val;
 import org.junit.jupiter.api.MethodOrderer.MethodName;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
@@ -42,7 +41,7 @@ public abstract class AbstractJupiterTestEngineTests {
     }
 
     protected EngineExecutionResults executeTests(DiscoverySelector... selectors) {
-        val request = configureLauncherDiscoveryRequestBuilder(request())
+        var request = configureLauncherDiscoveryRequestBuilder(request())
             .selectors(selectors)
             .build();
         return executeTests(request);
@@ -53,7 +52,7 @@ public abstract class AbstractJupiterTestEngineTests {
     }
 
     protected TestDescriptor discoverTests(DiscoverySelector... selectors) {
-        val request = configureLauncherDiscoveryRequestBuilder(request())
+        var request = configureLauncherDiscoveryRequestBuilder(request())
             .selectors(selectors)
             .build();
         return discoverTests(request);
@@ -99,8 +98,8 @@ public abstract class AbstractJupiterTestEngineTests {
 
         @Override
         public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
-            val stackTraceElements = new Throwable().getStackTrace();
-            for (val stackTraceElement : stackTraceElements) {
+            var stackTraceElements = new Throwable().getStackTrace();
+            for (var stackTraceElement : stackTraceElements) {
                 if (stackTraceElement.getClassName().startsWith(TEST_KIT_PACKAGE_NAME_PREFIX)) {
                     return enabled("Stack-trace has JUnit5 TestKit classes");
                 }

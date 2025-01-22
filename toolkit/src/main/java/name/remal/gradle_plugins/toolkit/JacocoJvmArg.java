@@ -19,7 +19,6 @@ import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.val;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.jetbrains.annotations.Contract;
 
@@ -68,7 +67,7 @@ public class JacocoJvmArg implements CommandLineArgumentProvider {
     }
 
     public void setParam(String key, @Nullable String value) {
-        val params = getParams();
+        var params = getParams();
         if (value == null) {
             params.remove(key);
 
@@ -82,10 +81,10 @@ public class JacocoJvmArg implements CommandLineArgumentProvider {
     }
 
     public void addParamElement(String key, String value) {
-        val params = getParams();
-        val currentValue = params.get(key);
+        var params = getParams();
+        var currentValue = params.get(key);
         if (isNotEmpty(currentValue)) {
-            val hasNoValueAdded = Splitter.on(':')
+            var hasNoValueAdded = Splitter.on(':')
                 .splitToStream(currentValue)
                 .noneMatch(value::equals);
             if (hasNoValueAdded) {
@@ -98,13 +97,13 @@ public class JacocoJvmArg implements CommandLineArgumentProvider {
 
     @Override
     public String toString() {
-        val sb = new StringBuilder();
+        var sb = new StringBuilder();
         sb.append("-javaagent:").append(getJavaAgentPath()).append('=');
 
         boolean isFirstParam = true;
         for (Entry<String, String> entry : getParams().entrySet()) {
-            val key = entry.getKey();
-            val value = entry.getValue();
+            var key = entry.getKey();
+            var value = entry.getValue();
             if (key == null || key.isEmpty() || value == null) {
                 continue;
             }
@@ -161,28 +160,28 @@ public class JacocoJvmArg implements CommandLineArgumentProvider {
 
     @Nullable
     private static JacocoJvmArg parseJacocoJvmArgFromJvmArg(String jvmArg) {
-        val matcher = JACOCO_ARG.matcher(jvmArg);
+        var matcher = JACOCO_ARG.matcher(jvmArg);
         if (!matcher.matches()) {
             return null;
         }
 
-        val javaAgentPath = requireNonNull(matcher.group(1));
+        var javaAgentPath = requireNonNull(matcher.group(1));
 
         Map<String, String> params = new LinkedHashMap<>();
-        val paramsString = matcher.group(2);
+        var paramsString = matcher.group(2);
         if (paramsString != null) {
-            for (val paramString : Splitter.on(',').split(paramsString)) {
-                val equalPos = paramString.indexOf('=');
+            for (var paramString : Splitter.on(',').split(paramsString)) {
+                var equalPos = paramString.indexOf('=');
                 if (equalPos < 0) {
                     continue;
                 }
 
-                val name = paramString.substring(0, equalPos);
+                var name = paramString.substring(0, equalPos);
                 if (name.isEmpty()) {
                     continue;
                 }
 
-                val value = paramString.substring(equalPos + 1);
+                var value = paramString.substring(equalPos + 1);
                 params.put(name, value);
             }
         }

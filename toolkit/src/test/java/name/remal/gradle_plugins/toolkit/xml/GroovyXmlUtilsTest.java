@@ -4,15 +4,14 @@ import static java.lang.String.join;
 import static java.lang.System.lineSeparator;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import lombok.val;
 import org.junit.jupiter.api.Test;
 
 class GroovyXmlUtilsTest {
 
     @Test
     void test() {
-        val xml = "<parent b=\"b\" a=\"a\"><child>123</child></parent>";
-        val node = GroovyXmlUtils.parseXmlToGroovyNode(xml);
+        var xml = "<parent b=\"b\" a=\"a\"><child>123</child></parent>";
+        var node = GroovyXmlUtils.parseXmlToGroovyNode(xml);
 
         assertThat(GroovyXmlUtils.prettyGroovyXmlString(node)).isEqualTo(join(
             lineSeparator(),

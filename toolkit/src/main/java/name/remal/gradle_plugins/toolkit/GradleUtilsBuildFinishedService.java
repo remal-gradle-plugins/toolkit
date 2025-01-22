@@ -9,7 +9,6 @@ import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import javax.annotation.Nullable;
 import lombok.Getter;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.GradleUtilsBuildFinishedService.Params;
 import org.gradle.api.Action;
 import org.gradle.api.invocation.Gradle;
@@ -26,7 +25,7 @@ abstract class GradleUtilsBuildFinishedService implements BuildService<Params>, 
     );
 
     public static void registerAction(Gradle gradle, Action<? super Gradle> action) {
-        val buildFinishedService = gradle.getSharedServices().registerIfAbsent(
+        var buildFinishedService = gradle.getSharedServices().registerIfAbsent(
             SERVICE_NAME,
             GradleUtilsBuildFinishedService.class,
             service -> { }
@@ -59,9 +58,9 @@ abstract class GradleUtilsBuildFinishedService implements BuildService<Params>, 
 
     @Override
     public void close() {
-        val actions = getParameters().getActions();
+        var actions = getParameters().getActions();
         while (true) {
-            val action = actions.pollFirst();
+            var action = actions.pollFirst();
             if (action == null) {
                 break;
             }

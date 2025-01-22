@@ -6,14 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import lombok.val;
 import org.junit.jupiter.api.Test;
 
 class VersionTest {
 
     @Test
     void parse_normal() {
-        val version = Version.parse("2.3.11.RELEASE");
+        var version = Version.parse("2.3.11.RELEASE");
         assertEquals(2L, version.getNumberOrNull(0));
         assertEquals(3L, version.getNumberOrNull(1));
         assertEquals(11L, version.getNumberOrNull(2));
@@ -23,14 +22,14 @@ class VersionTest {
 
     @Test
     void parse_suffix_only() {
-        val version = Version.parse("Hoxton.SR11");
+        var version = Version.parse("Hoxton.SR11");
         assertNull(version.getNumberOrNull(0));
         assertEquals("Hoxton.SR11", version.toString());
     }
 
     @Test
     void getNumber() {
-        val version = Version.parse("2.3.11.RELEASE");
+        var version = Version.parse("2.3.11.RELEASE");
         assertThrows(IllegalArgumentException.class, () -> version.getNumberOrNull(-1));
         assertThrows(IllegalArgumentException.class, () -> version.getNumber(-1));
         assertEquals(2L, version.getNumberOrNull(0));
@@ -45,7 +44,7 @@ class VersionTest {
 
     @Test
     void withoutSuffix() {
-        val version = Version.parse("2.3.11-alpha");
+        var version = Version.parse("2.3.11-alpha");
         assertEquals("2.3.11", version.withoutSuffix().toString());
     }
 
@@ -87,7 +86,7 @@ class VersionTest {
 
     @Test
     void equals_method() {
-        val version = Version.parse("1.2");
+        var version = Version.parse("1.2");
         assertEquals(version, version);
         assertEquals(Version.parse("1.2"), Version.parse("1.2"));
     }

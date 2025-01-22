@@ -6,14 +6,13 @@ import static name.remal.gradle_plugins.toolkit.CrossCompileVersionComparisonRes
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import lombok.val;
 import org.junit.jupiter.api.Test;
 
 class CrossCompileVersionComparatorTest {
 
     @Test
     void standardVersionCrossCompileVersionComparator() throws Throwable {
-        val comparator = CrossCompileVersionComparator.standardVersionCrossCompileVersionComparator(
+        var comparator = CrossCompileVersionComparator.standardVersionCrossCompileVersionComparator(
             "test",
             "2.1"
         );

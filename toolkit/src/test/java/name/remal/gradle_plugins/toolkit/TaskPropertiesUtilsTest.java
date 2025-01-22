@@ -6,7 +6,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
@@ -34,11 +33,11 @@ class TaskPropertiesUtilsTest {
 
     @Test
     void test() throws Throwable {
-        val task = project.getTasks().register("test").get();
-        val additionalProps = project.getObjects().newInstance(AdditionalProperties.class);
+        var task = project.getTasks().register("test").get();
+        var additionalProps = project.getObjects().newInstance(AdditionalProperties.class);
         TaskPropertiesUtils.registerTaskProperties(task, additionalProps);
 
-        val nestedProviderProperties = project.getObjects().newInstance(NestedProperties.class);
+        var nestedProviderProperties = project.getObjects().newInstance(NestedProperties.class);
         nestedProviderProperties.getIntegers().addAll(4, 5, 6);
 
         additionalProps.getStrings().addAll("a", "b", "c");

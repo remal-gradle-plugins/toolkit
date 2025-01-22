@@ -3,7 +3,6 @@ package name.remal.gradle_plugins.toolkit;
 import com.google.auto.service.AutoService;
 import java.io.File;
 import javax.annotation.Nullable;
-import lombok.val;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileSystemLocationProperty;
 import org.gradle.api.provider.Provider;
@@ -27,22 +26,22 @@ final class ReportUtilsMethodsDefault implements ReportUtilsMethods {
     @Nullable
     @Override
     public File getReportDestination(Report report) {
-        val outputLocation = report.getOutputLocation();
-        val outputFileSystemLocation = (FileSystemLocation) outputLocation.getOrNull();
+        var outputLocation = report.getOutputLocation();
+        var outputFileSystemLocation = (FileSystemLocation) outputLocation.getOrNull();
         return outputFileSystemLocation != null ? outputFileSystemLocation.getAsFile() : null;
     }
 
     @Override
     public void setReportDestination(ConfigurableReport report, Provider<File> fileProvider) {
-        val outputLocation = report.getOutputLocation();
-        val outputLocationProperty = (FileSystemLocationProperty<?>) outputLocation;
+        var outputLocation = report.getOutputLocation();
+        var outputLocationProperty = (FileSystemLocationProperty<?>) outputLocation;
         outputLocationProperty.fileProvider(fileProvider);
     }
 
     @Override
     public void setReportDestination(ConfigurableReport report, File file) {
-        val outputLocation = report.getOutputLocation();
-        val outputLocationProperty = (FileSystemLocationProperty<?>) outputLocation;
+        var outputLocation = report.getOutputLocation();
+        var outputLocationProperty = (FileSystemLocationProperty<?>) outputLocation;
         outputLocationProperty.fileValue(file);
     }
 

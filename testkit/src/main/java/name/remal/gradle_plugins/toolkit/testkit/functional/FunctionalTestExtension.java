@@ -1,7 +1,6 @@
 package name.remal.gradle_plugins.toolkit.testkit.functional;
 
 import com.google.auto.service.AutoService;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.testkit.internal.AbstractProjectDirPrefixExtension;
 import name.remal.gradle_plugins.toolkit.testkit.internal.containers.GradleProjectsContainer;
 import org.junit.jupiter.api.extension.Extension;
@@ -18,7 +17,7 @@ public class FunctionalTestExtension extends AbstractProjectDirPrefixExtension i
         ParameterContext parameterContext,
         ExtensionContext extensionContext
     ) throws ParameterResolutionException {
-        val paramType = parameterContext.getParameter().getType();
+        var paramType = parameterContext.getParameter().getType();
         return paramType == GradleProject.class
             || paramType == GradleKtsProject.class;
     }
@@ -28,7 +27,7 @@ public class FunctionalTestExtension extends AbstractProjectDirPrefixExtension i
         ParameterContext parameterContext,
         ExtensionContext extensionContext
     ) throws ParameterResolutionException {
-        val gradleProjects = GradleProjectsContainer.getGradleProjectsContainer(extensionStore, extensionContext);
+        var gradleProjects = GradleProjectsContainer.getGradleProjectsContainer(extensionStore, extensionContext);
         return gradleProjects.resolveParameterGradleProject(parameterContext);
     }
 

@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 import name.remal.gradle_plugins.generate_sources.generators.java_like.JavaLikeContent;
 import org.jetbrains.annotations.UnmodifiableView;
 
@@ -31,7 +30,7 @@ public class PluginsChunkDefault<Block extends JavaLikeContent<Block>>
 
     @Override
     public void applyPluginAtTheBeginning(String pluginId, @Nullable Object version) {
-        val currentPlugins = new LinkedHashMap<>(pluginToVersion);
+        var currentPlugins = new LinkedHashMap<>(pluginToVersion);
         pluginToVersion.clear();
         pluginToVersion.put(pluginId, version);
         pluginToVersion.putAll(currentPlugins);
@@ -40,7 +39,7 @@ public class PluginsChunkDefault<Block extends JavaLikeContent<Block>>
     @Override
     @UnmodifiableView
     public Set<String> getAppliedPlugins() {
-        val appliedPlugins = new LinkedHashSet<>(pluginToVersion.keySet());
+        var appliedPlugins = new LinkedHashSet<>(pluginToVersion.keySet());
         pluginToVersion.forEach((pluginId, versionObj) -> {
             versionObj = unwrapProviders(versionObj);
             if (versionObj != null) {
@@ -56,7 +55,7 @@ public class PluginsChunkDefault<Block extends JavaLikeContent<Block>>
             return "";
         }
 
-        val content = blockFactory.get();
+        var content = blockFactory.get();
         content.block("plugins", plugins -> {
             pluginToVersion.forEach((pluginId, versionObj) -> {
                 versionObj = unwrapProviders(versionObj);
@@ -64,9 +63,9 @@ public class PluginsChunkDefault<Block extends JavaLikeContent<Block>>
                     return;
                 }
 
-                val decl = new StringBuilder();
+                var decl = new StringBuilder();
                 decl.append("id(\"").append(plugins.escapeString(pluginId)).append("\")");
-                val version = versionObj.toString();
+                var version = versionObj.toString();
                 if (isNotEmpty(versionObj)) {
                     decl.append(" version \"").append(plugins.escapeString(version)).append("\"");
                 }

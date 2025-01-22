@@ -4,7 +4,7 @@ import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.function.Function.identity;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toUnmodifiableList;
 import static lombok.AccessLevel.NONE;
 import static name.remal.gradle_plugins.toolkit.GradleCompatibilityMode.SUPPORTED;
 import static name.remal.gradle_plugins.toolkit.GradleCompatibilityMode.UNSUPPORTED;
@@ -22,7 +22,6 @@ import static name.remal.gradle_plugins.toolkit.StringUtils.trimRightWith;
 import static name.remal.gradle_plugins.toolkit.testkit.functional.GradleRunnerUtils.withJvmArguments;
 
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.ForOverride;
 import com.google.errorprone.annotations.OverridingMethodsMustInvokeSuper;
@@ -42,7 +41,6 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import lombok.val;
 import name.remal.gradle_plugins.generate_sources.generators.java_like.JavaLikeContent;
 import name.remal.gradle_plugins.toolkit.ConfigurationCacheUtils;
 import name.remal.gradle_plugins.toolkit.StringUtils;
@@ -103,15 +101,15 @@ public abstract class AbstractGradleProject<
 
     public Child newChildProject(String name) {
         return children.computeIfAbsent(name, __ -> {
-            val childProjectDir = new File(projectDir, name);
-            val child = createChildProject(childProjectDir);
+            var childProjectDir = new File(projectDir, name);
+            var child = createChildProject(childProjectDir);
             settingsFile.line("include(\":%s\")", settingsFile.escapeString(child.getName()));
             return child;
         });
     }
 
     public Child newChildProject(String name, Action<Child> action) {
-        val child = newChildProject(name);
+        var child = newChildProject(name);
         action.execute(child);
         return child;
     }
@@ -123,7 +121,7 @@ public abstract class AbstractGradleProject<
     @Getter(NONE)
     private final List<SuppressedMessage> suppressedForbiddenMessages = new ArrayList<>();
 
-    private static final List<String> DEFAULT_DEPRECATION_MESSAGES = ImmutableList.of(
+    private static final List<String> DEFAULT_DEPRECATION_MESSAGES = List.of(
         "has been deprecated and is scheduled to be removed in Gradle",
         "Deprecated Gradle features were used in this build",
         "is scheduled to be removed in Gradle",
@@ -133,7 +131,7 @@ public abstract class AbstractGradleProject<
     @Getter(NONE)
     private final List<String> deprecationMessages = new ArrayList<>(DEFAULT_DEPRECATION_MESSAGES);
 
-    private static final List<SuppressedMessage> DEFAULT_SUPPRESSED_DEPRECATIONS_MESSAGES = ImmutableList.of(
+    private static final List<SuppressedMessage> DEFAULT_SUPPRESSED_DEPRECATIONS_MESSAGES = List.of(
         SuppressedMessage.builder()
             .startsWith(true)
             .message("Java toolchain auto-provisioning enabled"
@@ -179,7 +177,7 @@ public abstract class AbstractGradleProject<
         new ArrayList<>(DEFAULT_SUPPRESSED_DEPRECATIONS_MESSAGES);
 
 
-    private static final List<String> DEFAULT_MUTABLE_PROJECT_STATE_WARNINGS = ImmutableList.of(
+    private static final List<String> DEFAULT_MUTABLE_PROJECT_STATE_WARNINGS = List.of(
         "was resolved without accessing the project in a safe manner",
         "configuration is resolved from a thread not managed by Gradle"
     );
@@ -196,7 +194,7 @@ public abstract class AbstractGradleProject<
         new ArrayList<>(DEFAULT_SUPPRESSED_MUTABLE_PROJECT_STATE_WARNINGS);
 
 
-    private static final List<String> DEFAULT_OPTIMIZATIONS_DISABLED_WARNINGS = ImmutableList.of(
+    private static final List<String> DEFAULT_OPTIMIZATIONS_DISABLED_WARNINGS = List.of(
         "Execution optimizations have been disabled for task",
         "This can lead to incorrect results being produced, depending on what order the tasks are executed"
     );
@@ -275,12 +273,12 @@ public abstract class AbstractGradleProject<
     }
 
     public final BuildResult assertBuildSuccessfully(String argument, String... otherArguments) {
-        val arguments = concatArguments(new String[]{argument}, otherArguments);
+        var arguments = concatArguments(new String[]{argument}, otherArguments);
         return build(arguments, true);
     }
 
     public final BuildResult assertBuildFails(String argument, String... otherArguments) {
-        val arguments = concatArguments(new String[]{argument}, otherArguments);
+        var arguments = concatArguments(new String[]{argument}, otherArguments);
         return build(arguments, false);
     }
 
@@ -311,7 +309,7 @@ public abstract class AbstractGradleProject<
         }
 
 
-        val runner = createGradleRunner(projectDir, withConfigurationCache, arguments);
+        var runner = createGradleRunner(projectDir, withConfigurationCache, arguments);
         if (withJacoco && jacocoProjectDir == null) {
             injectJacocoArgs(runner);
         }
@@ -331,11 +329,11 @@ public abstract class AbstractGradleProject<
             buildResult = runner.buildAndFail();
         }
 
-        val output = buildResult.getOutput();
+        var output = buildResult.getOutput();
         List<String> outputLines = Splitter.onPattern("[\\n\\r]+").splitToStream(output)
             .map(StringUtils::trimRight)
             .filter(not(String::isEmpty))
-            .collect(toList());
+            .collect(toUnmodifiableList());
         assertNoForbiddenMessages(outputLines);
         assertNoDeprecationMessages(outputLines);
         assertNoMutableProjectStateWarnings(outputLines);
@@ -345,7 +343,7 @@ public abstract class AbstractGradleProject<
         if (jacocoProjectDir != null) {
             logger.lifecycle("\nBuilding without the Configuration Cache to collect test coverage"
                 + " (see https://github.com/gradle/gradle/issues/25979)...\n");
-            val jacocoRunner = createGradleRunner(jacocoProjectDir, false, arguments);
+            var jacocoRunner = createGradleRunner(jacocoProjectDir, false, arguments);
             injectJacocoArgs(jacocoRunner);
             if (isExpectingSuccess) {
                 jacocoRunner.build();
@@ -357,14 +355,14 @@ public abstract class AbstractGradleProject<
     }
 
     private void assertNoForbiddenMessages(List<String> outputLines) {
-        val errors = parseErrors(
+        var errors = parseErrors(
             outputLines,
             forbiddenMessages,
             suppressedForbiddenMessages,
             null
         );
         if (!errors.isEmpty()) {
-            val sb = new StringBuilder();
+            var sb = new StringBuilder();
             sb.append("Forbidden warnings were found:");
             errors.forEach(it -> sb.append("\n  * ").append(it));
             throw new AssertionError(sb.toString());
@@ -372,14 +370,14 @@ public abstract class AbstractGradleProject<
     }
 
     private void assertNoDeprecationMessages(List<String> outputLines) {
-        val errors = parseErrors(
+        var errors = parseErrors(
             outputLines,
             deprecationMessages,
             suppressedDeprecationMessages,
             null
         );
         if (!errors.isEmpty()) {
-            val sb = new StringBuilder();
+            var sb = new StringBuilder();
             sb.append("Deprecation warnings were found:");
             errors.forEach(it -> sb.append("\n  * ").append(it));
             throw new AssertionError(sb.toString());
@@ -387,14 +385,14 @@ public abstract class AbstractGradleProject<
     }
 
     private void assertNoMutableProjectStateWarnings(List<String> outputLines) {
-        val errors = parseErrors(
+        var errors = parseErrors(
             outputLines,
             mutableProjectStateWarnings,
             suppressedMutableProjectStateWarnings,
             null
         );
         if (!errors.isEmpty()) {
-            val sb = new StringBuilder();
+            var sb = new StringBuilder();
             sb.append("Mutable Project State warnings were found:");
             errors.forEach(it -> sb.append("\n  * ").append(it));
             throw new AssertionError(sb.toString());
@@ -402,14 +400,14 @@ public abstract class AbstractGradleProject<
     }
 
     private void assertNoOptimizationsDisabledWarnings(List<String> outputLines) {
-        val errors = parseErrors(
+        var errors = parseErrors(
             outputLines,
             optimizationsDisabledWarnings,
             suppressedOptimizationsDisabledWarnings,
             null
         );
         if (!errors.isEmpty()) {
-            val sb = new StringBuilder();
+            var sb = new StringBuilder();
             sb.append("Optimizations disabled warnings were found:");
             errors.forEach(it -> sb.append("\n  * ").append(it));
             throw new AssertionError(sb.toString());
@@ -425,7 +423,7 @@ public abstract class AbstractGradleProject<
         List<SuppressedMessage> suppressedMessages,
         @Nullable Predicate<String> isWarningEndLine
     ) {
-        val currentBaseGradleVersion = GradleVersion.current().getBaseVersion();
+        var currentBaseGradleVersion = GradleVersion.current().getBaseVersion();
         suppressedMessages = suppressedMessages.stream()
             .filter(msg -> msg.getMinGradleVersion() == null
                 || msg.getMinGradleVersion().getBaseVersion().compareTo(currentBaseGradleVersion) <= 0
@@ -433,18 +431,18 @@ public abstract class AbstractGradleProject<
             .filter(msg -> msg.getMaxGradleVersion() == null
                 || msg.getMaxGradleVersion().getBaseVersion().compareTo(currentBaseGradleVersion) >= 0
             )
-            .collect(toList());
+            .collect(toUnmodifiableList());
 
         Collection<String> errors = new LinkedHashSet<>();
         forEachLine:
         for (int lineIndex = 0; lineIndex < outputLines.size(); ++lineIndex) {
-            val line = outputLines.get(lineIndex);
-            val hasError = messages.stream().anyMatch(line::contains);
+            var line = outputLines.get(lineIndex);
+            var hasError = messages.stream().anyMatch(line::contains);
             if (!hasError) {
                 continue;
             }
 
-            for (val suppressedMessage : suppressedMessages) {
+            for (var suppressedMessage : suppressedMessages) {
                 boolean matches;
                 if (suppressedMessage.isStartsWith()) {
                     matches = line.startsWith(suppressedMessage.getMessage());
@@ -452,13 +450,13 @@ public abstract class AbstractGradleProject<
                     matches = line.contains(suppressedMessage.getMessage());
                 }
                 if (matches) {
-                    val stackTracePackagePrefix = suppressedMessage.getStackTracePrefix();
+                    var stackTracePackagePrefix = suppressedMessage.getStackTracePrefix();
                     if (isEmpty(stackTracePackagePrefix)) {
                         continue forEachLine;
                     }
 
                     for (int i = lineIndex + 1; i < outputLines.size(); ++i) {
-                        val stackTraceLine = outputLines.get(i);
+                        var stackTraceLine = outputLines.get(i);
                         if (!STACK_TRACE_LINE.matcher(stackTraceLine).find()) {
                             break;
                         }
@@ -474,10 +472,10 @@ public abstract class AbstractGradleProject<
                 continue;
             }
 
-            val message = new StringBuilder();
+            var message = new StringBuilder();
             message.append(line);
             for (++lineIndex; lineIndex < outputLines.size(); ++lineIndex) {
-                val nextLine = outputLines.get(lineIndex);
+                var nextLine = outputLines.get(lineIndex);
                 message.append('\n').append(nextLine);
                 if (isWarningEndLine.test(nextLine)) {
                     break;
@@ -492,7 +490,7 @@ public abstract class AbstractGradleProject<
 
     @SneakyThrows
     private GradleRunner createGradleRunner(File projectDir, boolean withConfigurationCache, String[] arguments) {
-        val gradleJavaCompatibility = getGradleJavaCompatibility();
+        var gradleJavaCompatibility = getGradleJavaCompatibility();
         if (gradleJavaCompatibility == UNSUPPORTED) {
             throw new AssertionError(format(
                 "Gradle %s does NOT support Java %s",
@@ -501,7 +499,7 @@ public abstract class AbstractGradleProject<
             ));
         }
 
-        val allArguments = concatArguments(
+        var allArguments = concatArguments(
             new String[]{
                 "--stacktrace",
                 "--warning-mode=all",
@@ -524,7 +522,7 @@ public abstract class AbstractGradleProject<
             arguments
         );
 
-        val runner = GradleRunner.create()
+        var runner = GradleRunner.create()
             .withProjectDir(projectDir)
             .forwardOutput()
             //.withDebug(isDebugEnabled())
@@ -550,7 +548,7 @@ public abstract class AbstractGradleProject<
                         "--configuration-cache-problems=fail",
                         "-Dorg.gradle.configuration-cache.stable=true"
                     )
-                ).collect(toList()));
+                ).collect(toUnmodifiableList()));
             }
         }
 
@@ -558,7 +556,7 @@ public abstract class AbstractGradleProject<
         if (isEmpty(gradleDistribMirror)) {
             runner.withGradleVersion(GradleVersion.current().getVersion());
         } else {
-            val distributionUri = new URI(trimRightWith(gradleDistribMirror, '/') + format(
+            var distributionUri = new URI(trimRightWith(gradleDistribMirror, '/') + format(
                 "/gradle-%s-bin.zip",
                 GradleVersion.current().getVersion()
             ));
@@ -569,14 +567,14 @@ public abstract class AbstractGradleProject<
     }
 
     private boolean isConfigurationCacheSupportedWithAppliedPlugins() {
-        val allAppliedPlugins = Stream.of(
+        var allAppliedPlugins = Stream.of(
                 getSettingsFile().getAppliedPlugins().stream(),
                 getBuildFile().getAppliedPlugins().stream(),
                 getChildren().values().stream().flatMap(project -> project.getBuildFile().getAppliedPlugins().stream())
             )
             .flatMap(identity())
             .distinct()
-            .collect(toList());
+            .collect(toUnmodifiableList());
         if (allAppliedPlugins.isEmpty()) {
             return true;
         }
@@ -587,7 +585,7 @@ public abstract class AbstractGradleProject<
     }
 
     private void injectJacocoArgs(GradleRunner runner) {
-        val jacocoJvmArg = parseJacocoJvmArgFromCurrentJvmArgs();
+        var jacocoJvmArg = parseJacocoJvmArgFromCurrentJvmArgs();
         if (jacocoJvmArg == null) {
             return;
         }

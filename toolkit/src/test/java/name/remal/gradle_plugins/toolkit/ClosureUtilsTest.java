@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import groovy.lang.Closure;
 import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 import org.gradle.api.Project;
 import org.junit.jupiter.api.Test;
 
@@ -30,7 +29,7 @@ class ClosureUtilsTest {
 
     @Test
     void configureUsing() {
-        val action = ClosureUtils.configureUsing(new Closure<Object>(this) {
+        var action = ClosureUtils.configureUsing(new Closure<Object>(this) {
             @Override
             @Nullable
             public Object call() {

@@ -24,7 +24,6 @@ import java.nio.file.attribute.FileTime;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class PathUtils {
@@ -49,12 +48,12 @@ public abstract class PathUtils {
 
     @SneakyThrows
     public static void copyRecursively(Path source, Path destination, CopyOption... options) {
-        val withDefaultOptions = options.length == 0
+        var withDefaultOptions = options.length == 0
             ? new CopyOption[]{COPY_ATTRIBUTES, REPLACE_EXISTING}
             : options;
 
-        val normalizedSource = normalizePath(source);
-        val normalizedDestination = normalizePath(destination);
+        var normalizedSource = normalizePath(source);
+        var normalizedDestination = normalizePath(destination);
         walkFileTree(normalizedSource, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
@@ -142,7 +141,7 @@ public abstract class PathUtils {
 
     @SneakyThrows
     public static Path createParentDirectories(Path path) {
-        val parentPath = normalizePath(path).getParent();
+        var parentPath = normalizePath(path).getParent();
         if (parentPath != null) {
             createDirectories(parentPath);
         }

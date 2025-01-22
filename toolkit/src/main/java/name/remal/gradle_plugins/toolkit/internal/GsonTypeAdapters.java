@@ -16,7 +16,6 @@ import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import javax.annotation.Nullable;
-import lombok.val;
 import org.codehaus.groovy.runtime.GStringImpl;
 
 public class GsonTypeAdapters implements TypeAdapterFactory {
@@ -29,7 +28,7 @@ public class GsonTypeAdapters implements TypeAdapterFactory {
 
         @Override
         public GString read(JsonReader in) throws IOException {
-            val value = in.nextString();
+            var value = in.nextString();
             return new GStringImpl(new Object[0], new String[]{value});
         }
     }.nullSafe();
@@ -74,7 +73,7 @@ public class GsonTypeAdapters implements TypeAdapterFactory {
     @Nullable
     @SuppressWarnings({"unchecked", "rawtypes"})
     public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
-        val rawType = type.getRawType();
+        var rawType = type.getRawType();
         if (GString.class.isAssignableFrom(rawType)) {
             return (TypeAdapter) G_STRING_TYPE_ADAPTER;
         } else if (rawType == Charset.class) {

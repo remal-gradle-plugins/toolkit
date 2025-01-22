@@ -3,7 +3,6 @@ package name.remal.gradle_plugins.toolkit;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import lombok.val;
 import org.junit.jupiter.api.Test;
 
 class CrossCompileServiceDependencyVersionTest {
@@ -47,13 +46,13 @@ class CrossCompileServiceDependencyVersionTest {
         String version1, boolean earlierIncluded1, boolean selfIncluded1, boolean laterIncluded1,
         String version2, boolean earlierIncluded2, boolean selfIncluded2, boolean laterIncluded2
     ) {
-        val depVer1 = CrossCompileServiceDependencyVersion.builder()
+        var depVer1 = CrossCompileServiceDependencyVersion.builder()
             .version(Version.parse(version1))
             .earlierIncluded(earlierIncluded1)
             .selfIncluded(selfIncluded1)
             .laterIncluded(laterIncluded1)
             .build();
-        val depVer2 = CrossCompileServiceDependencyVersion.builder()
+        var depVer2 = CrossCompileServiceDependencyVersion.builder()
             .version(Version.parse(version2))
             .earlierIncluded(earlierIncluded2)
             .selfIncluded(selfIncluded2)
@@ -67,13 +66,13 @@ class CrossCompileServiceDependencyVersionTest {
         String version1, boolean earlierIncluded1, boolean selfIncluded1, boolean laterIncluded1,
         String version2, boolean earlierIncluded2, boolean selfIncluded2, boolean laterIncluded2
     ) {
-        val depVer1 = CrossCompileServiceDependencyVersion.builder()
+        var depVer1 = CrossCompileServiceDependencyVersion.builder()
             .version(Version.parse(version1))
             .earlierIncluded(earlierIncluded1)
             .selfIncluded(selfIncluded1)
             .laterIncluded(laterIncluded1)
             .build();
-        val depVer2 = CrossCompileServiceDependencyVersion.builder()
+        var depVer2 = CrossCompileServiceDependencyVersion.builder()
             .version(Version.parse(version2))
             .earlierIncluded(earlierIncluded2)
             .selfIncluded(selfIncluded2)

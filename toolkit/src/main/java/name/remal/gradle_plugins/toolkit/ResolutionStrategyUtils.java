@@ -6,7 +6,6 @@ import static name.remal.gradle_plugins.toolkit.reflection.MethodsInvoker.invoke
 
 import lombok.CustomLog;
 import lombok.NoArgsConstructor;
-import lombok.val;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ResolutionStrategy;
@@ -27,7 +26,7 @@ public abstract class ResolutionStrategyUtils {
             };
 
             try {
-                val dependencyManagement = getExtension(project, "dependencyManagement");
+                var dependencyManagement = getExtension(project, "dependencyManagement");
                 invokeMethod(dependencyManagement, "resolutionStrategy", Action.class, untypedAction);
 
             } catch (Throwable e) {

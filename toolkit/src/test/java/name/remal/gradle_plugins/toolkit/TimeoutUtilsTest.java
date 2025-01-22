@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.concurrent.TimeoutException;
-import lombok.val;
 import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("java:S2925")
@@ -32,7 +31,7 @@ class TimeoutUtilsTest {
 
     @Test
     void interruptedException() {
-        val currentThread = Thread.currentThread();
+        var currentThread = Thread.currentThread();
         assertThrows(InterruptedException.class, () ->
             TimeoutUtils.withTimeout(Duration.ofMillis(100), () -> {
                 new Thread(currentThread::interrupt).start();

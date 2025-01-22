@@ -7,7 +7,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import java.io.File;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.TagXslt;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +20,7 @@ class CheckstyleHtmlIssuesRendererTest {
 
     @Test
     void does_not_throw_exception() {
-        val issue = newIssueBuilder()
+        var issue = newIssueBuilder()
             .sourceFile(new File("source"))
             .message(textMessageOf("message"))
             .build();
@@ -30,34 +29,34 @@ class CheckstyleHtmlIssuesRendererTest {
 
     @Test
     void does_not_include_word_checkstyle() {
-        val issue = newIssueBuilder()
+        var issue = newIssueBuilder()
             .sourceFile(new File("source"))
             .message(textMessageOf("message"))
             .build();
-        val renderedContent = renderer.renderIssues(singletonList(issue));
+        var renderedContent = renderer.renderIssues(singletonList(issue));
         assertThat(renderedContent)
             .doesNotContainIgnoringCase("checkstyle");
     }
 
     @Test
     void includes_tool_name() {
-        val issue = newIssueBuilder()
+        var issue = newIssueBuilder()
             .sourceFile(new File("source"))
             .message(textMessageOf("message"))
             .build();
-        val renderedContent = renderer.renderIssues(singletonList(issue));
+        var renderedContent = renderer.renderIssues(singletonList(issue));
         assertThat(renderedContent)
             .contains(TOOL_NAME);
     }
 
     @Test
     void includes_rule() {
-        val issue = newIssueBuilder()
+        var issue = newIssueBuilder()
             .sourceFile(new File("source"))
             .message(textMessageOf("message"))
             .rule(RULE_NAME)
             .build();
-        val renderedContent = renderer.renderIssues(singletonList(issue));
+        var renderedContent = renderer.renderIssues(singletonList(issue));
         assertThat(renderedContent)
             .matches("[\\s\\S]*<th[^>]*>\\s*Rule\\s*</th>[\\s\\S]*")
             .contains(RULE_NAME);

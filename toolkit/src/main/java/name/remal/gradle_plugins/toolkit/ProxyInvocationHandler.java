@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import lombok.Value;
-import lombok.val;
 import org.jetbrains.annotations.Contract;
 
 public final class ProxyInvocationHandler implements InvocationHandler {
@@ -39,7 +38,7 @@ public final class ProxyInvocationHandler implements InvocationHandler {
     @Override
     @Nonnull(when = UNKNOWN)
     public Object invoke(Object proxy, Method method, @Nonnull(when = UNKNOWN) Object[] args) throws Throwable {
-        for (val handler : handlers) {
+        for (var handler : handlers) {
             if (handler.getPredicate().test(method)) {
                 try {
                     return handler.getImpl().invoke(proxy, method, args);

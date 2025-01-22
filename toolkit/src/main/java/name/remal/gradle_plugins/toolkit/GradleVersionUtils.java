@@ -3,7 +3,6 @@ package name.remal.gradle_plugins.toolkit;
 import static lombok.AccessLevel.PRIVATE;
 
 import lombok.NoArgsConstructor;
-import lombok.val;
 import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.Contract;
 
@@ -20,7 +19,7 @@ public abstract class GradleVersionUtils {
 
     @Contract(pure = true)
     public static boolean isCurrentGradleVersionLessThan(String versionString) {
-        val version = GradleVersion.version(versionString);
+        var version = GradleVersion.version(versionString);
         return isCurrentGradleVersionLessThan(version);
     }
 
@@ -32,7 +31,7 @@ public abstract class GradleVersionUtils {
 
     @Contract(pure = true)
     public static boolean isCurrentGradleVersionLessThanOrEqualTo(String versionString) {
-        val version = GradleVersion.version(versionString);
+        var version = GradleVersion.version(versionString);
         return isCurrentGradleVersionLessThanOrEqualTo(version);
     }
 
@@ -44,7 +43,7 @@ public abstract class GradleVersionUtils {
 
     @Contract(pure = true)
     public static boolean isCurrentGradleVersionEqualTo(String versionString) {
-        val version = GradleVersion.version(versionString);
+        var version = GradleVersion.version(versionString);
         return isCurrentGradleVersionEqualTo(version);
     }
 
@@ -56,7 +55,7 @@ public abstract class GradleVersionUtils {
 
     @Contract(pure = true)
     public static boolean isCurrentGradleVersionGreaterThanOrEqualTo(String versionString) {
-        val version = GradleVersion.version(versionString);
+        var version = GradleVersion.version(versionString);
         return isCurrentGradleVersionGreaterThanOrEqualTo(version);
     }
 
@@ -68,7 +67,7 @@ public abstract class GradleVersionUtils {
 
     @Contract(pure = true)
     public static boolean isCurrentGradleVersionGreaterThan(String versionString) {
-        val version = GradleVersion.version(versionString);
+        var version = GradleVersion.version(versionString);
         return isCurrentGradleVersionGreaterThan(version);
     }
 

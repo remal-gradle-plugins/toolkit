@@ -7,7 +7,6 @@ import static name.remal.gradle_plugins.toolkit.issues.Utils.streamIssues;
 import static org.jdom2.output.Format.getPrettyFormat;
 import static org.jdom2.output.LineSeparator.UNIX;
 
-import lombok.val;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.output.XMLOutputter;
@@ -25,24 +24,24 @@ public class CheckstyleXmlIssuesRenderer implements IssuesRenderer {
 
     @Override
     public String renderIssues(Iterable<? extends Issue> issues) {
-        val document = new Document();
+        var document = new Document();
 
-        val checkstyleNode = new Element("checkstyle");
+        var checkstyleNode = new Element("checkstyle");
         document.setRootElement(checkstyleNode);
 
         streamIssues(issues)
             .collect(groupingBy(Issue::getSourceFile))
             .forEach((sourceFile, fileIssues) -> {
-                val fileNode = new Element("file");
+                var fileNode = new Element("file");
                 checkstyleNode.addContent(fileNode);
 
                 fileNode.setAttribute("name", sourceFile.getPath());
 
                 fileIssues.forEach(issue -> {
-                    val errorNode = new Element("error");
+                    var errorNode = new Element("error");
                     fileNode.addContent(errorNode);
 
-                    val severity = getCheckstyleSeverityFor(issue.getSeverity());
+                    var severity = getCheckstyleSeverityFor(issue.getSeverity());
                     if (severity != null) {
                         errorNode.setAttribute("severity", severity);
                     }

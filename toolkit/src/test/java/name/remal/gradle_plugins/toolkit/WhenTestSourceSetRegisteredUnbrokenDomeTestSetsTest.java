@@ -6,7 +6,6 @@ import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
 
 import java.util.LinkedHashSet;
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.testkit.MinSupportedGradleVersion;
 import name.remal.gradle_plugins.toolkit.testkit.MinSupportedJavaVersion;
 import org.gradle.api.Project;
@@ -33,7 +32,7 @@ class WhenTestSourceSetRegisteredUnbrokenDomeTestSetsTest {
 
     @Test
     void simple() {
-        val testSourceSets = new LinkedHashSet<SourceSet>();
+        var testSourceSets = new LinkedHashSet<SourceSet>();
         handler.registerAction(project, testSourceSets::add);
 
         assertThat(testSourceSets)
@@ -45,7 +44,7 @@ class WhenTestSourceSetRegisteredUnbrokenDomeTestSetsTest {
     void integration() {
         getExtension(project, TestSetContainer.class).create("integrationTest");
 
-        val testSourceSets = new LinkedHashSet<SourceSet>();
+        var testSourceSets = new LinkedHashSet<SourceSet>();
         handler.registerAction(project, testSourceSets::add);
 
         assertThat(testSourceSets)

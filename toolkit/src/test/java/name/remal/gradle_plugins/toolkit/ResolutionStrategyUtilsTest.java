@@ -9,7 +9,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -42,7 +41,7 @@ class ResolutionStrategyUtilsTest {
             )
         );
 
-        val conf = project.getConfigurations().create("resolvableConfiguration");
+        var conf = project.getConfigurations().create("resolvableConfiguration");
 
         notTransitive(project.getDependencies().add(conf.getName(), "junit:junit:4.13.2"));
 
@@ -74,7 +73,7 @@ class ResolutionStrategyUtilsTest {
 
         project.getPluginManager().apply("io.spring.dependency-management");
 
-        val conf = project.getConfigurations().create("resolvableConfiguration");
+        var conf = project.getConfigurations().create("resolvableConfiguration");
 
         notTransitive(project.getDependencies().add(conf.getName(), "junit:junit:4.13.2"));
 

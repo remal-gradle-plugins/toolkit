@@ -24,7 +24,6 @@ import java.util.Properties;
 import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import lombok.val;
 import name.remal.gradle_plugins.generate_sources.generators.TextContent;
 import name.remal.gradle_plugins.generate_sources.generators.TextContentDefault;
 import name.remal.gradle_plugins.generate_sources.generators.java_like.JavaLikeContent;
@@ -95,7 +94,7 @@ public abstract class AbstractBaseGradleProject<
 
     @SneakyThrows
     protected final void writeGradlePropertiesToDisk() {
-        val properties = new Properties();
+        var properties = new Properties();
         gradleProperties.forEach((key, value) -> {
             value = unwrapProviders(value);
             if (value != null) {
@@ -103,7 +102,7 @@ public abstract class AbstractBaseGradleProject<
             }
         });
 
-        val path = projectDir.toPath().resolve(GRADLE_PROPERTIES_RELATIVE_PATH);
+        var path = projectDir.toPath().resolve(GRADLE_PROPERTIES_RELATIVE_PATH);
         storeProperties(properties, path);
     }
 
@@ -123,7 +122,7 @@ public abstract class AbstractBaseGradleProject<
             ));
         }
 
-        val destPath = resolveRelativePath(relativeFilePath);
+        var destPath = resolveRelativePath(relativeFilePath);
         createParentDirectories(destPath);
         write(destPath, bytes);
     }
@@ -145,7 +144,7 @@ public abstract class AbstractBaseGradleProject<
     }
 
     public void writeTextFile(String relativeFilePath, Action<TextContent> contentAction, Charset charset) {
-        val content = new TextContentDefault();
+        var content = new TextContentDefault();
         contentAction.execute(content);
         writeTextFile(relativeFilePath, content, charset);
     }
@@ -159,7 +158,7 @@ public abstract class AbstractBaseGradleProject<
         JavaClassFileContent content,
         Charset charset
     ) {
-        val relativeFilePath = new StringBuilder()
+        var relativeFilePath = new StringBuilder()
             .append(relativeSourcesRootPath).append("/");
         Optional.of(content.getPackageName())
             .filter(not(String::isEmpty))
@@ -181,7 +180,7 @@ public abstract class AbstractBaseGradleProject<
         Action<JavaClassFileContent> contentAction,
         Charset charset
     ) {
-        val content = new JavaClassFileContentDefault(packageName, simpleName);
+        var content = new JavaClassFileContentDefault(packageName, simpleName);
         contentAction.execute(content);
         writeJavaClassSourceFile(relativeSourcesRootPath, content, charset);
     }
@@ -202,12 +201,12 @@ public abstract class AbstractBaseGradleProject<
 
     @SneakyThrows
     public final byte[] readBinaryFile(String relativeFilePath) {
-        val destPath = resolveRelativePath(relativeFilePath);
+        var destPath = resolveRelativePath(relativeFilePath);
         return readAllBytes(destPath);
     }
 
     public final String readTextFile(String relativeFilePath, Charset charset) {
-        val bytes = readBinaryFile(relativeFilePath);
+        var bytes = readBinaryFile(relativeFilePath);
         return new String(bytes, charset);
     }
 
@@ -217,13 +216,13 @@ public abstract class AbstractBaseGradleProject<
 
 
     public Path resolveRelativePath(String relativeFilePath) {
-        val relativePath = Paths.get(relativeFilePath);
+        var relativePath = Paths.get(relativeFilePath);
         if (relativePath.isAbsolute()) {
             throw new IllegalArgumentException("Not a relative path: " + relativeFilePath);
         }
 
-        val projectPath = normalizePath(projectDir.toPath());
-        val destPath = normalizePath(projectPath.resolve(relativePath));
+        var projectPath = normalizePath(projectDir.toPath());
+        var destPath = normalizePath(projectPath.resolve(relativePath));
         if (!destPath.startsWith(projectPath)) {
             throw new IllegalArgumentException(
                 "Relative path refers to a file outside of the project dir: " + relativeFilePath

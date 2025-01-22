@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.concurrent.atomic.AtomicReference;
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 import org.gradle.api.Project;
 import org.junit.jupiter.api.Test;
 
@@ -17,7 +16,7 @@ class ProjectValidationsTest {
 
     @Test
     void executeAfterEvaluateActions() {
-        val evaluatedProject = new AtomicReference<Project>();
+        var evaluatedProject = new AtomicReference<Project>();
         project.afterEvaluate(evaluatedProject::set);
         assertNull(evaluatedProject.get());
 

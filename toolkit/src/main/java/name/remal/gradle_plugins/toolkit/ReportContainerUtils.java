@@ -8,7 +8,7 @@ import static java.lang.Character.toLowerCase;
 import static java.util.Arrays.stream;
 import static java.util.Collections.singletonList;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toUnmodifiableList;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.BytecodeTestUtils.wrapWithTestClassVisitors;
 import static name.remal.gradle_plugins.toolkit.CrossCompileServices.loadCrossCompileService;
@@ -48,7 +48,6 @@ import static org.objectweb.asm.Type.getType;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ImmutableList;
 import com.google.common.reflect.TypeToken;
 import java.io.File;
 import java.lang.reflect.Method;
@@ -65,7 +64,6 @@ import javax.annotation.Nullable;
 import lombok.CustomLog;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils;
 import org.gradle.api.Action;
@@ -111,7 +109,7 @@ public abstract class ReportContainerUtils {
         > C createReportContainerFor(
         T task
     ) {
-        val reportContainerType = getReportContainerType(task);
+        var reportContainerType = getReportContainerType(task);
         return createReportContainerFor(task, reportContainerType);
     }
 
@@ -130,15 +128,15 @@ public abstract class ReportContainerUtils {
             );
         }
 
-        val reportGetters = collectReportGetters(reportContainerType);
-        val reportContainerDelegate = METHODS.createReportContainer(
+        var reportGetters = collectReportGetters(reportContainerType);
+        var reportContainerDelegate = METHODS.createReportContainer(
             task,
             getReportClassFor(reportContainerType),
             createReportContainerConfigureAction(reportGetters)
         );
 
 
-        val reportContainer = withReportGetters(
+        var reportContainer = withReportGetters(
             reportContainerType,
             reportContainerDelegate
         );
@@ -150,19 +148,19 @@ public abstract class ReportContainerUtils {
         return reportContainer;
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings("unchecked")
     private static <
         C extends ReportContainer<?>,
         T extends Task & Reporting<C>
         > Class<C> getReportContainerType(
         T task
     ) {
-        val typeToken = (TypeToken) TypeToken.of(task.getClass());
-        val superTypeToken = typeToken.getSupertype(Reporting.class);
-        val type = superTypeToken.getType();
+        var typeToken = (TypeToken<? extends Reporting<?>>) TypeToken.of(task.getClass());
+        var superTypeToken = typeToken.getSupertype(Reporting.class);
+        var type = superTypeToken.getType();
         if (type instanceof ParameterizedType) {
-            val parameterizedType = (ParameterizedType) type;
-            val result = (Class<C>) TypeToken.of(parameterizedType.getActualTypeArguments()[0]).getRawType();
+            var parameterizedType = (ParameterizedType) type;
+            var result = (Class<C>) TypeToken.of(parameterizedType.getActualTypeArguments()[0]).getRawType();
             if (Objects.equals(result, ReportContainer.class)) {
                 throw new AssertionError("Not a ParameterizedType / too common ReportContainer type: " + type);
             }
@@ -172,13 +170,13 @@ public abstract class ReportContainerUtils {
         }
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings("unchecked")
     private static Class<? extends Report> getReportClassFor(Class<? extends ReportContainer<?>> reportContainerType) {
-        val typeToken = (TypeToken) TypeToken.of(reportContainerType);
-        val superTypeToken = typeToken.getSupertype(ReportContainer.class);
-        val type = superTypeToken.getType();
+        var typeToken = TypeToken.of(reportContainerType);
+        var superTypeToken = typeToken.getSupertype(ReportContainer.class);
+        var type = superTypeToken.getType();
         if (type instanceof ParameterizedType) {
-            val parameterizedType = (ParameterizedType) type;
+            var parameterizedType = (ParameterizedType) type;
             return (Class<? extends Report>) TypeToken.of(parameterizedType.getActualTypeArguments()[0]).getRawType();
         } else {
             throw new AssertionError("Not a ParameterizedType: " + type);
@@ -192,7 +190,7 @@ public abstract class ReportContainerUtils {
             .filter(method -> Report.class.isAssignableFrom(method.getReturnType()))
             .filter(method -> method.getParameterCount() == 0)
             .forEach(getter -> {
-                val reportName = getterNameToReportName(getter.getName());
+                var reportName = getterNameToReportName(getter.getName());
                 if (reportName != null) {
                     reportGetters.put(reportName, getter);
                 }
@@ -221,7 +219,7 @@ public abstract class ReportContainerUtils {
         Map<String, Method> reportGetters
     ) {
         return container -> reportGetters.forEach((reportName, getter) -> {
-            val reportType = getter.getReturnType();
+            var reportType = getter.getReturnType();
             if (reportType == SingleFileReport.class) {
                 container.addSingleFileReport(reportName);
 
@@ -242,7 +240,7 @@ public abstract class ReportContainerUtils {
 
     @Nullable
     private static String getRelativeEntryPath(Method getter) {
-        val annotation = getter.getAnnotation(DirectoryReportRelativeEntryPath.class);
+        var annotation = getter.getAnnotation(DirectoryReportRelativeEntryPath.class);
         return annotation != null ? annotation.value() : null;
     }
 
@@ -253,8 +251,8 @@ public abstract class ReportContainerUtils {
         Class<C> reportContainerType,
         ReportContainer<?> reportContainerDelegate
     ) {
-        val withReportGettersClass = getWithReportGettersClass(reportContainerType);
-        val withReportGettersCtor = withReportGettersClass.getConstructor(ReportContainer.class);
+        var withReportGettersClass = getWithReportGettersClass(reportContainerType);
+        var withReportGettersCtor = withReportGettersClass.getConstructor(ReportContainer.class);
         return (C) withReportGettersCtor.newInstance(reportContainerDelegate);
     }
 
@@ -271,7 +269,7 @@ public abstract class ReportContainerUtils {
     @SneakyThrows
     @SuppressWarnings("java:S3776")
     private static Class<?> generateWithReportGettersClass(Class<?> reportContainerType) {
-        val classNode = new ClassNode();
+        var classNode = new ClassNode();
         classNode.version = V1_8;
         classNode.access = ACC_PUBLIC | ACC_SYNTHETIC;
         classNode.name = getInternalName(reportContainerType) + "$$Delegating";
@@ -283,7 +281,7 @@ public abstract class ReportContainerUtils {
         classNode.fields = new ArrayList<>();
         classNode.methods = new ArrayList<>();
 
-        val delegateField = new FieldNode(
+        var delegateField = new FieldNode(
             ACC_PRIVATE | ACC_FINAL,
             "delegate",
             getDescriptor(ReportContainer.class),
@@ -293,7 +291,7 @@ public abstract class ReportContainerUtils {
         classNode.fields.add(delegateField);
 
         {
-            val methodNode = new MethodNode(
+            var methodNode = new MethodNode(
                 ACC_PUBLIC,
                 "<init>",
                 getMethodDescriptor(
@@ -307,7 +305,7 @@ public abstract class ReportContainerUtils {
 
             methodNode.parameters = singletonList(new ParameterNode(delegateField.name, ACC_FINAL));
 
-            val instructions = methodNode.instructions = new InsnList();
+            var instructions = methodNode.instructions = new InsnList();
             instructions.add(new LabelNode());
 
             instructions.add(new VarInsnNode(ALOAD, 0));
@@ -332,10 +330,10 @@ public abstract class ReportContainerUtils {
             instructions.add(new InsnNode(RETURN));
         }
 
-        val reportGetters = collectReportGetters(reportContainerType);
-        val getByNameMethod = reportContainerType.getMethod("getByName", String.class);
+        var reportGetters = collectReportGetters(reportContainerType);
+        var getByNameMethod = reportContainerType.getMethod("getByName", String.class);
         reportGetters.forEach((reportName, reportGetter) -> {
-            val methodNode = new MethodNode(
+            var methodNode = new MethodNode(
                 ACC_PUBLIC,
                 reportGetter.getName(),
                 getMethodDescriptor(reportGetter),
@@ -344,7 +342,7 @@ public abstract class ReportContainerUtils {
             );
             classNode.methods.add(methodNode);
 
-            val instructions = methodNode.instructions = new InsnList();
+            var instructions = methodNode.instructions = new InsnList();
             instructions.add(new LabelNode());
 
             instructions.add(new VarInsnNode(ALOAD, 0));
@@ -365,7 +363,7 @@ public abstract class ReportContainerUtils {
             instructions.add(new InsnNode(getType(getByNameMethod.getReturnType()).getOpcode(IRETURN)));
         });
 
-        for (val method : reportContainerType.getMethods()) {
+        for (var method : reportContainerType.getMethods()) {
             if (method.isSynthetic()
                 || isStatic(method)
                 || isNotAbstract(method)
@@ -373,14 +371,14 @@ public abstract class ReportContainerUtils {
                 continue;
             }
 
-            val methodNode = new MethodNode(
+            var methodNode = new MethodNode(
                 ACC_PUBLIC,
                 method.getName(),
                 getMethodDescriptor(method),
                 null,
                 null
             );
-            val isAlreadyImplemented = classNode.methods.stream().anyMatch(other ->
+            var isAlreadyImplemented = classNode.methods.stream().anyMatch(other ->
                 other.name.equals(methodNode.name)
                     && other.desc.equals(methodNode.desc)
             );
@@ -392,9 +390,9 @@ public abstract class ReportContainerUtils {
             methodNode.parameters = stream(method.getParameters())
                 .map(Parameter::getName)
                 .map(name -> new ParameterNode(name, ACC_FINAL))
-                .collect(toList());
+                .collect(toUnmodifiableList());
 
-            val instructions = methodNode.instructions = new InsnList();
+            var instructions = methodNode.instructions = new InsnList();
             instructions.add(new LabelNode());
 
             instructions.add(new VarInsnNode(ALOAD, 0));
@@ -406,7 +404,7 @@ public abstract class ReportContainerUtils {
             ));
 
             for (int paramIndex = 0; paramIndex < method.getParameterCount(); ++paramIndex) {
-                val paramClass = method.getParameterTypes()[paramIndex];
+                var paramClass = method.getParameterTypes()[paramIndex];
                 instructions.add(new VarInsnNode(getType(paramClass).getOpcode(ILOAD), paramIndex + 1));
             }
 
@@ -420,13 +418,13 @@ public abstract class ReportContainerUtils {
             instructions.add(new InsnNode(getType(method.getReturnType()).getOpcode(IRETURN)));
         }
 
-        val classWriter = new ClassWriter(COMPUTE_MAXS | COMPUTE_FRAMES);
+        var classWriter = new ClassWriter(COMPUTE_MAXS | COMPUTE_FRAMES);
         ClassVisitor classVisitor = classWriter;
         if (IN_TEST) {
             classVisitor = wrapWithTestClassVisitors(classVisitor);
         }
         classNode.accept(classVisitor);
-        val bytecode = classWriter.toByteArray();
+        var bytecode = classWriter.toByteArray();
 
         ClassLoader classLoader = reportContainerType.getClassLoader();
         if (classLoader == null) {
@@ -438,12 +436,11 @@ public abstract class ReportContainerUtils {
 
 
     public static <T extends Task & Reporting<?>> void enableAllTaskReports(T task) {
-        @SuppressWarnings("unchecked") val allReports = (ReportContainer<Report>) task.getReports();
-        enableAllTaskReports(allReports);
+        enableAllTaskReports(task.getReports());
     }
 
     public static <RC extends ReportContainer<?>> RC enableAllTaskReports(RC allReports) {
-        @SuppressWarnings("unchecked") val allReportsTyped = (ReportContainer<Report>) allReports;
+        @SuppressWarnings("unchecked") var allReportsTyped = (ReportContainer<Report>) allReports;
         allReportsTyped.configureEach(report -> {
             setReportEnabled(report, true);
         });
@@ -452,16 +449,14 @@ public abstract class ReportContainerUtils {
 
 
     public static <T extends Task & Reporting<?>> void setTaskReportDestinationsAutomatically(T task) {
-        @SuppressWarnings("unchecked") val allReports = (ReportContainer<Report>) task.getReports();
-        setTaskReportDestinationsAutomatically(task, allReports);
+        setTaskReportDestinationsAutomatically(task, task.getReports());
     }
 
     public static <T extends Task & Reporting<?>> void setTaskReportDestinationsAutomatically(
         T task,
         Callable<File> baseReportsDirProvider
     ) {
-        @SuppressWarnings("unchecked") val allReports = (ReportContainer<Report>) task.getReports();
-        setTaskReportDestinationsAutomatically(task, allReports, baseReportsDirProvider);
+        setTaskReportDestinationsAutomatically(task, task.getReports(), baseReportsDirProvider);
     }
 
     public static <RC extends ReportContainer<?>> RC setTaskReportDestinationsAutomatically(
@@ -480,16 +475,16 @@ public abstract class ReportContainerUtils {
         RC allReports,
         Callable<File> baseReportsDirProvider
     ) {
-        @SuppressWarnings("unchecked") val allReportsTyped = (ReportContainer<Report>) allReports;
-        val configurableReports = allReportsTyped.withType(ConfigurableReport.class);
+        @SuppressWarnings("unchecked") var allReportsTyped = (ReportContainer<Report>) allReports;
+        var configurableReports = allReportsTyped.withType(ConfigurableReport.class);
 
-        val project = task.getProject();
-        val providers = project.getProviders();
+        var project = task.getProject();
+        var providers = project.getProviders();
         project.getPluginManager().apply(ReportingBasePlugin.class);
-        val defaultBaseReportsDir = getExtension(project, ReportingExtension.class)
+        var defaultBaseReportsDir = getExtension(project, ReportingExtension.class)
             .getBaseDirectory()
             .dir(getTaskTypeReportsDirName(task));
-        val taskName = task.getName();
+        var taskName = task.getName();
         configurableReports.configureEach(report -> {
             setReportDestination(report, providers.provider(() -> {
                 File baseReportsDir = baseReportsDirProvider.call();
@@ -497,13 +492,13 @@ public abstract class ReportContainerUtils {
                     baseReportsDir = defaultBaseReportsDir.get().getAsFile();
                 }
 
-                val taskReportsDir = new File(baseReportsDir, taskName);
+                var taskReportsDir = new File(baseReportsDir, taskName);
 
                 if (report.getOutputType() == DIRECTORY) {
                     return new File(taskReportsDir, report.getName());
 
                 } else {
-                    val reportFileExtension = getReportFileExtension(report);
+                    var reportFileExtension = getReportFileExtension(report);
                     return new File(taskReportsDir, taskName + '.' + reportFileExtension);
                 }
             }));
@@ -511,7 +506,7 @@ public abstract class ReportContainerUtils {
         return allReports;
     }
 
-    private static final List<String> TASK_TYPE_REPORTS_DIR_NAME_SUFFIXES_TO_REMOVE = ImmutableList.of(
+    private static final List<String> TASK_TYPE_REPORTS_DIR_NAME_SUFFIXES_TO_REMOVE = List.of(
         "Task"
     );
 
@@ -520,7 +515,7 @@ public abstract class ReportContainerUtils {
         name = UPPER_CAMEL.to(LOWER_CAMEL, name);
         while (true) {
             boolean isChanged = false;
-            for (val suffix : TASK_TYPE_REPORTS_DIR_NAME_SUFFIXES_TO_REMOVE) {
+            for (var suffix : TASK_TYPE_REPORTS_DIR_NAME_SUFFIXES_TO_REMOVE) {
                 if (!name.equals(suffix) && name.endsWith(suffix)) {
                     name = name.substring(0, name.length() - suffix.length());
                     isChanged = true;

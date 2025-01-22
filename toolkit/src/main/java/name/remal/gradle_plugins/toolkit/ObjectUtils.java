@@ -36,7 +36,6 @@ import kotlin.jvm.functions.Function0;
 import kotlin.reflect.KCallable;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.SneakyThrowUtils.SneakyThrowsBooleanSupplier;
 import name.remal.gradle_plugins.toolkit.SneakyThrowUtils.SneakyThrowsCallable;
 import name.remal.gradle_plugins.toolkit.SneakyThrowUtils.SneakyThrowsDoubleSupplier;
@@ -105,7 +104,7 @@ public abstract class ObjectUtils {
                 object = ((Provider<?>) object).getOrNull();
 
             } else if (object instanceof Closure) {
-                val typedObject = (Closure<?>) object;
+                var typedObject = (Closure<?>) object;
                 if (typedObject.getMaximumNumberOfParameters() == 0 && isEmpty(typedObject.getParameterTypes())) {
                     object = typedObject.call();
                 } else {
@@ -117,13 +116,13 @@ public abstract class ObjectUtils {
             } else if (object instanceof Optional) {
                 object = ((Optional<?>) object).orElse(null);
             } else if (object instanceof OptionalInt) {
-                val typedObject = (OptionalInt) object;
+                var typedObject = (OptionalInt) object;
                 return typedObject.isPresent() ? typedObject.getAsInt() : null;
             } else if (object instanceof OptionalLong) {
-                val typedObject = (OptionalLong) object;
+                var typedObject = (OptionalLong) object;
                 return typedObject.isPresent() ? typedObject.getAsLong() : null;
             } else if (object instanceof OptionalDouble) {
-                val typedObject = (OptionalDouble) object;
+                var typedObject = (OptionalDouble) object;
                 return typedObject.isPresent() ? typedObject.getAsDouble() : null;
 
             } else if (object instanceof Callable) {
@@ -171,7 +170,7 @@ public abstract class ObjectUtils {
             } else if (object instanceof Function0) {
                 object = ((Function0<?>) object).invoke();
             } else if (object instanceof KCallable) {
-                val typedObject = (KCallable<?>) object;
+                var typedObject = (KCallable<?>) object;
                 if (isEmpty(typedObject.getTypeParameters())) {
                     object = typedObject.call();
                 } else {
@@ -179,7 +178,7 @@ public abstract class ObjectUtils {
                 }
 
             } else {
-                val dotClassName = '.' + object.getClass().getName(); // support relocated classes too
+                var dotClassName = '.' + object.getClass().getName(); // support relocated classes too
                 if (dotClassName.endsWith(GUAVA_ABSENT_CLASS_NAME_SUFFIX)) {
                     return null;
                 } else if (dotClassName.endsWith(GUAVA_PRESENT_CLASS_NAME_SUFFIX)) {

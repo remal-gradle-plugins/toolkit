@@ -6,7 +6,6 @@ import static name.remal.gradle_plugins.toolkit.reflection.MembersFinder.findMet
 import java.util.Objects;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import name.remal.gradle_plugins.toolkit.reflection.TypedMethod0;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -34,13 +33,13 @@ public abstract class ComponentIdentifierUtils {
         }
 
         if (componentId instanceof OpaqueComponentIdentifier) {
-            val opaqueComponentId = (OpaqueComponentIdentifier) componentId;
+            var opaqueComponentId = (OpaqueComponentIdentifier) componentId;
             if (getClassPathNotation != null) {
-                val classPathNotation = getClassPathNotation.invoke(opaqueComponentId);
+                var classPathNotation = getClassPathNotation.invoke(opaqueComponentId);
                 return classPathNotation != null;
 
             } else if (getDisplayName != null) {
-                val displayName = getDisplayName.invoke(opaqueComponentId);
+                var displayName = getDisplayName.invoke(opaqueComponentId);
                 if (displayName != null) {
                     return displayName.equals("Gradle API")
                         || displayName.equals("Gradle Kotlin DSL")
@@ -66,13 +65,13 @@ public abstract class ComponentIdentifierUtils {
         }
 
         if (componentId instanceof OpaqueComponentIdentifier) {
-            val opaqueComponentId = (OpaqueComponentIdentifier) componentId;
+            var opaqueComponentId = (OpaqueComponentIdentifier) componentId;
             if (getClassPathNotation != null) {
-                val classPathNotation = getClassPathNotation.invoke(opaqueComponentId);
+                var classPathNotation = getClassPathNotation.invoke(opaqueComponentId);
                 return classPathNotation != null && classPathNotation.name().equals("GRADLE_API");
 
             } else if (getDisplayName != null) {
-                val displayName = getDisplayName.invoke(opaqueComponentId);
+                var displayName = getDisplayName.invoke(opaqueComponentId);
                 return displayName != null && displayName.equals("Gradle API");
 
             } else {
@@ -93,13 +92,13 @@ public abstract class ComponentIdentifierUtils {
         }
 
         if (componentId instanceof OpaqueComponentIdentifier) {
-            val opaqueComponentId = (OpaqueComponentIdentifier) componentId;
+            var opaqueComponentId = (OpaqueComponentIdentifier) componentId;
             if (getClassPathNotation != null) {
-                val classPathNotation = getClassPathNotation.invoke(opaqueComponentId);
+                var classPathNotation = getClassPathNotation.invoke(opaqueComponentId);
                 return classPathNotation != null && classPathNotation.name().equals("GRADLE_TEST_KIT");
 
             } else if (getDisplayName != null) {
-                val displayName = getDisplayName.invoke(opaqueComponentId);
+                var displayName = getDisplayName.invoke(opaqueComponentId);
                 return displayName != null && displayName.equals("Gradle TestKit");
 
             } else {
@@ -120,13 +119,13 @@ public abstract class ComponentIdentifierUtils {
         }
 
         if (componentId instanceof OpaqueComponentIdentifier) {
-            val opaqueComponentId = (OpaqueComponentIdentifier) componentId;
+            var opaqueComponentId = (OpaqueComponentIdentifier) componentId;
             if (getClassPathNotation != null) {
-                val classPathNotation = getClassPathNotation.invoke(opaqueComponentId);
+                var classPathNotation = getClassPathNotation.invoke(opaqueComponentId);
                 return classPathNotation != null && classPathNotation.name().equals("LOCAL_GROOVY");
 
             } else if (getDisplayName != null) {
-                val displayName = getDisplayName.invoke(opaqueComponentId);
+                var displayName = getDisplayName.invoke(opaqueComponentId);
                 return displayName != null && displayName.equals("Local Groovy");
 
             } else {
@@ -154,7 +153,7 @@ public abstract class ComponentIdentifierUtils {
         }
 
         if (componentId instanceof ModuleComponentIdentifier) {
-            val moduleComponentId = (ModuleComponentIdentifier) componentId;
+            var moduleComponentId = (ModuleComponentIdentifier) componentId;
             if (Objects.equals(moduleComponentId.getGroup(), "name.remal.gradle-api")
                 && Objects.equals(moduleComponentId.getModule(), "gradle-api")
             ) {
@@ -172,7 +171,7 @@ public abstract class ComponentIdentifierUtils {
         }
 
         if (componentId instanceof ModuleComponentIdentifier) {
-            val moduleComponentId = (ModuleComponentIdentifier) componentId;
+            var moduleComponentId = (ModuleComponentIdentifier) componentId;
             if (Objects.equals(moduleComponentId.getGroup(), "name.remal.gradle-api")
                 && Objects.equals(moduleComponentId.getModule(), "gradle-test-kit")
             ) {
@@ -190,7 +189,7 @@ public abstract class ComponentIdentifierUtils {
         }
 
         if (componentId instanceof ModuleComponentIdentifier) {
-            val moduleComponentId = (ModuleComponentIdentifier) componentId;
+            var moduleComponentId = (ModuleComponentIdentifier) componentId;
             if (Objects.equals(moduleComponentId.getGroup(), "name.remal.gradle-api")
                 && Objects.equals(moduleComponentId.getModule(), "local-groovy")
             ) {

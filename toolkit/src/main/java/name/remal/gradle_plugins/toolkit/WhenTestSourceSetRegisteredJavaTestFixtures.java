@@ -3,7 +3,6 @@ package name.remal.gradle_plugins.toolkit;
 import static name.remal.gradle_plugins.toolkit.ExtensionContainerUtils.getExtension;
 
 import com.google.auto.service.AutoService;
-import lombok.val;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.SourceSet;
@@ -15,8 +14,8 @@ final class WhenTestSourceSetRegisteredJavaTestFixtures implements WhenTestSourc
     @Override
     public void registerAction(Project project, Action<SourceSet> action) {
         project.getPluginManager().withPlugin("java-test-fixtures", __ -> {
-            val sourceSets = getExtension(project, SourceSetContainer.class);
-            val testFixturesSourceSet = sourceSets.getByName("testFixtures");
+            var sourceSets = getExtension(project, SourceSetContainer.class);
+            var testFixturesSourceSet = sourceSets.getByName("testFixtures");
             action.execute(testFixturesSourceSet);
         });
     }

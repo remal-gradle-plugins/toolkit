@@ -4,7 +4,6 @@ import static java.lang.String.format;
 import static org.junit.jupiter.api.extension.ConditionEvaluationResult.disabled;
 import static org.junit.jupiter.api.extension.ConditionEvaluationResult.enabled;
 
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.testkit.MaxSupportedGradleVersion;
 import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.ApiStatus.Internal;
@@ -17,14 +16,14 @@ public class MaxSupportedGradleVersionExtension extends AbstractSupportedGradleV
 
     @Override
     public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
-        val annotation = AnnotationUtils.findAnnotation(context.getElement(), MaxSupportedGradleVersion.class)
+        var annotation = AnnotationUtils.findAnnotation(context.getElement(), MaxSupportedGradleVersion.class)
             .orElse(null);
         if (annotation == null) {
             return enabled(format("@%s is not present", MaxSupportedGradleVersion.class.getSimpleName()));
         }
 
-        val maxGradleVersion = GradleVersion.version(annotation.value());
-        val currentGradleVersion = getCurrentGradleVersion(context);
+        var maxGradleVersion = GradleVersion.version(annotation.value());
+        var currentGradleVersion = getCurrentGradleVersion(context);
         if (currentGradleVersion.compareTo(maxGradleVersion) <= 0) {
             return enabled(format(
                 "Current Gradle version %s is less or equal to max supported version %s",

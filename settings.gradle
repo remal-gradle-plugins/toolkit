@@ -30,13 +30,7 @@ rootProject.name = 'toolkit-root'
 include(
     ':toolkit-annotations',
     ':toolkit',
-    ':toolkit:fat-jar--latest-lts-jdk',
     ':toolkit:cross-compile--common',
-    ':toolkit:cross-compile--java-9-gte',
-    ':toolkit:cross-compile--gradle-6.0-lte',
-    ':toolkit:cross-compile--gradle-6.2-lte',
-    ':toolkit:cross-compile--gradle-6.3-lte',
-    ':toolkit:cross-compile--gradle-6.7-lte',
     ':toolkit:cross-compile--gradle-7.3-lte',
     ':toolkit:cross-compile--gradle-7.9999-lt',
     ':toolkit:cross-compile--gradle-8.10-lte',

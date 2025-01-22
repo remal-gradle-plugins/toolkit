@@ -6,7 +6,6 @@ import java.io.File;
 import java.util.Objects;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.issues.ImmutableIssue.IssueBuilder;
 import org.immutables.gson.Gson;
 import org.immutables.value.Value;
@@ -22,7 +21,7 @@ public interface Issue extends Comparable<Issue> {
     }
 
     static Issue newIssue(Consumer<IssueBuilder> configurer) {
-        val builder = newIssueBuilder();
+        var builder = newIssueBuilder();
         configurer.accept(builder);
         return builder.build();
     }

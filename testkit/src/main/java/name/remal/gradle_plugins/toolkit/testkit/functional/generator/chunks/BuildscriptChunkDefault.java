@@ -2,7 +2,6 @@ package name.remal.gradle_plugins.toolkit.testkit.functional.generator.chunks;
 
 import java.util.function.Supplier;
 import lombok.Getter;
-import lombok.val;
 import name.remal.gradle_plugins.generate_sources.generators.java_like.JavaLikeContent;
 
 public class BuildscriptChunkDefault<Block extends JavaLikeContent<Block>>
@@ -24,7 +23,7 @@ public class BuildscriptChunkDefault<Block extends JavaLikeContent<Block>>
             return "";
         }
 
-        val wrapper = blockFactory.get();
+        var wrapper = blockFactory.get();
         wrapper.block("buildscript", inner ->
             inner.line(buildscript)
         );

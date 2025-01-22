@@ -9,7 +9,6 @@ import static name.remal.gradle_plugins.toolkit.ServiceRegistryUtils.getService;
 import java.util.function.BiFunction;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
-import lombok.val;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
@@ -57,16 +56,16 @@ public abstract class JavaToolchainServiceUtils {
         BiFunction<JavaToolchainService, Action<? super JavaToolchainSpec>, Provider<T>> getter,
         Action<? super JavaToolchainSpec> configurer
     ) {
-        val javaToolchainService = getJavaToolchainServiceFor(project);
-        val currentJvmProvider = getter.apply(javaToolchainService, spec -> {
+        var javaToolchainService = getJavaToolchainServiceFor(project);
+        var currentJvmProvider = getter.apply(javaToolchainService, spec -> {
             spec.getLanguageVersion().convention(JavaLanguageVersion.of(JavaVersion.current().getMajorVersion()));
             configurer.execute(spec);
         });
 
         return project.provider(() -> {
-            val toolchain = getJavaToolchainSpecOf(project);
+            var toolchain = getJavaToolchainSpecOf(project);
             if (toolchain != null) {
-                val provider = getter.apply(javaToolchainService, spec -> {
+                var provider = getter.apply(javaToolchainService, spec -> {
                     copyManagedProperties(JavaToolchainSpec.class, toolchain, spec);
                     configurer.execute(spec);
                 });

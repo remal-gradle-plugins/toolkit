@@ -3,7 +3,6 @@ package name.remal.gradle_plugins.toolkit;
 import com.google.auto.service.AutoService;
 import java.util.ArrayList;
 import javax.annotation.Nullable;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
@@ -32,16 +31,16 @@ class ReportContainerUtilsMethodsDefault implements ReportContainerUtilsMethods 
         Class<? extends T> reportType,
         Action<ReportContainerConfigurer> configureAction
     ) {
-        val owner = Describables.quoted("Task", ((TaskInternal) task).getIdentityPath());
+        var owner = Describables.quoted("Task", ((TaskInternal) task).getIdentityPath());
 
         return DefaultReportContainer.create(
             task.getProject().getObjects(),
             reportType,
             factory -> {
-                val reports = new ArrayList<T>();
+                var reports = new ArrayList<T>();
                 configureAction.execute(new ReportContainerConfigurer() {
                     private <R extends Report> R add(Class<R> type, Object... args) {
-                        val report = factory.instantiateReport((Class<T>) type, args);
+                        var report = factory.instantiateReport((Class<T>) type, args);
                         reports.add(report);
                         return (R) report;
                     }

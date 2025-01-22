@@ -3,8 +3,8 @@ package name.remal.gradle_plugins.toolkit;
 import static name.remal.gradle_plugins.toolkit.JacocoJvmArg.parseJacocoJvmArgFromJvmArgs;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class JacocoJvmArgTest {
@@ -26,34 +26,34 @@ class JacocoJvmArgTest {
 
     @Test
     void parse() {
-        assertThat(parseJacocoJvmArgFromJvmArgs(ImmutableList.of()))
+        assertThat(parseJacocoJvmArgFromJvmArgs(List.of()))
             .isNull();
 
-        assertThat(parseJacocoJvmArgFromJvmArgs(ImmutableList.of("unknown")))
+        assertThat(parseJacocoJvmArgFromJvmArgs(List.of("unknown")))
             .isNull();
 
-        assertThat(parseJacocoJvmArgFromJvmArgs(ImmutableList.of("-javaagent:path=")))
+        assertThat(parseJacocoJvmArgFromJvmArgs(List.of("-javaagent:path=")))
             .isNull();
 
-        assertThat(parseJacocoJvmArgFromJvmArgs(ImmutableList.of("-javaagent:/jacocoagent.zip=")))
+        assertThat(parseJacocoJvmArgFromJvmArgs(List.of("-javaagent:/jacocoagent.zip=")))
             .isNull();
 
-        assertThat(parseJacocoJvmArgFromJvmArgs(ImmutableList.of("-javaagent:/jacocoagent.jar")))
+        assertThat(parseJacocoJvmArgFromJvmArgs(List.of("-javaagent:/jacocoagent.jar")))
             .isEqualTo(new JacocoJvmArg("/jacocoagent.jar", ImmutableMap.of()));
 
-        assertThat(parseJacocoJvmArgFromJvmArgs(ImmutableList.of("-javaagent:/jacocoagent.jar=")))
+        assertThat(parseJacocoJvmArgFromJvmArgs(List.of("-javaagent:/jacocoagent.jar=")))
             .isEqualTo(new JacocoJvmArg("/jacocoagent.jar", ImmutableMap.of()));
 
-        assertThat(parseJacocoJvmArgFromJvmArgs(ImmutableList.of("-javaagent:/jacocoagent.jar=1=a")))
+        assertThat(parseJacocoJvmArgFromJvmArgs(List.of("-javaagent:/jacocoagent.jar=1=a")))
             .isEqualTo(new JacocoJvmArg("/jacocoagent.jar", ImmutableMap.of("1", "a")));
 
-        assertThat(parseJacocoJvmArgFromJvmArgs(ImmutableList.of("-javaagent:/jacocoagent.jar=1=a,2=b")))
+        assertThat(parseJacocoJvmArgFromJvmArgs(List.of("-javaagent:/jacocoagent.jar=1=a,2=b")))
             .isEqualTo(new JacocoJvmArg("/jacocoagent.jar", ImmutableMap.of("1", "a", "2", "b")));
 
-        assertThat(parseJacocoJvmArgFromJvmArgs(ImmutableList.of("-javaagent:/jacocoagent.jar=1=a,2=b,")))
+        assertThat(parseJacocoJvmArgFromJvmArgs(List.of("-javaagent:/jacocoagent.jar=1=a,2=b,")))
             .isEqualTo(new JacocoJvmArg("/jacocoagent.jar", ImmutableMap.of("1", "a", "2", "b")));
 
-        assertThat(parseJacocoJvmArgFromJvmArgs(ImmutableList.of("-javaagent:/jacocoagent.jar=1=a,2=b,=c")))
+        assertThat(parseJacocoJvmArgFromJvmArgs(List.of("-javaagent:/jacocoagent.jar=1=a,2=b,=c")))
             .isEqualTo(new JacocoJvmArg("/jacocoagent.jar", ImmutableMap.of("1", "a", "2", "b")));
     }
 

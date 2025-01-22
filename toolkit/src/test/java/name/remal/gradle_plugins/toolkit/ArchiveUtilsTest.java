@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.File;
 import java.util.zip.ZipFile;
-import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -16,18 +15,18 @@ class ArchiveUtilsTest {
 
     @Test
     void newZipArchiveWriter(@TempDir File tempDir) throws Throwable {
-        val archiveFile = new File(tempDir, "archive.zip");
-        val entryName = "dir/entry";
-        val entryContent = new byte[]{1, 2, 3};
-        try (val archiveWriter = ArchiveUtils.newZipArchiveWriter(archiveFile)) {
+        var archiveFile = new File(tempDir, "archive.zip");
+        var entryName = "dir/entry";
+        var entryContent = new byte[]{1, 2, 3};
+        try (var archiveWriter = ArchiveUtils.newZipArchiveWriter(archiveFile)) {
             archiveWriter.writeEntry(entryName, entryContent);
         }
 
-        try (val zipFile = new ZipFile(archiveFile, UTF_8)) {
-            val actualEntry = zipFile.getEntry(entryName);
+        try (var zipFile = new ZipFile(archiveFile, UTF_8)) {
+            var actualEntry = zipFile.getEntry(entryName);
             assertNotNull(actualEntry, "actualEntry");
             assertFalse(actualEntry.isDirectory(), "isDirectory");
-            val actualContent = toByteArray(zipFile.getInputStream(actualEntry));
+            var actualContent = toByteArray(zipFile.getInputStream(actualEntry));
             assertArrayEquals(entryContent, actualContent, "content");
         }
     }

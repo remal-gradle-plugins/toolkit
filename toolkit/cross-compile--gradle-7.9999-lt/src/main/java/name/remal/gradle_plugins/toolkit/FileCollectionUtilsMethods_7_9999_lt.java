@@ -7,7 +7,6 @@ import com.google.auto.service.AutoService;
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.FileCollection;
@@ -33,9 +32,9 @@ final class FileCollectionUtilsMethods_7_9999_lt implements FileCollectionUtilsM
         }
 
 
-        val seenConfigurations = new LinkedHashSet<Configuration>();
+        var seenConfigurations = new LinkedHashSet<Configuration>();
 
-        val fileCollectionInternal = (FileCollectionInternal) rootFileCollection;
+        var fileCollectionInternal = (FileCollectionInternal) rootFileCollection;
         fileCollectionInternal.visitStructure(new FileCollectionStructureVisitor() {
             @Override
             public boolean startVisit(Source source, FileCollectionInternal fileCollection) {

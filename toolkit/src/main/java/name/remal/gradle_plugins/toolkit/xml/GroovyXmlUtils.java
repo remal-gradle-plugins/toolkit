@@ -20,7 +20,6 @@ import java.util.List;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 import org.intellij.lang.annotations.Language;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
@@ -33,8 +32,8 @@ public abstract class GroovyXmlUtils {
     @SneakyThrows
     public static Node parseXmlToGroovyNode(Path path) {
         path = normalizePath(path);
-        try (val inputStream = newInputStream(path)) {
-            val inputSource = new InputSource(inputStream);
+        try (var inputStream = newInputStream(path)) {
+            var inputSource = new InputSource(inputStream);
             inputSource.setSystemId(path.toString());
             return invokeMethod(newNonValidatingXmlParser(), Node.class, "parse",
                 InputSource.class, inputSource
@@ -47,7 +46,7 @@ public abstract class GroovyXmlUtils {
     }
 
     public static Node parseXmlToGroovyNode(@Language("XML") String content, @Nullable String systemId) {
-        val inputSource = new InputSource(new StringReader(content));
+        var inputSource = new InputSource(new StringReader(content));
         inputSource.setSystemId(systemId);
         return invokeMethod(newNonValidatingXmlParser(), Node.class, "parse",
             InputSource.class, inputSource
@@ -76,7 +75,7 @@ public abstract class GroovyXmlUtils {
             exceptions.add(e);
         }
 
-        val exception = new IllegalStateException("Groovy's XmlParser class can't be found");
+        var exception = new IllegalStateException("Groovy's XmlParser class can't be found");
         exceptions.forEach(exception::addSuppressed);
         throw exception;
     }
@@ -94,7 +93,7 @@ public abstract class GroovyXmlUtils {
     @SneakyThrows
     @SuppressWarnings("unchecked")
     private static Object newNonValidatingXmlParser() {
-        val xmlParser = XML_PARSER_CONSTRUCTOR.newInstance(false, true, true);
+        var xmlParser = XML_PARSER_CONSTRUCTOR.newInstance(false, true, true);
 
         getOptionalMethod(
             (Class<Object>) xmlParser.getClass(),
@@ -114,9 +113,9 @@ public abstract class GroovyXmlUtils {
 
     @Language("XML")
     public static String compactGroovyXmlString(Node node) {
-        val stringWriter = new StringWriter();
-        val indentPrinter = new IndentPrinter(stringWriter, "", false, false);
-        val xmlNodePrinter = newXmlNodePrinter(indentPrinter);
+        var stringWriter = new StringWriter();
+        var indentPrinter = new IndentPrinter(stringWriter, "", false, false);
+        var xmlNodePrinter = newXmlNodePrinter(indentPrinter);
         invokeMethod(xmlNodePrinter, "print",
             Node.class, node
         );
@@ -130,9 +129,9 @@ public abstract class GroovyXmlUtils {
 
     @Language("XML")
     public static String prettyGroovyXmlString(Node node, XmlFormat format) {
-        val stringWriter = new StringWriter();
-        val indentPrinter = new XmlFormatIndentPrinter(stringWriter, format);
-        val xmlNodePrinter = newXmlNodePrinter(indentPrinter);
+        var stringWriter = new StringWriter();
+        var indentPrinter = new XmlFormatIndentPrinter(stringWriter, format);
+        var xmlNodePrinter = newXmlNodePrinter(indentPrinter);
         invokeMethod(xmlNodePrinter, "print",
             Node.class, node
         );
@@ -157,7 +156,7 @@ public abstract class GroovyXmlUtils {
             exceptions.add(e);
         }
 
-        val exception = new IllegalStateException("Groovy's XmlNodePrinter class can't be found");
+        var exception = new IllegalStateException("Groovy's XmlNodePrinter class can't be found");
         exceptions.forEach(exception::addSuppressed);
         throw exception;
     }

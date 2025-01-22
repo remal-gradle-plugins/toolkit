@@ -13,7 +13,6 @@ import javax.annotation.Nullable;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.Value;
-import lombok.val;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.junit.platform.commons.util.AnnotationUtils;
 
@@ -40,9 +39,9 @@ class AnnotatedParam {
     }
 
     public int getIndex() {
-        val params = getDeclaringExecutable().getParameters();
+        var params = getDeclaringExecutable().getParameters();
         for (int i = 0; i < params.length; ++i) {
-            val param = params[i];
+            var param = params[i];
             if (param.equals(parameter)) {
                 return i;
             }
@@ -51,18 +50,18 @@ class AnnotatedParam {
     }
 
     public boolean isAnnotated(Class<? extends Annotation> annotationType) {
-        val annotatedParameter = getAnnotatedParameter();
+        var annotatedParameter = getAnnotatedParameter();
         return AnnotationUtils.isAnnotated(annotatedParameter, annotationType);
     }
 
     @Nullable
     public <T extends Annotation> T findAnnotation(Class<T> annotationType) {
-        val annotatedParameter = getAnnotatedParameter();
+        var annotatedParameter = getAnnotatedParameter();
         return AnnotationUtils.findAnnotation(annotatedParameter, annotationType).orElse(null);
     }
 
     public <T extends Annotation> List<T> findRepeatableAnnotations(Class<T> annotationType) {
-        val annotatedParameter = getAnnotatedParameter();
+        var annotatedParameter = getAnnotatedParameter();
         return AnnotationUtils.findRepeatableAnnotations(annotatedParameter, annotationType);
     }
 
@@ -74,7 +73,7 @@ class AnnotatedParam {
         if (executable instanceof Constructor && isInnerClass(executable.getDeclaringClass())
             && executable.getParameterAnnotations().length == executable.getParameterCount() - 1
         ) {
-            val index = getIndex();
+            var index = getIndex();
             if (index == 0) {
                 throw new IllegalStateException(format(
                     "A %s should never be created for parameter index 0 in an inner class constructor",

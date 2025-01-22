@@ -16,7 +16,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import lombok.SneakyThrows;
-import lombok.val;
 import org.gradle.api.Project;
 import org.gradle.api.file.RelativePath;
 import org.junit.jupiter.api.Nested;
@@ -36,8 +35,8 @@ class FileTreeElementUtilsTest {
 
     @Test
     void isNotArchive_file() {
-        val fileTree = project.files(tempFile).getAsFileTree();
-        val isNotArchiveEntry = new AtomicReference<Boolean>();
+        var fileTree = project.files(tempFile).getAsFileTree();
+        var isNotArchiveEntry = new AtomicReference<Boolean>();
         fileTree.visit(details -> {
             isNotArchiveEntry.set(FileTreeElementUtils.isNotArchiveEntry(details));
         });
@@ -46,13 +45,13 @@ class FileTreeElementUtilsTest {
 
     @Test
     void isNotArchive_zip() throws Throwable {
-        try (val outputStream = new ZipOutputStream(newOutputStream(tempFile.toPath()))) {
+        try (var outputStream = new ZipOutputStream(newOutputStream(tempFile.toPath()))) {
             outputStream.putNextEntry(new ZipEntry("entry"));
             outputStream.write(new byte[]{1, 2, 3});
         }
 
-        val fileTree = project.zipTree(tempFile);
-        val isNotArchiveEntry = new AtomicReference<Boolean>();
+        var fileTree = project.zipTree(tempFile);
+        var isNotArchiveEntry = new AtomicReference<Boolean>();
         fileTree.visit(details -> {
             isNotArchiveEntry.set(FileTreeElementUtils.isNotArchiveEntry(details));
         });

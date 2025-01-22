@@ -1,17 +1,23 @@
 package name.remal.gradle_plugins.toolkit;
 
-import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toUnmodifiableList;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.BytecodeTestUtils.wrapWithTestClassVisitors;
 import static name.remal.gradle_plugins.toolkit.InTestFlags.isInTest;
 import static name.remal.gradle_plugins.toolkit.LazyValue.lazyValue;
 import static name.remal.gradle_plugins.toolkit.SneakyThrowUtils.sneakyThrow;
+import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.collectionClass;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.defineClass;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.isNotAbstract;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.isStatic;
+import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.listClass;
+import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.mapClass;
+import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.navigableMapClass;
+import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.setClass;
+import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.sortedMapClass;
+import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.sortedSetClass;
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
 import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
 import static org.objectweb.asm.Opcodes.ACC_FINAL;
@@ -49,7 +55,6 @@ import java.util.SortedSet;
 import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 import org.jetbrains.annotations.Contract;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -75,68 +80,61 @@ public abstract class LazyProxy {
             throw new IllegalArgumentException("Not an interface: " + interfaceClass);
         }
 
-        val lazyValue = lazyValue(lazyValueSupplier);
+        var lazyValue = lazyValue(lazyValueSupplier);
 
-        val proxyClass = PROXY_CLASSES.getUnchecked(interfaceClass);
-        val proxyCtor = proxyClass.getConstructor(LazyValue.class);
-        val proxy = (T) proxyCtor.newInstance(lazyValue);
+        var proxyClass = PROXY_CLASSES.getUnchecked(interfaceClass);
+        var proxyCtor = proxyClass.getConstructor(LazyValue.class);
+        var proxy = (T) proxyCtor.newInstance(lazyValue);
         return proxy;
     }
 
     @Contract(pure = true)
-    @SuppressWarnings("unchecked")
     public static <E> Collection<E> asLazyCollectionProxy(
         LazyValueSupplier<? extends Collection<E>> lazyValueSupplier
     ) {
-        return asLazyProxy(Collection.class, lazyValueSupplier);
+        return asLazyProxy(collectionClass(), lazyValueSupplier);
     }
 
     @Contract(pure = true)
-    @SuppressWarnings("unchecked")
     public static <E> List<E> asLazyListProxy(
         LazyValueSupplier<? extends List<E>> lazyValueSupplier
     ) {
-        return asLazyProxy(List.class, lazyValueSupplier);
+        return asLazyProxy(listClass(), lazyValueSupplier);
     }
 
     @Contract(pure = true)
-    @SuppressWarnings("unchecked")
     public static <E> Set<E> asLazySetProxy(
         LazyValueSupplier<? extends Set<E>> lazyValueSupplier
     ) {
-        return asLazyProxy(Set.class, lazyValueSupplier);
+        return asLazyProxy(setClass(), lazyValueSupplier);
     }
 
     @Contract(pure = true)
-    @SuppressWarnings("unchecked")
     public static <E> SortedSet<E> asLazySortedSetProxy(
         LazyValueSupplier<? extends SortedSet<E>> lazyValueSupplier
     ) {
-        return asLazyProxy(SortedSet.class, lazyValueSupplier);
+        return asLazyProxy(sortedSetClass(), lazyValueSupplier);
     }
 
     @Contract(pure = true)
-    @SuppressWarnings("unchecked")
     public static <K, V> Map<K, V> asLazyMapProxy(
         LazyValueSupplier<? extends Map<K, V>> lazyValueSupplier
     ) {
-        return asLazyProxy(Map.class, lazyValueSupplier);
+        return asLazyProxy(mapClass(), lazyValueSupplier);
     }
 
     @Contract(pure = true)
-    @SuppressWarnings("unchecked")
     public static <K, V> SortedMap<K, V> asLazySortedMapProxy(
         LazyValueSupplier<? extends SortedMap<K, V>> lazyValueSupplier
     ) {
-        return asLazyProxy(SortedMap.class, lazyValueSupplier);
+        return asLazyProxy(sortedMapClass(), lazyValueSupplier);
     }
 
     @Contract(pure = true)
-    @SuppressWarnings("unchecked")
     public static <K, V> NavigableMap<K, V> asLazyNavigableMapProxy(
         LazyValueSupplier<? extends NavigableMap<K, V>> lazyValueSupplier
     ) {
-        return asLazyProxy(NavigableMap.class, lazyValueSupplier);
+        return asLazyProxy(navigableMapClass(), lazyValueSupplier);
     }
 
 
@@ -150,10 +148,10 @@ public abstract class LazyProxy {
     public static boolean isLazyProxyInitialized(Object object) {
         Class<?> proxyClass = object.getClass();
         while (proxyClass != null && proxyClass != Object.class) {
-            for (val interfaceClass : proxyClass.getInterfaces()) {
+            for (var interfaceClass : proxyClass.getInterfaces()) {
                 if (interfaceClass == LazyProxyMarkerHolder.LazyProxyMarker.class) {
-                    val lazyValueField = proxyClass.getField(LAZY_VALUE_FIELD_NODE);
-                    val lazyValue = (LazyValue<?>) lazyValueField.get(object);
+                    var lazyValueField = proxyClass.getField(LAZY_VALUE_FIELD_NODE);
+                    var lazyValue = (LazyValue<?>) lazyValueField.get(object);
                     return lazyValue.isInitialized();
                 }
             }
@@ -189,7 +187,7 @@ public abstract class LazyProxy {
 
     @SuppressWarnings("java:S3776")
     private static Class<?> generateProxyClass(Class<?> interfaceClass) {
-        val classNode = new ClassNode();
+        var classNode = new ClassNode();
         classNode.version = V1_8;
         classNode.access = ACC_PUBLIC | ACC_SYNTHETIC;
         classNode.name = getInternalName(interfaceClass) + "$$LazyProxy";
@@ -197,14 +195,14 @@ public abstract class LazyProxy {
             classNode.name = getInternalName(LazyProxy.class) + '$' + classNode.name.replace('/', '_');
         }
         classNode.superName = getInternalName(Object.class);
-        classNode.interfaces = asList(
+        classNode.interfaces = List.of(
             getInternalName(interfaceClass),
             getInternalName(LazyProxyMarkerHolder.LazyProxyMarker.class)
         );
         classNode.fields = new ArrayList<>();
         classNode.methods = new ArrayList<>();
 
-        val lazyValueField = new FieldNode(
+        var lazyValueField = new FieldNode(
             ACC_PUBLIC | ACC_FINAL,
             LAZY_VALUE_FIELD_NODE,
             getDescriptor(LazyValue.class),
@@ -214,7 +212,7 @@ public abstract class LazyProxy {
         classNode.fields.add(lazyValueField);
 
         {
-            val methodNode = new MethodNode(
+            var methodNode = new MethodNode(
                 ACC_PUBLIC,
                 "<init>",
                 getMethodDescriptor(
@@ -228,7 +226,7 @@ public abstract class LazyProxy {
 
             methodNode.parameters = singletonList(new ParameterNode(lazyValueField.name, ACC_FINAL));
 
-            val instructions = methodNode.instructions = new InsnList();
+            var instructions = methodNode.instructions = new InsnList();
             instructions.add(new LabelNode());
 
             instructions.add(new VarInsnNode(ALOAD, 0));
@@ -251,11 +249,11 @@ public abstract class LazyProxy {
             instructions.add(new InsnNode(RETURN));
         }
 
-        val methodsToDelegate = Stream.concat(
+        var methodsToDelegate = Stream.concat(
             stream(interfaceClass.getMethods()),
             OBJECT_METHODS_TO_IMPLEMENT.stream()
-        ).collect(toList());
-        for (val method : methodsToDelegate) {
+        ).collect(toUnmodifiableList());
+        for (var method : methodsToDelegate) {
             if (method.isSynthetic()
                 || isStatic(method)
                 || (method.getDeclaringClass().isInterface() && isNotAbstract(method))
@@ -263,14 +261,14 @@ public abstract class LazyProxy {
                 continue;
             }
 
-            val methodNode = new MethodNode(
+            var methodNode = new MethodNode(
                 ACC_PUBLIC,
                 method.getName(),
                 getMethodDescriptor(method),
                 null,
                 null
             );
-            val isAlreadyImplemented = classNode.methods.stream().anyMatch(other ->
+            var isAlreadyImplemented = classNode.methods.stream().anyMatch(other ->
                 other.name.equals(methodNode.name)
                     && other.desc.equals(methodNode.desc)
             );
@@ -282,9 +280,9 @@ public abstract class LazyProxy {
             methodNode.parameters = stream(method.getParameters())
                 .map(Parameter::getName)
                 .map(name -> new ParameterNode(name, ACC_FINAL))
-                .collect(toList());
+                .collect(toUnmodifiableList());
 
-            val instructions = methodNode.instructions = new InsnList();
+            var instructions = methodNode.instructions = new InsnList();
             instructions.add(new LabelNode());
 
             instructions.add(new VarInsnNode(ALOAD, 0));
@@ -302,7 +300,7 @@ public abstract class LazyProxy {
             ));
 
             for (int paramIndex = 0; paramIndex < method.getParameterCount(); ++paramIndex) {
-                val paramClass = method.getParameterTypes()[paramIndex];
+                var paramClass = method.getParameterTypes()[paramIndex];
                 instructions.add(new VarInsnNode(getType(paramClass).getOpcode(ILOAD), paramIndex + 1));
             }
 
@@ -316,13 +314,13 @@ public abstract class LazyProxy {
             instructions.add(new InsnNode(getType(method.getReturnType()).getOpcode(IRETURN)));
         }
 
-        val classWriter = new ClassWriter(COMPUTE_MAXS | COMPUTE_FRAMES);
+        var classWriter = new ClassWriter(COMPUTE_MAXS | COMPUTE_FRAMES);
         ClassVisitor classVisitor = classWriter;
         if (IN_TEST) {
             classVisitor = wrapWithTestClassVisitors(classVisitor);
         }
         classNode.accept(classVisitor);
-        val bytecode = classWriter.toByteArray();
+        var bytecode = classWriter.toByteArray();
 
         ClassLoader classLoader = interfaceClass.getClassLoader();
         if (classLoader == null) {

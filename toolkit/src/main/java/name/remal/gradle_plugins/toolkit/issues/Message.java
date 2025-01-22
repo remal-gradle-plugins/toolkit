@@ -3,7 +3,6 @@ package name.remal.gradle_plugins.toolkit.issues;
 import static name.remal.gradle_plugins.toolkit.StringUtils.normalizeString;
 
 import javax.annotation.Nullable;
-import lombok.val;
 import org.intellij.lang.annotations.Language;
 
 public abstract class Message {
@@ -31,7 +30,7 @@ public abstract class Message {
         } else if (obj == null || this.getClass() != obj.getClass()) {
             return false;
         }
-        val that = (Message) obj;
+        var that = (Message) obj;
         return this.value.equals(that.value);
     }
 

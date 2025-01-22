@@ -11,7 +11,6 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 
 @NoArgsConstructor(access = PRIVATE)
 @SuppressWarnings("checkstyle:OverloadMethodsDeclarationOrder")
@@ -42,7 +41,7 @@ public abstract class InputOutputStreamUtils {
     }
 
     public static String readStringFromStream(InputStream inputStream, Charset charset) {
-        val bytes = readBytesFromStream(inputStream);
+        var bytes = readBytesFromStream(inputStream);
         return new String(bytes, charset);
     }
 

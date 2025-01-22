@@ -8,7 +8,6 @@ import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
 import com.softeq.gradle.itest.ItestSourceSetExtension;
 import java.util.LinkedHashSet;
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.testkit.MinSupportedGradleVersion;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.SourceSet;
@@ -31,7 +30,7 @@ class WhenTestSourceSetRegisteredSofteqITestTest {
 
     @Test
     void noCustomName() {
-        val testSourceSets = new LinkedHashSet<SourceSet>();
+        var testSourceSets = new LinkedHashSet<SourceSet>();
         handler.registerAction(project, testSourceSets::add);
 
         assertThat(testSourceSets)
@@ -43,7 +42,7 @@ class WhenTestSourceSetRegisteredSofteqITestTest {
     void customNameBeforeEvaluate() {
         getExtension(project, ItestSourceSetExtension.class).setName("itestCustom");
 
-        val testSourceSets = new LinkedHashSet<SourceSet>();
+        var testSourceSets = new LinkedHashSet<SourceSet>();
         handler.registerAction(project, testSourceSets::add);
 
         assertThat(testSourceSets)
@@ -55,7 +54,7 @@ class WhenTestSourceSetRegisteredSofteqITestTest {
     void customNameAfterEvaluate() {
         getExtension(project, ItestSourceSetExtension.class).setName("itestCustom");
 
-        val testSourceSets = new LinkedHashSet<SourceSet>();
+        var testSourceSets = new LinkedHashSet<SourceSet>();
         handler.registerAction(project, testSourceSets::add);
 
         executeAfterEvaluateActions(project);

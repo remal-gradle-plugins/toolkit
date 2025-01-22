@@ -9,7 +9,6 @@ generateSources.forMainSourceSet.java {
         addImport('java.util.Optional')
         addImport('javax.annotation.Nullable')
         addImport('lombok.NoArgsConstructor')
-        addImport('lombok.val')
 
         line("@NoArgsConstructor(access = PRIVATE)")
         suppressWarningsLine("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "java:S107", "java:S1128", "java:S1611")
@@ -21,7 +20,7 @@ generateSources.forMainSourceSet.java {
                     line("@name.remal.gradle_plugins.toolkit.annotations.internal.Generated")
                 }
                 block("public static <T, R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> TypedMethod${paramsCount}<T, R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> getMethod(Class<T> type, Class<R> returnType, String name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<P$it> paramType$it" }.join("")})") {
-                    line("val method = MembersFinderHelpers.getMethod(type, false, returnType, name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")});")
+                    line("var method = MembersFinderHelpers.getMethod(type, false, returnType, name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")});")
                     line("return new TypedMethod${paramsCount}<>(method);")
                 }
             }
@@ -33,7 +32,7 @@ generateSources.forMainSourceSet.java {
                     line("@name.remal.gradle_plugins.toolkit.annotations.internal.Generated")
                 }
                 block("public static <T${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> TypedVoidMethod${paramsCount}<T${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> getMethod(Class<T> type, String name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<P$it> paramType$it" }.join("")})") {
-                    line("val method = MembersFinderHelpers.getMethod(type, false, null, name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")});")
+                    line("var method = MembersFinderHelpers.getMethod(type, false, null, name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")});")
                     line("return new TypedVoidMethod${paramsCount}<>(method);")
                 }
             }
@@ -45,7 +44,7 @@ generateSources.forMainSourceSet.java {
                     line("@name.remal.gradle_plugins.toolkit.annotations.internal.Generated")
                 }
                 block("public static <R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> TypedStaticMethod${paramsCount}<R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> getStaticMethod(Class<?> type, Class<R> returnType, String name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<P$it> paramType$it" }.join("")})") {
-                    line("val method = MembersFinderHelpers.getMethod(type, true, returnType, name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")});")
+                    line("var method = MembersFinderHelpers.getMethod(type, true, returnType, name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")});")
                     line("return new TypedStaticMethod${paramsCount}<>(method);")
                 }
             }
@@ -57,7 +56,7 @@ generateSources.forMainSourceSet.java {
                     line("@name.remal.gradle_plugins.toolkit.annotations.internal.Generated")
                 }
                 block("public static ${paramsCount == 0 ? '' : '<' + (1..paramsCount).collect { "P$it" }.join(", ") + '>'} TypedStaticVoidMethod${paramsCount}${paramsCount == 0 ? '' : '<' + (1..paramsCount).collect { "P$it" }.join(", ") + '>'} getStaticMethod(Class<?> type, String name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<P$it> paramType$it" }.join("")})") {
-                    line("val method = MembersFinderHelpers.getMethod(type, true, null, name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")});")
+                    line("var method = MembersFinderHelpers.getMethod(type, true, null, name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")});")
                     line("return new TypedStaticVoidMethod${paramsCount}${paramsCount == 0 ? '' : '<>'}(method);")
                 }
             }
@@ -71,7 +70,7 @@ generateSources.forMainSourceSet.java {
                     line("@name.remal.gradle_plugins.toolkit.annotations.internal.Generated")
                 }
                 block("public static <T, R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> TypedMethod${paramsCount}<T, R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> findMethod(Class<T> type, Class<R> returnType, String name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<P$it> paramType$it" }.join("")})") {
-                    line("val method = MembersFinderHelpers.findMethod(type, false, returnType, name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")});")
+                    line("var method = MembersFinderHelpers.findMethod(type, false, returnType, name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")});")
                     line("return method != null ? new TypedMethod${paramsCount}<>(method) : null;")
                 }
             }
@@ -84,7 +83,7 @@ generateSources.forMainSourceSet.java {
                     line("@name.remal.gradle_plugins.toolkit.annotations.internal.Generated")
                 }
                 block("public static <T${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> TypedVoidMethod${paramsCount}<T${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> findMethod(Class<T> type, String name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<P$it> paramType$it" }.join("")})") {
-                    line("val method = MembersFinderHelpers.findMethod(type, false, null, name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")});")
+                    line("var method = MembersFinderHelpers.findMethod(type, false, null, name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")});")
                     line("return method != null ? new TypedVoidMethod${paramsCount}<>(method) : null;")
                 }
             }
@@ -97,7 +96,7 @@ generateSources.forMainSourceSet.java {
                     line("@name.remal.gradle_plugins.toolkit.annotations.internal.Generated")
                 }
                 block("public static <R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> TypedStaticMethod${paramsCount}<R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> findStaticMethod(Class<?> type, Class<R> returnType, String name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<P$it> paramType$it" }.join("")})") {
-                    line("val method = MembersFinderHelpers.findMethod(type, true, returnType, name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")});")
+                    line("var method = MembersFinderHelpers.findMethod(type, true, returnType, name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")});")
                     line("return method != null ? new TypedStaticMethod${paramsCount}<>(method) : null;")
                 }
             }
@@ -110,7 +109,7 @@ generateSources.forMainSourceSet.java {
                     line("@name.remal.gradle_plugins.toolkit.annotations.internal.Generated")
                 }
                 block("public static ${paramsCount == 0 ? '' : '<' + (1..paramsCount).collect { "P$it" }.join(", ") + '>'} TypedStaticVoidMethod${paramsCount}${paramsCount == 0 ? '' : '<' + (1..paramsCount).collect { "P$it" }.join(", ") + '>'} findStaticMethod(Class<?> type, String name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<P$it> paramType$it" }.join("")})") {
-                    line("val method = MembersFinderHelpers.findMethod(type, true, null, name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")});")
+                    line("var method = MembersFinderHelpers.findMethod(type, true, null, name${paramsCount == 0 ? '' : (1..paramsCount).collect { ", paramType$it" }.join("")});")
                     line("return method != null ? new TypedStaticVoidMethod${paramsCount}${paramsCount == 0 ? '' : '<>'}(method) : null;")
                 }
             }
@@ -170,7 +169,6 @@ generateSources.forMainSourceSet.java {
 
         addImport('javax.annotation.Nonnull')
         addImport('lombok.NoArgsConstructor')
-        addImport('lombok.val')
 
         line("@NoArgsConstructor(access = PRIVATE)")
         suppressWarningsLine("unchecked", "checkstyle:LineLength", "checkstyle:RightCurlyAlone", "java:S107", "java:S1128", "java:S1611")
@@ -182,7 +180,7 @@ generateSources.forMainSourceSet.java {
                     line("@name.remal.gradle_plugins.toolkit.annotations.internal.Generated")
                 }
                 block("public static <T, R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> R invokeMethod(T target, Class<R> returnType, String methodName${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<? extends P$it> paramType$it, @Nonnull(when = UNKNOWN) P$it param$it" }.join("")})") {
-                    line("val method = MembersFinder.getMethod((Class<T>) target.getClass(), returnType, methodName${paramsCount == 0 ? '' : (1..paramsCount).collect { ", (Class<P$it>) paramType$it" }.join("")});")
+                    line("var method = MembersFinder.getMethod((Class<T>) target.getClass(), returnType, methodName${paramsCount == 0 ? '' : (1..paramsCount).collect { ", (Class<P$it>) paramType$it" }.join("")});")
                     line("return method.invoke(target${paramsCount == 0 ? '' : (1..paramsCount).collect { ", param$it" }.join("")});")
                 }
             }
@@ -193,7 +191,7 @@ generateSources.forMainSourceSet.java {
                     line("@name.remal.gradle_plugins.toolkit.annotations.internal.Generated")
                 }
                 block("public static <T${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> void invokeMethod(T target, String methodName${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<? extends P$it> paramType$it, @Nonnull(when = UNKNOWN) P$it param$it" }.join("")})") {
-                    line("val method = MembersFinder.getMethod((Class<T>) target.getClass(), methodName${paramsCount == 0 ? '' : (1..paramsCount).collect { ", (Class<P$it>) paramType$it" }.join("")});")
+                    line("var method = MembersFinder.getMethod((Class<T>) target.getClass(), methodName${paramsCount == 0 ? '' : (1..paramsCount).collect { ", (Class<P$it>) paramType$it" }.join("")});")
                     line("method.invoke(target${paramsCount == 0 ? '' : (1..paramsCount).collect { ", param$it" }.join("")});")
                 }
             }
@@ -205,7 +203,7 @@ generateSources.forMainSourceSet.java {
                     line("@name.remal.gradle_plugins.toolkit.annotations.internal.Generated")
                 }
                 block("public static <R${paramsCount == 0 ? '' : (1..paramsCount).collect { ", P$it" }.join("")}> R invokeStaticMethod(Class<?> type, Class<R> returnType, String methodName${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<? extends P$it> paramType$it, @Nonnull(when = UNKNOWN) P$it param$it" }.join("")})") {
-                    line("val method = MembersFinder.getStaticMethod(type, returnType, methodName${paramsCount == 0 ? '' : (1..paramsCount).collect { ", (Class<P$it>) paramType$it" }.join("")});")
+                    line("var method = MembersFinder.getStaticMethod(type, returnType, methodName${paramsCount == 0 ? '' : (1..paramsCount).collect { ", (Class<P$it>) paramType$it" }.join("")});")
                     line("return method.invoke(${paramsCount == 0 ? '' : (1..paramsCount).collect { "param$it" }.join(", ")});")
                 }
             }
@@ -216,7 +214,7 @@ generateSources.forMainSourceSet.java {
                     line("@name.remal.gradle_plugins.toolkit.annotations.internal.Generated")
                 }
                 block("public static ${paramsCount == 0 ? '' : '<' + (1..paramsCount).collect { "P$it" }.join(", ") + '>'} void invokeStaticMethod(Class<?> type, String methodName${paramsCount == 0 ? '' : (1..paramsCount).collect { ", Class<? extends P$it> paramType$it, @Nonnull(when = UNKNOWN) P$it param$it" }.join("")})") {
-                    line("val method = MembersFinder.getStaticMethod(type, methodName${paramsCount == 0 ? '' : (1..paramsCount).collect { ", (Class<P$it>) paramType$it" }.join("")});")
+                    line("var method = MembersFinder.getStaticMethod(type, methodName${paramsCount == 0 ? '' : (1..paramsCount).collect { ", (Class<P$it>) paramType$it" }.join("")});")
                     line("method.invoke(${paramsCount == 0 ? '' : (1..paramsCount).collect { "param$it" }.join(",")});")
                 }
             }

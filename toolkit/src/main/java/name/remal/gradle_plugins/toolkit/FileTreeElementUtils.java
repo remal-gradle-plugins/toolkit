@@ -1,6 +1,5 @@
 package name.remal.gradle_plugins.toolkit;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.unmodifiableSet;
 import static java.util.stream.Collectors.toCollection;
 import static lombok.AccessLevel.PRIVATE;
@@ -35,12 +34,12 @@ import static org.objectweb.asm.Type.getMethodDescriptor;
 import static org.objectweb.asm.Type.getType;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
@@ -60,7 +59,7 @@ public abstract class FileTreeElementUtils {
         .filter(Objects::nonNull)
         .collect(toCollection(LinkedHashSet::new));
 
-    private static final Set<String> ARCHIVE_FILE_TREE_SIMPLE_CLASS_NAMES = unmodifiableSet(new LinkedHashSet<>(asList(
+    private static final Set<String> ARCHIVE_FILE_TREE_SIMPLE_CLASS_NAMES = unmodifiableSet(new LinkedHashSet<>(List.of(
         // supported by Gradle natively:
         "TarFileTree",
         "ZipFileTree",
@@ -74,13 +73,13 @@ public abstract class FileTreeElementUtils {
     )));
 
     public static boolean isArchiveEntry(FileTreeElement details) {
-        val detailsClass = unwrapGeneratedSubclass(details.getClass());
-        val enclosingClass = detailsClass.getEnclosingClass();
+        var detailsClass = unwrapGeneratedSubclass(details.getClass());
+        var enclosingClass = detailsClass.getEnclosingClass();
         if (enclosingClass == null) {
             return false;
         }
 
-        val isArchive = ABSTRACT_ARCHIVE_FILE_TREE_CLASSES.contains(enclosingClass)
+        var isArchive = ABSTRACT_ARCHIVE_FILE_TREE_CLASSES.contains(enclosingClass)
             || ARCHIVE_FILE_TREE_SIMPLE_CLASS_NAMES.contains(enclosingClass.getSimpleName());
         return isArchive;
     }
@@ -105,14 +104,14 @@ public abstract class FileTreeElementUtils {
 
         @SneakyThrows
         private static Class<FileTreeElement> createClass() {
-            val classWriter = new ClassWriter(COMPUTE_MAXS | COMPUTE_FRAMES);
+            var classWriter = new ClassWriter(COMPUTE_MAXS | COMPUTE_FRAMES);
             ClassVisitor classVisitor = classWriter;
             if (IN_TEST) {
                 classVisitor = wrapWithTestClassVisitors(classVisitor);
             }
 
-            val classInternalName = getInternalName(FileTreeElement.class) + "$$MockForRelativePath";
-            val classSuperName = FileTreeElement.class.isInterface()
+            var classInternalName = getInternalName(FileTreeElement.class) + "$$MockForRelativePath";
+            var classSuperName = FileTreeElement.class.isInterface()
                 ? getInternalName(Object.class)
                 : getInternalName(FileTreeElement.class);
             classVisitor.visit(
@@ -126,8 +125,8 @@ public abstract class FileTreeElementUtils {
                     : null
             );
 
-            val delegateFieldName = "delegate";
-            val delegateFieldDescr = getDescriptor(RelativePath.class);
+            var delegateFieldName = "delegate";
+            var delegateFieldDescr = getDescriptor(RelativePath.class);
             classVisitor.visitField(
                 ACC_PRIVATE | ACC_FINAL,
                 delegateFieldName,
@@ -137,7 +136,7 @@ public abstract class FileTreeElementUtils {
             );
 
             {
-                val mv = classVisitor.visitMethod(
+                var mv = classVisitor.visitMethod(
                     ACC_PUBLIC,
                     "<init>",
                     getMethodDescriptor(
@@ -175,8 +174,8 @@ public abstract class FileTreeElementUtils {
             }
 
             {
-                val methodToImplement = FileTreeElement.class.getMethod("getRelativePath");
-                val mv = classVisitor.visitMethod(
+                var methodToImplement = FileTreeElement.class.getMethod("getRelativePath");
+                var mv = classVisitor.visitMethod(
                     ACC_PUBLIC,
                     methodToImplement.getName(),
                     getMethodDescriptor(methodToImplement),
@@ -199,8 +198,8 @@ public abstract class FileTreeElementUtils {
             }
 
             {
-                val methodToImplement = FileTreeElement.class.getMethod("getPath");
-                val mv = classVisitor.visitMethod(
+                var methodToImplement = FileTreeElement.class.getMethod("getPath");
+                var mv = classVisitor.visitMethod(
                     ACC_PUBLIC,
                     methodToImplement.getName(),
                     getMethodDescriptor(methodToImplement),
@@ -217,7 +216,7 @@ public abstract class FileTreeElementUtils {
                     delegateFieldDescr
                 );
 
-                val methodToDelegateTo = RelativePath.class.getMethod("getPathString");
+                var methodToDelegateTo = RelativePath.class.getMethod("getPathString");
                 mv.visitMethodInsn(
                     methodToDelegateTo.getDeclaringClass().isInterface() ? INVOKEINTERFACE : INVOKEVIRTUAL,
                     getInternalName(methodToDelegateTo.getDeclaringClass()),
@@ -232,8 +231,8 @@ public abstract class FileTreeElementUtils {
             }
 
             {
-                val methodToImplement = FileTreeElement.class.getMethod("getName");
-                val mv = classVisitor.visitMethod(
+                var methodToImplement = FileTreeElement.class.getMethod("getName");
+                var mv = classVisitor.visitMethod(
                     ACC_PUBLIC,
                     methodToImplement.getName(),
                     getMethodDescriptor(methodToImplement),
@@ -250,7 +249,7 @@ public abstract class FileTreeElementUtils {
                     delegateFieldDescr
                 );
 
-                val methodToDelegateTo = RelativePath.class.getMethod("getLastName");
+                var methodToDelegateTo = RelativePath.class.getMethod("getLastName");
                 mv.visitMethodInsn(
                     methodToDelegateTo.getDeclaringClass().isInterface() ? INVOKEINTERFACE : INVOKEVIRTUAL,
                     getInternalName(methodToDelegateTo.getDeclaringClass()),
@@ -265,8 +264,8 @@ public abstract class FileTreeElementUtils {
             }
 
             {
-                val methodToImplement = FileTreeElement.class.getMethod("isDirectory");
-                val mv = classVisitor.visitMethod(
+                var methodToImplement = FileTreeElement.class.getMethod("isDirectory");
+                var mv = classVisitor.visitMethod(
                     ACC_PUBLIC,
                     methodToImplement.getName(),
                     getMethodDescriptor(methodToImplement),
@@ -283,7 +282,7 @@ public abstract class FileTreeElementUtils {
                     delegateFieldDescr
                 );
 
-                val methodToDelegateTo = RelativePath.class.getMethod("isFile");
+                var methodToDelegateTo = RelativePath.class.getMethod("isFile");
                 mv.visitMethodInsn(
                     methodToDelegateTo.getDeclaringClass().isInterface() ? INVOKEINTERFACE : INVOKEVIRTUAL,
                     getInternalName(methodToDelegateTo.getDeclaringClass()),
@@ -302,8 +301,8 @@ public abstract class FileTreeElementUtils {
             }
 
             {
-                val methodToImplement = Object.class.getMethod("toString");
-                val mv = classVisitor.visitMethod(
+                var methodToImplement = Object.class.getMethod("toString");
+                var mv = classVisitor.visitMethod(
                     ACC_PUBLIC,
                     methodToImplement.getName(),
                     getMethodDescriptor(methodToImplement),
@@ -368,14 +367,14 @@ public abstract class FileTreeElementUtils {
                 mv.visitEnd();
             }
 
-            val bytecode = classWriter.toByteArray();
-            val resultClass = defineClass(
+            var bytecode = classWriter.toByteArray();
+            var resultClass = defineClass(
                 MockedFileTreeElementFromRelativePathClassHolder.class.getClassLoader(),
                 bytecode
             );
 
             @SuppressWarnings("unchecked")
-            val typedResultClass = (Class<FileTreeElement>) resultClass;
+            var typedResultClass = (Class<FileTreeElement>) resultClass;
             return typedResultClass;
         }
 

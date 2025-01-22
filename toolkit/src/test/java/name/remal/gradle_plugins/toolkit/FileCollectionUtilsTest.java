@@ -12,7 +12,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.testkit.MinSupportedGradleVersion;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -28,12 +27,12 @@ class FileCollectionUtilsTest {
     void getConfigurationsUsedIn() {
         FileCollection fileCollection = project.files();
 
-        val conf1 = createConfiguration("conf1");
+        var conf1 = createConfiguration("conf1");
         fileCollection = fileCollection.plus(conf1);
 
         fileCollection.filter(__ -> true);
 
-        val conf2 = createConfiguration("conf2");
+        var conf2 = createConfiguration("conf2");
         fileCollection = fileCollection.plus(conf2);
 
         fileCollection = fileCollection.plus(project.files().getAsFileTree());
@@ -47,10 +46,10 @@ class FileCollectionUtilsTest {
     void getConfigurationsUsedIn_with_minus() {
         FileCollection fileCollection = project.files();
 
-        val conf1 = createConfiguration("conf1");
+        var conf1 = createConfiguration("conf1");
         fileCollection = fileCollection.plus(conf1);
 
-        val conf2 = createConfiguration("conf2");
+        var conf2 = createConfiguration("conf2");
         fileCollection = fileCollection.plus(conf2);
 
         fileCollection = fileCollection.plus(project.files().getAsFileTree());
@@ -71,16 +70,16 @@ class FileCollectionUtilsTest {
          * This code creates a configuration with the simplest resolvable dependency.
          */
 
-        val dependencyFile = new File(project.getRootDir(), name + ".jar");
+        var dependencyFile = new File(project.getRootDir(), name + ".jar");
         createDirectories(dependencyFile.getParentFile().toPath());
-        try (val out = new ZipOutputStream(newOutputStream(dependencyFile.toPath()))) {
-            val manifest = new Manifest();
+        try (var out = new ZipOutputStream(newOutputStream(dependencyFile.toPath()))) {
+            var manifest = new Manifest();
             manifest.getMainAttributes().putValue(MANIFEST_VERSION.toString(), "1.0");
             out.putNextEntry(new ZipEntry(MANIFEST_NAME));
             manifest.write(out);
         }
 
-        val configuration = project.getConfigurations().create(name, conf -> {
+        var configuration = project.getConfigurations().create(name, conf -> {
             conf.setCanBeResolved(true);
 
             conf.getDependencies().add(

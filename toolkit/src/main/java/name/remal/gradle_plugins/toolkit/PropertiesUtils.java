@@ -31,7 +31,6 @@ import java.util.TreeMap;
 import javax.annotation.WillNotClose;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 import org.jetbrains.annotations.Contract;
 
 @NoArgsConstructor(access = PRIVATE)
@@ -45,7 +44,7 @@ public abstract class PropertiesUtils {
     @SneakyThrows
     public static Properties loadProperties(Path path) {
         path = normalizePath(path);
-        try (val inputStream = newInputStream(path)) {
+        try (var inputStream = newInputStream(path)) {
             return loadProperties(inputStream);
         }
     }
@@ -57,20 +56,20 @@ public abstract class PropertiesUtils {
 
     @SneakyThrows
     public static Properties loadProperties(URL url) {
-        try (val inputStream = openInputStreamForUrl(url)) {
+        try (var inputStream = openInputStreamForUrl(url)) {
             return loadProperties(inputStream);
         }
     }
 
     @SneakyThrows
     public static Properties loadProperties(@WillNotClose InputStream inputStream) {
-        val reader = new InputStreamReader(inputStream, UTF_8);
+        var reader = new InputStreamReader(inputStream, UTF_8);
         return loadProperties(reader);
     }
 
     @SneakyThrows
     public static Properties loadProperties(@WillNotClose Reader reader) {
-        val properties = new Properties();
+        var properties = new Properties();
         reader = reader instanceof BufferedReader
             ? (BufferedReader) reader
             : new BufferedReader(reader);
@@ -87,14 +86,14 @@ public abstract class PropertiesUtils {
     public static void storeProperties(Map<?, ?> properties, Path path) {
         path = normalizePath(path);
         createParentDirectories(path);
-        try (val outputStream = newOutputStream(path)) {
+        try (var outputStream = newOutputStream(path)) {
             storeProperties(properties, outputStream);
         }
     }
 
     @SneakyThrows
     public static void storeProperties(Map<?, ?> properties, @WillNotClose OutputStream outputStream) {
-        val writer = new OutputStreamWriter(outputStream, ISO_8859_1);
+        var writer = new OutputStreamWriter(outputStream, ISO_8859_1);
         storeProperties(properties, writer);
     }
 
@@ -104,9 +103,9 @@ public abstract class PropertiesUtils {
             ? (BufferedWriter) writer
             : new BufferedWriter(writer);
         try {
-            val map = new TreeMap<String, String>();
+            var map = new TreeMap<String, String>();
             properties.forEach((key, value) -> map.put(key.toString(), value.toString()));
-            for (val entry : map.entrySet()) {
+            for (var entry : map.entrySet()) {
                 writeEscaped(entry.getKey(), true, writer);
                 writer.append('=');
                 writeEscaped(entry.getValue(), false, writer);
@@ -123,7 +122,7 @@ public abstract class PropertiesUtils {
         @WillNotClose Writer writer
     ) throws IOException {
         for (int index = 0; index < string.length(); index++) {
-            val ch = string.charAt(index);
+            var ch = string.charAt(index);
             if (ch == '\\'
                 || ch == '='
                 || ch == ':'
@@ -156,7 +155,7 @@ public abstract class PropertiesUtils {
     @Contract(pure = true)
     @SneakyThrows
     public static byte[] storePropertiesToBytes(Map<?, ?> properties) {
-        try (val out = new ByteArrayOutputStream()) {
+        try (var out = new ByteArrayOutputStream()) {
             storeProperties(properties, out);
             return out.toByteArray();
         }
@@ -165,7 +164,7 @@ public abstract class PropertiesUtils {
     @Contract(pure = true)
     @SneakyThrows
     public static String storePropertiesToString(Map<?, ?> properties) {
-        try (val writer = new StringWriter()) {
+        try (var writer = new StringWriter()) {
             storeProperties(properties, writer);
             return writer.toString();
         }

@@ -7,7 +7,6 @@ import static name.remal.gradle_plugins.toolkit.PluginUtils.getPluginIdWithoutCo
 import static name.remal.gradle_plugins.toolkit.PluginUtils.isCorePluginId;
 
 import lombok.NoArgsConstructor;
-import lombok.val;
 import org.gradle.api.Plugin;
 import org.gradle.util.GradleVersion;
 
@@ -26,7 +25,7 @@ public abstract class ConfigurationCacheUtils {
     public static GradleCompatibilityMode getCorePluginConfigurationCacheSupport(
         Class<? extends Plugin<?>> pluginClass
     ) {
-        val pluginId = findPluginIdFor(pluginClass);
+        var pluginId = findPluginIdFor(pluginClass);
         if (pluginId != null) {
             return getCorePluginConfigurationCacheSupport(pluginId);
         }

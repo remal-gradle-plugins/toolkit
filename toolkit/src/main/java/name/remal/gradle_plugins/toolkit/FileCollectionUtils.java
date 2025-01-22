@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
-import lombok.val;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedConfiguration;
@@ -51,16 +50,16 @@ public abstract class FileCollectionUtils {
             return emptyMap();
         }
 
-        val result = new LinkedHashMap<File, ModuleVersionIdentifier>();
+        var result = new LinkedHashMap<File, ModuleVersionIdentifier>();
 
-        val files = fileCollection.getFiles();
+        var files = fileCollection.getFiles();
         getConfigurationsUsedIn(fileCollection).stream()
             .filter(Configuration::isCanBeResolved)
             .map(Configuration::getResolvedConfiguration)
             .map(ResolvedConfiguration::getResolvedArtifacts)
             .flatMap(Collection::stream)
             .forEach(artifact -> {
-                val artifactFile = artifact.getFile();
+                var artifactFile = artifact.getFile();
                 if (files.contains(artifactFile)) {
                     result.putIfAbsent(artifactFile, artifact.getModuleVersion().getId());
                 }

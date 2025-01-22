@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-import lombok.val;
 import org.gradle.api.Project;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.plugins.ExtensionAware;
@@ -42,7 +41,7 @@ class ExtensionContainerUtilsTest {
             ExtensionContainerUtils.getExtensions(project)
         );
 
-        val testExtension = project.getExtensions().create("testExt", TestExtensionImpl.class, "");
+        var testExtension = project.getExtensions().create("testExt", TestExtensionImpl.class, "");
         assertSame(
             ((ExtensionAware) testExtension).getExtensions(),
             ExtensionContainerUtils.getExtensions(testExtension)
@@ -59,7 +58,7 @@ class ExtensionContainerUtilsTest {
             TestExtensionImpl.class,
             "value"
         );
-        val extension = project.getExtensions().getByName("testExt");
+        var extension = project.getExtensions().getByName("testExt");
         assertTrue(extension instanceof TestExtensionImpl);
         assertEquals("value", ((TestExtension) extension).getValue());
     }
@@ -72,7 +71,7 @@ class ExtensionContainerUtilsTest {
             TestExtensionImpl.class,
             "value"
         );
-        val extension = project.getExtensions().getByName("testExt");
+        var extension = project.getExtensions().getByName("testExt");
         assertTrue(extension instanceof TestExtensionImpl);
         assertEquals("value", ((TestExtension) extension).getValue());
     }
@@ -85,7 +84,7 @@ class ExtensionContainerUtilsTest {
             TestExtensionImpl.class,
             "value"
         );
-        val extension = project.getExtensions().getByName("testExtension");
+        var extension = project.getExtensions().getByName("testExtension");
         assertTrue(extension instanceof TestExtensionImpl);
         assertEquals("value", ((TestExtension) extension).getValue());
     }
@@ -97,7 +96,7 @@ class ExtensionContainerUtilsTest {
             TestExtensionImpl.class,
             "value"
         );
-        val extension = project.getExtensions().getByName("testExtensionImpl");
+        var extension = project.getExtensions().getByName("testExtensionImpl");
         assertTrue(extension instanceof TestExtensionImpl);
         assertEquals("value", ((TestExtension) extension).getValue());
     }
@@ -105,28 +104,28 @@ class ExtensionContainerUtilsTest {
 
     @Test
     void addExtension_publicType_name() {
-        val extension = new TestExtensionImpl("");
+        var extension = new TestExtensionImpl("");
         ExtensionContainerUtils.addExtension(project, TestExtension.class, "testExt", extension);
         assertTrue(project.getExtensions().getByName("testExt") instanceof TestExtensionImpl);
     }
 
     @Test
     void addExtension_name() {
-        val extension = new TestExtensionImpl("");
+        var extension = new TestExtensionImpl("");
         ExtensionContainerUtils.addExtension(project, "testExt", extension);
         assertTrue(project.getExtensions().getByName("testExt") instanceof TestExtensionImpl);
     }
 
     @Test
     void addExtension_publicType() {
-        val extension = new TestExtensionImpl("");
+        var extension = new TestExtensionImpl("");
         ExtensionContainerUtils.addExtension(project, TestExtension.class, extension);
         assertTrue(project.getExtensions().getByName("testExtension") instanceof TestExtensionImpl);
     }
 
     @Test
     void addExtension() {
-        val extension = new TestExtensionImpl("");
+        var extension = new TestExtensionImpl("");
         ExtensionContainerUtils.addExtension(project, extension);
         assertTrue(project.getExtensions().getByName("testExtensionImpl") instanceof TestExtensionImpl);
     }
@@ -152,7 +151,7 @@ class ExtensionContainerUtilsTest {
     @Test
     void findExtension_name() {
         assertNull(ExtensionContainerUtils.findExtension(project, "testExt"));
-        val extension = project.getExtensions().create("testExt", TestExtensionImpl.class, "");
+        var extension = project.getExtensions().create("testExt", TestExtensionImpl.class, "");
         assertSame(extension, ExtensionContainerUtils.findExtension(project, "testExt"));
     }
 
@@ -160,7 +159,7 @@ class ExtensionContainerUtilsTest {
     void findExtension_type() {
         assertNull(ExtensionContainerUtils.findExtension(project, TestExtension.class));
         assertNull(ExtensionContainerUtils.findExtension(project, TestExtensionImpl.class));
-        val extension = project.getExtensions().create("testExt", TestExtensionImpl.class, "");
+        var extension = project.getExtensions().create("testExt", TestExtensionImpl.class, "");
         assertSame(extension, ExtensionContainerUtils.findExtension(project, TestExtension.class));
         assertSame(extension, ExtensionContainerUtils.findExtension(project, TestExtensionImpl.class));
     }
@@ -172,7 +171,7 @@ class ExtensionContainerUtilsTest {
             UnknownDomainObjectException.class,
             () -> ExtensionContainerUtils.getExtension(project, "testExt")
         );
-        val extension = project.getExtensions().create("testExt", TestExtensionImpl.class, "");
+        var extension = project.getExtensions().create("testExt", TestExtensionImpl.class, "");
         assertSame(extension, ExtensionContainerUtils.getExtension(project, "testExt"));
     }
 
@@ -186,7 +185,7 @@ class ExtensionContainerUtilsTest {
             UnknownDomainObjectException.class,
             () -> ExtensionContainerUtils.getExtension(project, TestExtensionImpl.class)
         );
-        val extension = project.getExtensions().create("testExt", TestExtensionImpl.class, "");
+        var extension = project.getExtensions().create("testExt", TestExtensionImpl.class, "");
         assertSame(extension, ExtensionContainerUtils.getExtension(project, TestExtension.class));
         assertSame(extension, ExtensionContainerUtils.getExtension(project, TestExtensionImpl.class));
     }

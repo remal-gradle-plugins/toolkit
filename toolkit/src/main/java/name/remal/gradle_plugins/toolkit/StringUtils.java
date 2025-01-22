@@ -5,7 +5,6 @@ import static lombok.AccessLevel.PRIVATE;
 import java.util.regex.Pattern;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class StringUtils {
@@ -54,11 +53,11 @@ public abstract class StringUtils {
             return string;
         }
 
-        val indentBuilder = new StringBuilder(indentSize);
+        var indentBuilder = new StringBuilder(indentSize);
         for (int n = 1; n <= indentSize; ++n) {
             indentBuilder.append(' ');
         }
-        val indent = indentBuilder.toString();
+        var indent = indentBuilder.toString();
 
         string = indent + INDENT_NEXT_LINE.matcher(string).replaceAll("\n" + indent + "$1");
 
@@ -74,7 +73,7 @@ public abstract class StringUtils {
         if (stringToFind.isEmpty()) {
             throw new IllegalArgumentException("stringToFind must not be empty");
         }
-        val pos = string.indexOf(stringToFind);
+        var pos = string.indexOf(stringToFind);
         return pos >= 0 ? string.substring(0, pos) : missingString;
     }
 
@@ -86,7 +85,7 @@ public abstract class StringUtils {
         if (stringToFind.isEmpty()) {
             throw new IllegalArgumentException("stringToFind must not be empty");
         }
-        val pos = string.lastIndexOf(stringToFind);
+        var pos = string.lastIndexOf(stringToFind);
         return pos >= 0 ? string.substring(0, pos) : missingString;
     }
 
@@ -98,7 +97,7 @@ public abstract class StringUtils {
         if (stringToFind.isEmpty()) {
             throw new IllegalArgumentException("stringToFind must not be empty");
         }
-        val pos = string.indexOf(stringToFind);
+        var pos = string.indexOf(stringToFind);
         return pos >= 0 ? string.substring(pos + stringToFind.length()) : missingString;
     }
 
@@ -110,7 +109,7 @@ public abstract class StringUtils {
         if (stringToFind.isEmpty()) {
             throw new IllegalArgumentException("stringToFind must not be empty");
         }
-        val pos = string.lastIndexOf(stringToFind);
+        var pos = string.lastIndexOf(stringToFind);
         return pos >= 0 ? string.substring(pos + stringToFind.length()) : missingString;
     }
 
@@ -122,12 +121,12 @@ public abstract class StringUtils {
             return string;
         }
 
-        val startPos = calculateTrimmedStartPos(string, charPredicate);
+        var startPos = calculateTrimmedStartPos(string, charPredicate);
         if (startPos >= string.length()) {
             return "";
         }
 
-        val endPos = calculateTrimmedEndPos(string, charPredicate);
+        var endPos = calculateTrimmedEndPos(string, charPredicate);
 
         return string.substring(startPos, endPos + 1);
     }
@@ -147,12 +146,12 @@ public abstract class StringUtils {
             return string;
         }
 
-        val startPos = calculateTrimmedStartPos(string, charPredicate);
+        var startPos = calculateTrimmedStartPos(string, charPredicate);
         if (startPos >= string.length()) {
             return "";
         }
 
-        val endPos = string.length() - 1;
+        var endPos = string.length() - 1;
 
         return string.substring(startPos, endPos + 1);
     }
@@ -176,9 +175,9 @@ public abstract class StringUtils {
             return string;
         }
 
-        val startPos = 0;
+        var startPos = 0;
 
-        val endPos = calculateTrimmedEndPos(string, charPredicate);
+        var endPos = calculateTrimmedEndPos(string, charPredicate);
         if (endPos < 0) {
             return "";
         }
@@ -202,7 +201,7 @@ public abstract class StringUtils {
     private static int calculateTrimmedStartPos(String string, CharPredicate charPredicate) {
         int startPos = 0;
         for (; startPos < string.length(); ++startPos) {
-            val ch = string.charAt(startPos);
+            var ch = string.charAt(startPos);
             if (!charPredicate.test(ch)) {
                 break;
             }
@@ -214,7 +213,7 @@ public abstract class StringUtils {
     private static int calculateTrimmedEndPos(String string, CharPredicate charPredicate) {
         int endPos = string.length() - 1;
         for (; 0 <= endPos; --endPos) {
-            val ch = string.charAt(endPos);
+            var ch = string.charAt(endPos);
             if (!charPredicate.test(ch)) {
                 break;
             }
@@ -228,7 +227,7 @@ public abstract class StringUtils {
         }
 
         return ch -> {
-            for (val charToRemove : charsToRemove) {
+            for (var charToRemove : charsToRemove) {
                 if (ch == charToRemove) {
                     return true;
                 }
@@ -244,7 +243,7 @@ public abstract class StringUtils {
 
         return ch -> {
             for (int i = 0; i < charsToRemove.length(); ++i) {
-                val charToRemove = charsToRemove.charAt(i);
+                var charToRemove = charsToRemove.charAt(i);
                 if (ch == charToRemove) {
                     return true;
                 }

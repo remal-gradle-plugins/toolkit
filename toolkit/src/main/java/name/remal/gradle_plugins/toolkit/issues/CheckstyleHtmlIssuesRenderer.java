@@ -13,7 +13,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import lombok.SneakyThrows;
-import lombok.val;
 import org.gradle.util.GradleVersion;
 
 public class CheckstyleHtmlIssuesRenderer implements IssuesRenderer {
@@ -33,23 +32,24 @@ public class CheckstyleHtmlIssuesRenderer implements IssuesRenderer {
 
     @Override
     @SneakyThrows
+    @SuppressWarnings("java:S2755")
     public String renderIssues(Iterable<? extends Issue> issues) {
-        val xsltUrl = getResourceUrl("checkstyle.xsl", CheckstyleHtmlIssuesRenderer.class);
-        try (val xsltInputStream = openInputStreamForUrl(xsltUrl)) {
-            val xslt = new StreamSource(xsltInputStream, xsltUrl.toString());
+        var xsltUrl = getResourceUrl("checkstyle.xsl", CheckstyleHtmlIssuesRenderer.class);
+        try (var xsltInputStream = openInputStreamForUrl(xsltUrl)) {
+            var xslt = new StreamSource(xsltInputStream, xsltUrl.toString());
 
-            val factory = TransformerFactory.newInstance();
+            var factory = TransformerFactory.newInstance();
             tryToSetXmlSetting(factory, ACCESS_EXTERNAL_DTD, "");
             tryToSetXmlSetting(factory, ACCESS_EXTERNAL_STYLESHEET, "");
             tryToSetXmlSetting(factory, FEATURE_SECURE_PROCESSING, true);
 
-            val transformer = factory.newTransformer(xslt);
+            var transformer = factory.newTransformer(xslt);
             transformer.setParameter("toolName", toolName);
             transformer.setParameter("gradleVersion", GradleVersion.current().getVersion());
 
-            val xmlContent = XML_RENDERER.renderIssues(issues);
-            val source = new StreamSource(new StringReader(xmlContent));
-            val outputWriter = new StringWriter();
+            var xmlContent = XML_RENDERER.renderIssues(issues);
+            var source = new StreamSource(new StringReader(xmlContent));
+            var outputWriter = new StringWriter();
             transformer.transform(source, new StreamResult(outputWriter));
 
             return outputWriter.toString();

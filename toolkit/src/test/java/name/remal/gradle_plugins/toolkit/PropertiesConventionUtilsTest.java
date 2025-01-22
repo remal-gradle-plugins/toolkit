@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import javax.annotation.Nullable;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.junit.jupiter.api.Test;
@@ -25,7 +24,7 @@ class PropertiesConventionUtilsTest {
 
     @Test
     void setPropertyConvention() {
-        val extension = project.getExtensions().create("testExt", TestExtension.class);
+        var extension = project.getExtensions().create("testExt", TestExtension.class);
         assertNull(extension.getValue());
 
         PropertiesConventionUtils.setPropertyConvention(extension, "value", () -> "default");
@@ -37,7 +36,7 @@ class PropertiesConventionUtilsTest {
 
     @Test
     void setPropertyConvention_unknown_property() {
-        val extension = project.getExtensions().create("testExt", TestExtension.class);
+        var extension = project.getExtensions().create("testExt", TestExtension.class);
         assertThrows(
             InvalidUserDataException.class,
             () -> PropertiesConventionUtils.setPropertyConvention(extension, "unknown", () -> "")

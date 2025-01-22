@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.function.Consumer;
 import lombok.NoArgsConstructor;
-import lombok.val;
 import org.gradle.api.Task;
 import org.gradle.api.plugins.ExtensionAware;
 
@@ -20,9 +19,9 @@ public abstract class OrderedActionUtils {
 
     @SuppressWarnings("unchecked")
     public static void doFirstOrdered(Task task, OrderedAction<? super Task> action) {
-        val container = getOrCreateExtension(task, DO_FIRST_ORDERED_EXTENSION, ext -> {
+        var container = getOrCreateExtension(task, DO_FIRST_ORDERED_EXTENSION, ext -> {
             task.onlyIf(__ -> {
-                val allActions = new ArrayList<>(ext.getActions());
+                var allActions = new ArrayList<>(ext.getActions());
                 Collections.reverse(allActions);
                 allActions.forEach(it -> task.doFirst(it.getId(), (OrderedAction<Task>) it));
                 return true;
@@ -34,9 +33,9 @@ public abstract class OrderedActionUtils {
 
     @SuppressWarnings("unchecked")
     public static void doLastOrdered(Task task, OrderedAction<? super Task> action) {
-        val container = getOrCreateExtension(task, DO_LAST_ORDERED_EXTENSION, ext -> {
+        var container = getOrCreateExtension(task, DO_LAST_ORDERED_EXTENSION, ext -> {
             task.onlyIf(__ -> {
-                val allActions = ext.getActions();
+                var allActions = ext.getActions();
                 allActions.forEach(it -> task.doLast(it.getId(), (OrderedAction<Task>) it));
                 return true;
             });
@@ -51,9 +50,9 @@ public abstract class OrderedActionUtils {
         String extensionName,
         Consumer<OrderedActionsTaskExtension> onCreate
     ) {
-        val untypedExtension = object.getExtensions().findByName(extensionName);
+        var untypedExtension = object.getExtensions().findByName(extensionName);
         if (untypedExtension == null) {
-            val extension = object.getExtensions().create(extensionName, OrderedActionsTaskExtensionImpl.class);
+            var extension = object.getExtensions().create(extensionName, OrderedActionsTaskExtensionImpl.class);
             onCreate.accept(extension);
             return extension;
 

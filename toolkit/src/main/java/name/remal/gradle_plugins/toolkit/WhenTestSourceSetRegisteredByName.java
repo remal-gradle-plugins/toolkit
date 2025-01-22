@@ -5,7 +5,6 @@ import static com.google.common.base.CaseFormat.LOWER_HYPHEN;
 import static name.remal.gradle_plugins.toolkit.ExtensionContainerUtils.getExtension;
 
 import com.google.auto.service.AutoService;
-import lombok.val;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.SourceSet;
@@ -17,10 +16,10 @@ final class WhenTestSourceSetRegisteredByName implements WhenTestSourceSetRegist
     @Override
     public void registerAction(Project project, Action<SourceSet> action) {
         project.getPluginManager().withPlugin("java", __ -> {
-            val sourceSets = getExtension(project, SourceSetContainer.class);
+            var sourceSets = getExtension(project, SourceSetContainer.class);
             sourceSets
                 .matching(sourceSet -> {
-                    val normalizedName = LOWER_CAMEL.to(LOWER_HYPHEN, sourceSet.getName());
+                    var normalizedName = LOWER_CAMEL.to(LOWER_HYPHEN, sourceSet.getName());
                     return normalizedName.endsWith("-test")
                         || normalizedName.endsWith("-tests")
                         || normalizedName.endsWith("_test")

@@ -13,7 +13,6 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
-import lombok.val;
 import org.intellij.lang.annotations.Language;
 
 @NoArgsConstructor(access = PRIVATE)
@@ -30,19 +29,19 @@ public abstract class ResourceUtils {
 
     @Nullable
     public static URL findResourceUrl(@Language("file-reference") String name, @Nullable ClassLoader classLoader) {
-        val trueClassLoader = classLoader != null ? classLoader : getSystemClassLoader();
+        var trueClassLoader = classLoader != null ? classLoader : getSystemClassLoader();
         return trueClassLoader.getResource(name);
     }
 
     @Nullable
     public static URL findResourceUrl(@Language("file-reference") String name) {
-        val callingClass = getCallingClass(2);
+        var callingClass = getCallingClass(2);
         return findResourceUrl(name, callingClass);
     }
 
 
     public static URL getResourceUrl(@Language("file-reference") String name, Class<?> loadingClass) {
-        val url = findResourceUrl(name, loadingClass);
+        var url = findResourceUrl(name, loadingClass);
         if (url == null) {
             throw new ResourceNotFoundException(
                 loadingClass,
@@ -53,7 +52,7 @@ public abstract class ResourceUtils {
     }
 
     public static URL getResourceUrl(@Language("file-reference") String name, @Nullable ClassLoader classLoader) {
-        val url = findResourceUrl(name, classLoader);
+        var url = findResourceUrl(name, classLoader);
         if (url == null) {
             throw new ResourceNotFoundException(name);
         }
@@ -61,44 +60,44 @@ public abstract class ResourceUtils {
     }
 
     public static URL getResourceUrl(@Language("file-reference") String name) {
-        val callingClass = getCallingClass(2);
+        var callingClass = getCallingClass(2);
         return getResourceUrl(name, callingClass);
     }
 
 
     @MustBeClosed
     public static InputStream openResource(@Language("file-reference") String name, Class<?> loadingClass) {
-        val url = getResourceUrl(name, loadingClass);
+        var url = getResourceUrl(name, loadingClass);
         return openInputStreamForUrl(url);
     }
 
     @MustBeClosed
     public static InputStream openResource(@Language("file-reference") String name, @Nullable ClassLoader classLoader) {
-        val url = getResourceUrl(name, classLoader);
+        var url = getResourceUrl(name, classLoader);
         return openInputStreamForUrl(url);
     }
 
     @MustBeClosed
     public static InputStream openResource(@Language("file-reference") String name) {
-        val callingClass = getCallingClass(2);
-        val url = getResourceUrl(name, callingClass);
+        var callingClass = getCallingClass(2);
+        var url = getResourceUrl(name, callingClass);
         return openInputStreamForUrl(url);
     }
 
 
     public static byte[] readResource(@Language("file-reference") String name, Class<?> loadingClass) {
-        val url = getResourceUrl(name, loadingClass);
+        var url = getResourceUrl(name, loadingClass);
         return readBytesFromUrl(url);
     }
 
     public static byte[] readResource(@Language("file-reference") String name, @Nullable ClassLoader classLoader) {
-        val url = getResourceUrl(name, classLoader);
+        var url = getResourceUrl(name, classLoader);
         return readBytesFromUrl(url);
     }
 
     public static byte[] readResource(@Language("file-reference") String name) {
-        val callingClass = getCallingClass(2);
-        val url = getResourceUrl(name, callingClass);
+        var callingClass = getCallingClass(2);
+        var url = getResourceUrl(name, callingClass);
         return readBytesFromUrl(url);
     }
 
@@ -108,7 +107,7 @@ public abstract class ResourceUtils {
         Charset charset,
         Class<?> loadingClass
     ) {
-        val url = getResourceUrl(name, loadingClass);
+        var url = getResourceUrl(name, loadingClass);
         return readStringFromUrl(url, charset);
     }
 
@@ -117,7 +116,7 @@ public abstract class ResourceUtils {
         Charset charset,
         @Nullable ClassLoader classLoader
     ) {
-        val url = getResourceUrl(name, classLoader);
+        var url = getResourceUrl(name, classLoader);
         return readStringFromUrl(url, charset);
     }
 
@@ -125,8 +124,8 @@ public abstract class ResourceUtils {
         @Language("file-reference") String name,
         Charset charset
     ) {
-        val callingClass = getCallingClass(2);
-        val url = getResourceUrl(name, callingClass);
+        var callingClass = getCallingClass(2);
+        var url = getResourceUrl(name, callingClass);
         return readStringFromUrl(url, charset);
     }
 

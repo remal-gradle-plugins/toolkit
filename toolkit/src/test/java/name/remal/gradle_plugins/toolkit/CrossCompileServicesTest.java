@@ -6,14 +6,13 @@ import static name.remal.gradle_plugins.toolkit.CrossCompileVersionComparisonRes
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import lombok.val;
 import org.junit.jupiter.api.Test;
 
 class CrossCompileServicesTest {
 
     @Test
     void isActive() {
-        val impl = CrossCompileServiceImpl.builder()
+        var impl = CrossCompileServiceImpl.builder()
             .className("test")
             .dependencyVersion(CrossCompileServiceDependencyVersion.builder()
                 .dependency("test")

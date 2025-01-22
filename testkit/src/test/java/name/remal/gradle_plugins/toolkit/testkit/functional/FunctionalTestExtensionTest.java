@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.ImmutableMap;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.testkit.AbstractJupiterTestEngineTests;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,13 +46,13 @@ class FunctionalTestExtensionTest extends AbstractJupiterTestEngineTests {
 
     @Test
     void simpleScenario() {
-        val tests = executeTestsForClass(SimpleExample.class).testEvents();
+        var tests = executeTestsForClass(SimpleExample.class).testEvents();
         ImmutableMap.<String, Supplier<Events>>of(
             "SKIPPED", tests::skipped,
             "ABORTED", tests::aborted,
             "FAILED", tests::failed
         ).forEach((type, eventsSupplier) -> {
-            val events = eventsSupplier.get();
+            var events = eventsSupplier.get();
             events.stream().forEach(event -> {
                 throw new AssertionError(format(
                     "%s event: %s",
@@ -99,13 +98,13 @@ class FunctionalTestExtensionTest extends AbstractJupiterTestEngineTests {
 
     @Test
     void simpleScenarioKts() {
-        val tests = executeTestsForClass(SimpleExampleKts.class).testEvents();
+        var tests = executeTestsForClass(SimpleExampleKts.class).testEvents();
         ImmutableMap.<String, Supplier<Events>>of(
             "SKIPPED", tests::skipped,
             "ABORTED", tests::aborted,
             "FAILED", tests::failed
         ).forEach((type, eventsSupplier) -> {
-            val events = eventsSupplier.get();
+            var events = eventsSupplier.get();
             events.stream().forEach(event -> {
                 throw new AssertionError(format(
                     "%s event: %s",

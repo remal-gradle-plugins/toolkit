@@ -10,7 +10,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 
 import java.nio.file.Path;
-import lombok.val;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -79,8 +78,8 @@ class EditorConfigTest {
 
     @Test
     void serialization() throws Throwable {
-        val bytes = serializeToBytes(editorConfig);
-        val deserializedEditorConfig = deserializeFrom(bytes, EditorConfig.class);
+        var bytes = serializeToBytes(editorConfig);
+        var deserializedEditorConfig = deserializeFrom(bytes, EditorConfig.class);
 
         assertThat(deserializedEditorConfig)
             .isNotNull()

@@ -1,6 +1,5 @@
 package name.remal.gradle_plugins.toolkit.testkit.functional;
 
-import static java.util.Arrays.asList;
 import static lombok.AccessLevel.PRIVATE;
 
 import java.util.List;
@@ -22,7 +21,7 @@ public abstract class GradleRunnerUtils {
 
     @Contract("_,_->param1")
     public static GradleRunner withJvmArguments(GradleRunner runner, String... jvmArguments) {
-        return withJvmArguments(runner, asList(jvmArguments));
+        return withJvmArguments(runner, List.of(jvmArguments));
     }
 
 }

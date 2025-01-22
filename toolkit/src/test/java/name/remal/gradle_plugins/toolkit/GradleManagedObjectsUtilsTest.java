@@ -2,7 +2,6 @@ package name.remal.gradle_plugins.toolkit;
 
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.createFile;
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -10,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.google.common.collect.ImmutableMap;
 import java.util.List;
-import lombok.val;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -62,12 +60,12 @@ class GradleManagedObjectsUtilsTest {
     @Test
     @SuppressWarnings("JUnitMalformedDeclaration")
     void copyManagedProperties(Project project) throws Throwable {
-        val source = project.getObjects().newInstance(ManagedObject.class);
+        var source = project.getObjects().newInstance(ManagedObject.class);
         source.getStringProperty().set("string");
         source.getRegularFileProperty().set(project.file("build.gradle"));
         source.getDirectoryProperty().set(project.getLayout().getProjectDirectory());
-        source.getListProperty().set(asList("a", "a"));
-        source.getSetProperty().set(asList("a", "a"));
+        source.getListProperty().set(List.of("a", "a"));
+        source.getSetProperty().set(List.of("a", "a"));
         source.getMapProperty().set(singletonMap("key", "value"));
         source.getFileCollection().from(project.file("build.gradle"));
         source.getFileTree().setDir(project.getLayout().getProjectDirectory());
@@ -77,7 +75,7 @@ class GradleManagedObjectsUtilsTest {
         createFile(source.getFileTree().getDir().toPath().resolve("file"));
         assertThat(source.getFileTree().getFiles()).isNotEmpty();
 
-        val target = project.getObjects().newInstance(ManagedObject.class);
+        var target = project.getObjects().newInstance(ManagedObject.class);
         GradleManagedObjectsUtils.copyManagedProperties(source, target);
         assertEquals(source.getStringProperty().get(), target.getStringProperty().get());
         assertEquals(source.getRegularFileProperty().get(), target.getRegularFileProperty().get());
@@ -87,7 +85,7 @@ class GradleManagedObjectsUtilsTest {
         assertEquals(source.getMapProperty().get(), target.getMapProperty().get());
         assertEquals(source.getFileCollection().getFiles(), target.getFileCollection().getFiles());
         // ConfigurableFileTree can't be copied
-        val targetFileTree = target.getFileTree();
+        var targetFileTree = target.getFileTree();
         assertThrows(InvalidUserDataException.class, targetFileTree::getFiles);
         assertEquals(source.getNested().getNestedProperty().get(), target.getNested().getNestedProperty().get());
     }

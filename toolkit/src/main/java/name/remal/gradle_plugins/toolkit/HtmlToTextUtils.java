@@ -5,7 +5,6 @@ import static name.remal.gradle_plugins.toolkit.StringUtils.escapeHtml;
 import static name.remal.gradle_plugins.toolkit.StringUtils.normalizeString;
 
 import lombok.NoArgsConstructor;
-import lombok.val;
 import net.htmlparser.jericho.Source;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.Contract;
@@ -17,7 +16,7 @@ public abstract class HtmlToTextUtils {
     @Contract(pure = true)
     @SuppressWarnings("java:S109")
     public static String convertHtmlToText(@Language("HTML") String html) {
-        val text = new Source(html).getRenderer()
+        var text = new Source(html).getRenderer()
             .setMaxLineLength(Integer.MAX_VALUE)
             .setHRLineLength(20)
             .setConvertNonBreakingSpaces(true)

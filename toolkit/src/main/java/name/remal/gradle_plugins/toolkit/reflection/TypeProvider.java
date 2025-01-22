@@ -3,7 +3,6 @@ package name.remal.gradle_plugins.toolkit.reflection;
 import com.google.common.reflect.TypeToken;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import lombok.val;
 
 public abstract class TypeProvider<T> {
 
@@ -12,7 +11,7 @@ public abstract class TypeProvider<T> {
     }
 
     public Type getType() {
-        val superType = getClass().getGenericSuperclass();
+        var superType = getClass().getGenericSuperclass();
         if (!(superType instanceof ParameterizedType)) {
             throw new IllegalStateException("Not a parameterized class: " + getClass());
         }

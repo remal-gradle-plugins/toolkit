@@ -6,7 +6,6 @@ import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.unwra
 import com.google.errorprone.annotations.concurrent.LazyInit;
 import javax.annotation.Nullable;
 import lombok.EqualsAndHashCode;
-import lombok.val;
 import org.gradle.api.Plugin;
 
 @EqualsAndHashCode(of = "type")
@@ -41,11 +40,11 @@ public final class PluginDescription {
 
     @Override
     public String toString() {
-        val sb = new StringBuilder();
+        var sb = new StringBuilder();
         sb.append("Gradle plugin ");
 
-        val id = getId();
-        val type = getType();
+        var id = getId();
+        var type = getType();
         if (id != null) {
             sb.append(id).append(" (").append(type).append(')');
         } else {

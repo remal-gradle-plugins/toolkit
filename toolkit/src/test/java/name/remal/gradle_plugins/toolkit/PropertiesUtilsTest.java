@@ -12,31 +12,30 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.stream.IntStream;
-import lombok.val;
 import org.junit.jupiter.api.Test;
 
 class PropertiesUtilsTest {
 
     @Test
     void storedStringsAreEscapedCorrectly() throws Throwable {
-        val string = new StringBuilder();
+        var string = new StringBuilder();
         string.append(' ');
         IntStream.rangeClosed(MIN_CODE_POINT, MAX_CODE_POINT).forEach(codePoint -> {
-            for (val ch : toChars(codePoint)) {
+            for (var ch : toChars(codePoint)) {
                 string.append(ch);
             }
         });
 
-        val properties = new Properties();
+        var properties = new Properties();
         properties.setProperty(string.toString(), string.toString());
 
         final byte[] bytes;
-        try (val out = new ByteArrayOutputStream()) {
+        try (var out = new ByteArrayOutputStream()) {
             PropertiesUtils.storeProperties(properties, out);
             bytes = out.toByteArray();
         }
 
-        val parsedProperties = new Properties();
+        var parsedProperties = new Properties();
         parsedProperties.load(new ByteArrayInputStream(bytes));
 
         assertThat(parsedProperties).isEqualTo(properties);
@@ -47,10 +46,10 @@ class PropertiesUtilsTest {
         Properties properties = null;
         int maxAttempts = 10_000;
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
-            val currentProperties = new Properties();
+            var currentProperties = new Properties();
             currentProperties.setProperty("a-1", "a");
             currentProperties.setProperty("b-" + attempt, "b");
-            val keys = new ArrayList<>(currentProperties.keySet());
+            var keys = new ArrayList<>(currentProperties.keySet());
             if (keys.get(1).equals("a-1")) {
                 properties = currentProperties;
                 break;
@@ -62,7 +61,7 @@ class PropertiesUtilsTest {
         }
 
         final String content;
-        try (val writer = new StringWriter()) {
+        try (var writer = new StringWriter()) {
             PropertiesUtils.storeProperties(requireNonNull(properties), writer);
             content = writer.toString().replace(" ", "");
         }

@@ -4,7 +4,6 @@ import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.ImmutableMap;
-import lombok.val;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 
@@ -54,8 +53,8 @@ class GlobPatternTest {
             .put(Pair.of("dir/**//file", "dir/file"), true)
             .build()
             .forEach((pair, expectedResult) -> {
-                val globPattern = GlobPattern.compile(pair.getLeft());
-                val path = pair.getRight();
+                var globPattern = GlobPattern.compile(pair.getLeft());
+                var path = pair.getRight();
                 assertEquals(
                     expectedResult,
                     globPattern.matches(path),

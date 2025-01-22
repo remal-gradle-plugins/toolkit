@@ -3,7 +3,6 @@ package name.remal.gradle_plugins.toolkit;
 import java.io.File;
 import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
-import lombok.val;
 
 public interface CiSystem {
 
@@ -15,7 +14,7 @@ public interface CiSystem {
 
     @OverridingMethodsMustInvokeSuper
     default File getBuildDir() {
-        val buildDir = getBuildDirIfSupported();
+        var buildDir = getBuildDirIfSupported();
         if (buildDir == null) {
             throw new UnsupportedOperationException();
         }

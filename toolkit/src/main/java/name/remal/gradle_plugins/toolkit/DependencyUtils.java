@@ -6,7 +6,6 @@ import java.util.Objects;
 import java.util.Optional;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.attributes.AttributeContainer;
@@ -31,7 +30,7 @@ public abstract class DependencyUtils {
             return false;
         }
 
-        val attributes = ((HasAttributes) dependency).getAttributes();
+        var attributes = ((HasAttributes) dependency).getAttributes();
         return hasCategory(attributes, "platform");
     }
 
@@ -45,7 +44,7 @@ public abstract class DependencyUtils {
             return false;
         }
 
-        val attributes = ((HasAttributes) dependency).getAttributes();
+        var attributes = ((HasAttributes) dependency).getAttributes();
         return hasCategory(attributes, "enforced-platform");
     }
 
@@ -59,7 +58,7 @@ public abstract class DependencyUtils {
             return false;
         }
 
-        val attributes = ((HasAttributes) dependency).getAttributes();
+        var attributes = ((HasAttributes) dependency).getAttributes();
         return hasCategory(attributes, "documentation");
     }
 

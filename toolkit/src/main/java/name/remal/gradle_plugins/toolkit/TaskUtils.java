@@ -15,7 +15,6 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import name.remal.gradle_plugins.toolkit.reflection.TypedVoidMethod2;
 import org.gradle.api.Action;
@@ -37,7 +36,7 @@ public abstract class TaskUtils {
             ONLY_IF_WITH_REASON_METHOD.invoke(task, reason, spec);
 
         } else {
-            @SuppressWarnings("unchecked") val typedSpec = (Spec<Task>) spec;
+            @SuppressWarnings("unchecked") var typedSpec = (Spec<Task>) spec;
             task.onlyIf(typedSpec);
         }
     }
@@ -67,8 +66,8 @@ public abstract class TaskUtils {
         }
 
         @SuppressWarnings("unchecked")
-        val taskType = (Class<Task>) task.getClass();
-        val notCompatibleWithConfigurationCacheMethod = findMethod(
+        var taskType = (Class<Task>) task.getClass();
+        var notCompatibleWithConfigurationCacheMethod = findMethod(
             taskType,
             "notCompatibleWithConfigurationCache",
             String.class
@@ -87,15 +86,15 @@ public abstract class TaskUtils {
     }
 
     public static boolean isRequested(Task task) {
-        val project = task.getProject();
+        var project = task.getProject();
 
-        val startParameter = project.getGradle().getStartParameter();
-        val requestedProjectPath = Optional.ofNullable(startParameter.getProjectDir())
+        var startParameter = project.getGradle().getStartParameter();
+        var requestedProjectPath = Optional.ofNullable(startParameter.getProjectDir())
             .map(File::toPath)
             .map(PathUtils::normalizePath)
             .orElse(null);
         if (requestedProjectPath != null) {
-            val projectPath = normalizePath(project.getProjectDir().toPath());
+            var projectPath = normalizePath(project.getProjectDir().toPath());
             if (!projectPath.startsWith(requestedProjectPath)) {
                 return false;
             }
@@ -121,10 +120,10 @@ public abstract class TaskUtils {
         Class<?> taskInputsType = unwrapGeneratedSubclass(taskInputs.getClass());
         while (taskInputsType != Object.class) {
             try {
-                val field = taskInputsType.getDeclaredField(REGISTERED_FILE_PROPERTIES_FIELD_NAME);
+                var field = taskInputsType.getDeclaredField(REGISTERED_FILE_PROPERTIES_FIELD_NAME);
                 if (!isStatic(field.getModifiers()) && Iterable.class.isAssignableFrom(field.getType())) {
-                    val properties = (Iterable<?>) makeAccessible(field).get(taskInputs);
-                    val iterator = properties.iterator();
+                    var properties = (Iterable<?>) makeAccessible(field).get(taskInputs);
+                    var iterator = properties.iterator();
                     while (iterator.hasNext()) {
                         iterator.next();
                         iterator.remove();

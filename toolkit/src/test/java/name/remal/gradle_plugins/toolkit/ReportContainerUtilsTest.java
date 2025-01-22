@@ -15,7 +15,6 @@ import javax.inject.Inject;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
@@ -37,15 +36,15 @@ class ReportContainerUtilsTest {
 
     @Test
     void noTaskPropertiesProblems() {
-        val task = project.getTasks().register(TestReportsTask.class.getSimpleName(), TestReportsTask.class).get();
+        var task = project.getTasks().register(TestReportsTask.class.getSimpleName(), TestReportsTask.class).get();
         assertNoTaskPropertiesProblems(task);
     }
 
     @Test
     void reportsCorrectlyConfigured() {
-        val task = project.getTasks().register(TestReportsTask.class.getSimpleName(), TestReportsTask.class).get();
+        var task = project.getTasks().register(TestReportsTask.class.getSimpleName(), TestReportsTask.class).get();
 
-        val baseReportsDir = project.file("build/reports/testReports/TestReportsTask");
+        var baseReportsDir = project.file("build/reports/testReports/TestReportsTask");
 
         assertNotNull(task.reports.getFileXml());
         assertTrue(isReportEnabled(task.reports.getFileXml()));

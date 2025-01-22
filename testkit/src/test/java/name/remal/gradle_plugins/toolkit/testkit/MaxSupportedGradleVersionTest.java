@@ -1,6 +1,5 @@
 package name.remal.gradle_plugins.toolkit.testkit;
 
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.testkit.internal.AbstractSupportedGradleVersionExtensionTests;
 import org.gradle.util.GradleVersion;
 import org.junit.jupiter.api.Test;
@@ -28,7 +27,7 @@ class MaxSupportedGradleVersionTest extends AbstractSupportedGradleVersionExtens
 
     @Test
     void annotated_class_5() {
-        val tests = executeTestsForClass(ClassExample5.class).testEvents();
+        var tests = executeTestsForClass(ClassExample5.class).testEvents();
         tests.assertStatistics(stats -> stats.succeeded(0));
     }
 
@@ -44,7 +43,7 @@ class MaxSupportedGradleVersionTest extends AbstractSupportedGradleVersionExtens
 
     @Test
     void annotated_class_6() {
-        val tests = executeTestsForClass(ClassExample6.class).testEvents();
+        var tests = executeTestsForClass(ClassExample6.class).testEvents();
         tests.assertStatistics(stats -> stats.succeeded(1));
     }
 
@@ -61,7 +60,7 @@ class MaxSupportedGradleVersionTest extends AbstractSupportedGradleVersionExtens
 
     @Test
     void annotated_class_7() {
-        val tests = executeTestsForClass(ClassExample7.class).testEvents();
+        var tests = executeTestsForClass(ClassExample7.class).testEvents();
         tests.assertStatistics(stats -> stats.succeeded(1));
     }
 
@@ -82,7 +81,7 @@ class MaxSupportedGradleVersionTest extends AbstractSupportedGradleVersionExtens
 
     @Test
     void annotated_method_5() {
-        val tests = executeTestsForClass(MethodExample5.class).testEvents();
+        var tests = executeTestsForClass(MethodExample5.class).testEvents();
         tests.assertStatistics(stats -> stats.succeeded(1).skipped(1));
     }
 
@@ -103,7 +102,7 @@ class MaxSupportedGradleVersionTest extends AbstractSupportedGradleVersionExtens
 
     @Test
     void annotated_method_6() {
-        val tests = executeTestsForClass(MethodExample6.class).testEvents();
+        var tests = executeTestsForClass(MethodExample6.class).testEvents();
         tests.assertStatistics(stats -> stats.succeeded(2).skipped(0));
     }
 
@@ -124,7 +123,7 @@ class MaxSupportedGradleVersionTest extends AbstractSupportedGradleVersionExtens
 
     @Test
     void annotated_method_7() {
-        val tests = executeTestsForClass(MethodExample7.class).testEvents();
+        var tests = executeTestsForClass(MethodExample7.class).testEvents();
         tests.assertStatistics(stats -> stats.succeeded(2).skipped(0));
     }
 

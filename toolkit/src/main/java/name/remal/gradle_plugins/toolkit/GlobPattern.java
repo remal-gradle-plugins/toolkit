@@ -8,7 +8,6 @@ import static lombok.AccessLevel.PRIVATE;
 import java.util.regex.Pattern;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 import org.gradle.api.file.RelativePath;
 import org.jetbrains.annotations.Contract;
 
@@ -28,10 +27,10 @@ public final class GlobPattern {
             pattern += "**";
         }
 
-        val regex = new StringBuilder();
+        var regex = new StringBuilder();
         regex.append('^');
         for (int index = 0; index < pattern.length(); index++) {
-            val ch = pattern.charAt(index);
+            var ch = pattern.charAt(index);
             if (binarySearch(CHARS_TO_ESCAPE, ch) >= 0) {
                 regex.append('\\').append(ch);
 
@@ -40,14 +39,14 @@ public final class GlobPattern {
                 if (index == 0) {
                     starMode |= STAR_MODE_START_OF_PART_MASK;
                 } else {
-                    val prevCh = pattern.charAt(index - 1);
+                    var prevCh = pattern.charAt(index - 1);
                     if (prevCh == '/' || prevCh == '\\') {
                         starMode |= STAR_MODE_START_OF_PART_MASK;
                     }
                 }
 
                 while (index < pattern.length() - 1) {
-                    val nextCh = pattern.charAt(index + 1);
+                    var nextCh = pattern.charAt(index + 1);
                     if ((starMode & STAR_MODE_MULTIPLE_WITH_SLASH_MASK) == 0
                         && nextCh == '*'
                     ) {
@@ -77,7 +76,7 @@ public final class GlobPattern {
                 regex.append("[/\\\\]+");
 
                 while (index < pattern.length() - 1) {
-                    val nextCh = pattern.charAt(index + 1);
+                    var nextCh = pattern.charAt(index + 1);
                     if (nextCh == '/' || nextCh == '\\') {
                         ++index;
                     } else {

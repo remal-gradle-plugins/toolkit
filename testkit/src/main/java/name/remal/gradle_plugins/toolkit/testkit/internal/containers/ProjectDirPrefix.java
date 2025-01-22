@@ -11,7 +11,6 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import javax.annotation.Nullable;
 import lombok.SneakyThrows;
-import lombok.val;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -26,7 +25,7 @@ public class ProjectDirPrefix {
             return prefix;
         }
 
-        val parentPrefix = extensionStore.getParentStoreValue(context, ProjectDirPrefix.class);
+        var parentPrefix = extensionStore.getParentStoreValue(context, ProjectDirPrefix.class);
         if (parentPrefix != null) {
             prefix = parentPrefix.newChildPrefix();
         } else {
@@ -70,7 +69,7 @@ public class ProjectDirPrefix {
             return null;
         }
 
-        val lastItem = dirPrefixes.peekLast();
+        var lastItem = dirPrefixes.peekLast();
         if (expectedLastDirPrefix.equals(lastItem)) {
             dirPrefixes.removeLast();
         }
@@ -92,7 +91,7 @@ public class ProjectDirPrefix {
 
     @Override
     public String toString() {
-        val sb = new StringBuilder();
+        var sb = new StringBuilder();
         fillStringBuilder(sb);
         return sb.toString();
     }
@@ -106,10 +105,10 @@ public class ProjectDirPrefix {
 
     @VisibleForTesting
     String getTempDirPrefix() {
-        val unescapedPrefix = toString();
-        val prefix = new StringBuilder(unescapedPrefix.length() + 1);
+        var unescapedPrefix = toString();
+        var prefix = new StringBuilder(unescapedPrefix.length() + 1);
         for (int index = 0; index < unescapedPrefix.length(); index++) {
-            val ch = unescapedPrefix.charAt(index);
+            var ch = unescapedPrefix.charAt(index);
             if (binarySearch(FORBIDDEN_DIR_PREFIX_CHARS, ch) >= 0) {
                 prefix.append('-');
             } else if (ch < 32 || ch > 126) {

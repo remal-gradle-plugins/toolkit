@@ -4,7 +4,6 @@ import static name.remal.gradle_plugins.toolkit.ExtensionContainerUtils.getExten
 import static name.remal.gradle_plugins.toolkit.reflection.MethodsInvoker.invokeMethod;
 
 import com.google.auto.service.AutoService;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnExternalDependency;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
@@ -18,14 +17,14 @@ final class WhenTestSourceSetRegisteredSofteqITest implements WhenTestSourceSetR
     @Override
     public void registerAction(Project project, Action<SourceSet> action) {
         project.getPluginManager().withPlugin("com.softeq.gradle.itest", __ -> {
-            val sourceSets = getExtension(project, SourceSetContainer.class);
+            var sourceSets = getExtension(project, SourceSetContainer.class);
             sourceSets.matching(sourceSet -> {
                 if (sourceSet.getName().equals("itest")) {
                     return true;
                 }
 
-                val itestSourceSet = getExtension(project, "itestSourceSet");
-                val name = invokeMethod(itestSourceSet, String.class, "getName");
+                var itestSourceSet = getExtension(project, "itestSourceSet");
+                var name = invokeMethod(itestSourceSet, String.class, "getName");
                 return sourceSet.getName().equals(name);
             }).all(action);
         });

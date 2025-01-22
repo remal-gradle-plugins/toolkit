@@ -2,7 +2,6 @@ package name.remal.gradle_plugins.toolkit.testkit.internal;
 
 import static java.lang.String.format;
 
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.Version;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -17,14 +16,14 @@ abstract class AbstractSupportedVersionExtension implements ExecutionCondition {
     static final Namespace NAMESPACE = Namespace.create(AbstractSupportedVersionExtension.class);
 
     protected static Version getModuleVersion(ExtensionContext context, String module) {
-        val moduleVersionStringRetriever = context.getStore(NAMESPACE).getOrComputeIfAbsent(
+        var moduleVersionStringRetriever = context.getStore(NAMESPACE).getOrComputeIfAbsent(
             ModuleVersionStringRetriever.class,
             __ -> new SystemPropertiesModuleVersionStringRetriever(),
             ModuleVersionStringRetriever.class
         );
 
-        val moduleVersionString = moduleVersionStringRetriever.getModuleVersionString(module);
-        val moduleVersion = Version.parse(moduleVersionString);
+        var moduleVersionString = moduleVersionStringRetriever.getModuleVersionString(module);
+        var moduleVersion = Version.parse(moduleVersionString);
         return moduleVersion;
     }
 
@@ -38,8 +37,8 @@ abstract class AbstractSupportedVersionExtension implements ExecutionCondition {
     private static class SystemPropertiesModuleVersionStringRetriever implements ModuleVersionStringRetriever {
         @Override
         public String getModuleVersionString(String module) {
-            val modulePropertyName = format("%s.module-version", module);
-            val moduleVersionString = System.getProperty(modulePropertyName);
+            var modulePropertyName = format("%s.module-version", module);
+            var moduleVersionString = System.getProperty(modulePropertyName);
             if (moduleVersionString == null) {
                 throw new IllegalStateException(format(
                     "Fail to evaluate min/max supported version condition: %s system property is not set",

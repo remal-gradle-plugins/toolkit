@@ -3,7 +3,6 @@ package name.remal.gradle_plugins.toolkit.cache;
 import static java.lang.Math.abs;
 
 import java.util.concurrent.locks.ReentrantLock;
-import lombok.val;
 
 final class ToolkitCacheLocks<Key> {
 
@@ -21,7 +20,7 @@ final class ToolkitCacheLocks<Key> {
     }
 
     public ReentrantLock getLock(Key key) {
-        val index = abs(key.hashCode() % locks.length);
+        var index = abs(key.hashCode() % locks.length);
         return locks[index];
     }
 

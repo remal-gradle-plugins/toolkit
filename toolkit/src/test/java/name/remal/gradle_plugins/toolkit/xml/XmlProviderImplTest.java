@@ -5,15 +5,14 @@ import static java.lang.System.lineSeparator;
 import static name.remal.gradle_plugins.toolkit.xml.XmlUtils.compactXmlString;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import lombok.val;
 import org.junit.jupiter.api.Test;
 
 class XmlProviderImplTest {
 
     @Test
     void asString() {
-        val xmlProvider = new XmlProviderImpl("<parent b=\"b\" a=\"a\"><child>123</child></parent>");
-        val string = xmlProvider.asString();
+        var xmlProvider = new XmlProviderImpl("<parent b=\"b\" a=\"a\"><child>123</child></parent>");
+        var string = xmlProvider.asString();
         assertThat(string).asString().isEqualTo(join(
             lineSeparator(),
             "<parent b=\"b\" a=\"a\">",
@@ -25,17 +24,17 @@ class XmlProviderImplTest {
 
     @Test
     void asNode() {
-        val xmlProvider = new XmlProviderImpl("<parent b=\"b\" a=\"a\"><child>123</child></parent>");
-        val node = xmlProvider.asNode();
-        val nodeString = compactXmlString(node);
+        var xmlProvider = new XmlProviderImpl("<parent b=\"b\" a=\"a\"><child>123</child></parent>");
+        var node = xmlProvider.asNode();
+        var nodeString = compactXmlString(node);
         assertThat(nodeString).asString().isEqualTo("<parent b=\"b\" a=\"a\"><child>123</child></parent>");
     }
 
     @Test
     void asElement() {
-        val xmlProvider = new XmlProviderImpl("<parent b=\"b\" a=\"a\"><child>123</child></parent>");
-        val element = xmlProvider.asElement();
-        val elementString = compactXmlString(element);
+        var xmlProvider = new XmlProviderImpl("<parent b=\"b\" a=\"a\"><child>123</child></parent>");
+        var element = xmlProvider.asElement();
+        var elementString = compactXmlString(element);
         assertThat(elementString).asString().isEqualTo("<parent a=\"a\" b=\"b\"><child>123</child></parent>");
     }
 

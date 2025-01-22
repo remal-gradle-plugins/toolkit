@@ -16,7 +16,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import lombok.SneakyThrows;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.testkit.MinSupportedGradleVersion;
 import org.gradle.api.Project;
 import org.gradle.api.file.SourceDirectorySet;
@@ -46,18 +45,18 @@ class SourceSetUtilsTest {
         this.sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
 
         this.mainSourceSet = sourceSets.getByName(MAIN_SOURCE_SET_NAME);
-        val mainJavaDir = mainSourceSet.getJava().getSourceDirectories().getFiles().stream().findAny().get();
+        var mainJavaDir = mainSourceSet.getJava().getSourceDirectories().getFiles().stream().findAny().get();
         createDirectories(mainJavaDir.toPath());
         write(mainJavaDir.toPath().resolve("MainJavaClass.java"), "class MainJavaClass {}".getBytes(UTF_8));
-        val mainResourcesDir = mainSourceSet.getResources().getSourceDirectories().getFiles().stream().findAny().get();
+        var mainResourcesDir = mainSourceSet.getResources().getSourceDirectories().getFiles().stream().findAny().get();
         createDirectories(mainResourcesDir.toPath());
         write(mainResourcesDir.toPath().resolve("main-resource.txt"), "main resource".getBytes(UTF_8));
 
         this.testSourceSet = sourceSets.getByName(TEST_SOURCE_SET_NAME);
-        val testJavaDir = testSourceSet.getJava().getSourceDirectories().getFiles().stream().findAny().get();
+        var testJavaDir = testSourceSet.getJava().getSourceDirectories().getFiles().stream().findAny().get();
         createDirectories(testJavaDir.toPath());
         write(testJavaDir.toPath().resolve("TestJavaClass.java"), "class TestJavaClass {}".getBytes(UTF_8));
-        val testResourcesDir = testSourceSet.getResources().getSourceDirectories().getFiles().stream().findAny().get();
+        var testResourcesDir = testSourceSet.getResources().getSourceDirectories().getFiles().stream().findAny().get();
         createDirectories(testResourcesDir.toPath());
         write(testResourcesDir.toPath().resolve("main-resource.txt"), "test resource".getBytes(UTF_8));
 
@@ -73,13 +72,13 @@ class SourceSetUtilsTest {
 
     @Test
     void getSourceSetConfigurationNames() {
-        val mainConfNames = SourceSetUtils.getSourceSetConfigurationNames(mainSourceSet);
+        var mainConfNames = SourceSetUtils.getSourceSetConfigurationNames(mainSourceSet);
         assertThat(mainConfNames).contains(
             "implementation",
             "compileOnly"
         );
 
-        val testConfNames = SourceSetUtils.getSourceSetConfigurationNames(testSourceSet);
+        var testConfNames = SourceSetUtils.getSourceSetConfigurationNames(testSourceSet);
         assertThat(testConfNames).contains(
             "testImplementation",
             "testCompileOnly"
@@ -89,12 +88,12 @@ class SourceSetUtilsTest {
 
     @Test
     void isProcessedBy_SourceTask() {
-        val mainJavaCompile = project.getTasks().withType(JavaCompile.class)
+        var mainJavaCompile = project.getTasks().withType(JavaCompile.class)
             .getByName(mainSourceSet.getCompileJavaTaskName());
         assertTrue(SourceSetUtils.isProcessedBy(mainSourceSet, mainJavaCompile));
         assertFalse(SourceSetUtils.isProcessedBy(testSourceSet, mainJavaCompile));
 
-        val testJavaCompile = project.getTasks().withType(JavaCompile.class)
+        var testJavaCompile = project.getTasks().withType(JavaCompile.class)
             .getByName(testSourceSet.getCompileJavaTaskName());
         assertFalse(SourceSetUtils.isProcessedBy(mainSourceSet, testJavaCompile));
         assertTrue(SourceSetUtils.isProcessedBy(testSourceSet, testJavaCompile));
@@ -102,12 +101,12 @@ class SourceSetUtilsTest {
 
     @Test
     void isProcessedBy_AbstractCopyTask() {
-        val mainProcessResources = project.getTasks().withType(AbstractCopyTask.class)
+        var mainProcessResources = project.getTasks().withType(AbstractCopyTask.class)
             .getByName(mainSourceSet.getProcessResourcesTaskName());
         assertTrue(SourceSetUtils.isProcessedBy(mainSourceSet, mainProcessResources));
         assertFalse(SourceSetUtils.isProcessedBy(testSourceSet, mainProcessResources));
 
-        val testProcessResources = project.getTasks().withType(AbstractCopyTask.class)
+        var testProcessResources = project.getTasks().withType(AbstractCopyTask.class)
             .getByName(testSourceSet.getProcessResourcesTaskName());
         assertFalse(SourceSetUtils.isProcessedBy(mainSourceSet, testProcessResources));
         assertTrue(SourceSetUtils.isProcessedBy(testSourceSet, testProcessResources));
@@ -115,12 +114,12 @@ class SourceSetUtilsTest {
 
     @Test
     void isCompiledBy() {
-        val mainJavaCompile = project.getTasks().withType(JavaCompile.class)
+        var mainJavaCompile = project.getTasks().withType(JavaCompile.class)
             .getByName(mainSourceSet.getCompileJavaTaskName());
         assertTrue(SourceSetUtils.isCompiledBy(mainSourceSet, mainJavaCompile));
         assertFalse(SourceSetUtils.isCompiledBy(testSourceSet, mainJavaCompile));
 
-        val testJavaCompile = project.getTasks().withType(JavaCompile.class)
+        var testJavaCompile = project.getTasks().withType(JavaCompile.class)
             .getByName(testSourceSet.getCompileJavaTaskName());
         assertFalse(SourceSetUtils.isCompiledBy(mainSourceSet, testJavaCompile));
         assertTrue(SourceSetUtils.isCompiledBy(testSourceSet, testJavaCompile));
@@ -164,7 +163,7 @@ class SourceSetUtilsTest {
 
         project.getPluginManager().apply("jvm-test-suite");
 
-        val testingExtension = getExtension(project, TestingExtension.class);
+        var testingExtension = getExtension(project, TestingExtension.class);
         testingExtension.getSuites().create("integration", JvmTestSuite.class);
 
         assertThat(testSourceSets)

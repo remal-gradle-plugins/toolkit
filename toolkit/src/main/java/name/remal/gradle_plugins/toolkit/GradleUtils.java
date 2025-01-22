@@ -5,7 +5,6 @@ import static name.remal.gradle_plugins.toolkit.reflection.MembersFinder.findMet
 import static name.remal.gradle_plugins.toolkit.reflection.MembersFinder.getMethod;
 
 import lombok.NoArgsConstructor;
-import lombok.val;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.invocation.Gradle;
@@ -29,7 +28,7 @@ public abstract class GradleUtils {
             GradleUtilsBuildFinishedService.registerAction(gradle, action);
 
         } else {
-            val buildFinishedMethod = getMethod(Gradle.class, "buildFinished", Action.class);
+            var buildFinishedMethod = getMethod(Gradle.class, "buildFinished", Action.class);
             buildFinishedMethod.invoke(gradle, __ -> action.execute(gradle));
         }
     }

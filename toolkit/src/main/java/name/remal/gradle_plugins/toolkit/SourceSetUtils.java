@@ -1,12 +1,11 @@
 package name.remal.gradle_plugins.toolkit;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.Arrays.stream;
 import static java.util.Collections.newSetFromMap;
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toUnmodifiableList;
 import static lombok.AccessLevel.PRIVATE;
-import static name.remal.gradle_plugins.toolkit.AbstractCompileUtils.getDestinationDir;
 import static name.remal.gradle_plugins.toolkit.CrossCompileServices.loadAllCrossCompileServiceImplementations;
 import static name.remal.gradle_plugins.toolkit.FileTreeElementUtils.isNotArchiveEntry;
 import static name.remal.gradle_plugins.toolkit.LazyProxy.asLazyListProxy;
@@ -25,7 +24,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils;
 import org.gradle.api.Action;
@@ -52,12 +50,12 @@ public abstract class SourceSetUtils {
         .filter(it -> it.getReturnType() == String.class)
         .filter(it -> GET_CONFIGURATION_NAME_METHOD_NAME.matcher(it.getName()).matches())
         .sorted(comparing(Method::getName))
-        .collect(toImmutableList());
+        .collect(toUnmodifiableList());
 
     @SneakyThrows
     public static Set<String> getSourceSetConfigurationNames(SourceSet sourceSet) {
         Set<String> configurationNames = new LinkedHashSet<>();
-        for (val method : GET_CONFIGURATION_NAME_METHODS) {
+        for (var method : GET_CONFIGURATION_NAME_METHODS) {
             final Object nameObject;
             try {
                 nameObject = method.invoke(sourceSet);
@@ -66,7 +64,7 @@ public abstract class SourceSetUtils {
             }
 
             if (nameObject != null) {
-                val name = nameObject.toString();
+                var name = nameObject.toString();
                 if (!name.isEmpty()) {
                     configurationNames.add(name);
                 }
@@ -80,17 +78,17 @@ public abstract class SourceSetUtils {
     }
 
     public static boolean isSourceSetConfiguration(SourceSet sourceSet, Configuration configuration) {
-        val configurationName = configuration.getName();
+        var configurationName = configuration.getName();
         return isSourceSetConfigurationName(sourceSet, configurationName);
     }
 
 
     public static boolean isProcessedBy(SourceSet sourceSet, SourceTask task) {
-        val result = new AtomicBoolean(false);
-        val allSource = sourceSet.getAllSource();
+        var result = new AtomicBoolean(false);
+        var allSource = sourceSet.getAllSource();
         task.getSource().visit(details -> {
             if (isNotArchiveEntry(details)) {
-                val file = details.getFile();
+                var file = details.getFile();
                 if (allSource.contains(file)) {
                     result.set(true);
                     details.stopVisiting();
@@ -101,11 +99,11 @@ public abstract class SourceSetUtils {
     }
 
     public static boolean isProcessedBy(SourceSet sourceSet, AbstractCopyTask task) {
-        val result = new AtomicBoolean(false);
-        val allSource = sourceSet.getAllSource();
+        var result = new AtomicBoolean(false);
+        var allSource = sourceSet.getAllSource();
         task.getSource().getAsFileTree().visit(details -> {
             if (isNotArchiveEntry(details)) {
-                val file = details.getFile();
+                var file = details.getFile();
                 if (allSource.contains(file)) {
                     result.set(true);
                     details.stopVisiting();
@@ -116,7 +114,7 @@ public abstract class SourceSetUtils {
     }
 
     public static boolean isCompiledBy(SourceSet sourceSet, AbstractCompile task) {
-        val destinationDir = getDestinationDir(task);
+        var destinationDir = task.getDestinationDirectory().getAsFile().getOrNull();
         if (destinationDir == null) {
             return isProcessedBy(sourceSet, task);
         }
@@ -133,11 +131,11 @@ public abstract class SourceSetUtils {
         .filter(method -> isGetterOf(method, String.class))
         .filter(it -> GET_TASK_NAME_METHOD_NAME.matcher(it.getName()).matches())
         .sorted(comparing(Method::getName))
-        .collect(toImmutableList());
+        .collect(toUnmodifiableList());
 
     @SneakyThrows
     public static boolean isSourceSetTask(SourceSet sourceSet, Task task) {
-        for (val method : GET_TASK_NAME_METHODS) {
+        for (var method : GET_TASK_NAME_METHODS) {
             final Object nameObject;
             try {
                 nameObject = method.invoke(sourceSet);
@@ -146,7 +144,7 @@ public abstract class SourceSetUtils {
             }
 
             if (nameObject != null) {
-                val name = nameObject.toString();
+                var name = nameObject.toString();
                 if (!name.isEmpty()) {
                     if (task.getName().equals(name)) {
                         return true;
@@ -173,7 +171,7 @@ public abstract class SourceSetUtils {
         .filter(ReflectionUtils::isNotStatic)
         .filter(method -> isGetterOf(method, SourceDirectorySet.class))
         .sorted(comparing(Method::getName))
-        .collect(toImmutableList());
+        .collect(toUnmodifiableList());
 
     @Unmodifiable
     @ReliesOnInternalGradleApi
@@ -182,7 +180,7 @@ public abstract class SourceSetUtils {
     public static Collection<SourceDirectorySet> getAllSourceDirectorySets(SourceSet sourceSet) {
         Collection<SourceDirectorySet> result = newSetFromMap(new IdentityHashMap<>());
 
-        for (val method : GET_SOURCE_DIRECTORY_SET_METHODS) {
+        for (var method : GET_SOURCE_DIRECTORY_SET_METHODS) {
             final SourceDirectorySet sourceDirectorySet;
             try {
                 sourceDirectorySet = (SourceDirectorySet) method.invoke(sourceSet);
@@ -194,10 +192,10 @@ public abstract class SourceSetUtils {
         }
 
         if (sourceSet instanceof org.gradle.api.internal.HasConvention) {
-            val convention = ((org.gradle.api.internal.HasConvention) sourceSet).getConvention();
-            for (val pluginEntry : convention.getPlugins().entrySet()) {
-                val plugin = pluginEntry.getValue();
-                for (val pluginMethod : plugin.getClass().getMethods()) {
+            var convention = ((org.gradle.api.internal.HasConvention) sourceSet).getConvention();
+            for (var pluginEntry : convention.getPlugins().entrySet()) {
+                var plugin = pluginEntry.getValue();
+                for (var pluginMethod : plugin.getClass().getMethods()) {
                     if (isNotStatic(pluginMethod) && isGetterOf(pluginMethod, SourceDirectorySet.class)) {
                         final SourceDirectorySet sourceDirectorySet;
                         try {
@@ -228,7 +226,7 @@ public abstract class SourceSetUtils {
             }
         };
 
-        for (val handler : ALL_WHEN_TEST_SOURCE_SET_REGISTERED) {
+        for (var handler : ALL_WHEN_TEST_SOURCE_SET_REGISTERED) {
             handler.registerAction(project, wrappedAction);
         }
     }

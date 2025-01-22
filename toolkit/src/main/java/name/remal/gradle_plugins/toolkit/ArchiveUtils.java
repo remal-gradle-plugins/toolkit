@@ -16,7 +16,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ArchiveUtils {
@@ -28,8 +27,8 @@ public abstract class ArchiveUtils {
         path = normalizePath(path);
         createParentDirectories(path);
 
-        val outputStream = newOutputStream(path);
-        val zipOutputStream = new ZipOutputStream(outputStream, UTF_8);
+        var outputStream = newOutputStream(path);
+        var zipOutputStream = new ZipOutputStream(outputStream, UTF_8);
         zipOutputStream.setMethod(DEFLATED);
         zipOutputStream.setLevel(BEST_COMPRESSION);
         return new ArchiveWriter() {

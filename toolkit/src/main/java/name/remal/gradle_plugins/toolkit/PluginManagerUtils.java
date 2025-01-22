@@ -1,14 +1,13 @@
 package name.remal.gradle_plugins.toolkit;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static lombok.AccessLevel.PRIVATE;
 import static org.codehaus.groovy.runtime.DefaultGroovyMethods.toUnique;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.NoArgsConstructor;
-import lombok.val;
 import org.gradle.api.Action;
 import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.plugins.PluginManager;
@@ -21,7 +20,7 @@ public abstract class PluginManagerUtils {
         Iterable<String> pluginIds,
         Action<AppliedPlugin> action
     ) {
-        val isExecuted = new AtomicBoolean(false);
+        var isExecuted = new AtomicBoolean(false);
         toUnique(pluginIds).forEach(pluginId ->
             pluginManager.withPlugin(pluginId, appliedPlugin -> {
                 if (isExecuted.compareAndSet(false, true)) {
@@ -51,7 +50,7 @@ public abstract class PluginManagerUtils {
     ) {
         withAnyOfPlugins(
             pluginManager,
-            asList(pluginId1, pluginId2),
+            List.of(pluginId1, pluginId2),
             action
         );
     }
@@ -65,7 +64,7 @@ public abstract class PluginManagerUtils {
     ) {
         withAnyOfPlugins(
             pluginManager,
-            asList(pluginId1, pluginId2, pluginId3),
+            List.of(pluginId1, pluginId2, pluginId3),
             action
         );
     }
@@ -80,7 +79,7 @@ public abstract class PluginManagerUtils {
     ) {
         withAnyOfPlugins(
             pluginManager,
-            asList(pluginId1, pluginId2, pluginId3, pluginId4),
+            List.of(pluginId1, pluginId2, pluginId3, pluginId4),
             action
         );
     }
@@ -96,7 +95,7 @@ public abstract class PluginManagerUtils {
     ) {
         withAnyOfPlugins(
             pluginManager,
-            asList(pluginId1, pluginId2, pluginId3, pluginId4, pluginId5),
+            List.of(pluginId1, pluginId2, pluginId3, pluginId4, pluginId5),
             action
         );
     }
@@ -107,7 +106,7 @@ public abstract class PluginManagerUtils {
         Iterable<String> pluginIds,
         Action<AppliedPlugin> action
     ) {
-        val pluginIdsToApply = toUnique(pluginIds);
+        var pluginIdsToApply = toUnique(pluginIds);
         new ArrayList<>(pluginIdsToApply).forEach(pluginId ->
             pluginManager.withPlugin(pluginId, appliedPlugin -> {
                 synchronized (pluginIdsToApply) {
@@ -140,7 +139,7 @@ public abstract class PluginManagerUtils {
     ) {
         withAllPlugins(
             pluginManager,
-            asList(pluginId1, pluginId2),
+            List.of(pluginId1, pluginId2),
             action
         );
     }
@@ -154,7 +153,7 @@ public abstract class PluginManagerUtils {
     ) {
         withAllPlugins(
             pluginManager,
-            asList(pluginId1, pluginId2, pluginId3),
+            List.of(pluginId1, pluginId2, pluginId3),
             action
         );
     }
@@ -169,7 +168,7 @@ public abstract class PluginManagerUtils {
     ) {
         withAllPlugins(
             pluginManager,
-            asList(pluginId1, pluginId2, pluginId3, pluginId4),
+            List.of(pluginId1, pluginId2, pluginId3, pluginId4),
             action
         );
     }
@@ -185,7 +184,7 @@ public abstract class PluginManagerUtils {
     ) {
         withAllPlugins(
             pluginManager,
-            asList(pluginId1, pluginId2, pluginId3, pluginId4, pluginId5),
+            List.of(pluginId1, pluginId2, pluginId3, pluginId4, pluginId5),
             action
         );
     }

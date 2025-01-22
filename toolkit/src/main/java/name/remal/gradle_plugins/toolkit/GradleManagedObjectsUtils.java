@@ -26,7 +26,6 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils;
 import name.remal.gradle_plugins.toolkit.reflection.TypedVoidMethod1;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -59,8 +58,8 @@ public abstract class GradleManagedObjectsUtils {
         SOURCE source,
         TARGET target
     ) {
-        val sourceType = source.getClass();
-        val targetType = target.getClass();
+        var sourceType = source.getClass();
+        var targetType = target.getClass();
         Class parentType = null;
         if (sourceType.isAssignableFrom(targetType)) {
             parentType = sourceType;
@@ -70,8 +69,8 @@ public abstract class GradleManagedObjectsUtils {
 
         noParentType:
         while (parentType == null) {
-            val sourceHierarchy = getClassHierarchy(sourceType);
-            for (val clazz : sourceHierarchy) {
+            var sourceHierarchy = getClassHierarchy(sourceType);
+            for (var clazz : sourceHierarchy) {
                 if (clazz != Object.class
                     && !clazz.isInterface()
                     && clazz.isAssignableFrom(targetType)
@@ -81,8 +80,8 @@ public abstract class GradleManagedObjectsUtils {
                 }
             }
 
-            val targetHierarchy = getClassHierarchy(sourceType);
-            for (val clazz : targetHierarchy) {
+            var targetHierarchy = getClassHierarchy(sourceType);
+            for (var clazz : targetHierarchy) {
                 if (clazz != Object.class
                     && !clazz.isInterface()
                     && clazz.isAssignableFrom(sourceType)
@@ -92,7 +91,7 @@ public abstract class GradleManagedObjectsUtils {
                 }
             }
 
-            for (val clazz : sourceHierarchy) {
+            for (var clazz : sourceHierarchy) {
                 if (clazz.isInterface()
                     && clazz.isAssignableFrom(targetType)
                 ) {
@@ -101,7 +100,7 @@ public abstract class GradleManagedObjectsUtils {
                 }
             }
 
-            for (val clazz : targetHierarchy) {
+            for (var clazz : targetHierarchy) {
                 if (clazz.isInterface()
                     && clazz.isAssignableFrom(sourceType)
                 ) {
@@ -146,14 +145,14 @@ public abstract class GradleManagedObjectsUtils {
             throw new IllegalArgumentException(format("%s is not instance of %s", target, parentType));
         }
 
-        val managedGetters = new LinkedHashMap<String, Method>();
+        var managedGetters = new LinkedHashMap<String, Method>();
         getClassHierarchy(parentType).stream()
             .filter(not(Object.class::equals))
             .map(Class::getDeclaredMethods)
             .flatMap(Arrays::stream)
             .filter(GradleManagedObjectsUtils::isGradleManagedPropertyGetter)
             .forEach(method -> managedGetters.putIfAbsent(method.getName(), makeAccessible(method)));
-        for (val getter : managedGetters.values()) {
+        for (var getter : managedGetters.values()) {
             final Object sourceValue;
             final Object targetValue;
             try {
@@ -213,7 +212,7 @@ public abstract class GradleManagedObjectsUtils {
             return false;
         }
 
-        val type = method.getReturnType();
+        var type = method.getReturnType();
         if (type == Property.class
             || type == RegularFileProperty.class
             || type == DirectoryProperty.class
@@ -234,11 +233,11 @@ public abstract class GradleManagedObjectsUtils {
             return false;
         }
 
-        val isAnnotatedWithNested = method.isAnnotationPresent(Nested.class);
+        var isAnnotatedWithNested = method.isAnnotationPresent(Nested.class);
         if (isAnnotatedWithNested) {
-            val propertyName = getPropertyNameForGetter(method);
-            val setterName = "set" + toUpperCase(propertyName.charAt(0)) + propertyName.substring(1);
-            val hasSetter = streamClassHierarchyWithoutInterfaces(method.getDeclaringClass())
+            var propertyName = getPropertyNameForGetter(method);
+            var setterName = "set" + toUpperCase(propertyName.charAt(0)) + propertyName.substring(1);
+            var hasSetter = streamClassHierarchyWithoutInterfaces(method.getDeclaringClass())
                 .map(Class::getDeclaredMethods)
                 .flatMap(Arrays::stream)
                 .filter(ReflectionUtils::isNotPrivate)
@@ -274,7 +273,7 @@ public abstract class GradleManagedObjectsUtils {
             return false;
         }
 
-        val hasFields = getClassHierarchy(clazz).stream()
+        var hasFields = getClassHierarchy(clazz).stream()
             .map(Class::getDeclaredFields)
             .flatMap(Arrays::stream)
             .filter(ReflectionUtils::isNotSynthetic)
@@ -283,7 +282,7 @@ public abstract class GradleManagedObjectsUtils {
             return false;
         }
 
-        val allMethodsAreManagedGetters = getClassHierarchy(clazz).stream()
+        var allMethodsAreManagedGetters = getClassHierarchy(clazz).stream()
             .filter(not(Object.class::equals))
             .map(Class::getDeclaredMethods)
             .flatMap(Arrays::stream)
@@ -299,7 +298,7 @@ public abstract class GradleManagedObjectsUtils {
             return true;
         }
 
-        for (val ctor : clazz.getDeclaredConstructors()) {
+        for (var ctor : clazz.getDeclaredConstructors()) {
             if (isPrivate(ctor)) {
                 continue;
             }

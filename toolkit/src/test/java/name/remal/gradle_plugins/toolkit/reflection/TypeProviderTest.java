@@ -6,18 +6,17 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.Queue;
-import lombok.val;
 import org.junit.jupiter.api.Test;
 
 class TypeProviderTest {
 
     @Test
     void success() {
-        val typeProvider = new TypeProvider<Queue<Long>>() { };
+        var typeProvider = new TypeProvider<Queue<Long>>() { };
 
-        val type = typeProvider.getType();
+        var type = typeProvider.getType();
         assertInstanceOf(ParameterizedType.class, type);
-        val parameterizedType = (ParameterizedType) type;
+        var parameterizedType = (ParameterizedType) type;
         assertEquals(Queue.class, parameterizedType.getRawType());
         assertEquals(Long.class, parameterizedType.getActualTypeArguments()[0]);
 

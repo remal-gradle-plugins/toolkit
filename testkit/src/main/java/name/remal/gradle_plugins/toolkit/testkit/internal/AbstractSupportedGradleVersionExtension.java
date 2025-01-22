@@ -1,6 +1,5 @@
 package name.remal.gradle_plugins.toolkit.testkit.internal;
 
-import lombok.val;
 import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -15,13 +14,13 @@ abstract class AbstractSupportedGradleVersionExtension implements ExecutionCondi
     static final Namespace NAMESPACE = Namespace.create(AbstractSupportedGradleVersionExtension.class);
 
     protected static GradleVersion getCurrentGradleVersion(ExtensionContext context) {
-        val currentGradleVersionRetriever = context.getStore(NAMESPACE).getOrComputeIfAbsent(
+        var currentGradleVersionRetriever = context.getStore(NAMESPACE).getOrComputeIfAbsent(
             CurrentGradleVersionRetriever.class,
             __ -> new DefaultCurrentGradleVersionRetriever(),
             CurrentGradleVersionRetriever.class
         );
 
-        val gradleVersion = currentGradleVersionRetriever.getCurrentGradleVersion();
+        var gradleVersion = currentGradleVersionRetriever.getCurrentGradleVersion();
         return gradleVersion;
     }
 

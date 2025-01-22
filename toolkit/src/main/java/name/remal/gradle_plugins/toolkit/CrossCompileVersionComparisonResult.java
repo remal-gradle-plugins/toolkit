@@ -2,8 +2,6 @@ package name.remal.gradle_plugins.toolkit;
 
 import static java.lang.Math.min;
 
-import lombok.val;
-
 public enum CrossCompileVersionComparisonResult {
 
     DEPENDENCY_GREATER_THAN_CURRENT,
@@ -17,7 +15,7 @@ public enum CrossCompileVersionComparisonResult {
         T dependencyVersionObject,
         T currentVersionObject
     ) {
-        val result = dependencyVersionObject.compareTo(currentVersionObject);
+        var result = dependencyVersionObject.compareTo(currentVersionObject);
         if (result < 0) {
             return DEPENDENCY_LESS_THAN_CURRENT;
         } else if (result == 0) {
@@ -31,10 +29,10 @@ public enum CrossCompileVersionComparisonResult {
         long[] dependencyVersionNumbers,
         long[] currentVersionNumbers
     ) {
-        val commonLength = min(dependencyVersionNumbers.length, currentVersionNumbers.length);
+        var commonLength = min(dependencyVersionNumbers.length, currentVersionNumbers.length);
         for (int i = 0; i < commonLength; ++i) {
-            val dependencyVersionNumber = dependencyVersionNumbers[i];
-            val currentVersionNumber = currentVersionNumbers[i];
+            var dependencyVersionNumber = dependencyVersionNumbers[i];
+            var currentVersionNumber = currentVersionNumbers[i];
             if (dependencyVersionNumber < currentVersionNumber) {
                 return DEPENDENCY_LESS_THAN_CURRENT;
             } else if (dependencyVersionNumber > currentVersionNumber) {

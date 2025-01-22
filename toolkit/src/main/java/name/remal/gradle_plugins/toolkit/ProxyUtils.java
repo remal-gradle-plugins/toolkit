@@ -12,7 +12,6 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 import org.gradle.api.Action;
 import org.jetbrains.annotations.Contract;
 
@@ -74,7 +73,7 @@ public abstract class ProxyUtils {
         }
 
         Map<Method, Method> interfaceToObjectMethods = new LinkedHashMap<>();
-        for (val interfaceMethod : interfaceClass.getMethods()) {
+        for (var interfaceMethod : interfaceClass.getMethods()) {
             final Method objectMethod;
             try {
                 objectMethod = object.getClass().getMethod(
@@ -88,9 +87,9 @@ public abstract class ProxyUtils {
             interfaceToObjectMethods.put(interfaceMethod, objectMethod);
         }
 
-        val invocationHandler = new ProxyInvocationHandler();
+        var invocationHandler = new ProxyInvocationHandler();
         invocationHandler.add(interfaceToObjectMethods::containsKey, (proxy, method, args) -> {
-            val objectMethod = requireNonNull(interfaceToObjectMethods.get(method));
+            var objectMethod = requireNonNull(interfaceToObjectMethods.get(method));
             try {
                 return objectMethod.invoke(object, args);
             } catch (Throwable e) {
@@ -100,7 +99,7 @@ public abstract class ProxyUtils {
 
         invocationHandlerConfigurer.execute(invocationHandler);
 
-        val proxyInstance = newProxyInstance(
+        var proxyInstance = newProxyInstance(
             interfaceClass.getClassLoader(),
             new Class<?>[]{interfaceClass},
             invocationHandler

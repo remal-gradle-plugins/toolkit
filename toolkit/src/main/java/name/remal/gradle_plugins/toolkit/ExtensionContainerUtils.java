@@ -8,7 +8,6 @@ import java.util.Locale;
 import java.util.Optional;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
-import lombok.val;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.reflect.TypeOf;
@@ -28,7 +27,7 @@ public abstract class ExtensionContainerUtils {
         Class<? extends T> instanceType,
         Object... constructionArguments
     ) {
-        val extensions = getExtensions(object);
+        var extensions = getExtensions(object);
         return extensions.create(publicType, name, instanceType, constructionArguments);
     }
 
@@ -48,7 +47,7 @@ public abstract class ExtensionContainerUtils {
         Class<? extends T> instanceType,
         Object... constructionArguments
     ) {
-        val name = typeToExtensionName(publicType.getConcreteClass());
+        var name = typeToExtensionName(publicType.getConcreteClass());
         return createExtension(object, publicType, name, instanceType, constructionArguments);
     }
 
@@ -75,7 +74,7 @@ public abstract class ExtensionContainerUtils {
         Class<T> type,
         Object... constructionArguments
     ) {
-        val name = typeToExtensionName(type);
+        var name = typeToExtensionName(type);
         return createExtension(object, name, type, constructionArguments);
     }
 
@@ -86,7 +85,7 @@ public abstract class ExtensionContainerUtils {
         String name,
         I instance
     ) {
-        val extensions = getExtensions(object);
+        var extensions = getExtensions(object);
         extensions.add(publicType, name, instance);
         return instance;
     }
@@ -105,7 +104,7 @@ public abstract class ExtensionContainerUtils {
         String name,
         T instance
     ) {
-        val extensions = getExtensions(object);
+        var extensions = getExtensions(object);
         extensions.add(name, instance);
         return instance;
     }
@@ -115,7 +114,7 @@ public abstract class ExtensionContainerUtils {
         TypeOf<T> publicType,
         I instance
     ) {
-        val name = typeToExtensionName(publicType.getConcreteClass());
+        var name = typeToExtensionName(publicType.getConcreteClass());
         return addExtension(object, publicType, name, instance);
     }
 
@@ -131,13 +130,13 @@ public abstract class ExtensionContainerUtils {
         Object object,
         T instance
     ) {
-        val name = typeToExtensionName(instance.getClass());
+        var name = typeToExtensionName(instance.getClass());
         return addExtension(object, name, instance);
     }
 
     private static String typeToExtensionName(Class<?> type) {
         type = unwrapGeneratedSubclass(type);
-        val simpleName = type.getSimpleName();
+        var simpleName = type.getSimpleName();
         return simpleName.substring(0, 1).toLowerCase(Locale.ROOT) + simpleName.substring(1);
     }
 
@@ -156,7 +155,7 @@ public abstract class ExtensionContainerUtils {
 
     @Nullable
     public static <T> T findExtension(Object object, TypeOf<T> type) {
-        val extensions = getExtensions(object);
+        var extensions = getExtensions(object);
         return extensions.findByType(type);
     }
 
@@ -167,12 +166,12 @@ public abstract class ExtensionContainerUtils {
 
     @Nullable
     public static Object findExtension(Object object, String name) {
-        val extensions = getExtensions(object);
+        var extensions = getExtensions(object);
         return extensions.findByName(name);
     }
 
     public static <T> T getExtension(Object object, TypeOf<T> type) {
-        val extensions = getExtensions(object);
+        var extensions = getExtensions(object);
         return extensions.getByType(type);
     }
 
@@ -181,7 +180,7 @@ public abstract class ExtensionContainerUtils {
     }
 
     public static Object getExtension(Object object, String name) {
-        val extensions = getExtensions(object);
+        var extensions = getExtensions(object);
         return extensions.getByName(name);
     }
 

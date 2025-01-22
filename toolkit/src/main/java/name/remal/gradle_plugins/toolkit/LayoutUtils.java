@@ -8,25 +8,23 @@ import static name.remal.gradle_plugins.toolkit.git.GitUtils.findGitRepositoryRo
 import static org.ec4j.core.EditorConfigConstants.EDITORCONFIG;
 import static org.eclipse.jgit.lib.Constants.DOT_GIT_ATTRIBUTES;
 
-import com.google.common.collect.ImmutableList;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.NoArgsConstructor;
-import lombok.val;
 import org.gradle.api.Project;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class LayoutUtils {
 
     public static Path getRootPathOf(Path topLevelDir) {
-        val repositoryRoot = findGitRepositoryRootFor(topLevelDir);
+        var repositoryRoot = findGitRepositoryRootFor(topLevelDir);
         if (repositoryRoot != null) {
             return repositoryRoot;
         }
 
-        val ciBuildDir = getCiSystem()
+        var ciBuildDir = getCiSystem()
             .map(CiSystem::getBuildDirIfSupported)
             .orElse(null);
         if (ciBuildDir != null) {
@@ -37,7 +35,7 @@ public abstract class LayoutUtils {
     }
 
     public static Path getRootPathOf(Project project) {
-        val topLevelDir = getTopLevelDirOf(project);
+        var topLevelDir = getTopLevelDirOf(project);
         return getRootPathOf(topLevelDir);
     }
 
@@ -50,14 +48,14 @@ public abstract class LayoutUtils {
     }
 
 
-    private static final List<String> CODE_FORMATTING_FILE_RELATIVE_PATHS = ImmutableList.of(
+    private static final List<String> CODE_FORMATTING_FILE_RELATIVE_PATHS = List.of(
         EDITORCONFIG,
         DOT_GIT_ATTRIBUTES
     );
 
     public static List<Path> getCodeFormattingPathsFor(Project project) {
-        val projectPath = normalizePath(project.getProjectDir().toPath());
-        val rootPath = getRootPathOf(project);
+        var projectPath = normalizePath(project.getProjectDir().toPath());
+        var rootPath = getRootPathOf(project);
 
         List<Path> paths = new ArrayList<>();
         Path currentPath = projectPath;

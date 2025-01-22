@@ -5,7 +5,6 @@ import static lombok.AccessLevel.PRIVATE;
 import com.google.auto.service.AutoService;
 import java.io.File;
 import lombok.NoArgsConstructor;
-import lombok.val;
 
 /**
  * See
@@ -256,12 +255,12 @@ abstract class CiSystems {
 
         @Override
         public File getBuildDirIfSupported() {
-            val buildDir = getRequiredFileEnv("CI_PROJECT_DIR");
+            var buildDir = getRequiredFileEnv("CI_PROJECT_DIR");
             if (buildDir.isAbsolute()) {
                 return buildDir;
             }
 
-            val buildsDir = getRequiredFileEnv("CI_BUILDS_DIR");
+            var buildsDir = getRequiredFileEnv("CI_BUILDS_DIR");
             return new File(buildsDir, buildDir.getPath());
         }
 

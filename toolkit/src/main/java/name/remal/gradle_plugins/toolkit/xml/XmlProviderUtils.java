@@ -5,14 +5,13 @@ import static name.remal.gradle_plugins.toolkit.xml.XmlFormat.DEFAULT_XML_FORMAT
 import static name.remal.gradle_plugins.toolkit.xml.XmlUtils.prettyXmlString;
 
 import lombok.NoArgsConstructor;
-import lombok.val;
 import org.gradle.api.XmlProvider;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class XmlProviderUtils {
 
     public static void replaceXmlProviderContent(XmlProvider xmlProvider, String content) {
-        val stringBuilder = xmlProvider.asString();
+        var stringBuilder = xmlProvider.asString();
         stringBuilder.replace(0, stringBuilder.length(), content);
     }
 

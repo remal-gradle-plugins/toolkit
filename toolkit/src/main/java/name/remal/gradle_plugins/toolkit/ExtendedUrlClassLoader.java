@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.stream.StreamSupport;
 import javax.annotation.Nullable;
-import lombok.val;
 
 public class ExtendedUrlClassLoader extends URLClassLoader {
 
@@ -97,8 +96,8 @@ public class ExtendedUrlClassLoader extends URLClassLoader {
             }
 
             if (loadedClass == null) {
-                val resourceName = className.replace('.', '/') + ".class";
-                val loadingOrder = loadingOrderRetrieval.getLoadingOrder(resourceName);
+                var resourceName = className.replace('.', '/') + ".class";
+                var loadingOrder = loadingOrderRetrieval.getLoadingOrder(resourceName);
                 switch (loadingOrder) {
                     case PARENT_FIRST:
                         loadedClass = findParentClassOrNull(className);
@@ -159,7 +158,7 @@ public class ExtendedUrlClassLoader extends URLClassLoader {
 
     @Nullable
     protected final Class<?> findParentClassOrNull(String className) {
-        val parent = getParent();
+        var parent = getParent();
         if (parent == null) {
             return null;
         }
@@ -176,7 +175,7 @@ public class ExtendedUrlClassLoader extends URLClassLoader {
     @Override
     public URL getResource(String resourceName) {
         URL result;
-        val loadingOrder = loadingOrderRetrieval.getLoadingOrder(resourceName);
+        var loadingOrder = loadingOrderRetrieval.getLoadingOrder(resourceName);
         switch (loadingOrder) {
             case PARENT_FIRST:
                 result = getResourceFromParent(resourceName);
@@ -208,7 +207,7 @@ public class ExtendedUrlClassLoader extends URLClassLoader {
 
     @Nullable
     private URL getResourceFromParent(String resourceName) {
-        val parentClassLoader = getParent();
+        var parentClassLoader = getParent();
         if (parentClassLoader != null) {
             return parentClassLoader.getResource(resourceName);
         } else {
@@ -219,7 +218,7 @@ public class ExtendedUrlClassLoader extends URLClassLoader {
 
     @Override
     public Enumeration<URL> getResources(String resourceName) throws IOException {
-        val loadingOrder = loadingOrderRetrieval.getLoadingOrder(resourceName);
+        var loadingOrder = loadingOrderRetrieval.getLoadingOrder(resourceName);
         switch (loadingOrder) {
             case PARENT_FIRST:
                 return compoundEnumeration(
@@ -246,7 +245,7 @@ public class ExtendedUrlClassLoader extends URLClassLoader {
 
 
     private Enumeration<URL> getResourcesFromParent(String resourceName) throws IOException {
-        val parentClassLoader = getParent();
+        var parentClassLoader = getParent();
         if (parentClassLoader != null) {
             return parentClassLoader.getResources(resourceName);
         } else {

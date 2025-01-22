@@ -133,7 +133,6 @@ generateSources.forMainSourceSet.java {
         addStaticImport("${toolkitBaseJavaPackage.get()}.ObjectUtils", "unwrapProviders")
         addStaticImport("${toolkitBaseJavaPackage.get()}.ResourceUtils", "getResourceUrl")
 
-        addImport("lombok.val")
         addImport("org.gradle.api.JavaVersion")
         addImport("org.gradle.api.Plugin")
         addImport("org.gradle.api.Project")
@@ -144,8 +143,8 @@ generateSources.forMainSourceSet.java {
             line()
 
             block("public void apply(Project project)") {
-                line("val currentJavaVersion = JavaVersion.current();")
-                line("val minToolkitJavaVersion = JavaVersion.toVersion(\"${escapeString(javaApiMinVersion.get())}\");")
+                line("var currentJavaVersion = JavaVersion.current();")
+                line("var minToolkitJavaVersion = JavaVersion.toVersion(\"${escapeString(javaApiMinVersion.get())}\");")
                 block("if (currentJavaVersion.compareTo(minToolkitJavaVersion) < 0)") {
                     line("throw new IllegalStateException(format(")
                     indent {
@@ -158,8 +157,8 @@ generateSources.forMainSourceSet.java {
 
                 line()
 
-                line("val currentGradleVersion = GradleVersion.current().getBaseVersion();")
-                line("val minToolkitGradleVersion = GradleVersion.version(\"${escapeString(gradleApiMinVersion.get())}\").getBaseVersion();")
+                line("var currentGradleVersion = GradleVersion.current().getBaseVersion();")
+                line("var minToolkitGradleVersion = GradleVersion.version(\"${escapeString(gradleApiMinVersion.get())}\").getBaseVersion();")
                 block("if (currentGradleVersion.compareTo(minToolkitGradleVersion) < 0)") {
                     line("throw new IllegalStateException(format(")
                     indent {
@@ -184,7 +183,7 @@ generateSources.forMainSourceSet.java {
 
                 line("Object minPluginJavaVersionUntyped = unwrapProviders(project.findProperty(\"java-runtime.min-version\"));")
                 block("if (minPluginJavaVersionUntyped != null)") {
-                    line("val minPluginJavaVersion = JavaVersion.toVersion(minPluginJavaVersionUntyped);")
+                    line("var minPluginJavaVersion = JavaVersion.toVersion(minPluginJavaVersionUntyped);")
                     block("if (minPluginJavaVersion.compareTo(minToolkitJavaVersion) < 0)") {
                         line("throw new IllegalStateException(format(")
                         indent {
@@ -203,7 +202,7 @@ generateSources.forMainSourceSet.java {
                     line("minPluginGradleVersionUntyped = ((GradleVersion) minPluginGradleVersionUntyped).getBaseVersion().getVersion();")
                 }
                 block("if (minPluginGradleVersionUntyped != null)") {
-                    line("val minPluginGradleVersion = GradleVersion.version(minPluginGradleVersionUntyped.toString()).getBaseVersion();")
+                    line("var minPluginGradleVersion = GradleVersion.version(minPluginGradleVersionUntyped.toString()).getBaseVersion();")
                     block("if (minPluginGradleVersion.compareTo(minToolkitGradleVersion) < 0)") {
                         line("throw new IllegalStateException(format(")
                         indent {

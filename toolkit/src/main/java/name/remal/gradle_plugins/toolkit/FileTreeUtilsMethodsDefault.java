@@ -7,7 +7,6 @@ import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import javax.annotation.Nullable;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileCollectionInternal.Source;
@@ -27,7 +26,7 @@ final class FileTreeUtilsMethodsDefault implements FileTreeUtilsMethods {
     public Set<File> getFileTreeRoots(FileTree fileTree) {
         Set<File> roots = new LinkedHashSet<>();
 
-        val fileTreeInternal = (FileTreeInternal) fileTree;
+        var fileTreeInternal = (FileTreeInternal) fileTree;
         fileTreeInternal.visitStructure(new FileCollectionStructureVisitor() {
             @Override
             public void visitCollection(

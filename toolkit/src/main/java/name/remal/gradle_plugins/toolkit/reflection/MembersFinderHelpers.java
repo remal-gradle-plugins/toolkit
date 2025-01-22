@@ -9,7 +9,6 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 
 @NoArgsConstructor(access = PRIVATE)
 abstract class MembersFinderHelpers {
@@ -22,12 +21,12 @@ abstract class MembersFinderHelpers {
         String name,
         Class<?>... paramTypes
     ) {
-        val method = findMethod(type, isStatic, returnType, name, paramTypes);
+        var method = findMethod(type, isStatic, returnType, name, paramTypes);
         if (method != null) {
             return method;
         }
 
-        val msg = new StringBuilder();
+        var msg = new StringBuilder();
         msg.append("Compatible public ")
             .append(isStatic ? "static" : "non-static")
             .append(" method not found in class ")
@@ -62,7 +61,7 @@ abstract class MembersFinderHelpers {
             return findMethod(type, isStatic, returnType, name);
         }
 
-        val candidateMethods = Stream.of(type.getMethods())
+        var candidateMethods = Stream.of(type.getMethods())
             .filter(method -> isStatic == isStatic(method))
             .filter(method -> method.getParameterCount() == paramTypes.length)
             .filter(method -> returnType == null || isAssignable(method.getReturnType(), returnType))
@@ -70,7 +69,7 @@ abstract class MembersFinderHelpers {
             .toArray(Method[]::new);
 
         forEachMethod:
-        for (val method : candidateMethods) {
+        for (var method : candidateMethods) {
             for (int i = 0; i < paramTypes.length; ++i) {
                 if (paramTypes[i] != method.getParameterTypes()[i]) {
                     continue forEachMethod;
@@ -80,7 +79,7 @@ abstract class MembersFinderHelpers {
         }
 
         forEachMethod:
-        for (val method : candidateMethods) {
+        for (var method : candidateMethods) {
             for (int i = 0; i < paramTypes.length; ++i) {
                 if (wrapPrimitiveType(paramTypes[i]) != wrapPrimitiveType(method.getParameterTypes()[i])) {
                     continue forEachMethod;
@@ -90,7 +89,7 @@ abstract class MembersFinderHelpers {
         }
 
         forEachMethod:
-        for (val method : candidateMethods) {
+        for (var method : candidateMethods) {
             for (int i = 0; i < paramTypes.length; ++i) {
                 if (!isAssignable(paramTypes[i], method.getParameterTypes()[i])) {
                     continue forEachMethod;

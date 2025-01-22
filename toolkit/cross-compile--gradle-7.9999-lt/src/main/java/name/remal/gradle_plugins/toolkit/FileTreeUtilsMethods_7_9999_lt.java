@@ -8,7 +8,6 @@ import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileCollectionInternal.Source;
@@ -29,7 +28,7 @@ final class FileTreeUtilsMethods_7_9999_lt implements FileTreeUtilsMethods {
     public Set<File> getFileTreeRoots(FileTree fileTree) {
         Set<File> roots = new LinkedHashSet<>();
 
-        val fileTreeInternal = (FileTreeInternal) fileTree;
+        var fileTreeInternal = (FileTreeInternal) fileTree;
         fileTreeInternal.visitStructure(new FileCollectionStructureVisitor() {
             @Override
             public void visitCollection(
@@ -44,7 +43,7 @@ final class FileTreeUtilsMethods_7_9999_lt implements FileTreeUtilsMethods {
                 @Nullable FileTreeInternal fileTree,
                 @Nullable FileSystemMirroringFileTree sourceTree
             ) {
-                val dir = Optional.ofNullable(sourceTree)
+                var dir = Optional.ofNullable(sourceTree)
                     .map(FileSystemMirroringFileTree::getMirror)
                     .map(DirectoryFileTree::getDir)
                     .orElse(null);

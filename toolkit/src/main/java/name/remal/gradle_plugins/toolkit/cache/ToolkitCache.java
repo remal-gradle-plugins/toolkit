@@ -8,7 +8,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 
 @RequiredArgsConstructor(access = PACKAGE)
 public final class ToolkitCache<Key, Value> {
@@ -30,25 +29,25 @@ public final class ToolkitCache<Key, Value> {
         cleanup();
 
         key = keyNormalizer.normalizeKey(key);
-        val lastModified = lastModifiedTimeGetter.getLastModified(key);
+        var lastModified = lastModifiedTimeGetter.getLastModified(key);
 
-        val cachedItemRef = map.get(key);
+        var cachedItemRef = map.get(key);
         if (cachedItemRef != null) {
-            val cachedItem = cachedItemRef.get();
+            var cachedItem = cachedItemRef.get();
             if (cachedItem != null) {
-                val cachedLastModified = cachedItem.getLastModified();
+                var cachedLastModified = cachedItem.getLastModified();
                 if (Objects.equals(cachedLastModified, lastModified)) {
                     return cachedItem.getValue();
                 }
             }
         }
 
-        val lock = locks.getLock(key);
+        var lock = locks.getLock(key);
         lock.lock();
         try {
-            val value = loader.load(key);
-            val item = new ToolkitCacheItem<>(lastModified, value);
-            val itemRef = referenceCreator.create(item);
+            var value = loader.load(key);
+            var item = new ToolkitCacheItem<>(lastModified, value);
+            var itemRef = referenceCreator.create(item);
             map.put(key, itemRef);
             return value;
 

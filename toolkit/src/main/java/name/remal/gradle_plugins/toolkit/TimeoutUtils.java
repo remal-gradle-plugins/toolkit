@@ -9,7 +9,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.Nonnull;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.SneakyThrowUtils.SneakyThrowsCallable;
 import name.remal.gradle_plugins.toolkit.SneakyThrowUtils.SneakyThrowsRunnable;
 
@@ -20,9 +19,9 @@ public abstract class TimeoutUtils {
     @SneakyThrows
     @SuppressWarnings({"java:S1193", "java:S2142"})
     public static <T> T withTimeout(Duration timeout, SneakyThrowsCallable<T> action) {
-        val currentThread = Thread.currentThread();
-        val timeoutTriggered = new AtomicBoolean();
-        val timeoutThread = new Thread(() -> {
+        var currentThread = Thread.currentThread();
+        var timeoutTriggered = new AtomicBoolean();
+        var timeoutThread = new Thread(() -> {
             try {
                 Thread.sleep(timeout.toMillis());
                 timeoutTriggered.set(true);

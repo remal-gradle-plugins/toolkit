@@ -9,7 +9,6 @@ import static name.remal.gradle_plugins.toolkit.ObjectUtils.isNotEmpty;
 import java.io.File;
 import java.util.Optional;
 import javax.annotation.Nullable;
-import lombok.val;
 
 public abstract class CiSystemBase implements CiSystem {
 
@@ -46,7 +45,7 @@ public abstract class CiSystemBase implements CiSystem {
     }
 
     protected static String getRequiredEnv(String name) {
-        val env = getenv(name);
+        var env = getenv(name);
         if (isEmpty(env)) {
             throw new IllegalStateException("Environment is not set or empty: " + name);
         }

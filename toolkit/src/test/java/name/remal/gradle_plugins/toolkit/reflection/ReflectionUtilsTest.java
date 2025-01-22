@@ -1,6 +1,5 @@
 package name.remal.gradle_plugins.toolkit.reflection;
 
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -15,7 +14,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.junit.jupiter.api.Test;
@@ -87,10 +85,10 @@ class ReflectionUtilsTest {
 
     @Test
     void unwrapGeneratedSubclass() {
-        val task = project.getTasks().register("testTask", TestTask.class).get();
-        val taskType = task.getClass();
+        var task = project.getTasks().register("testTask", TestTask.class).get();
+        var taskType = task.getClass();
         assertNotEquals(TestTask.class, taskType);
-        val unwrappedGeneratedSubclass = ReflectionUtils.unwrapGeneratedSubclass(taskType);
+        var unwrappedGeneratedSubclass = ReflectionUtils.unwrapGeneratedSubclass(taskType);
         assertEquals(TestTask.class, unwrappedGeneratedSubclass);
     }
 
@@ -129,19 +127,11 @@ class ReflectionUtilsTest {
         );
     }
 
-    @Test
-    void moduleNameOfJdkClass() {
-        assertEquals(
-            "java.base",
-            ReflectionUtils.moduleNameOfJdkClass(String.class.getName())
-        );
-    }
-
 
     private static final Map<Class<?>, Class<?>> WRAPPER_TO_PRIMITIVE_TYPES = new LinkedHashMap<>();
 
     static {
-        List<Class<?>> wrapperTypes = asList(
+        List<Class<?>> wrapperTypes = List.of(
             Boolean.class,
             Character.class,
             Byte.class,
@@ -152,9 +142,9 @@ class ReflectionUtilsTest {
             Double.class,
             Void.class
         );
-        for (val wrapperType : wrapperTypes) {
+        for (var wrapperType : wrapperTypes) {
             try {
-                val primitiveType = (Class<?>) wrapperType.getField("TYPE").get(wrapperType);
+                var primitiveType = (Class<?>) wrapperType.getField("TYPE").get(wrapperType);
                 WRAPPER_TO_PRIMITIVE_TYPES.put(wrapperType, primitiveType);
             } catch (Throwable e) {
                 throw new RuntimeException(e);
@@ -203,7 +193,7 @@ class ReflectionUtilsTest {
 
     @Test
     void iterateClassHierarchyWithoutInterfaces() {
-        val result = ReflectionUtils.iterateClassHierarchyWithoutInterfaces(ArrayList.class);
+        var result = ReflectionUtils.iterateClassHierarchyWithoutInterfaces(ArrayList.class);
         assertThat(result).containsSubsequence(
             ArrayList.class,
             AbstractList.class,
@@ -262,8 +252,8 @@ class ReflectionUtilsTest {
 
     @Test
     void invokeDefaultMethod() throws Throwable {
-        val method = DefaultMethodContainer.class.getMethod("getValue");
-        val target = new DefaultMethodContainer() { };
+        var method = DefaultMethodContainer.class.getMethod("getValue");
+        var target = new DefaultMethodContainer() { };
         assertEquals("default", ReflectionUtils.invokeDefaultMethod(method, target));
     }
 

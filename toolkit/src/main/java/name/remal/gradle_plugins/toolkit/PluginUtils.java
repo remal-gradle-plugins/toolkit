@@ -19,7 +19,6 @@ import java.util.TreeMap;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 import org.gradle.api.Plugin;
 import org.jetbrains.annotations.Contract;
 
@@ -43,7 +42,7 @@ public abstract class PluginUtils {
 
     @Contract(pure = true)
     public static Map<String, String> getAllPluginClassNames() {
-        val callingClass = getCallingClass(2);
+        var callingClass = getCallingClass(2);
         return getAllPluginClassNames(callingClass.getClassLoader());
     }
 
@@ -52,28 +51,28 @@ public abstract class PluginUtils {
     private static Map<String, String> getAllPluginClassNamesFor(ClassLoader classLoader) {
         Map<String, String> result = new TreeMap<>();
 
-        val resourceDir = "META-INF/gradle-plugins";
+        var resourceDir = "META-INF/gradle-plugins";
         try (
-            val scanResult = new ClassGraph()
+            var scanResult = new ClassGraph()
                 .overrideClassLoaders(classLoader)
                 .acceptPathsNonRecursive(resourceDir)
                 .scan()
         ) {
-            val pathPrefix = resourceDir + '/';
-            val pathSuffix = ".properties";
-            for (val resource : scanResult.getAllResources()) {
-                val path = resource.getPath();
+            var pathPrefix = resourceDir + '/';
+            var pathSuffix = ".properties";
+            for (var resource : scanResult.getAllResources()) {
+                var path = resource.getPath();
                 String pluginId = path.substring(pathPrefix.length(), path.length() - pathSuffix.length());
                 pluginId = getPluginIdWithoutCorePrefix(pluginId);
                 if (isEmpty(pluginId)) {
                     continue;
                 }
 
-                val properties = new Properties();
-                try (val reader = new InputStreamReader(resource.open(), UTF_8)) {
+                var properties = new Properties();
+                try (var reader = new InputStreamReader(resource.open(), UTF_8)) {
                     properties.load(reader);
                 }
-                val implementationClassName = properties.getProperty("implementation-class");
+                var implementationClassName = properties.getProperty("implementation-class");
                 if (isEmpty(implementationClassName)) {
                     continue;
                 }
@@ -89,8 +88,8 @@ public abstract class PluginUtils {
     @Contract(pure = true)
     @Nullable
     public static String findPluginIdFor(Class<? extends Plugin<?>> pluginType) {
-        val pluginClassNames = getAllPluginClassNames(pluginType.getClassLoader());
-        for (val entry : pluginClassNames.entrySet()) {
+        var pluginClassNames = getAllPluginClassNames(pluginType.getClassLoader());
+        for (var entry : pluginClassNames.entrySet()) {
             if (pluginType.getName().equals(entry.getValue())) {
                 return entry.getKey();
             }

@@ -1,6 +1,5 @@
 package name.remal.gradle_plugins.toolkit.testkit.internal.containers;
 
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.testkit.functional.AbstractGradleProject;
 import name.remal.gradle_plugins.toolkit.testkit.functional.GradleKtsProject;
 import name.remal.gradle_plugins.toolkit.testkit.functional.GradleProject;
@@ -32,13 +31,13 @@ public class GradleProjectsContainer extends AbstractExtensionContextContainer<A
     }
 
     public AbstractGradleProject<?, ?, ?, ?> resolveParameterGradleProject(ParameterContext parameterContext) {
-        val annotatedParam = new AnnotatedParam(parameterContext.getParameter());
-        val parameterType = parameterContext.getParameter().getType();
+        var annotatedParam = new AnnotatedParam(parameterContext.getParameter());
+        var parameterType = parameterContext.getParameter().getType();
 
-        val dirPrefix = getDirPrefix()
+        var dirPrefix = getDirPrefix()
             .newChildPrefix()
             .push(annotatedParam.getName());
-        val projectDir = dirPrefix.createTempDir().toFile();
+        var projectDir = dirPrefix.createTempDir().toFile();
 
         final AbstractGradleProject<?, ?, ?, ?> gradleProject;
         if (parameterType == GradleProject.class) {

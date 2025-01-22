@@ -6,11 +6,9 @@ import static name.remal.gradle_plugins.toolkit.PathUtils.createParentDirectorie
 import static name.remal.gradle_plugins.toolkit.PathUtils.normalizePath;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 import org.gradle.api.Project;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
@@ -23,20 +21,20 @@ class ProjectUtilsTest {
 
     @Test
     void newClasspathFileTree() throws Throwable {
-        val projectDir = normalizePath(project.getProjectDir().toPath());
+        var projectDir = normalizePath(project.getProjectDir().toPath());
 
-        val fileA = projectDir.resolve("dir-a/a-file");
+        var fileA = projectDir.resolve("dir-a/a-file");
         write(createParentDirectories(fileA), new byte[]{1});
 
-        val fileB = projectDir.resolve("dir-b/b-file");
+        var fileB = projectDir.resolve("dir-b/b-file");
         write(createParentDirectories(fileB), new byte[]{2});
 
-        val archive = projectDir.resolve("archive.zip");
-        try (val archiveWriter = newZipArchiveWriter(archive)) {
+        var archive = projectDir.resolve("archive.zip");
+        try (var archiveWriter = newZipArchiveWriter(archive)) {
             archiveWriter.writeEntry("entry", new byte[]{3});
         }
 
-        val fileTree = ProjectUtils.newClasspathFileTree(project, ImmutableList.of(
+        var fileTree = ProjectUtils.newClasspathFileTree(project, List.of(
             fileA.getParent().toFile(),
             fileB.getParent().toFile(),
             archive.toFile()

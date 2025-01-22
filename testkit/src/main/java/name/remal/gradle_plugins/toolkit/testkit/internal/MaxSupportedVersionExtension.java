@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.extension.ConditionEvaluationResult.enabled;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.Version;
 import name.remal.gradle_plugins.toolkit.testkit.MaxSupportedVersion;
 import org.jetbrains.annotations.ApiStatus.Internal;
@@ -19,18 +18,18 @@ public class MaxSupportedVersionExtension extends AbstractSupportedVersionExtens
 
     @Override
     public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
-        val annotations = AnnotationUtils.findRepeatableAnnotations(context.getElement(), MaxSupportedVersion.class);
+        var annotations = AnnotationUtils.findRepeatableAnnotations(context.getElement(), MaxSupportedVersion.class);
         if (annotations.isEmpty()) {
             return enabled(format("@%s is not present", MaxSupportedVersion.class.getSimpleName()));
         }
 
         Collection<String> enabledReasons = new LinkedHashSet<>();
         Collection<String> disabledReasons = new LinkedHashSet<>();
-        for (val annotation : annotations) {
-            val module = annotation.module();
-            val moduleVersion = getModuleVersion(context, module);
+        for (var annotation : annotations) {
+            var module = annotation.module();
+            var moduleVersion = getModuleVersion(context, module);
 
-            val maxVersion = Version.parse(annotation.version());
+            var maxVersion = Version.parse(annotation.version());
             if (moduleVersion.compareTo(maxVersion) <= 0) {
                 enabledReasons.add(format(
                     "Module %s version %s is less or equal to max supported version %s",

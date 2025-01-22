@@ -10,7 +10,6 @@ import javax.annotation.Nullable;
 import lombok.Builder;
 import lombok.Value;
 import lombok.With;
-import lombok.val;
 
 @Value
 @Builder
@@ -52,10 +51,10 @@ class CrossCompileServiceDependencyVersion
             return this;
         }
 
-        val newVersionString = Splitter.on('.').splitToStream(version.withoutSuffix().toString())
+        var newVersionString = Splitter.on('.').splitToStream(version.withoutSuffix().toString())
             .limit(maxVersionNumbersCount)
             .collect(joining("."));
-        val newVersion = Version.parse(newVersionString);
+        var newVersion = Version.parse(newVersionString);
         return withVersion(newVersion);
     }
 
@@ -91,7 +90,7 @@ class CrossCompileServiceDependencyVersion
             return false;
         }
 
-        val comparisonResult = this.version.compareTo(other.version);
+        var comparisonResult = this.version.compareTo(other.version);
         if (comparisonResult == 0) {
             if (this.selfIncluded && other.selfIncluded) {
                 return true;

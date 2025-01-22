@@ -3,30 +3,34 @@ package name.remal.gradle_plugins.toolkit.reflection;
 import static java.beans.Introspector.decapitalize;
 import static java.lang.ClassLoader.getSystemClassLoader;
 import static java.lang.String.format;
+import static java.lang.invoke.MethodHandles.lookup;
+import static java.lang.invoke.MethodHandles.privateLookupIn;
 import static java.nio.file.Files.createTempFile;
 import static java.nio.file.Files.write;
 import static java.util.Collections.emptyIterator;
 import static javax.annotation.meta.When.UNKNOWN;
 import static lombok.AccessLevel.PRIVATE;
-import static name.remal.gradle_plugins.toolkit.CrossCompileServices.loadCrossCompileService;
 import static name.remal.gradle_plugins.toolkit.DebugUtils.ifDebugEnabled;
 import static name.remal.gradle_plugins.toolkit.ThrowableUtils.unwrapReflectionException;
-import static name.remal.gradle_plugins.toolkit.reflection.LatestLtsJdkModules.LATEST_LTS_JDK_PACKAGE_MODULES;
 import static name.remal.gradle_plugins.toolkit.reflection.WhoCalledUtils.getCallingClass;
 
-import com.google.common.collect.ImmutableList;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -35,7 +39,6 @@ import javax.annotation.Nullable;
 import lombok.CustomLog;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.jetbrains.annotations.Contract;
@@ -45,9 +48,6 @@ import org.objectweb.asm.ClassReader;
 @NoArgsConstructor(access = PRIVATE)
 @CustomLog
 public abstract class ReflectionUtils {
-
-    private static final ReflectionUtilsMethods METHODS = loadCrossCompileService(ReflectionUtilsMethods.class);
-
 
     @Nullable
     public static Class<?> tryLoadClass(String name, @Nullable ClassLoader classLoader) {
@@ -64,7 +64,7 @@ public abstract class ReflectionUtils {
     @Nullable
     @SuppressWarnings("java:S109")
     public static Class<?> tryLoadClass(String name) {
-        val callingClass = getCallingClass(2);
+        var callingClass = getCallingClass(2);
         return tryLoadClass(name, callingClass.getClassLoader());
     }
 
@@ -75,7 +75,7 @@ public abstract class ReflectionUtils {
 
     @SuppressWarnings("java:S109")
     public static boolean isClassPresent(String name) {
-        val callingClass = getCallingClass(2);
+        var callingClass = getCallingClass(2);
         return isClassPresent(name, callingClass.getClassLoader());
     }
 
@@ -116,13 +116,13 @@ public abstract class ReflectionUtils {
     @SuppressWarnings("java:S5443")
     public static Class<?> defineClass(ClassLoader classLoader, byte[] bytecode) {
         ifDebugEnabled(() -> {
-            val className = new ClassReader(bytecode).getClassName().replace('/', '.');
-            val tempFile = createTempFile(className + '-', ".class");
+            var className = new ClassReader(bytecode).getClassName().replace('/', '.');
+            var tempFile = createTempFile(className + '-', ".class");
             write(tempFile, bytecode);
         });
 
         try {
-            val defineClassMethod = ClassLoader.class.getDeclaredMethod(
+            var defineClassMethod = ClassLoader.class.getDeclaredMethod(
                 "defineClass",
                 String.class,
                 byte[].class,
@@ -141,7 +141,7 @@ public abstract class ReflectionUtils {
                 suppressedException = e;
             }
 
-            val exceptionToThrow = new DefineClassException(
+            var exceptionToThrow = new DefineClassException(
                 format(
                     "Class defining error occurred. Class name: %s. Class loader: %s.",
                     className,
@@ -160,7 +160,7 @@ public abstract class ReflectionUtils {
 
 
     public static Iterable<Class<?>> iterateClassHierarchyWithoutInterfaces(@Nullable Class<?> rootClass) {
-        return new Iterable<Class<?>>() {
+        return new Iterable<>() {
             @Nonnull
             @Override
             public Iterator<Class<?>> iterator() {
@@ -168,7 +168,7 @@ public abstract class ReflectionUtils {
                     return emptyIterator();
                 }
 
-                return new Iterator<Class<?>>() {
+                return new Iterator<>() {
                     @Nullable
                     private Class<?> nextClass = rootClass;
 
@@ -179,12 +179,12 @@ public abstract class ReflectionUtils {
 
                     @Override
                     public Class<?> next() {
-                        val currentClass = nextClass;
+                        var currentClass = nextClass;
                         if (currentClass == null) {
                             throw new NoSuchElementException();
                         }
 
-                        val superClass = currentClass.getSuperclass();
+                        var superClass = currentClass.getSuperclass();
                         if (superClass != null && superClass != currentClass) {
                             nextClass = superClass;
                         } else {
@@ -214,26 +214,26 @@ public abstract class ReflectionUtils {
         Deque<Class<?>> queue = new ArrayDeque<>();
         queue.addLast(rootClass);
         while (true) {
-            val clazz = queue.pollFirst();
+            var clazz = queue.pollFirst();
             if (clazz == null) {
                 break;
             }
 
-            val superClass = clazz.getSuperclass();
+            var superClass = clazz.getSuperclass();
             if (superClass != null) {
                 if (result.add(superClass)) {
                     queue.addLast(superClass);
                 }
             }
 
-            for (val interfaceClass : clazz.getInterfaces()) {
+            for (var interfaceClass : clazz.getInterfaces()) {
                 if (result.add(interfaceClass)) {
                     queue.addLast(interfaceClass);
                 }
             }
         }
 
-        return ImmutableList.copyOf(result);
+        return List.copyOf(result);
     }
 
 
@@ -241,7 +241,7 @@ public abstract class ReflectionUtils {
     @SuppressWarnings("unchecked")
     public static <T> Class<T> unwrapGeneratedSubclass(Class<T> type) {
         if (GeneratedSubclass.class.isAssignableFrom(type)) {
-            val superType = (Class<T>) type.getSuperclass();
+            var superType = (Class<T>) type.getSuperclass();
             if (superType == Object.class) {
                 try {
                     return (Class<T>) type.getMethod("generatedFrom").invoke(null);
@@ -272,8 +272,8 @@ public abstract class ReflectionUtils {
             return "java.lang";
         }
 
-        val className = clazz.getName();
-        val lastDelimPos = className.lastIndexOf('.');
+        var className = clazz.getName();
+        var lastDelimPos = className.lastIndexOf('.');
         return lastDelimPos >= 0 ? className.substring(0, lastDelimPos) : "";
     }
 
@@ -281,8 +281,6 @@ public abstract class ReflectionUtils {
      * Returns the module name of the provided class.
      *
      * <p>Returns {@code null} for unnamed modules.
-     *
-     * <p>If the current runtime Java version is 8, this method tries it's best to determine the module name.
      */
     @Nullable
     public static String moduleNameOf(Class<?> clazz) {
@@ -294,23 +292,48 @@ public abstract class ReflectionUtils {
             return "java.base";
         }
 
-        val moduleName = METHODS.moduleNameOf(clazz);
-        if (moduleName != null) {
-            return moduleName;
-        }
-
-        return moduleNameOfJdkClass(clazz.getName());
-    }
-
-    @Nullable
-    public static String moduleNameOfJdkClass(String className) {
-        val lastDelimPos = className.lastIndexOf('.');
-        if (lastDelimPos >= 0) {
-            val packageName = className.substring(0, lastDelimPos);
-            return LATEST_LTS_JDK_PACKAGE_MODULES.get(packageName);
+        var module = clazz.getModule();
+        if (module.isNamed()) {
+            return module.getName();
         }
 
         return null;
+    }
+
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <E> Class<Collection<E>> collectionClass() {
+        return (Class) Collection.class;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <E> Class<List<E>> listClass() {
+        return (Class) List.class;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <E> Class<Set<E>> setClass() {
+        return (Class) Set.class;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <E> Class<SortedSet<E>> sortedSetClass() {
+        return (Class) SortedSet.class;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <K, V> Class<Map<K, V>> mapClass() {
+        return (Class) Map.class;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <K, V> Class<SortedMap<K, V>> sortedMapClass() {
+        return (Class) SortedMap.class;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <K, V> Class<NavigableMap<K, V>> navigableMapClass() {
+        return (Class) NavigableMap.class;
     }
 
 
@@ -503,7 +526,7 @@ public abstract class ReflectionUtils {
             return false;
         }
 
-        val returnType = method.getReturnType();
+        var returnType = method.getReturnType();
         if (returnType == void.class) {
             return false;
         }
@@ -528,7 +551,7 @@ public abstract class ReflectionUtils {
             throw new AssertionError("Not a getter: " + method);
         }
 
-        val methodName = method.getName();
+        var methodName = method.getName();
 
         if (isRecord(method.getDeclaringClass())) {
             return methodName;
@@ -556,21 +579,20 @@ public abstract class ReflectionUtils {
     }
 
 
-    private static final DefaultMethodInvoker DEFAULT_METHOD_INVOKER
-        = loadCrossCompileService(DefaultMethodInvoker.class);
-
     @Nonnull(when = UNKNOWN)
     @SneakyThrows
     public static Object invokeDefaultMethod(Method method, Object target, @Nullable Object... args) {
         if (!method.isDefault()) {
             throw new IllegalArgumentException("Not a default method: " + method);
         }
+
         try {
-            if (args == null) {
-                return DEFAULT_METHOD_INVOKER.invoke(method, target);
-            } else {
-                return DEFAULT_METHOD_INVOKER.invoke(method, target, args);
-            }
+            var lookup = privateLookupIn(method.getDeclaringClass(), lookup());
+            return lookup
+                .in(method.getDeclaringClass())
+                .unreflectSpecial(method, method.getDeclaringClass())
+                .bindTo(target)
+                .invokeWithArguments(args);
         } catch (Throwable e) {
             throw unwrapReflectionException(e);
         }

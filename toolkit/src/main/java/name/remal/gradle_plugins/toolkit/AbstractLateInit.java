@@ -2,7 +2,6 @@ package name.remal.gradle_plugins.toolkit;
 
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
-import lombok.val;
 
 abstract class AbstractLateInit<T> {
 
@@ -43,7 +42,7 @@ abstract class AbstractLateInit<T> {
 
     @Nullable
     public T get() {
-        val value = valueRef.get();
+        var value = valueRef.get();
         if (value == NOT_INITIALIZED) {
             throw new IllegalStateException(name != null && !name.isEmpty()
                 ? name + " has NOT been initialized"

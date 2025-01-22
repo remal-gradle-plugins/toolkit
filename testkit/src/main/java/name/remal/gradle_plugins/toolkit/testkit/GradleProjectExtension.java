@@ -4,7 +4,6 @@ import static name.remal.gradle_plugins.toolkit.LazyProxy.asLazyProxy;
 import static name.remal.gradle_plugins.toolkit.testkit.internal.containers.ProjectsContainer.getProjectsContainer;
 
 import com.google.auto.service.AutoService;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.testkit.internal.AbstractProjectDirPrefixExtension;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
@@ -23,7 +22,7 @@ public class GradleProjectExtension extends AbstractProjectDirPrefixExtension im
         ParameterContext parameterContext,
         ExtensionContext extensionContext
     ) throws ParameterResolutionException {
-        val paramType = parameterContext.getParameter().getType();
+        var paramType = parameterContext.getParameter().getType();
         return paramType == Project.class
             || paramType == Gradle.class;
     }
@@ -33,10 +32,10 @@ public class GradleProjectExtension extends AbstractProjectDirPrefixExtension im
         ParameterContext parameterContext,
         ExtensionContext extensionContext
     ) throws ParameterResolutionException {
-        val projects = getProjectsContainer(extensionStore, extensionContext);
-        val project = projects.resolveParameterProject(parameterContext);
+        var projects = getProjectsContainer(extensionStore, extensionContext);
+        var project = projects.resolveParameterProject(parameterContext);
 
-        val paramType = parameterContext.getParameter().getType();
+        var paramType = parameterContext.getParameter().getType();
         if (paramType == Gradle.class) {
             return asLazyProxy(GradleInternal.class, () -> (GradleInternal) project.getGradle());
         }

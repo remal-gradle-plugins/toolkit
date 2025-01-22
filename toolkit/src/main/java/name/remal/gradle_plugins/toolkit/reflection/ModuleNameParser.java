@@ -18,7 +18,6 @@ import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 
@@ -95,12 +94,12 @@ public abstract class ModuleNameParser {
         @Nullable String jarFilePath
     ) {
         if (moduleInfoInputStreamSupplier != null) {
-            try (val in = moduleInfoInputStreamSupplier.get()) {
+            try (var in = moduleInfoInputStreamSupplier.get()) {
                 if (in != null) {
-                    val classNode = new ClassNode();
+                    var classNode = new ClassNode();
                     new ClassReader(in).accept(classNode, SKIP_CODE | SKIP_DEBUG | SKIP_FRAMES);
 
-                    val moduleName = Optional.ofNullable(classNode.module)
+                    var moduleName = Optional.ofNullable(classNode.module)
                         .map(it -> it.name)
                         .orElse(null);
                     if (moduleName != null) {
@@ -111,12 +110,12 @@ public abstract class ModuleNameParser {
         }
 
         if (manifestInputStreamSupplier != null) {
-            try (val in = manifestInputStreamSupplier.get()) {
+            try (var in = manifestInputStreamSupplier.get()) {
                 if (in != null) {
-                    val manifest = new Manifest();
+                    var manifest = new Manifest();
                     manifest.read(in);
 
-                    val moduleName = Optional.ofNullable(manifest.getMainAttributes())
+                    var moduleName = Optional.ofNullable(manifest.getMainAttributes())
                         .map(attrs -> attrs.getValue(AUTOMATIC_MODULE_NAME))
                         .orElse(null);
                     if (moduleName != null) {
@@ -127,7 +126,7 @@ public abstract class ModuleNameParser {
         }
 
         if (jarFilePath != null) {
-            val moduleName = getModuleNameForPath(jarFilePath);
+            var moduleName = getModuleNameForPath(jarFilePath);
             if (moduleName != null) {
                 return moduleName;
             }
@@ -141,7 +140,7 @@ public abstract class ModuleNameParser {
 
     @Nullable
     private static String getModuleNameForPath(String path) {
-        val fileName = FILE_NAME_PART.matcher(path).replaceFirst("$1");
+        var fileName = FILE_NAME_PART.matcher(path).replaceFirst("$1");
         if (!fileName.endsWith(".jar")) {
             return null;
         }

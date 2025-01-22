@@ -6,7 +6,6 @@ import static name.remal.gradle_plugins.toolkit.FileUtils.normalizeFile;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
-import lombok.val;
 import org.gradle.api.Project;
 import org.gradle.plugins.ide.idea.model.IdeaModel;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
@@ -25,7 +24,7 @@ class IdeaModuleUtilsTest {
     void testSources() {
         assertThat(IdeaModuleUtils.getTestSourceDirs(ideaModule)).isEmpty();
 
-        val testSourcesDir = normalizeFile(new File("/test-sources"));
+        var testSourcesDir = normalizeFile(new File("/test-sources"));
         IdeaModuleUtils.setTestSourceDirs(ideaModule, singleton(testSourcesDir));
 
         assertThat(IdeaModuleUtils.getTestSourceDirs(ideaModule))
@@ -36,7 +35,7 @@ class IdeaModuleUtilsTest {
     void testResources() {
         assertThat(IdeaModuleUtils.getTestResourceDirs(ideaModule)).isEmpty();
 
-        val testResourcesDir = normalizeFile(new File("/test-resources"));
+        var testResourcesDir = normalizeFile(new File("/test-resources"));
         IdeaModuleUtils.setTestResourceDirs(ideaModule, singleton(testResourcesDir));
 
         assertThat(IdeaModuleUtils.getTestResourceDirs(ideaModule))

@@ -1,6 +1,6 @@
 package name.remal.gradle_plugins.toolkit.testkit.functional.generator;
 
-import static com.google.common.collect.ImmutableList.toImmutableList;
+import static java.util.stream.Collectors.toUnmodifiableList;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.PredicateUtils.not;
 
@@ -10,7 +10,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import lombok.NoArgsConstructor;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.PathUtils;
 import org.jetbrains.annotations.Unmodifiable;
 
@@ -21,7 +20,7 @@ public abstract class BuildDirMavenRepositories {
 
     @Unmodifiable
     public static Collection<Path> getBuildDirMavenRepositories() {
-        val paths = System.getProperty(BUILD_DIR_MAVEN_REPOSITORIES_PATHS_PROPERTY);
+        var paths = System.getProperty(BUILD_DIR_MAVEN_REPOSITORIES_PATHS_PROPERTY);
         if (paths == null) {
             throw new IllegalStateException(
                 "System property is not set: " + BUILD_DIR_MAVEN_REPOSITORIES_PATHS_PROPERTY
@@ -34,7 +33,7 @@ public abstract class BuildDirMavenRepositories {
             .map(Paths::get)
             .map(PathUtils::normalizePath)
             .distinct()
-            .collect(toImmutableList());
+            .collect(toUnmodifiableList());
     }
 
 }

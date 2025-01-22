@@ -4,7 +4,6 @@ import static java.lang.String.format;
 import static org.junit.jupiter.api.extension.ConditionEvaluationResult.disabled;
 import static org.junit.jupiter.api.extension.ConditionEvaluationResult.enabled;
 
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.testkit.MinSupportedGradleVersion;
 import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.ApiStatus.Internal;
@@ -17,14 +16,14 @@ public class MinSupportedGradleVersionExtension extends AbstractSupportedGradleV
 
     @Override
     public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
-        val annotation = AnnotationUtils.findAnnotation(context.getElement(), MinSupportedGradleVersion.class)
+        var annotation = AnnotationUtils.findAnnotation(context.getElement(), MinSupportedGradleVersion.class)
             .orElse(null);
         if (annotation == null) {
             return enabled(format("@%s is not present", MinSupportedGradleVersion.class.getSimpleName()));
         }
 
-        val minGradleVersion = GradleVersion.version(annotation.value());
-        val currentGradleVersion = getCurrentGradleVersion(context);
+        var minGradleVersion = GradleVersion.version(annotation.value());
+        var currentGradleVersion = getCurrentGradleVersion(context);
         if (currentGradleVersion.compareTo(minGradleVersion) >= 0) {
             return enabled(format(
                 "Current Gradle version %s is greater or equal to min supported version %s",

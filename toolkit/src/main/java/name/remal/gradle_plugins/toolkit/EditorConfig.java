@@ -34,7 +34,6 @@ import lombok.CustomLog;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.ToString;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.git.GitStringAttribute;
 import org.ec4j.core.Cache;
 import org.ec4j.core.EditorConfigLoader;
@@ -56,7 +55,7 @@ import org.jetbrains.annotations.Unmodifiable;
 public final class EditorConfig implements Serializable {
 
     private static final ErrorHandler ERROR_HANDLER = (context, errorEvent) -> {
-        val message = format(
+        var message = format(
             "%s:%d:%d: %s",
             errorEvent.getResource(),
             errorEvent.getStart().getLine(),
@@ -103,21 +102,21 @@ public final class EditorConfig implements Serializable {
         synchronized (CACHE) {
             Map<String, String> result = new LinkedHashMap<>();
 
-            val resourceProperties = service.queryProperties(Resources.ofPath(path, UTF_8));
+            var resourceProperties = service.queryProperties(Resources.ofPath(path, UTF_8));
             resourceProperties.getProperties().values().stream()
                 .filter(not(Property::isUnset))
                 .filter(Property::isValid)
                 .forEach(property -> {
-                    val name = property.getName();
+                    var name = property.getName();
                     result.remove(name);
-                    val value = property.getSourceValue();
+                    var value = property.getSourceValue();
                     result.put(name, value);
                 });
 
-            val isCharsetNotSet = isEmpty(result.get(charset.getName()));
-            val isEndOfLineNotSet = isEmpty(result.get(end_of_line.getName()));
+            var isCharsetNotSet = isEmpty(result.get(charset.getName()));
+            var isEndOfLineNotSet = isEmpty(result.get(end_of_line.getName()));
             if (isCharsetNotSet || isEndOfLineNotSet) {
-                val relativePath = rootPath.relativize(path).toString();
+                var relativePath = rootPath.relativize(path).toString();
                 getGitAttributesFor(rootPath, relativePath).stream()
                     .filter(GitStringAttribute.class::isInstance)
                     .map(GitStringAttribute.class::cast)
@@ -131,7 +130,7 @@ public final class EditorConfig implements Serializable {
                                 result.putIfAbsent(charset.getName(), encoding);
                             }
                         } else if (attr.getName().equals("eol")) {
-                            val eol = attr.getValue().toLowerCase();
+                            var eol = attr.getValue().toLowerCase();
                             if (end_of_line.getPossibleValues().contains(eol)) {
                                 result.putIfAbsent(end_of_line.getName(), eol);
                             }
@@ -156,7 +155,7 @@ public final class EditorConfig implements Serializable {
 
     public String getLineSeparatorFor(Path path) {
         String result = getPropertyFor(path, end_of_line, value -> {
-            for (val endOfLine : EndOfLineValue.values()) {
+            for (var endOfLine : EndOfLineValue.values()) {
                 if (endOfLine.name().equalsIgnoreCase(value)) {
                     return endOfLine.getEndOfLineString();
                 }
@@ -222,8 +221,8 @@ public final class EditorConfig implements Serializable {
         PropertyType<?> property,
         PropertyValueConverter<T> converter
     ) {
-        val properties = getPropertiesFor(path);
-        val value = properties.get(property.getName());
+        var properties = getPropertiesFor(path);
+        var value = properties.get(property.getName());
         return value != null ? converter.convert(value) : null;
     }
 
@@ -256,7 +255,7 @@ public final class EditorConfig implements Serializable {
         @Override
         public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
             rootPathUri = (URI) in.readObject();
-            val rootPath = Paths.get(rootPathUri);
+            var rootPath = Paths.get(rootPathUri);
             deserializedObject = new EditorConfig(rootPath);
         }
 

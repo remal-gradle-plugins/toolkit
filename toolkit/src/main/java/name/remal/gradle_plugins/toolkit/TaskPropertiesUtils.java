@@ -2,7 +2,7 @@ package name.remal.gradle_plugins.toolkit;
 
 import static java.lang.String.format;
 import static java.util.Collections.unmodifiableList;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toUnmodifiableList;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.build_time_constants.api.BuildTimeConstants.getClassName;
 import static name.remal.gradle_plugins.toolkit.ObjectUtils.isNotEmpty;
@@ -31,7 +31,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
-import lombok.val;
 import org.gradle.api.Task;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
@@ -61,7 +60,7 @@ import org.gradle.work.NormalizeLineEndings;
 public abstract class TaskPropertiesUtils {
 
     @SuppressWarnings("unchecked")
-    private static final List<Class<? extends Annotation>> UNSUPPORTED_ANNOTATIONS = (List) unmodifiableList(Stream.of(
+    private static final List<Class<? extends Annotation>> UNSUPPORTED_ANNOTATIONS = (List) Stream.of(
             getClassName(Incremental.class)
         )
         .map(className -> {
@@ -72,7 +71,7 @@ public abstract class TaskPropertiesUtils {
             }
         })
         .filter(Objects::nonNull)
-        .collect(toList()));
+        .collect(toUnmodifiableList());
 
     @SuppressWarnings("unchecked")
     private static final List<Class<? extends Annotation>> INPUT_ANNOTATIONS = (List) unmodifiableList(Stream.of(
@@ -90,10 +89,10 @@ public abstract class TaskPropertiesUtils {
             }
         })
         .filter(Objects::nonNull)
-        .collect(toList()));
+        .collect(toUnmodifiableList()));
 
     @SuppressWarnings("unchecked")
-    private static final List<Class<? extends Annotation>> OUTPUT_ANNOTATIONS = (List) unmodifiableList(Stream.of(
+    private static final List<Class<? extends Annotation>> OUTPUT_ANNOTATIONS = (List) Stream.of(
             getClassName(OutputDirectories.class),
             getClassName(OutputDirectory.class),
             getClassName(OutputFile.class),
@@ -107,10 +106,10 @@ public abstract class TaskPropertiesUtils {
             }
         })
         .filter(Objects::nonNull)
-        .collect(toList()));
+        .collect(toUnmodifiableList());
 
     @SuppressWarnings("unchecked")
-    private static final List<Class<? extends Annotation>> IGNORE_ANNOTATIONS = (List) unmodifiableList(Stream.of(
+    private static final List<Class<? extends Annotation>> IGNORE_ANNOTATIONS = (List) Stream.of(
             getClassName(Internal.class),
             getClassName(Console.class)
         )
@@ -122,14 +121,14 @@ public abstract class TaskPropertiesUtils {
             }
         })
         .filter(Objects::nonNull)
-        .collect(toList()));
+        .collect(toUnmodifiableList());
 
-    private static final List<Class<? extends Annotation>> ALL_ANNOTATIONS = unmodifiableList(Stream.of(
+    private static final List<Class<? extends Annotation>> ALL_ANNOTATIONS = Stream.of(
         UNSUPPORTED_ANNOTATIONS,
         INPUT_ANNOTATIONS,
         OUTPUT_ANNOTATIONS,
         IGNORE_ANNOTATIONS
-    ).flatMap(Collection::stream).collect(toList()));
+    ).flatMap(Collection::stream).collect(toUnmodifiableList());
 
     public static void registerTaskProperties(
         Task task,
@@ -157,10 +156,10 @@ public abstract class TaskPropertiesUtils {
         Class<?> propertiesContainerType,
         @Nullable String propertyNamePrefix
     ) {
-        val propertiesContainerClassHierarchy = getClassHierarchy(propertiesContainerType);
+        var propertiesContainerClassHierarchy = getClassHierarchy(propertiesContainerType);
         checkFieldsOf(propertiesContainerClassHierarchy);
 
-        val candidateMethods = getCandidateMethodsOf(propertiesContainerClassHierarchy);
+        var candidateMethods = getCandidateMethodsOf(propertiesContainerClassHierarchy);
         if (candidateMethods.isEmpty()) {
             throw new TaskPropertiesException(format(
                 "%s couldn't find any property-candidate methods in %s",
@@ -170,7 +169,7 @@ public abstract class TaskPropertiesUtils {
         }
         checkCandidateMethods(candidateMethods);
 
-        for (val method : candidateMethods) {
+        for (var method : candidateMethods) {
             registerTaskPropertiesImpl(
                 task,
                 propertiesContainerProvider,
@@ -189,12 +188,12 @@ public abstract class TaskPropertiesUtils {
         @Nullable String propertyNamePrefix,
         Method method
     ) {
-        val propertyName = getPropertyNameForGetter(method);
-        val fullPropertyName = isNotEmpty(propertyNamePrefix)
+        var propertyName = getPropertyNameForGetter(method);
+        var fullPropertyName = isNotEmpty(propertyNamePrefix)
             ? propertyNamePrefix + "." + propertyName
             : propertyName;
 
-        val propertyValueProvider = propertiesContainerProvider.map(propertiesContainer -> {
+        var propertyValueProvider = propertiesContainerProvider.map(propertiesContainer -> {
             try {
                 return makeAccessible(method).invoke(propertiesContainer);
             } catch (Throwable e) {
@@ -249,11 +248,11 @@ public abstract class TaskPropertiesUtils {
 
         } else if (method.isAnnotationPresent(Nested.class)) {
             if (Provider.class.isAssignableFrom(method.getReturnType())) {
-                val invokable = TypeToken.of(propertiesContainerType).method(method);
-                val returnType = invokable.getReturnType().getSupertype((Class) Provider.class).getType();
+                var invokable = TypeToken.of(propertiesContainerType).method(method);
+                var returnType = invokable.getReturnType().getSupertype((Class) Provider.class).getType();
                 if (returnType instanceof ParameterizedType) {
-                    val nestedType = ((ParameterizedType) returnType).getActualTypeArguments()[0];
-                    val nestedClass = TypeToken.of(nestedType).getRawType();
+                    var nestedType = ((ParameterizedType) returnType).getActualTypeArguments()[0];
+                    var nestedClass = TypeToken.of(nestedType).getRawType();
                     registerTaskPropertiesImpl(
                         task,
                         propertiesContainerProvider.flatMap(propertiesContainer -> {
@@ -388,7 +387,7 @@ public abstract class TaskPropertiesUtils {
             .map(Class::getDeclaredMethods)
             .flatMap(Arrays::stream)
             .filter(method -> ALL_ANNOTATIONS.stream().anyMatch(method::isAnnotationPresent))
-            .collect(toList());
+            .collect(toUnmodifiableList());
     }
 
     private static void checkFieldsOf(

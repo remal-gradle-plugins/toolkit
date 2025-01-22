@@ -8,7 +8,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.testkit.MaxSupportedGradleVersion;
 import name.remal.gradle_plugins.toolkit.testkit.MinSupportedGradleVersion;
 import org.gradle.api.DefaultTask;
@@ -26,7 +25,7 @@ class TaskUtilsTest {
     @Test
     @MinSupportedGradleVersion("7.6")
     void onlyIfWithReason() {
-        val task = mock(Task.class);
+        var task = mock(Task.class);
         Spec<Task> spec = it -> true;
         TaskUtils.onlyIfWithReason(task, "reason", spec);
         verify(task).onlyIf("reason", spec);
@@ -36,7 +35,7 @@ class TaskUtilsTest {
     @Test
     @MaxSupportedGradleVersion("7.5.9999")
     void onlyIfWithReason_default() {
-        val task = mock(Task.class);
+        var task = mock(Task.class);
         Spec<Task> spec = it -> true;
         TaskUtils.onlyIfWithReason(task, "reason", spec);
         verify(task).onlyIf(spec);
@@ -46,7 +45,7 @@ class TaskUtilsTest {
     @Test
     @MinSupportedGradleVersion("7.4")
     void markAsNotCompatibleWithConfigurationCache() {
-        val task = project.getTasks().register("testTask", DefaultTask.class).get();
+        var task = project.getTasks().register("testTask", DefaultTask.class).get();
         assertTrue(task.isCompatibleWithConfigurationCache());
         TaskUtils.markAsNotCompatibleWithConfigurationCache(task);
         assertFalse(task.isCompatibleWithConfigurationCache());
@@ -54,8 +53,8 @@ class TaskUtilsTest {
 
     @Test
     void clearRegisteredFileProperties() {
-        val task = project.getTasks().register("testTask").get();
-        val taskInputs = (TaskInputsInternal) task.getInputs();
+        var task = project.getTasks().register("testTask").get();
+        var taskInputs = (TaskInputsInternal) task.getInputs();
 
         taskInputs.dir(project.getProjectDir());
 

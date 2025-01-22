@@ -2,7 +2,6 @@ package name.remal.gradle_plugins.toolkit.testkit.internal.containers;
 
 import javax.annotation.Nullable;
 import lombok.SneakyThrows;
-import lombok.val;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -26,7 +25,7 @@ public class ExtensionStore {
 
     @Nullable
     public <T> T getParentStoreValue(ExtensionContext context, Class<T> type) {
-        val key = type;
+        var key = type;
         return context.getParent()
             .map(this::getStore)
             .map(it -> it.get(key, type))
@@ -36,13 +35,13 @@ public class ExtensionStore {
 
     @Nullable
     public <T> T getCurrentStoreValue(ExtensionContext context, Class<T> type) {
-        val key = type;
-        val value = getStore(context).get(key, type);
+        var key = type;
+        var value = getStore(context).get(key, type);
         if (value == null) {
             return null;
         }
 
-        val parentValue = getParentStoreValue(context, type);
+        var parentValue = getParentStoreValue(context, type);
         if (parentValue != value) {
             return value;
         } else {
@@ -52,8 +51,8 @@ public class ExtensionStore {
 
 
     public <T> T setCurrentStoreValue(ExtensionContext context, T value) {
-        val store = getStore(context);
-        val key = value.getClass();
+        var store = getStore(context);
+        var key = value.getClass();
         store.put(key, value);
         return value;
     }
@@ -61,9 +60,9 @@ public class ExtensionStore {
     @Nullable
     @SneakyThrows
     public <T> T removeCurrentStoreValue(ExtensionContext context, Class<T> type) {
-        val store = getStore(context);
-        val key = type;
-        val prevValue = store.remove(key, type);
+        var store = getStore(context);
+        var key = type;
+        var prevValue = store.remove(key, type);
         if (prevValue instanceof CloseableResource) {
             ((CloseableResource) prevValue).close();
         }

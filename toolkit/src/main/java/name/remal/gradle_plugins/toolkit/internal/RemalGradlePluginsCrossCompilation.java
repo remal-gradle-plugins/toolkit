@@ -11,8 +11,7 @@ import java.lang.annotation.Target;
  */
 @Target(TYPE)
 @Retention(CLASS)
-@Deprecated
-@SuppressWarnings("DeprecatedIsStillUsed")
+@Deprecated(since = "always")
 public @interface RemalGradlePluginsCrossCompilation {
 
     String dependency();

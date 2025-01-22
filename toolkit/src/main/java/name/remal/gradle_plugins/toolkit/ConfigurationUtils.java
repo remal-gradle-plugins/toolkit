@@ -7,7 +7,6 @@ import static name.remal.gradle_plugins.toolkit.reflection.MembersFinder.findMet
 
 import java.util.Collection;
 import lombok.NoArgsConstructor;
-import lombok.val;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 
@@ -15,21 +14,21 @@ import org.gradle.internal.deprecation.DeprecatableConfiguration;
 public abstract class ConfigurationUtils {
 
     public static boolean isDeprecatedForConsumption(Configuration conf) {
-        val deprecatableConf = (DeprecatableConfiguration) conf;
+        var deprecatableConf = (DeprecatableConfiguration) conf;
 
-        val isDeprecatedForConsumption = findMethod(
+        var isDeprecatedForConsumption = findMethod(
             DeprecatableConfiguration.class,
             boolean.class,
             "isDeprecatedForConsumption"
         );
 
-        val getConsumptionDeprecation = findMethod(
+        var getConsumptionDeprecation = findMethod(
             DeprecatableConfiguration.class,
             Object.class,
             "getConsumptionDeprecation"
         );
 
-        val getConsumptionAlternatives = findMethod(
+        var getConsumptionAlternatives = findMethod(
             DeprecatableConfiguration.class,
             Collection.class,
             "getConsumptionAlternatives"
@@ -64,15 +63,15 @@ public abstract class ConfigurationUtils {
     }
 
     public static boolean isDeprecatedForResolution(Configuration conf) {
-        val deprecatableConf = (DeprecatableConfiguration) conf;
+        var deprecatableConf = (DeprecatableConfiguration) conf;
 
-        val isDeprecatedForResolution = findMethod(
+        var isDeprecatedForResolution = findMethod(
             DeprecatableConfiguration.class,
             boolean.class,
             "isDeprecatedForResolution"
         );
 
-        val getResolutionAlternatives = findMethod(
+        var getResolutionAlternatives = findMethod(
             DeprecatableConfiguration.class,
             Collection.class,
             "getResolutionAlternatives"

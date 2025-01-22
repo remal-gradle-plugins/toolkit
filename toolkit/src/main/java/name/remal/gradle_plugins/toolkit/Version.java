@@ -5,7 +5,6 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Comparator;
 import javax.annotation.Nullable;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -18,7 +17,7 @@ public final class Version implements Comparable<Version> {
 
     @Contract(pure = true)
     public static Version parse(String version) {
-        val versionImpl = PARSER.transform(version);
+        var versionImpl = PARSER.transform(version);
         return new Version(requireNonNull(versionImpl));
     }
 
@@ -36,12 +35,12 @@ public final class Version implements Comparable<Version> {
             throw new IllegalArgumentException("numberIndex: must >= 0");
         }
 
-        val parts = versionImpl.getNumericParts();
+        var parts = versionImpl.getNumericParts();
         return numberIndex < parts.length ? parts[numberIndex] : null;
     }
 
     public long getNumber(int numberIndex) {
-        val number = getNumberOrNull(numberIndex);
+        var number = getNumberOrNull(numberIndex);
         if (number == null) {
             throw new IllegalArgumentException(format(
                 "Version '%s' doesn't have numeric part with index %d",
@@ -79,7 +78,7 @@ public final class Version implements Comparable<Version> {
     }
 
     public boolean isLessThan(String other) {
-        val otherVersion = parse(other);
+        var otherVersion = parse(other);
         return isLessThan(otherVersion);
     }
 
@@ -88,7 +87,7 @@ public final class Version implements Comparable<Version> {
     }
 
     public boolean isLessOrEqualTo(String other) {
-        val otherVersion = parse(other);
+        var otherVersion = parse(other);
         return isLessOrEqualTo(otherVersion);
     }
 
@@ -97,7 +96,7 @@ public final class Version implements Comparable<Version> {
     }
 
     public boolean isGreaterOrEqualTo(String other) {
-        val otherVersion = parse(other);
+        var otherVersion = parse(other);
         return isGreaterOrEqualTo(otherVersion);
     }
 
@@ -106,7 +105,7 @@ public final class Version implements Comparable<Version> {
     }
 
     public boolean isGreaterThan(String other) {
-        val otherVersion = parse(other);
+        var otherVersion = parse(other);
         return isGreaterThan(otherVersion);
     }
 

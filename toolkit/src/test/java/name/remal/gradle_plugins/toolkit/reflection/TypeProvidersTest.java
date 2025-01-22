@@ -7,18 +7,17 @@ import java.lang.reflect.ParameterizedType;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import lombok.val;
 import org.junit.jupiter.api.Test;
 
 class TypeProvidersTest {
 
     @Test
     void listTypeProvider() {
-        val typeProvider = TypeProviders.listTypeProvider(String.class);
+        var typeProvider = TypeProviders.listTypeProvider(String.class);
 
-        val type = typeProvider.getType();
+        var type = typeProvider.getType();
         assertInstanceOf(ParameterizedType.class, type);
-        val parameterizedType = (ParameterizedType) type;
+        var parameterizedType = (ParameterizedType) type;
         assertEquals(List.class, parameterizedType.getRawType());
         assertEquals(String.class, parameterizedType.getActualTypeArguments()[0]);
 
@@ -27,11 +26,11 @@ class TypeProvidersTest {
 
     @Test
     void setTypeProvider() {
-        val typeProvider = TypeProviders.setTypeProvider(Byte.class);
+        var typeProvider = TypeProviders.setTypeProvider(Byte.class);
 
-        val type = typeProvider.getType();
+        var type = typeProvider.getType();
         assertInstanceOf(ParameterizedType.class, type);
-        val parameterizedType = (ParameterizedType) type;
+        var parameterizedType = (ParameterizedType) type;
         assertEquals(Set.class, parameterizedType.getRawType());
         assertEquals(Byte.class, parameterizedType.getActualTypeArguments()[0]);
 
@@ -40,11 +39,11 @@ class TypeProvidersTest {
 
     @Test
     void mapTypeProvider() {
-        val typeProvider = TypeProviders.mapTypeProvider(String.class, Integer.class);
+        var typeProvider = TypeProviders.mapTypeProvider(String.class, Integer.class);
 
-        val type = typeProvider.getType();
+        var type = typeProvider.getType();
         assertInstanceOf(ParameterizedType.class, type);
-        val parameterizedType = (ParameterizedType) type;
+        var parameterizedType = (ParameterizedType) type;
         assertEquals(Map.class, parameterizedType.getRawType());
         assertEquals(String.class, parameterizedType.getActualTypeArguments()[0]);
         assertEquals(Integer.class, parameterizedType.getActualTypeArguments()[1]);

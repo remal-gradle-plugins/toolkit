@@ -9,7 +9,6 @@ import static name.remal.gradle_plugins.toolkit.PathUtils.deleteRecursively;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 import org.gradle.api.Project;
 import org.junit.jupiter.api.Test;
 
@@ -20,31 +19,31 @@ class FileTreeUtilsTest {
 
     @Test
     void getFileTreeRoots() throws Throwable {
-        val zipFile = normalizeFile(project.file("archive.zip"));
-        try (val archiveWriter = newZipArchiveWriter(zipFile)) {
+        var zipFile = normalizeFile(project.file("archive.zip"));
+        try (var archiveWriter = newZipArchiveWriter(zipFile)) {
             archiveWriter.writeEntry("archive-file.txt", "text");
         }
 
-        val dir = normalizeFile(project.file("dir"));
+        var dir = normalizeFile(project.file("dir"));
         write(createParentDirectories(dir.toPath().resolve("dir-file.txt")), "text".getBytes(UTF_8));
 
-        val notExistingFile = normalizeFile(project.file("not-existing"));
+        var notExistingFile = normalizeFile(project.file("not-existing"));
         deleteRecursively(notExistingFile.toPath());
 
 
-        val zipTree = project.zipTree(zipFile);
+        var zipTree = project.zipTree(zipFile);
         assertThat(FileTreeUtils.getFileTreeRoots(zipTree))
             .containsExactlyInAnyOrder(zipFile);
 
-        val dirTree = project.fileTree(dir);
+        var dirTree = project.fileTree(dir);
         assertThat(FileTreeUtils.getFileTreeRoots(dirTree))
             .containsExactlyInAnyOrder(dir);
 
-        val notExistingTree = project.fileTree(notExistingFile);
+        var notExistingTree = project.fileTree(notExistingFile);
         assertThat(FileTreeUtils.getFileTreeRoots(notExistingTree))
             .containsExactlyInAnyOrder(notExistingFile);
 
-        val compositeTree = zipTree.plus(dirTree).plus(notExistingTree);
+        var compositeTree = zipTree.plus(dirTree).plus(notExistingTree);
         assertThat(FileTreeUtils.getFileTreeRoots(compositeTree))
             .containsExactlyInAnyOrder(zipFile, dir, notExistingFile);
     }

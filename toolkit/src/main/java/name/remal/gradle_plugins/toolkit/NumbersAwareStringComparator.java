@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import lombok.NoArgsConstructor;
-import lombok.val;
 import org.jetbrains.annotations.Contract;
 
 @NoArgsConstructor(access = PRIVATE)
@@ -32,8 +31,8 @@ public class NumbersAwareStringComparator implements Comparator<String> {
     @Override
     @SuppressWarnings({"rawtypes", "unchecked"})
     public int compare(String string1, String string2) {
-        val parts1 = splitParts(string1);
-        val parts2 = splitParts(string2);
+        var parts1 = splitParts(string1);
+        var parts2 = splitParts(string2);
         for (int i = 0; i < min(parts1.size(), parts2.size()); i++) {
             Comparable part1 = parts1.get(i);
             Comparable part2 = parts2.get(i);
@@ -41,7 +40,7 @@ public class NumbersAwareStringComparator implements Comparator<String> {
                 part1 = part1.toString();
                 part2 = part2.toString();
             }
-            val result = part1.compareTo(part2);
+            var result = part1.compareTo(part2);
             if (result != 0) {
                 return result;
             }
@@ -53,10 +52,10 @@ public class NumbersAwareStringComparator implements Comparator<String> {
 
     @SuppressWarnings("rawtypes")
     private static List<Comparable> splitParts(String str) {
-        val parts = new ArrayList<Comparable>();
-        val matcher = ALPHA_NUM.matcher(str);
+        var parts = new ArrayList<Comparable>();
+        var matcher = ALPHA_NUM.matcher(str);
         while (matcher.find()) {
-            val part = matcher.group();
+            var part = matcher.group();
             if (isDigit(part.charAt(0))) {
                 parts.add(new BigInteger(part));
             } else {

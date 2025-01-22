@@ -1,7 +1,6 @@
 package name.remal.gradle_plugins.toolkit.testkit.internal;
 
 import java.lang.reflect.Member;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.testkit.internal.containers.ExtensionStore;
 import name.remal.gradle_plugins.toolkit.testkit.internal.containers.ProjectDirPrefix;
 import org.jetbrains.annotations.ApiStatus.Internal;
@@ -19,25 +18,25 @@ public abstract class AbstractProjectDirPrefixExtension
 
     @Override
     public void beforeAll(ExtensionContext context) {
-        val dirPrefix = ProjectDirPrefix.getProjectDirPrefix(extensionStore, context);
+        var dirPrefix = ProjectDirPrefix.getProjectDirPrefix(extensionStore, context);
         context.getTestClass().map(Class::getName).ifPresent(dirPrefix::push);
     }
 
     @Override
     public void beforeEach(ExtensionContext context) {
-        val dirPrefix = ProjectDirPrefix.getProjectDirPrefix(extensionStore, context);
+        var dirPrefix = ProjectDirPrefix.getProjectDirPrefix(extensionStore, context);
         context.getTestMethod().map(Member::getName).ifPresent(dirPrefix::push);
     }
 
     @Override
     public void afterEach(ExtensionContext context) {
-        val dirPrefix = ProjectDirPrefix.getProjectDirPrefix(extensionStore, context);
+        var dirPrefix = ProjectDirPrefix.getProjectDirPrefix(extensionStore, context);
         context.getTestMethod().map(Member::getName).ifPresent(dirPrefix::pop);
     }
 
     @Override
     public void afterAll(ExtensionContext context) {
-        val dirPrefix = ProjectDirPrefix.getProjectDirPrefix(extensionStore, context);
+        var dirPrefix = ProjectDirPrefix.getProjectDirPrefix(extensionStore, context);
         context.getTestClass().map(Class::getName).ifPresent(dirPrefix::pop);
     }
 

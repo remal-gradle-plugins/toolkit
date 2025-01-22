@@ -11,7 +11,6 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
 import lombok.SneakyThrows;
-import lombok.val;
 import org.jetbrains.annotations.Contract;
 
 @SuppressWarnings("try")
@@ -42,7 +41,7 @@ public abstract class AbstractClosablesContainer implements AutoCloseable {
         List<Throwable> exceptions = new ArrayList<>();
 
         while (true) {
-            val closeable = closeables.pollLast();
+            var closeable = closeables.pollLast();
             if (closeable == null) {
                 break;
             }

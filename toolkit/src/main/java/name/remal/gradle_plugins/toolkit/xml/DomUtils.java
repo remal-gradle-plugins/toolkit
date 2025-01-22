@@ -3,7 +3,6 @@ package name.remal.gradle_plugins.toolkit.xml;
 import static java.lang.String.format;
 import static lombok.AccessLevel.PRIVATE;
 
-import com.google.common.collect.ImmutableList;
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -13,7 +12,6 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
-import lombok.val;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Unmodifiable;
 import org.w3c.dom.Document;
@@ -30,7 +28,7 @@ public abstract class DomUtils {
             return (Document) node;
         }
 
-        val document = node.getOwnerDocument();
+        var document = node.getOwnerDocument();
         if (document == null) {
             throw new IllegalArgumentException("Node doesn't belong to a document: " + node);
         }
@@ -57,7 +55,7 @@ public abstract class DomUtils {
         String childElementName,
         Consumer<Element> childElementConfigurer
     ) {
-        val childElement = getNodeOwnerDocument(parentNode).createElement(childElementName);
+        var childElement = getNodeOwnerDocument(parentNode).createElement(childElementName);
         childElementConfigurer.accept(childElement);
 
         if (parentNode instanceof Document) {
@@ -75,16 +73,16 @@ public abstract class DomUtils {
         }
 
         removeAllChildNodes(parentNode);
-        val textNode = getNodeOwnerDocument(parentNode).createTextNode(text);
+        var textNode = getNodeOwnerDocument(parentNode).createTextNode(text);
         parentNode.appendChild(textNode);
         return parentNode;
     }
 
     public static String getNodeText(Node node) {
-        val sb = new StringBuilder();
+        var sb = new StringBuilder();
         traverseNodeDescendants(node, child -> {
             if (child instanceof Text) {
-                val text = (Text) child;
+                var text = (Text) child;
                 sb.append(text.getWholeText());
             }
         });
@@ -109,7 +107,7 @@ public abstract class DomUtils {
             @Override
             public Node get(int index) {
                 if (index == 0) {
-                    val firstChild = node.getFirstChild();
+                    var firstChild = node.getFirstChild();
                     if (firstChild == null) {
                         throw new IndexOutOfBoundsException("Index 0 out of bounds for length 0");
                     }
@@ -137,7 +135,7 @@ public abstract class DomUtils {
                     return null;
 
                 } else {
-                    val oldChild = get(index);
+                    var oldChild = get(index);
                     if (element != oldChild) {
                         node.replaceChild(oldChild, element);
                     }
@@ -156,14 +154,14 @@ public abstract class DomUtils {
                     node.appendChild(element);
 
                 } else {
-                    val refChild = get(index);
+                    var refChild = get(index);
                     node.insertBefore(element, refChild);
                 }
             }
 
             @Override
             public Node remove(int index) {
-                val child = get(index);
+                var child = get(index);
                 node.removeChild(child);
                 return child;
             }
@@ -191,8 +189,8 @@ public abstract class DomUtils {
                     );
                 }
 
-                val childNodes = node.getChildNodes();
-                val size = childNodes.getLength();
+                var childNodes = node.getChildNodes();
+                var size = childNodes.getLength();
                 if (size <= 1) {
                     return;
                 }
@@ -200,8 +198,8 @@ public abstract class DomUtils {
                 for (int i = 0; i < size - 1; ++i) {
                     boolean swapped = false;
                     for (int j = 0; j < size - i - 1; ++j) {
-                        val node1 = childNodes.item(j);
-                        val node2 = childNodes.item(j + 1);
+                        var node1 = childNodes.item(j);
+                        var node2 = childNodes.item(j + 1);
                         if (comparator.compare(node1, node2) > 0) {
                             node.insertBefore(node2, node1);
                             swapped = true;
@@ -222,7 +220,7 @@ public abstract class DomUtils {
     public static List<Node> getNodeDescendants(Node node) {
         List<Node> result = new ArrayList<>();
         traverseNodeDescendants(node, result::add);
-        return ImmutableList.copyOf(result);
+        return List.copyOf(result);
     }
 
     /**
@@ -232,16 +230,16 @@ public abstract class DomUtils {
     public static <T extends Node> List<T> getNodeDescendants(Node node, Class<T> childNodeType) {
         List<T> result = new ArrayList<>();
         traverseNodeDescendants(node, childNodeType, result::add);
-        return ImmutableList.copyOf(result);
+        return List.copyOf(result);
     }
 
     /**
      * Traverse all a parent's descendants (all children at any level below the parent - excludes the parent itself).
      */
     public static void traverseNodeDescendants(Node parentNode, Consumer<Node> action) {
-        val children = parentNode.getChildNodes();
+        var children = parentNode.getChildNodes();
         for (int index = 0; index < children.getLength(); ++index) {
-            val child = children.item(index);
+            var child = children.item(index);
             action.accept(child);
             traverseNodeDescendants(child, action);
         }
@@ -257,7 +255,7 @@ public abstract class DomUtils {
     ) {
         traverseNodeDescendants(parentNode, child -> {
             if (childNodeType.isInstance(child)) {
-                val typedChild = childNodeType.cast(child);
+                var typedChild = childNodeType.cast(child);
                 action.accept(typedChild);
             }
         });
@@ -265,7 +263,7 @@ public abstract class DomUtils {
 
     @Contract("_->param1")
     public static <T extends Node> T detachNode(T node) {
-        val parentNode = node.getParentNode();
+        var parentNode = node.getParentNode();
         if (parentNode != null) {
             parentNode.removeChild(node);
         }

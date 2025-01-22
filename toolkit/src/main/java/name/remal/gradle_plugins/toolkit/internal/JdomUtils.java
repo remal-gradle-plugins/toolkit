@@ -7,7 +7,6 @@ import static org.jdom2.input.sax.XMLReaders.NONVALIDATING;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.io.StringReader;
 import lombok.NoArgsConstructor;
-import lombok.val;
 import org.jdom2.Attribute;
 import org.jdom2.Element;
 import org.jdom2.NamespaceAware;
@@ -22,7 +21,7 @@ import org.xml.sax.InputSource;
 public abstract class JdomUtils {
 
     public static SAXBuilder newNonValidatingSaxBuilder() {
-        val saxBuilder = new SAXBuilder();
+        var saxBuilder = new SAXBuilder();
         saxBuilder.setXMLReaderFactory(NONVALIDATING);
         saxBuilder.setEntityResolver((publicId, systemId) -> new InputSource(new StringReader("")));
         saxBuilder.setReuseParser(false);
@@ -40,13 +39,13 @@ public abstract class JdomUtils {
         }
 
         if (node instanceof Parent) {
-            for (val child : ((Parent) node).getContent()) {
+            for (var child : ((Parent) node).getContent()) {
                 withoutNamespaces(child);
             }
         }
 
         if (node instanceof Element) {
-            for (val child : ((Element) node).getAttributes()) {
+            for (var child : ((Element) node).getAttributes()) {
                 withoutNamespaces(child);
             }
         }

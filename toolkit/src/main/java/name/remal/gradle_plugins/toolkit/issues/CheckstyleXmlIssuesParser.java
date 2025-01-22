@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nullable;
 import lombok.SneakyThrows;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.ObjectUtils;
 import org.jdom2.Document;
 import org.jetbrains.annotations.Contract;
@@ -29,7 +28,7 @@ public class CheckstyleXmlIssuesParser implements IssuesParser {
         path = normalizePath(path);
 
         final Document document;
-        try (val inputStream = newInputStream(path)) {
+        try (var inputStream = newInputStream(path)) {
             document = withoutNamespaces(
                 newNonValidatingSaxBuilder().build(inputStream, path.toString())
             );
@@ -37,19 +36,19 @@ public class CheckstyleXmlIssuesParser implements IssuesParser {
 
         List<Issue> issues = new ArrayList<>();
 
-        for (val fileElement : document.getRootElement().getChildren("file")) {
-            val file = fileElement.getAttributeValue("name");
+        for (var fileElement : document.getRootElement().getChildren("file")) {
+            var file = fileElement.getAttributeValue("name");
             if (file == null) {
                 continue;
             }
 
-            for (val errorElement : fileElement.getChildren("error")) {
-                val message = errorElement.getAttributeValue("message");
+            for (var errorElement : fileElement.getChildren("error")) {
+                var message = errorElement.getAttributeValue("message");
                 if (isEmpty(message)) {
                     continue;
                 }
 
-                val issueBuilder = newIssueBuilder();
+                var issueBuilder = newIssueBuilder();
                 issueBuilder.sourceFile(new File(file));
                 issueBuilder.message(textMessageOf(message));
 

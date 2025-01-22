@@ -8,15 +8,14 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class JavaSerializationUtils {
 
     @SneakyThrows
     public static byte[] serializeToBytes(Object object) {
-        try (val bytesOutputStream = new ByteArrayOutputStream()) {
-            try (val outputStream = new ObjectOutputStream(bytesOutputStream)) {
+        try (var bytesOutputStream = new ByteArrayOutputStream()) {
+            try (var outputStream = new ObjectOutputStream(bytesOutputStream)) {
                 outputStream.writeObject(object);
             }
             return bytesOutputStream.toByteArray();
@@ -25,10 +24,10 @@ public abstract class JavaSerializationUtils {
 
     @SneakyThrows
     public static <T> T deserializeFrom(byte[] bytes, Class<T> type) {
-        try (val bytesInputStream = new ByteArrayInputStream(bytes)) {
-            try (val inputStream = new ObjectInputStream(bytesInputStream)) {
-                val object = inputStream.readObject();
-                val typedObject = type.cast(object);
+        try (var bytesInputStream = new ByteArrayInputStream(bytes)) {
+            try (var inputStream = new ObjectInputStream(bytesInputStream)) {
+                var object = inputStream.readObject();
+                var typedObject = type.cast(object);
                 return typedObject;
             }
         }

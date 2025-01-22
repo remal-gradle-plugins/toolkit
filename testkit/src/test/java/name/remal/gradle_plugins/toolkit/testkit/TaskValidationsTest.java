@@ -13,7 +13,6 @@ import javax.inject.Inject;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import lombok.val;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.Input;
@@ -28,9 +27,9 @@ class TaskValidationsTest {
 
     @Test
     void executeOnlyIfSpecs() {
-        val task = project.getTasks().register("test").get();
+        var task = project.getTasks().register("test").get();
 
-        val executedOnlyIfSpecs = new AtomicInteger(0);
+        var executedOnlyIfSpecs = new AtomicInteger(0);
         task.onlyIf(__ -> {
             executedOnlyIfSpecs.incrementAndGet();
             return true;
@@ -44,19 +43,19 @@ class TaskValidationsTest {
             return true;
         });
 
-        val result = TaskValidations.executeOnlyIfSpecs(task);
+        var result = TaskValidations.executeOnlyIfSpecs(task);
         assertThat(result).isFalse();
         assertThat(executedOnlyIfSpecs.get()).isEqualTo(2);
     }
 
     @Test
     void executeActions() {
-        val task = project.getTasks().register("test", TestTaskForExecuteActions.class).get();
+        var task = project.getTasks().register("test", TestTaskForExecuteActions.class).get();
 
-        val isDoFirstExecuted = new AtomicBoolean(false);
+        var isDoFirstExecuted = new AtomicBoolean(false);
         task.doFirst(__ -> isDoFirstExecuted.set(true));
 
-        val isDoLastExecuted = new AtomicBoolean(false);
+        var isDoLastExecuted = new AtomicBoolean(false);
         task.doLast(__ -> isDoLastExecuted.set(true));
 
         assertThat(task.isExecuted.get()).isFalse();
@@ -85,25 +84,25 @@ class TaskValidationsTest {
 
     @Test
     void markTaskAsSkipped() {
-        val task = project.getTasks().register("task").get();
+        var task = project.getTasks().register("task").get();
         assertDoesNotThrow(() -> TaskValidations.markTaskAsSkipped(task));
     }
 
     @Test
     void markTaskAsExecuted() {
-        val task = project.getTasks().register("task").get();
+        var task = project.getTasks().register("task").get();
         assertDoesNotThrow(() -> TaskValidations.markTaskAsExecuted(task));
     }
 
     @Test
     void markTaskDependenciesAsSkipped() {
-        val task = project.getTasks().register("task").get();
+        var task = project.getTasks().register("task").get();
         assertDoesNotThrow(() -> TaskValidations.markTaskDependenciesAsSkipped(task));
     }
 
     @Test
     void markTaskDependenciesAsExecuted() {
-        val task = project.getTasks().register("task").get();
+        var task = project.getTasks().register("task").get();
         assertDoesNotThrow(() -> TaskValidations.markTaskDependenciesAsExecuted(task));
     }
 
@@ -111,7 +110,7 @@ class TaskValidationsTest {
     @Test
     @MinSupportedGradleVersion("7.0")
     void assertNoTaskPropertiesProblems_without_problems() {
-        val task = project.getTasks().register("task", TestTaskWithoutPropertyProblems.class).get();
+        var task = project.getTasks().register("task", TestTaskWithoutPropertyProblems.class).get();
         assertDoesNotThrow(() -> TaskValidations.assertNoTaskPropertiesProblemsImpl(task, true));
     }
 
@@ -129,7 +128,7 @@ class TaskValidationsTest {
     @Test
     @MinSupportedGradleVersion("7.0")
     void assertNoTaskPropertiesProblems_with_problems() {
-        val task = project.getTasks().register("task", TestTaskWithPropertyProblems.class).get();
+        var task = project.getTasks().register("task", TestTaskWithPropertyProblems.class).get();
         assertThrows(AssertionError.class, () -> TaskValidations.assertNoTaskPropertiesProblemsImpl(task, true));
     }
 

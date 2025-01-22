@@ -16,7 +16,6 @@ import java.nio.charset.Charset;
 import java.nio.file.Path;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 import org.jetbrains.annotations.Contract;
 
 @NoArgsConstructor(access = PRIVATE)
@@ -45,7 +44,7 @@ public abstract class UrlUtils {
     @MustBeClosed
     @SneakyThrows
     public static InputStream openInputStreamForUrl(URL url) {
-        val connection = url.openConnection();
+        var connection = url.openConnection();
         connection.setUseCaches(false);
         connection.setConnectTimeout(5000);
         connection.setReadTimeout(60000);
@@ -61,13 +60,13 @@ public abstract class UrlUtils {
 
     @SneakyThrows
     public static byte[] readBytesFromUrl(URL url) {
-        try (val inputStream = openInputStreamForUrl(url)) {
+        try (var inputStream = openInputStreamForUrl(url)) {
             return toByteArray(inputStream);
         }
     }
 
     public static String readStringFromUrl(URL url, Charset charset) {
-        val bytes = readBytesFromUrl(url);
+        var bytes = readBytesFromUrl(url);
         return new String(bytes, charset);
     }
 

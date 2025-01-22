@@ -14,7 +14,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import lombok.NoArgsConstructor;
-import lombok.val;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
@@ -24,8 +23,8 @@ import org.gradle.api.file.FileTree;
 public abstract class ProjectUtils {
 
     public static Path getTopLevelDirOf(Project project) {
-        val rootProject = project.getRootProject();
-        val projectDir = normalizePath(rootProject.getProjectDir().toPath());
+        var rootProject = project.getRootProject();
+        var projectDir = normalizePath(rootProject.getProjectDir().toPath());
         if (isBuildSrcProject(project)) {
             return requireNonNull(projectDir.getParent());
         } else {
@@ -85,12 +84,12 @@ public abstract class ProjectUtils {
                 return;
             }
 
-            val fileTree = fileCollectionFactory.apply(new ArrayList<>(directories)).getAsFileTree();
+            var fileTree = fileCollectionFactory.apply(new ArrayList<>(directories)).getAsFileTree();
             directories.clear();
             addToResult.accept(fileTree);
         };
 
-        for (val file : files) {
+        for (var file : files) {
             if (file.isDirectory()) {
                 directories.add(file);
             } else if (file.isFile()) {
@@ -101,7 +100,7 @@ public abstract class ProjectUtils {
 
         addDirectoriesToResult.run();
 
-        val result = resultRef.get();
+        var result = resultRef.get();
         if (result == null) {
             return fileCollectionFactory.apply(emptyList()).getAsFileTree();
         }

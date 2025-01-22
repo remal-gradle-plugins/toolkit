@@ -5,7 +5,6 @@ import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import lombok.val;
 import name.remal.gradle_plugins.generate_sources.generators.java_like.JavaLikeContent;
 
 @RequiredArgsConstructor
@@ -27,7 +26,7 @@ public class DefaultTaskTimeoutChunkDefault<Block extends JavaLikeContent<Block>
             return "";
         }
 
-        val content = blockFactory.get();
+        var content = blockFactory.get();
         content.block("tasks.configureEach", task -> {
             task.line("timeout = Duration.parse(\"%s\")", content.escapeString(defaultTaskTimeout.toString()));
         });

@@ -16,7 +16,6 @@ import javax.annotation.Nullable;
 import lombok.CustomLog;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.internal.classloader.ClassLoaderHierarchy;
 import org.gradle.internal.classloader.ClassLoaderSpec;
@@ -56,7 +55,7 @@ public abstract class DebugUtils {
     @ReliesOnInternalGradleApi
     @SuppressWarnings("java:S3776")
     public static String dumpClassLoader(@Nullable ClassLoader classLoader) {
-        val message = new StringBuilder();
+        var message = new StringBuilder();
 
         while (true) {
             if (message.length() > 0) {
@@ -82,7 +81,7 @@ public abstract class DebugUtils {
                             message.append("\n  Empty classpath");
                         } else {
                             message.append("\n  Classpath:");
-                            for (val url : urls) {
+                            for (var url : urls) {
                                 message.append("\n    ").append(url);
                             }
                         }
@@ -95,19 +94,19 @@ public abstract class DebugUtils {
                 });
 
             } else if (classLoader instanceof URLClassLoader) {
-                val urls = ((URLClassLoader) classLoader).getURLs();
+                var urls = ((URLClassLoader) classLoader).getURLs();
                 if (isEmpty(urls)) {
                     message.append("\n  Empty classpath");
                 } else {
                     message.append("\n  Classpath:");
-                    for (val url : urls) {
+                    for (var url : urls) {
                         message.append("\n    ").append(url);
                     }
                 }
             }
 
 
-            val parentClassLoader = classLoader.getParent();
+            var parentClassLoader = classLoader.getParent();
             if (parentClassLoader != null) {
                 classLoader = parentClassLoader;
             } else {
@@ -125,12 +124,12 @@ public abstract class DebugUtils {
     @Nonnull(when = UNKNOWN)
     @SneakyThrows
     public static <T> T logTiming(String timerName, Callable<T> action) {
-        val startNanos = System.nanoTime();
+        var startNanos = System.nanoTime();
         try {
             return action.call();
 
         } finally {
-            val durationNanos = System.nanoTime() - startNanos;
+            var durationNanos = System.nanoTime() - startNanos;
             if (durationNanos <= MAX_NANOS_TO_DISPLAY_IN_NANOS) {
                 logger.quiet("{} took {} nanos", timerName, durationNanos);
             } else if (durationNanos <= MAX_NANOS_TO_DISPLAY_IN_MILLIS) {

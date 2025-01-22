@@ -8,7 +8,6 @@ import static name.remal.gradle_plugins.toolkit.issues.TextMessage.textMessageOf
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
-import lombok.val;
 import org.junit.jupiter.api.Test;
 
 class TextIssuesRendererTest {
@@ -17,7 +16,7 @@ class TextIssuesRendererTest {
 
     @Test
     void minimal() {
-        val issue = newIssueBuilder()
+        var issue = newIssueBuilder()
             .sourceFile(new File("source"))
             .message(textMessageOf("message"))
             .build();
@@ -28,8 +27,9 @@ class TextIssuesRendererTest {
     }
 
     @Test
+    @SuppressWarnings("java:S3457")
     void full() {
-        val issue = newIssueBuilder()
+        var issue = newIssueBuilder()
             .sourceFile(new File("source"))
             .message(textMessageOf("message"))
             .severity(WARNING)
