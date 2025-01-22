@@ -188,7 +188,7 @@ generateSources.forMainSourceSet.java {
                         line("throw new IllegalStateException(format(")
                         indent {
                             line("\"Min supported Java version by the plugin is %s, which is less than minimum supported Java version by toolkit: %s\",")
-                            line("currentJavaVersion,")
+                            line("minPluginJavaVersion,")
                             line("minToolkitJavaVersion")
                         }
                         line("));")
@@ -199,7 +199,7 @@ generateSources.forMainSourceSet.java {
 
                 line("Object minPluginGradleVersionUntyped = unwrapProviders(project.findProperty(\"gradle-api.min-version\"));")
                 block("if (minPluginGradleVersionUntyped instanceof GradleVersion)") {
-                    line("minPluginGradleVersionUntyped = ((GradleVersion) minPluginGradleVersionUntyped).getBaseVersion().getVersion();")
+                    line("minPluginGradleVersionUntyped = ((GradleVersion) minPluginGradleVersionUntyped).getVersion();")
                 }
                 block("if (minPluginGradleVersionUntyped != null)") {
                     line("var minPluginGradleVersion = GradleVersion.version(minPluginGradleVersionUntyped.toString()).getBaseVersion();")
@@ -207,7 +207,7 @@ generateSources.forMainSourceSet.java {
                         line("throw new IllegalStateException(format(")
                         indent {
                             line("\"Min supported Gradle version by the plugin is %s, which is less than minimum supported Gradle version by toolkit: %s\",")
-                            line("currentGradleVersion.getVersion(),")
+                            line("minPluginGradleVersion.getVersion(),")
                             line("minToolkitGradleVersion.getVersion()")
                         }
                         line("));")
