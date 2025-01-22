@@ -1,7 +1,6 @@
 package name.remal.gradle_plugins.toolkit;
 
 import static java.lang.String.format;
-import static java.util.Collections.unmodifiableList;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static lombok.AccessLevel.PRIVATE;
@@ -38,6 +37,7 @@ import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.CompileClasspathNormalizer;
 import org.gradle.api.tasks.Console;
+import org.gradle.api.tasks.Destroys;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
@@ -60,8 +60,9 @@ import org.gradle.work.NormalizeLineEndings;
 public abstract class TaskPropertiesUtils {
 
     @SuppressWarnings("unchecked")
-    private static final List<Class<? extends Annotation>> UNSUPPORTED_ANNOTATIONS = (List) Stream.of(
-            getClassName(Incremental.class)
+    private static final List<Class<? extends Annotation>> UNSUPPORTED_ANNOTATIONS = Stream.of(
+            getClassName(Incremental.class),
+            getClassName(Destroys.class)
         )
         .map(className -> {
             try {
@@ -71,10 +72,11 @@ public abstract class TaskPropertiesUtils {
             }
         })
         .filter(Objects::nonNull)
+        .map(clazz -> (Class<? extends Annotation>) clazz)
         .collect(toUnmodifiableList());
 
     @SuppressWarnings("unchecked")
-    private static final List<Class<? extends Annotation>> INPUT_ANNOTATIONS = (List) unmodifiableList(Stream.of(
+    private static final List<Class<? extends Annotation>> INPUT_ANNOTATIONS = Stream.of(
             getClassName(Input.class),
             getClassName(InputDirectory.class),
             getClassName(InputFile.class),
@@ -89,10 +91,11 @@ public abstract class TaskPropertiesUtils {
             }
         })
         .filter(Objects::nonNull)
-        .collect(toUnmodifiableList()));
+        .map(clazz -> (Class<? extends Annotation>) clazz)
+        .collect(toUnmodifiableList());
 
     @SuppressWarnings("unchecked")
-    private static final List<Class<? extends Annotation>> OUTPUT_ANNOTATIONS = (List) Stream.of(
+    private static final List<Class<? extends Annotation>> OUTPUT_ANNOTATIONS = Stream.of(
             getClassName(OutputDirectories.class),
             getClassName(OutputDirectory.class),
             getClassName(OutputFile.class),
@@ -106,10 +109,11 @@ public abstract class TaskPropertiesUtils {
             }
         })
         .filter(Objects::nonNull)
+        .map(clazz -> (Class<? extends Annotation>) clazz)
         .collect(toUnmodifiableList());
 
     @SuppressWarnings("unchecked")
-    private static final List<Class<? extends Annotation>> IGNORE_ANNOTATIONS = (List) Stream.of(
+    private static final List<Class<? extends Annotation>> IGNORE_ANNOTATIONS = Stream.of(
             getClassName(Internal.class),
             getClassName(Console.class)
         )
@@ -121,6 +125,7 @@ public abstract class TaskPropertiesUtils {
             }
         })
         .filter(Objects::nonNull)
+        .map(clazz -> (Class<? extends Annotation>) clazz)
         .collect(toUnmodifiableList());
 
     private static final List<Class<? extends Annotation>> ALL_ANNOTATIONS = Stream.of(
@@ -249,6 +254,7 @@ public abstract class TaskPropertiesUtils {
         } else if (method.isAnnotationPresent(Nested.class)) {
             if (Provider.class.isAssignableFrom(method.getReturnType())) {
                 var invokable = TypeToken.of(propertiesContainerType).method(method);
+                @SuppressWarnings("rawtypes")
                 var returnType = invokable.getReturnType().getSupertype((Class) Provider.class).getType();
                 if (returnType instanceof ParameterizedType) {
                     var nestedType = ((ParameterizedType) returnType).getActualTypeArguments()[0];
