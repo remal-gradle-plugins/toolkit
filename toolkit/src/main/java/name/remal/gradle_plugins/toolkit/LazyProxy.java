@@ -322,10 +322,7 @@ public abstract class LazyProxy {
         classNode.accept(classVisitor);
         var bytecode = classWriter.toByteArray();
 
-        ClassLoader classLoader = interfaceClass.getClassLoader();
-        if (classLoader == null) {
-            classLoader = LazyProxy.class.getClassLoader();
-        }
+        var classLoader = LazyProxy.class.getClassLoader();
 
         return defineClass(classLoader, bytecode);
     }
