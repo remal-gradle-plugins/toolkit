@@ -38,6 +38,7 @@ allprojects {
                     'java:S3077', // Non-primitive fields should not be "volatile"
                     'java:S3516', // Methods returns should not be invariant
                     'java:S5042', // Expanding archive files without controlling resource consumption is security-sensitive
+                    'java:S5411', // Avoid using boxed "Boolean" types directly in boolean expressions
                     'java:S5852', // Using slow regular expressions is security-sensitive
                     'java:S5976', // Similar tests should be grouped in a single Parameterized test
                     'java:S5993', // Constructors of an "abstract" class should not be declared "public"
