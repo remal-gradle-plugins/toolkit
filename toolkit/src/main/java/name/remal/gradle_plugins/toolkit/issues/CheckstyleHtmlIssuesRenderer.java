@@ -26,10 +26,6 @@ public class CheckstyleHtmlIssuesRenderer implements IssuesRenderer {
         this.toolName = toolName;
     }
 
-    public CheckstyleHtmlIssuesRenderer() {
-        this("");
-    }
-
     @Override
     @SneakyThrows
     @SuppressWarnings("java:S2755")
