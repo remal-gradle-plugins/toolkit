@@ -84,7 +84,6 @@ List<String> includedBuildScripts = [
     'gradle/java.gradle',
     'gradle/javaagent.gradle',
     'gradle/generate-sources.gradle',
-    'gradle/test-external-plugins.gradle',
     'gradle/lombok.gradle',
     'gradle/errorprone.gradle',
     'gradle/build-time-constants.gradle',
