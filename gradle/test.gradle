@@ -167,10 +167,17 @@ allprojects {
 
 
         project.testSourceSets.all { SourceSet sourceSet ->
+            String additionalClasspathConfName = "${sourceSet.name}AdditionalClasspath"
+            configurations.create(additionalClasspathConfName) { Configuration conf ->
+                conf.canBeResolved = true
+                conf.canBeConsumed = false
+            }
+
             String testType = sourceSet.name.replaceFirst(/Test$/, '')
             if (sourceSet.name == 'test') {
                 testType = 'unit'
             }
+
             tasks.named(sourceSet.name, Test).configure { Test task ->
                 task.environment('NAME_REMAL_GRADLE_PLUGINS_TEST', 'true')
                 task.environment("NAME_REMAL_GRADLE_PLUGINS_TEST_${testType.toUpperCase()}", 'true')
@@ -182,6 +189,7 @@ allprojects {
                     ; [
                         sourceSet.compileClasspathConfigurationName,
                         sourceSet.runtimeClasspathConfigurationName,
+                        additionalClasspathConfName,
                     ].collect { configurations[it] }.forEach { conf ->
                         conf.resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { resolvedDep ->
                             String notation = "${resolvedDep.moduleGroup}:${resolvedDep.moduleName}".toString()
