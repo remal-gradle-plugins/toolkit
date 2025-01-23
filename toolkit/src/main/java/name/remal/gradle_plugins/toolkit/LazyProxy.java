@@ -177,7 +177,7 @@ public abstract class LazyProxy {
     static {
         try {
             LAZY_VALUE_GET_METHOD = LazyValue.class.getMethod("get");
-            OBJECT_METHODS_TO_IMPLEMENT = singletonList(
+            OBJECT_METHODS_TO_IMPLEMENT = List.of(
                 Object.class.getMethod("toString")
             );
         } catch (NoSuchMethodException e) {

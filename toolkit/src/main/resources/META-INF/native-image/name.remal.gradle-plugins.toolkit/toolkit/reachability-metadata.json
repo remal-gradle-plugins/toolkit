@@ -1,0 +1,17 @@
+{
+  "$schema": "https://www.graalvm.org/docs/reference-manual/native-image/assets/reachability-metadata-schema-v1.0.0.json",
+  "reflection": [
+    {
+      "type": "name.remal.gradle_plugins.toolkit.LazyValue",
+      "condition": {
+        "typeReached": "name.remal.gradle_plugins.toolkit.LazyProxy"
+      },
+      "methods": [
+        {
+          "name": "get",
+          "parameterTypes": []
+        }
+      ]
+    }
+  ]
+}
