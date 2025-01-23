@@ -158,7 +158,7 @@ allprojects {
     project.ext['repository-description'] = getCiProperty('repository-description', '', true)
     project.ext['repository-topics'] = getCiProperty('repository-topics', '', true)
     project.ext['repository-is-template'] = getCiProperty('repository-is-template', '', true)
-    project.ext['repository-owner-name'] = getCiProperty('repository-name', { project.ext['repository-full-name'].replaceFirst('/.*$', '') }, true)
+    project.ext['repository-owner'] = getCiProperty('repository-owner', { project.ext['repository-full-name'].replaceFirst('/.*$', '') }, true)
     project.ext['repository-license-name'] = getCiProperty('repository-license-name', '', true)
     project.ext['repository-license-html-url'] = getCiProperty('repository-license-html-url', '', true)
 

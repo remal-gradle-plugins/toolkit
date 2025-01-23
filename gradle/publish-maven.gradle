@@ -20,9 +20,9 @@ allprojects {
 
             pom {
                 String displayName = property('repository-name')
-                String ownerName = property('repository-owner-name')
-                if (!ownerName.isEmpty()) {
-                    displayName = "$ownerName: $displayName"
+                String repoOwner = property('repository-owner')
+                if (!repoOwner.isEmpty()) {
+                    displayName = "$repoOwner: $displayName"
                 }
                 String subProjectName = project.path.substring(1).replace(':', ': ')
                 if (!subProjectName.isEmpty()) {
