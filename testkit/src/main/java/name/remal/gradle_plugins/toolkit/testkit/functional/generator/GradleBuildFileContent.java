@@ -12,10 +12,6 @@ import name.remal.gradle_plugins.toolkit.testkit.functional.generator.chunks.Wit
 public interface GradleBuildFileContent<Block extends JavaLikeContent<Block>>
     extends GradleFileContent<Block>, WithDefaultTaskTimeout {
 
-    default void addMavenCentralRepository() {
-        line("repositories { mavenCentral() }");
-    }
-
     default void addBuildDirMavenRepositories() {
         block("repositories", repos -> {
             getBuildDirMavenRepositories().stream()
