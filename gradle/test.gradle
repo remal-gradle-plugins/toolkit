@@ -178,7 +178,7 @@ allprojects {
                 testType = 'unit'
             }
 
-            tasks.named(sourceSet.name, Test).configure { Test task ->
+            tasks.named(sourceSet.name, Test) { Test task ->
                 task.environment('NAME_REMAL_GRADLE_PLUGINS_TEST', 'true')
                 task.environment("NAME_REMAL_GRADLE_PLUGINS_TEST_${testType.toUpperCase()}", 'true')
 
@@ -191,6 +191,7 @@ allprojects {
                         sourceSet.runtimeClasspathConfigurationName,
                         additionalClasspathConfName,
                     ].collect { configurations[it] }.forEach { conf ->
+                        conf.files // check that the configuration is fully resolvable
                         conf.resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { resolvedDep ->
                             String notation = "${resolvedDep.moduleGroup}:${resolvedDep.moduleName}".toString()
                             if (!processedNotations.add(notation)) {
