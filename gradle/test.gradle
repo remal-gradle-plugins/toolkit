@@ -173,6 +173,12 @@ allprojects {
                 conf.canBeConsumed = false
             }
 
+            Collection<String> testClasspathConfNames = [
+                sourceSet.compileClasspathConfigurationName,
+                sourceSet.runtimeClasspathConfigurationName,
+                additionalClasspathConfName,
+            ]
+
             String testType = sourceSet.name.replaceFirst(/Test$/, '')
             if (sourceSet.name == 'test') {
                 testType = 'unit'
@@ -182,16 +188,18 @@ allprojects {
                 task.environment('NAME_REMAL_GRADLE_PLUGINS_TEST', 'true')
                 task.environment("NAME_REMAL_GRADLE_PLUGINS_TEST_${testType.toUpperCase()}", 'true')
 
+                Collection<Configuration> testClasspathConfs = testClasspathConfNames.collect { configurations[it] }
+                testClasspathConfs.forEach { conf ->
+                    task.inputs.files(conf).withPropertyName("testClasspathConf.${conf.name}").optional()
+                }
+
                 task.onlyIf {
                     Properties testClasspathProperties = new Properties()
 
                     Set<String> processedNotations = new LinkedHashSet<>()
-                    ; [
-                        sourceSet.compileClasspathConfigurationName,
-                        sourceSet.runtimeClasspathConfigurationName,
-                        additionalClasspathConfName,
-                    ].collect { configurations[it] }.forEach { conf ->
-                        conf.files // check that the configuration is fully resolvable
+                    testClasspathConfs.forEach { conf ->
+                        conf.resolvedConfiguration.rethrowFailure() // check that the configuration is fully resolvable
+
                         conf.resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { resolvedDep ->
                             String notation = "${resolvedDep.moduleGroup}:${resolvedDep.moduleName}".toString()
                             if (!processedNotations.add(notation)) {
