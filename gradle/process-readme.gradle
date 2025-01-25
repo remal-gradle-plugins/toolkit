@@ -151,4 +151,6 @@ allprojects {
     }
 
     processReadme.get()
+
+    tasks.named('pushBackTasks') { dependsOn(processReadme) }
 }

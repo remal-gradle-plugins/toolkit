@@ -44,7 +44,7 @@ ideaSettings {
     }
 }
 
-tasks.named('processIdeaSettings') {
+TaskProvider processIdeaSettings = tasks.named('processIdeaSettings') {
     if (project.isRunningOnCi) {
         doFirst {
             String jsonString = new JsonBuilder([ideaDirPath: rootProject.file('.idea').absolutePath]).toPrettyString()
@@ -52,3 +52,5 @@ tasks.named('processIdeaSettings') {
         }
     }
 }
+
+tasks.named('pushBackTasks') { dependsOn(processIdeaSettings) }

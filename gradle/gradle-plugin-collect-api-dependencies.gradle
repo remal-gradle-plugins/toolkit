@@ -126,7 +126,7 @@ allprojects {
     }
 }
 
-tasks.create('collectAllGradlePluginApiDependencies') { Task task ->
+TaskProvider collectAllGradlePluginApiDependencies = tasks.register('collectAllGradlePluginApiDependencies') { Task task ->
     Closure<List<Task>> getCollectGradlePluginApiDependenciesTasks = {
         project.allprojects
             .findAll { it.pluginManager.hasPlugin('java-gradle-plugin') }
@@ -170,3 +170,7 @@ tasks.create('collectAllGradlePluginApiDependencies') { Task task ->
         )
     }
 }
+
+collectAllGradlePluginApiDependencies.get()
+
+tasks.named('pushBackTasks') { dependsOn(collectAllGradlePluginApiDependencies) }

@@ -74,6 +74,8 @@ allprojects {
         dependsOn(project.tasks.matching { it.name == 'publishToMavenLocal' })
     }
 
+    tasks.register('pushBackTasks')
+
 
     afterEvaluate {
         if (property('disable-compilation')?.toString()?.toBoolean()) {
