@@ -41,114 +41,113 @@ allprojects {
             return extraProps
         }).with { it.finalizeValueOnRead(); it }
 
-        task.ext.readmeFileProcessors.add(
-            { File readmeFile ->
-                String content = readmeFile.getText('UTF-8')
+        task.ext.readmeFileProcessors.add({ File readmeFile ->
+            String content = readmeFile.getText('UTF-8')
 
-                content = content.replaceAll(
-                    /<!--\s*((?:code-)?property)\s*:\s*([^>]+?)\s*-->[\s\S]*?<!--\s*\/\s*\1\s*-->/
-                ) {
-                    String tag = it[1]
-                    String property = it[2]
-                    logger.lifecycle('  Handling {}: {}', tag, property)
-                    Object propertyValueObj = unwrapProviders(
-                        projectExtraProperties.getting(property)
-                            .orElse(providers.gradleProperty(property))
-                            .get()
-                    )
-                    String propertyValue = propertyValueObj?.toString()
-                    if (tag.contains('code-')) {
-                        propertyValue = "`$propertyValue`"
-                    }
-                    logger.lifecycle('    Value: {}', propertyValue)
-                    return "<!--$tag:$property-->$propertyValue<!--/$tag-->"
+            content = content.replaceAll(
+                /<!--\s*((?:code-)?property)\s*:\s*([^>]+?)\s*-->[\s\S]*?<!--\s*\/\s*\1\s*-->/
+            ) {
+                String tag = it[1]
+                String property = it[2]
+                logger.lifecycle('  Handling {}: {}', tag, property)
+                Object propertyValueObj = unwrapProviders(
+                    projectExtraProperties.getting(property)
+                        .orElse(providers.gradleProperty(property))
+                        .get()
+                )
+                String propertyValue = propertyValueObj?.toString()
+                if (tag.contains('code-')) {
+                    propertyValue = "`$propertyValue`"
                 }
-
-                readmeFile.setText(content, 'UTF-8')
+                logger.lifecycle('    Value: {}', propertyValue)
+                return "<!--$tag:$property-->$propertyValue<!--/$tag-->"
             }
-        )
 
-        task.ext.readmeFileProcessors.add(
-            { File readmeFile ->
-                String content = readmeFile.getText('UTF-8')
+            readmeFile.setText(content, 'UTF-8')
+        })
 
-                content = content.replaceAll(
-                    /<!--\s*(iterable-(?:code-)?property)\s*:\s*([^>]+?)\s*-->[\s\S]*?<!--\s*\/\s*\1\s*-->/
-                ) {
-                    String tag = it[1]
-                    String property = it[2]
-                    logger.lifecycle('  Handling {}: {}', tag, property)
-                    Object propertyValueObj = unwrapProviders(
-                        projectExtraProperties.getting(property)
-                            .orElse(providers.gradleProperty(property))
-                            .get()
-                    )
-                    if (!(propertyValueObj instanceof Iterable)) {
-                        throw new GradleException("`$property` property is not iterable: ${propertyValueObj?.class}")
-                    }
-                    if (tag.contains('code-')) {
-                        propertyValueObj = propertyValueObj.collect { "`$it`" }
-                    }
-                    String propertyValue = propertyValueObj.collect { "\n* $it" }.join('') + '\n'
-                    return "<!--$tag:$property-->$propertyValue<!--/$tag-->"
+        task.ext.readmeFileProcessors.add({ File readmeFile ->
+            String content = readmeFile.getText('UTF-8')
+
+            content = content.replaceAll(
+                /<!--\s*(iterable-(?:code-)?property)\s*:\s*([^>]+?)\s*-->[\s\S]*?<!--\s*\/\s*\1\s*-->/
+            ) {
+                String tag = it[1]
+                String property = it[2]
+                logger.lifecycle('  Handling {}: {}', tag, property)
+                Object propertyValueObj = unwrapProviders(
+                    projectExtraProperties.getting(property)
+                        .orElse(providers.gradleProperty(property))
+                        .get()
+                )
+                if (!(propertyValueObj instanceof Iterable)) {
+                    throw new GradleException("`$property` property is not iterable: ${propertyValueObj?.class}")
                 }
-
-                readmeFile.setText(content, 'UTF-8')
-            }
-        )
-
-        task.ext.readmeFileProcessors.add(
-            { File readmeFile ->
-                String content = readmeFile.getText('UTF-8')
-
-                content = content.replaceAll(
-                    /<!--\s*(include(?:-([^:>]+))?)\s*:\s*([^>]+?)\s*-->[\s\S]*?<!--\s*\/\s*\1\s*-->/
-                ) {
-                    String tag = it[1]
-                    String lang = it[2] ?: ''
-                    String filePath = it[3]
-                    logger.lifecycle('  Handling {}{}: {}', tag, lang.isEmpty() ? '' : " ($lang)", filePath)
-                    File file = readmeFile.parentFile.toPath().resolve(filePath).toFile()
-                    String includeContent = file.getText('UTF-8')
-                        .replace('\r\n', '\n')
-                        .replace('\n\r', '\n')
-                        .replace('\r', '\n')
-                    while (includeContent.startsWith('\n')) {
-                        includeContent = includeContent.substring(1)
-                    }
-                    while (includeContent.endsWith('\n')) {
-                        includeContent = includeContent.substring(0, includeContent.length() - 1)
-                    }
-                    return "<!--$tag:$filePath-->\n```$lang\n$includeContent\n```\n<!--/$tag -->"
+                propertyValueObj = (propertyValueObj as Iterable).collect()
+                if (tag.contains('code-')) {
+                    propertyValueObj = propertyValueObj.collect { "`$it`" }
                 }
-
-                readmeFile.setText(content, 'UTF-8')
-            }
-        )
-
-        task.ext.readmeFileProcessors.add(
-            { File readmeFile ->
-                String content = readmeFile.getText('UTF-8')
-
-                content = content.replaceAll(
-                    /<!--\s*(plugin-usage(?:-(?:groovy|kotlin))?)\s*:\s*([^>]+?)\s*-->[\s\S]*?<!--\s*\/\s*\1\s*-->/
-                ) {
-                    String tag = it[1]
-                    String pluginId = it[2]
-                    logger.lifecycle('  Handling {}: {}', tag, pluginId)
-                    String lastVersion = getPluginLastVersionWithCurrentAsFallback(pluginId)
-                    String usage = ''
-                    if (tag.endsWith('-kotlin')) {
-                        usage = "```kotlin\nplugins {\n    id(\"$pluginId\") version \"$lastVersion\"\n}\n```"
-                    } else {
-                        usage = "```groovy\nplugins {\n    id '$pluginId' version '$lastVersion'\n}\n```"
-                    }
-                    return "<!--$tag:$pluginId-->\n$usage\n<!--/$tag-->"
+                if (propertyValueObj.isEmpty()) {
+                    logger.lifecycle('    No values')
+                } else {
+                    logger.lifecycle('    Values:')
+                    propertyValueObj.forEach { logger.lifecycle('    - {}', it) }
                 }
-
-                readmeFile.setText(content, 'UTF-8')
+                String propertyValue = propertyValueObj.collect { "\n* $it" }.join('') + '\n'
+                return "<!--$tag:$property-->$propertyValue<!--/$tag-->"
             }
-        )
+
+            readmeFile.setText(content, 'UTF-8')
+        })
+
+        task.ext.readmeFileProcessors.add({ File readmeFile ->
+            String content = readmeFile.getText('UTF-8')
+
+            content = content.replaceAll(
+                /<!--\s*(include(?:-([^:>]+))?)\s*:\s*([^>]+?)\s*-->[\s\S]*?<!--\s*\/\s*\1\s*-->/
+            ) {
+                String tag = it[1]
+                String lang = it[2] ?: ''
+                String filePath = it[3]
+                logger.lifecycle('  Handling {}{}: {}', tag, lang.isEmpty() ? '' : " ($lang)", filePath)
+                File file = readmeFile.parentFile.toPath().resolve(filePath).toFile()
+                String includeContent = file.getText('UTF-8')
+                    .replace('\r\n', '\n')
+                    .replace('\n\r', '\n')
+                    .replace('\r', '\n')
+                while (includeContent.startsWith('\n')) {
+                    includeContent = includeContent.substring(1)
+                }
+                while (includeContent.endsWith('\n')) {
+                    includeContent = includeContent.substring(0, includeContent.length() - 1)
+                }
+                return "<!--$tag:$filePath-->\n```$lang\n$includeContent\n```\n<!--/$tag -->"
+            }
+
+            readmeFile.setText(content, 'UTF-8')
+        })
+
+        task.ext.readmeFileProcessors.add({ File readmeFile ->
+            String content = readmeFile.getText('UTF-8')
+
+            content = content.replaceAll(
+                /<!--\s*(plugin-usage(?:-(?:groovy|kotlin))?)\s*:\s*([^>]+?)\s*-->[\s\S]*?<!--\s*\/\s*\1\s*-->/
+            ) {
+                String tag = it[1]
+                String pluginId = it[2]
+                logger.lifecycle('  Handling {}: {}', tag, pluginId)
+                String lastVersion = getPluginLastVersionWithCurrentAsFallback(pluginId)
+                String usage = ''
+                if (tag.endsWith('-kotlin')) {
+                    usage = "```kotlin\nplugins {\n    id(\"$pluginId\") version \"$lastVersion\"\n}\n```"
+                } else {
+                    usage = "```groovy\nplugins {\n    id '$pluginId' version '$lastVersion'\n}\n```"
+                }
+                return "<!--$tag:$pluginId-->\n$usage\n<!--/$tag-->"
+            }
+
+            readmeFile.setText(content, 'UTF-8')
+        })
     }
 
     processReadme.get()
