@@ -13,13 +13,6 @@ import org.jetbrains.annotations.Contract;
 public abstract class PredicateUtils {
 
     @Contract(pure = true)
-    @SuppressWarnings("unchecked")
-    public static <T> Predicate<T> not(Predicate<? super T> target) {
-        return (Predicate<T>) target.negate();
-    }
-
-
-    @Contract(pure = true)
     public static <T> Predicate<T> equalsTo(@Nullable T value) {
         return object -> Objects.equals(object, value);
     }
