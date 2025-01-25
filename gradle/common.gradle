@@ -4,6 +4,9 @@ import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_
 import java.time.Duration
 
 allprojects {
+    // Disable cache for JAR connections:
+    new URL("jar", "", "file:test.jar!/resource.txt").openConnection().setDefaultUseCaches(false)
+
     apply plugin: 'name.remal.merge-resources'
 
     configurations.configureEach { Configuration conf ->
