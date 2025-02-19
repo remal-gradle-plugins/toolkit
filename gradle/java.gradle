@@ -157,20 +157,30 @@ allprojects {
 
         tasks.matching({ it instanceof HasCompileOptions }).configureEach { HasCompileOptions task ->
             task.options.with {
-                it.fork = false
-                it.incremental = false
-                it.encoding = 'UTF-8'
-                it.deprecation = true
-                it.compilerArgs.addAll(
-                    [
-                        '-parameters',
-                        '-Werror',
-                        '-Xlint:all',
-                        '-Xlint:-rawtypes',
-                        '-Xlint:-serial',
-                        '-Xlint:-processing',
-                    ]
-                )
+                fork = false
+                incremental = false
+                encoding = 'UTF-8'
+                deprecation = true
+                compilerArgs.addAll([
+                    '-parameters',
+                    '-Werror',
+                    '-Xlint:all',
+                    '-Xlint:-rawtypes',
+                    '-Xlint:-serial',
+                    '-Xlint:-processing',
+                ])
+            }
+
+            if (task instanceof JavaCompile) {
+                task.onlyIf {
+                    int compilerLanguageVersion = task.javaCompiler.get().metadata.languageVersion.asInt()
+                    if (compilerLanguageVersion >= 21) {
+                        task.options.compilerArgs.addAll([
+                            '-Xlint:-this-escape',
+                        ])
+                    }
+                    return true
+                }
             }
         }
 
