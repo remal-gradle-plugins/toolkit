@@ -105,7 +105,12 @@ public abstract class TaskValidations {
             }
 
             var taskNode = getLocalTaskNode(task);
-            taskNode.resolveMutations();
+
+            @SuppressWarnings("unchecked")
+            var resolveMutations = findMethod((Class<LocalTaskNode>) taskNode.getClass(), "resolveMutations");
+            if (resolveMutations != null) {
+                resolveMutations.invoke(taskNode);
+            }
 
             var validationContext = taskNode.getValidationContext();
             var typeValidationContext = validationContext.forType(taskType, false);
