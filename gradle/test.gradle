@@ -54,7 +54,7 @@ allprojects {
             conf.canBeResolved = false
             conf.canBeConsumed = false
             conf.dependencies.addAll([
-                project.dependencies.platform('org.mockito:mockito-bom:5.16.0'),
+                project.dependencies.platform('org.mockito:mockito-bom:5.16.1'),
                 project.dependencies.create('org.mockito:mockito-junit-jupiter'),
             ])
             configurations.testImplementation.extendsFrom(conf)
