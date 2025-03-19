@@ -10,7 +10,7 @@ name.remal.gradle-plugins.generate-sources:generate-sources:2.0.0-rc-3
 name.remal.gradle-plugins.idea-settings:idea-settings:4.0.1
 name.remal.gradle-plugins.lombok:lombok:3.0.0
 name.remal.gradle-plugins.merge-resources:merge-resources:5.0.1
-name.remal.gradle-plugins.sonarlint:sonarlint:5.1.6
+name.remal.gradle-plugins.sonarlint:sonarlint:5.1.7
 name.remal.gradle-plugins.test-source-sets:test-source-sets:5.0.0
 net.ltgt.gradle:gradle-errorprone-plugin:4.1.0
 org.eclipse.jgit:org.eclipse.jgit:6.10.0.202406032230-r
@@ -110,7 +110,7 @@ zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.SonarLintPlugin$OutputDirsAndLibraries$OutputDirsAndLibrariesBuilder:855ed42e496d68cc663f0a1670ed9585d4f4583ea361430a150da4cd96e5c7b
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.SonarLintPlugin$OutputDirsAndLibraries:7e879812c8671d0e0a938f5f787883c17c3caffa63112dc0308abdeb237c373f
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.SonarLintPlugin:30396d36ed1bf8210b4ebdd43092d783a811a0d9783bbab575f0d1652f915210
-zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.SonarLintPluginBuildInfo:d2d4e23a65fc8a2ae6bef50769bd6b2814a1a3f028bf45afc1f76f0ca4139122
+zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.SonarLintPluginBuildInfo:eccadb704b07266e7c76824314469d6045bbd40acecd837a3f9db081d1552fb8
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils$1:279cb4e41971557b91f1fcd8bcf5f50011686832fddd94852c52c951a8159b7c
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils$IfDebugEnabled:f51967382f5b61c75ecf8eda8e22f452d55ff8ff278fe16322ad570570c9a93a
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils:7ee7cdc18cd9199c6112cca7cf38febddf9ee446300c6f8bd2dd7b480ddfe1c2
