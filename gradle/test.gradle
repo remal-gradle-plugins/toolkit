@@ -196,6 +196,31 @@ allprojects {
                 task.onlyIf {
                     Properties testClasspathProperties = new Properties()
 
+                    Closure<Collection<String>> getAllResolvedDependencyPaths = { ResolvedDependency rootResolvedDep ->
+                        Set<String> paths = new LinkedHashSet<>()
+
+                        Deque<ResolvedDependency> resolvedDepsQueue = new ArrayDeque<>()
+                        resolvedDepsQueue.addLast(rootResolvedDep)
+
+                        Set<ResolvedDependency> processedResolvedDeps = new LinkedHashSet<>(resolvedDepsQueue)
+                        while (true) {
+                            ResolvedDependency resolvedDep = resolvedDepsQueue.pollFirst()
+                            if (resolvedDep == null) {
+                                break
+                            }
+
+                            paths.addAll(resolvedDep.moduleArtifacts.collect { it.file.absolutePath })
+
+                            resolvedDep.children.forEach { childResolvedDep ->
+                                if (processedResolvedDeps.add(childResolvedDep)) {
+                                    resolvedDepsQueue.addLast(childResolvedDep)
+                                }
+                            }
+                        }
+
+                        return paths
+                    }
+
                     Set<String> processedNotations = new LinkedHashSet<>()
                     testClasspathConfs.forEach { conf ->
                         conf.resolvedConfiguration.rethrowFailure() // check that the configuration is fully resolvable
@@ -209,7 +234,7 @@ allprojects {
                             testClasspathProperties.setProperty("${notation}|version", resolvedDep.moduleVersion)
                             testClasspathProperties.setProperty("${notation}|full-notation", "${notation}:${resolvedDep.moduleVersion}")
 
-                            String paths = resolvedDep.allModuleArtifacts.collect { it.file.absolutePath }.join('\n')
+                            String paths = getAllResolvedDependencyPaths(resolvedDep).join('\n')
                             testClasspathProperties.setProperty("${notation}|paths", paths)
 
                             //String withoutDependenciesPaths = resolvedDep.moduleArtifacts.collect { it.file.absolutePath }.join('\n')
