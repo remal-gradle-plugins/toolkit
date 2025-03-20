@@ -112,6 +112,7 @@ class MembersFinderHelpersTest {
 
     @Test
     void void_return_type_without_params() throws Throwable {
+        @SuppressWarnings("UnusedMethod")
         class Example {
             public void method() {
             }
@@ -140,6 +141,7 @@ class MembersFinderHelpersTest {
 
     @Test
     void void_return_type_with_params() throws Throwable {
+        @SuppressWarnings("UnusedMethod")
         class Example {
             public void method(int param) {
             }
@@ -168,6 +170,7 @@ class MembersFinderHelpersTest {
 
     @Test
     void int_return_type_without_params() throws Throwable {
+        @SuppressWarnings("UnusedMethod")
         class Example {
             public int method() {
                 throw new UnsupportedOperationException();
@@ -202,6 +205,7 @@ class MembersFinderHelpersTest {
 
     @Test
     void int_return_type_with_params() throws Throwable {
+        @SuppressWarnings("UnusedMethod")
         class Example {
             public int method(int param) {
                 throw new UnsupportedOperationException();
@@ -236,6 +240,7 @@ class MembersFinderHelpersTest {
 
     @Test
     void return_type_differentiate() throws Throwable {
+        @SuppressWarnings("UnusedMethod")
         class Example {
             public int method(int param) {
                 throw new UnsupportedOperationException();
@@ -267,6 +272,7 @@ class MembersFinderHelpersTest {
 
     @Test
     void params_compatibility() throws Throwable {
+        @SuppressWarnings("UnusedMethod")
         class Example {
             public void method(List<?> param) {
             }

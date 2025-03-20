@@ -21,6 +21,8 @@ allprojects {
             options.errorprone {
                 disableWarningsInGeneratedCode = true
                 disable(
+                    'AssignmentExpression', // too strict rule
+                    'StringConcatToTextBlock', // buggy with Lombok
                     'JavaxInjectOnAbstractMethod', // false positives with Gradle
                     'InjectOnConstructorOfAbstractClass', // false positives with Gradle
                     'MissingSummary', // we don't write JavaDocs everywhere
