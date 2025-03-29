@@ -42,7 +42,7 @@ buildscript {
     addRootBuildscriptDependencies(
         'rootBuildscriptLibraryDependencies',
         [
-            dependencies.platform('org.ow2.asm:asm-bom:9.7.1'),
+            dependencies.platform('org.ow2.asm:asm-bom:9.8'),
             'org.ow2.asm:asm',
             'org.ow2.asm:asm-tree',
             'org.ow2.asm:asm-analysis',
