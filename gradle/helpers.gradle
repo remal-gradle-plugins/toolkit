@@ -141,6 +141,31 @@ project.ext.isInstanceOf = { Object object, String parentClassName ->
     return parentClass.isInstance(object)
 }
 
+project.ext.getAllResolvedDependencyFiles = { ResolvedDependency rootResolvedDep ->
+    Set<File> files = new LinkedHashSet<>()
+
+    Deque<ResolvedDependency> resolvedDepsQueue = new ArrayDeque<>()
+    resolvedDepsQueue.addLast(rootResolvedDep)
+
+    Set<ResolvedDependency> processedResolvedDeps = new LinkedHashSet<>(resolvedDepsQueue)
+    while (true) {
+        ResolvedDependency resolvedDep = resolvedDepsQueue.pollFirst()
+        if (resolvedDep == null) {
+            break
+        }
+
+        files.addAll(resolvedDep.moduleArtifacts.collect { it.file.absoluteFile })
+
+        resolvedDep.children.forEach { childResolvedDep ->
+            if (processedResolvedDeps.add(childResolvedDep)) {
+                resolvedDepsQueue.addLast(childResolvedDep)
+            }
+        }
+    }
+
+    return files
+}
+
 project.ext.disableTask = { Task task ->
     task.enabled = false
     task.onlyIf { false }
