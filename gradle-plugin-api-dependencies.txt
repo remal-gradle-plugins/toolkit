@@ -9,7 +9,7 @@ name.remal.gradle-plugins.classes-relocation:classes-relocation:2.0.0-rc-6
 name.remal.gradle-plugins.generate-sources:generate-sources:2.0.0-rc-3
 name.remal.gradle-plugins.idea-settings:idea-settings:4.0.2
 name.remal.gradle-plugins.lombok:lombok:3.0.0
-name.remal.gradle-plugins.merge-resources:merge-resources:5.0.1
+name.remal.gradle-plugins.merge-resources:merge-resources:5.0.2
 name.remal.gradle-plugins.sonarlint:sonarlint:5.1.8
 name.remal.gradle-plugins.test-source-sets:test-source-sets:5.0.0
 net.ltgt.gradle:gradle-errorprone-plugin:4.1.0
