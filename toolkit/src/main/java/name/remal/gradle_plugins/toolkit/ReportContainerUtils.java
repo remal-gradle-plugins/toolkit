@@ -1,6 +1,5 @@
 package name.remal.gradle_plugins.toolkit;
 
-import static com.google.common.base.CaseFormat.LOWER_CAMEL;
 import static com.google.common.base.CaseFormat.LOWER_HYPHEN;
 import static com.google.common.base.CaseFormat.UPPER_CAMEL;
 import static java.lang.Character.isLowerCase;
@@ -12,16 +11,15 @@ import static java.util.stream.Collectors.toUnmodifiableList;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.BytecodeTestUtils.wrapWithTestClassVisitors;
 import static name.remal.gradle_plugins.toolkit.CrossCompileServices.loadCrossCompileService;
-import static name.remal.gradle_plugins.toolkit.ExtensionContainerUtils.getExtension;
 import static name.remal.gradle_plugins.toolkit.InTestFlags.isInTest;
 import static name.remal.gradle_plugins.toolkit.LazyProxy.asLazyProxy;
 import static name.remal.gradle_plugins.toolkit.ReportUtils.setReportDestination;
 import static name.remal.gradle_plugins.toolkit.ReportUtils.setReportEnabled;
+import static name.remal.gradle_plugins.toolkit.ReportingExtensionUtils.getTaskReportsDirProvider;
 import static name.remal.gradle_plugins.toolkit.StringUtils.trimWith;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.defineClass;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.isNotAbstract;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.isStatic;
-import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.unwrapGeneratedSubclass;
 import static org.gradle.api.reporting.Report.OutputType.DIRECTORY;
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
 import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
@@ -55,10 +53,8 @@ import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 import lombok.CustomLog;
@@ -68,14 +64,12 @@ import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.plugins.ReportingBasePlugin;
 import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.CustomizableHtmlReport;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportContainer;
 import org.gradle.api.reporting.Reporting;
-import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.objectweb.asm.ClassVisitor;
@@ -452,80 +446,27 @@ public abstract class ReportContainerUtils {
         setTaskReportDestinationsAutomatically(task, task.getReports());
     }
 
-    public static <T extends Task & Reporting<?>> void setTaskReportDestinationsAutomatically(
-        T task,
-        Callable<File> baseReportsDirProvider
-    ) {
-        setTaskReportDestinationsAutomatically(task, task.getReports(), baseReportsDirProvider);
-    }
-
     public static <RC extends ReportContainer<?>> RC setTaskReportDestinationsAutomatically(
         Task task,
         RC allReports
     ) {
-        return setTaskReportDestinationsAutomatically(
-            task,
-            allReports,
-            () -> null
-        );
-    }
-
-    public static <RC extends ReportContainer<?>> RC setTaskReportDestinationsAutomatically(
-        Task task,
-        RC allReports,
-        Callable<File> baseReportsDirProvider
-    ) {
         @SuppressWarnings("unchecked") var allReportsTyped = (ReportContainer<Report>) allReports;
         var configurableReports = allReportsTyped.withType(ConfigurableReport.class);
-
-        var project = task.getProject();
-        var providers = project.getProviders();
-        project.getPluginManager().apply(ReportingBasePlugin.class);
-        var defaultBaseReportsDir = getExtension(project, ReportingExtension.class)
-            .getBaseDirectory()
-            .dir(getTaskTypeReportsDirName(task));
+        var taskReportsDirProvider = getTaskReportsDirProvider(task);
         var taskName = task.getName();
         configurableReports.configureEach(report -> {
-            setReportDestination(report, providers.provider(() -> {
-                File baseReportsDir = baseReportsDirProvider.call();
-                if (baseReportsDir == null) {
-                    baseReportsDir = defaultBaseReportsDir.get().getAsFile();
-                }
-
-                var taskReportsDir = new File(baseReportsDir, taskName);
-
+            setReportDestination(report, taskReportsDirProvider.map(taskReportsDir -> {
                 if (report.getOutputType() == DIRECTORY) {
-                    return new File(taskReportsDir, report.getName());
+                    return new File(taskReportsDir.getAsFile(), report.getName());
 
                 } else {
                     var reportFileExtension = getReportFileExtension(report);
-                    return new File(taskReportsDir, taskName + '.' + reportFileExtension);
+                    return new File(taskReportsDir.getAsFile(), taskName + '.' + reportFileExtension);
                 }
             }));
         });
+
         return allReports;
-    }
-
-    private static final List<String> TASK_TYPE_REPORTS_DIR_NAME_SUFFIXES_TO_REMOVE = List.of(
-        "Task"
-    );
-
-    private static String getTaskTypeReportsDirName(Task task) {
-        String name = unwrapGeneratedSubclass(task.getClass()).getSimpleName();
-        name = UPPER_CAMEL.to(LOWER_CAMEL, name);
-        while (true) {
-            boolean isChanged = false;
-            for (var suffix : TASK_TYPE_REPORTS_DIR_NAME_SUFFIXES_TO_REMOVE) {
-                if (!name.equals(suffix) && name.endsWith(suffix)) {
-                    name = name.substring(0, name.length() - suffix.length());
-                    isChanged = true;
-                }
-            }
-            if (!isChanged) {
-                break;
-            }
-        }
-        return name;
     }
 
     private static final Pattern NAME_CHARS_TO_ESCAPE = Pattern.compile("[^a-z0-9\\p{L}]+", CASE_INSENSITIVE);
