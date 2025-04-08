@@ -15,6 +15,7 @@ import static name.remal.gradle_plugins.toolkit.ThrowableUtils.unwrapReflectionE
 import static name.remal.gradle_plugins.toolkit.reflection.WhoCalledUtils.getCallingClass;
 
 import java.lang.reflect.AccessibleObject;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
@@ -448,6 +449,10 @@ public abstract class ReflectionUtils {
         return member.isSynthetic();
     }
 
+    public static boolean isTransient(Field field) {
+        return Modifier.isTransient(field.getModifiers());
+    }
+
 
     public static boolean isNotPublic(Class<?> type) {
         return !isPublic(type);
@@ -511,6 +516,10 @@ public abstract class ReflectionUtils {
 
     public static boolean isNotSynthetic(Member member) {
         return !isSynthetic(member);
+    }
+
+    public static boolean isNotTransient(Field field) {
+        return !isTransient(field);
     }
 
 
