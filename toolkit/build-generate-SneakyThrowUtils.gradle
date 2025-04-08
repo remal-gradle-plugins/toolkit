@@ -11,7 +11,7 @@ import java.lang.reflect.TypeVariable
 
 buildscript {
     dependencies {
-        classpath('com.google.guava:guava:33.4.6-jre') {
+        classpath('com.google.guava:guava:33.4.7-jre') {
             exclude(group: 'com.google.code.findbugs')
             exclude(group: 'org.checkerframework')
             exclude(group: 'com.google.errorprone')
