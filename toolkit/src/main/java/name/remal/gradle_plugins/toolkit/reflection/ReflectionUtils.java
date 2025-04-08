@@ -453,6 +453,10 @@ public abstract class ReflectionUtils {
         return Modifier.isTransient(field.getModifiers());
     }
 
+    public static boolean isSerializable(Field field) {
+        return isNotSynthetic(field) && isNotStatic(field) && isNotTransient(field);
+    }
+
 
     public static boolean isNotPublic(Class<?> type) {
         return !isPublic(type);
@@ -520,6 +524,10 @@ public abstract class ReflectionUtils {
 
     public static boolean isNotTransient(Field field) {
         return !isTransient(field);
+    }
+
+    public static boolean isNotSerializable(Field field) {
+        return !isSerializable(field);
     }
 
 
