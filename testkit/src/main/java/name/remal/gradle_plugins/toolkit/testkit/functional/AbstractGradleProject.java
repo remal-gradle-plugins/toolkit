@@ -516,6 +516,7 @@ public abstract class AbstractGradleProject<
                 "-Dsun.net.client.defaultReadTimeout=300000",
                 "-Djava.awt.headless=true",
                 "-Dorg.gradle.dependency.verification.console=verbose",
+                "-Dorg.gradle.daemon.idletimeout=10000",
                 "-Dorg.gradle.daemon.performance.disable-logging=true",
                 "-Dorg.gradle.internal.launcher.welcomeMessageEnabled=false"
             },
