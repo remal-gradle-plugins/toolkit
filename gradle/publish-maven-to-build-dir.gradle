@@ -1,13 +1,144 @@
+import groovy.transform.CompileStatic
+import java.nio.file.Files
+
 if (project.isBuildSrcProject) {
     return
 }
 
+abstract class PublishToBuildDir extends DefaultTask {
+
+    {
+        group = 'publishing'
+        outputDirectory = layout.buildDirectory.dir(".m2")
+    }
+
+    @Input
+    @Optional
+    abstract SetProperty<String> getDependencyNotations()
+
+    @OutputDirectory
+    abstract DirectoryProperty getOutputDirectory()
+
+    @TaskAction
+    @CompileStatic
+    void execute() {
+        File outputDir = outputDirectory.get().asFile
+        outputDir.delete()
+        outputDir.deleteDir()
+
+        for (String dependencyNotation : dependencyNotations.get()) {
+            Set<String> pomNotations = resolveMainAndCollectPomNotations(dependencyNotation, outputDir)
+
+            Set<String> nextPomNotations = new LinkedHashSet<>(pomNotations)
+            while (!nextPomNotations.isEmpty()) {
+                Set<File> pomFiles = resolvePomsAndCollectPomFiles(nextPomNotations, outputDir)
+                nextPomNotations.clear()
+
+                for (File pomFile : pomFiles) {
+                    String pomNotation = parseParentNotation(pomFile)
+                    if (pomNotation != null && pomNotations.add(pomNotation)) {
+                        nextPomNotations.add(pomNotation)
+                    }
+                }
+            }
+        }
+    }
+
+    @CompileStatic
+    private Set<String> resolveMainAndCollectPomNotations(String dependencyNotation, File outputDir) {
+        Set<String> pomNotations = new LinkedHashSet<>()
+
+        Configuration mainConf = configurations.detachedConfiguration(dependencies.create(dependencyNotation))
+        mainConf.resolvedConfiguration.rethrowFailure()
+        mainConf.resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { ResolvedDependency resolvedDep ->
+            File versionDir = new File(outputDir, "${resolvedDep.moduleGroup.replace('.', '/')}/${resolvedDep.moduleName}/${resolvedDep.moduleVersion}")
+            resolvedDep.moduleArtifacts.forEach { ResolvedArtifact artifact ->
+                File targetFile = new File(versionDir, artifact.file.name)
+                if (!targetFile.file) {
+                    Files.createDirectories(targetFile.parentFile.toPath())
+                    Files.copy(artifact.file.toPath(), targetFile.toPath())
+                }
+            }
+
+            pomNotations.add("${resolvedDep.moduleGroup}:${resolvedDep.moduleName}:${resolvedDep.moduleVersion}@pom".toString())
+        }
+
+        return pomNotations
+    }
+
+    @CompileStatic
+    private Set<File> resolvePomsAndCollectPomFiles(Collection<String> pomNotations, File outputDir) {
+        Set<File> pomFiles = new LinkedHashSet<>()
+        if (pomNotations.isEmpty()) {
+            return pomFiles
+        }
+
+        Configuration pomConf = configurations.detachedConfiguration()
+        pomConf.dependencies.addAll(pomNotations.collect { dependencies.create(it) })
+        pomConf.resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { ResolvedDependency resolvedDep ->
+            File versionDir = new File(outputDir, "${resolvedDep.moduleGroup.replace('.', '/')}/${resolvedDep.moduleName}/${resolvedDep.moduleVersion}")
+            resolvedDep.moduleArtifacts.forEach { ResolvedArtifact artifact ->
+                File targetFile = new File(versionDir, artifact.file.name)
+                if (!targetFile.file) {
+                    Files.createDirectories(targetFile.parentFile.toPath())
+                    Files.copy(artifact.file.toPath(), targetFile.toPath())
+                    pomFiles.add(targetFile)
+                }
+            }
+        }
+
+        return pomFiles
+    }
+
+    private static String parseParentNotation(File pomFile) {
+        Node projectNode = parseXml(pomFile)
+        Node parentNode = projectNode.parent.with { it.size() == 0 ? null : it[0] }
+        if (parentNode == null) {
+            return null
+        }
+
+        String groupId = parentNode.groupId.text().trim()
+        String artifactId = parentNode.artifactId.text().trim()
+        String version = parentNode.version.text().trim()
+        String pomNotation = "${groupId}:${artifactId}:${version}@pom".toString()
+        return pomNotation
+    }
+
+    private static Node parseXml(File file) {
+        Class XmlParser = Class.forName('groovy.xml.XmlParser')
+        def xmlParser = XmlParser.getConstructor(Boolean.TYPE, Boolean.TYPE, Boolean.TYPE).newInstance(false, false, true)
+        Closure setFeatureQuietly = { String feature, Object value ->
+            try {
+                xmlParser.setFeature(feature, value)
+            } catch (Exception ignored) {
+                // do nothing
+            }
+        }
+        setFeatureQuietly('http://apache.org/xml/features/disallow-doctype-decl', false)
+        setFeatureQuietly('http://apache.org/xml/features/nonvalidating/load-external-dtd', false)
+        setFeatureQuietly('http://javax.xml.XMLConstants/feature/secure-processing', true)
+
+        return xmlParser.parse(file)
+    }
+
+
+    @Inject
+    protected abstract ProjectLayout getLayout()
+
+    @Inject
+    protected abstract ConfigurationContainer getConfigurations()
+
+    @Inject
+    protected abstract DependencyHandler getDependencies()
+
+}
+
 allprojects {
+    TaskProvider<PublishToBuildDir> publishToBuildDir = tasks.register('publishToBuildDir', PublishToBuildDir)
+
     pluginManager.withPlugin('maven-publish') {
         TaskContainer tasks = project.tasks
-        tasks.register('publishToBuildDir') { Task task ->
-            task.group = 'publishing'
-
+        publishToBuildDir.configure { PublishToBuildDir task ->
             Closure<GenerateMavenPom> getGeneratePomFileTask = { MavenPublication publication ->
                 tasks.named(
                     "generatePomFileFor${publication.name.capitalize()}Publication",
@@ -22,20 +153,14 @@ allprojects {
             task.inputs.files(project.provider { publications.collect { getGeneratePomFileTask(it).destination }.flatten() }).optional().withPropertyName('pomFiles')
             task.inputs.files(project.provider { publications.collect { it.artifacts.collect { it.file } }.flatten() }).optional().withPropertyName('artifactFiles')
 
-            File outputDir = project.layout.buildDirectory.dir(".m2").get().asFile
-            task.outputs.dir(outputDir).withPropertyName('outputDir')
-            task.ext.outputDir = outputDir
-
-            task.doFirst {
-                outputDir.delete()
-                outputDir.deleteDir()
-                outputDir.mkdirs()
-            }
-
             task.doLast {
+                File outputDir = task.outputDirectory.get().asFile
                 publications.forEach { publication ->
                     File artifactDir = new File(outputDir, "${publication.groupId.replace('.', '/')}/${publication.artifactId}")
+                    artifactDir.mkdirs()
+
                     File versionDir = new File(artifactDir, publication.version)
+                    versionDir.mkdirs()
 
                     File pomFile = getGeneratePomFileTask(publication).destination
                     File pomDestFile = new File(versionDir, "${publication.artifactId}-${publication.version}.pom")

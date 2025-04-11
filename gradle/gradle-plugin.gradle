@@ -105,7 +105,7 @@ allprojects {
                 task.systemProperty(
                     'build-dir-maven-repos',
                     getPublishToBuildDirTasks()
-                        .collect { it.outputDir.absolutePath }
+                        .collect { it.outputDirectory.get().asFile.absolutePath }
                         .toSorted()
                         .join(File.pathSeparator)
                 )
