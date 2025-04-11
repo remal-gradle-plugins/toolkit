@@ -132,6 +132,7 @@ allprojects {
 
             useJUnitPlatform()
             systemProperty('junit.jupiter.extensions.autodetection.enabled', 'true')
+            systemProperty('junit.jupiter.execution.parallel.enabled', 'true')
             enableAssertions = true
 
             testLogging {
