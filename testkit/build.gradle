@@ -3,7 +3,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'name.remal.generate-sources'
 
 dependencies {
-    optional platform('org.junit:junit-bom:5.12.1')
+    optional platform('org.junit:junit-bom:5.12.2')
     optional 'org.junit.jupiter:junit-jupiter-api'
     optional 'name.remal.gradle-api:gradle-test-kit'
 
