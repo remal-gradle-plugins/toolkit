@@ -55,7 +55,12 @@ allprojects {
                         .orElse(providers.gradleProperty(property))
                         .get()
                 )
-                String propertyValue = propertyValueObj?.toString()
+                String propertyValue
+                if (propertyValueObj instanceof Iterable) {
+                    propertyValue = (propertyValueObj as Iterable).collect().join(', ')
+                } else {
+                    propertyValue = propertyValueObj?.toString()
+                }
                 if (tag.contains('code-')) {
                     propertyValue = "`$propertyValue`"
                 }
