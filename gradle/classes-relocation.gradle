@@ -24,7 +24,7 @@ allprojects {
 
         dependencies {
             classesRelocation 'org.apache.commons:commons-lang3:3.17.0'
-            classesRelocation 'org.apache.commons:commons-text:1.13.0'
+            classesRelocation 'org.apache.commons:commons-text:1.13.1'
             classesRelocation 'org.apache.commons:commons-collections4:4.4'
             classesRelocation 'com.google.guava:guava:33.4.7-jre'
         }
