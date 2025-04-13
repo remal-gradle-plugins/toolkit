@@ -241,7 +241,7 @@ generateSources.forMainSourceSet.java {
 
 pluginManager.withPlugin('name.remal.sonarlint') {
     sonarLint {
-        runles {
+        rules {
             disable(
                 'java:S4032', // Packages containing only "package-info.java" should be removed
             )
