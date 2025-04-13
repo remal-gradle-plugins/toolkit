@@ -149,7 +149,7 @@ allprojects {
                     classesFileTree
                         .matching {
                             for (String className : result.keySet()) {
-                                include(className.replace('.', '/') + '*.class')
+                                include(className.replace('.', '/') + '$*.class')
                             }
                         }
                         .visit { FileTreeElement fileTreeElement ->
