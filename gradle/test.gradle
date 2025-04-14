@@ -168,61 +168,89 @@ allprojects {
 
 
         project.testSourceSets.all { SourceSet sourceSet ->
+            String testType = sourceSet.name.replaceFirst(/Test$/, '')
+            if (sourceSet.name == 'test') {
+                testType = 'unit'
+            }
+            tasks.named(sourceSet.name, Test) { Test task ->
+                task.environment('NAME_REMAL_GRADLE_PLUGINS_TEST', 'true')
+                task.environment("NAME_REMAL_GRADLE_PLUGINS_TEST_${testType.toUpperCase()}", 'true')
+            }
+
+
             String additionalClasspathConfName = "${sourceSet.name}AdditionalClasspath"
             configurations.create(additionalClasspathConfName) { Configuration conf ->
                 conf.canBeResolved = true
                 conf.canBeConsumed = false
             }
 
-            Collection<String> testClasspathConfNames = [
-                sourceSet.compileClasspathConfigurationName,
-                sourceSet.runtimeClasspathConfigurationName,
-                additionalClasspathConfName,
-            ]
-
-            String testType = sourceSet.name.replaceFirst(/Test$/, '')
-            if (sourceSet.name == 'test') {
-                testType = 'unit'
-            }
-
             tasks.named(sourceSet.name, Test) { Test task ->
-                task.environment('NAME_REMAL_GRADLE_PLUGINS_TEST', 'true')
-                task.environment("NAME_REMAL_GRADLE_PLUGINS_TEST_${testType.toUpperCase()}", 'true')
-
-                Collection<Configuration> testClasspathConfs = testClasspathConfNames.collect { configurations[it] }
-                testClasspathConfs.forEach { conf ->
-                    task.inputs.files(conf).withPropertyName("testClasspathConf.${conf.name}").optional()
+                NamedDomainObjectContainer<NamedDomainObjectSet<Configuration>> testClasspathScopeConfigurations = objects.domainObjectContainer(NamedDomainObjectSet) { name ->
+                    NamedDomainObjectSet<Configuration> testClasspathConfigurations = objects.namedDomainObjectSet(Configuration)
+                    testClasspathConfigurations.extensions.add('name', name)
+                    return testClasspathConfigurations
                 }
+                task.extensions.add("testClasspathScopeConfigurations", testClasspathScopeConfigurations)
 
-                task.onlyIf {
-                    Properties testClasspathProperties = new Properties()
 
-                    Set<String> processedNotations = new LinkedHashSet<>()
-                    testClasspathConfs.forEach { conf ->
-                        conf.resolvedConfiguration.rethrowFailure() // check that the configuration is fully resolvable
+                testClasspathScopeConfigurations.all { NamedDomainObjectSet<Configuration> testClasspathConfigurations ->
+                    String scope = testClasspathConfigurations.name.with { it.isEmpty() ? null : it }
 
-                        conf.resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { resolvedDep ->
-                            String notation = "${resolvedDep.moduleGroup}:${resolvedDep.moduleName}".toString()
-                            if (!processedNotations.add(notation)) {
-                                return
+                    task.onlyIf {
+                        Properties testClasspathProperties = new Properties()
+
+                        Set<String> processedNotations = new LinkedHashSet<>()
+                        testClasspathConfigurations.forEach { conf ->
+                            conf.resolvedConfiguration.rethrowFailure() // check that the configuration is fully resolvable
+
+                            conf.resolvedConfiguration.lenientConfiguration.allModuleDependencies.forEach { resolvedDep ->
+                                String notation = "${resolvedDep.moduleGroup}:${resolvedDep.moduleName}".toString()
+                                if (!processedNotations.add(notation)) {
+                                    return
+                                }
+
+                                testClasspathProperties.setProperty("${notation}|version", resolvedDep.moduleVersion)
+                                testClasspathProperties.setProperty("${notation}|full-notation", "${notation}:${resolvedDep.moduleVersion}")
+
+                                String paths = project.getAllResolvedDependencyFiles(resolvedDep).collect { it.path }.join('\n')
+                                testClasspathProperties.setProperty("${notation}|paths", paths)
                             }
 
-                            testClasspathProperties.setProperty("${notation}|version", resolvedDep.moduleVersion)
-                            testClasspathProperties.setProperty("${notation}|full-notation", "${notation}:${resolvedDep.moduleVersion}")
-
-                            String paths = project.getAllResolvedDependencyFiles(resolvedDep).collect { it.path }.join('\n')
-                            testClasspathProperties.setProperty("${notation}|paths", paths)
+                            conf.resolvedConfiguration.lenientConfiguration.firstLevelModuleDependencies.forEach { resolvedDep ->
+                                String notation = "${resolvedDep.moduleGroup}:${resolvedDep.moduleName}".toString()
+                                testClasspathProperties.setProperty("${notation}|is-first-level", 'true')
+                            }
                         }
-                    }
 
-                    File testClasspathPropertiesFile = new File(task.temporaryDir, 'name.remal.gradle-plugins.test-classpath.properties').absoluteFile
-                    testClasspathPropertiesFile.parentFile.mkdirs()
-                    testClasspathPropertiesFile.newWriter('ISO-8859-1').withCloseable { writer ->
-                        testClasspathProperties.store(writer, null)
-                    }
-                    task.environment('NAME_REMAL_GRADLE_PLUGINS_TEST_CLASSPATH_FILE', testClasspathPropertiesFile.path)
+                        File testClasspathPropertiesFile = new File(task.temporaryDir, "name.remal.gradle-plugins.test-classpath${scope == null ? '' : "-${scope}"}.properties").absoluteFile
+                        testClasspathPropertiesFile.parentFile.mkdirs()
+                        testClasspathPropertiesFile.newWriter('ISO-8859-1').withCloseable { writer ->
+                            testClasspathProperties.store(writer, null)
+                        }
+                        task.environment("NAME_REMAL_GRADLE_PLUGINS_TEST_CLASSPATH${scope == null ? '' : "_${scope.toUpperCase().replaceAll(/\W/, '_')}"}_FILE", testClasspathPropertiesFile.path)
 
-                    return true
+                        return true
+                    }
+                }
+
+
+                testClasspathScopeConfigurations.create('') { NamedDomainObjectSet<Configuration> testClasspathConfigurations ->
+                    ; [
+                        sourceSet.compileClasspathConfigurationName,
+                        sourceSet.runtimeClasspathConfigurationName,
+                        additionalClasspathConfName,
+                    ].forEach { name ->
+                        testClasspathConfigurations.add(project.configurations[name])
+                    }
+                }
+
+
+                NamedDomainObjectSet<Configuration> allTestClasspathConfigurations = objects.namedDomainObjectSet(Configuration)
+                testClasspathScopeConfigurations.all { NamedDomainObjectSet<Configuration> testClasspathConfigurations ->
+                    testClasspathConfigurations.all { allTestClasspathConfigurations.add(it) }
+                }
+                allTestClasspathConfigurations.all { Configuration conf ->
+                    task.inputs.files(conf).withPropertyName("testClasspathConf.${conf.name}").optional().withNormalizer(ClasspathNormalizer)
                 }
             }
         }
