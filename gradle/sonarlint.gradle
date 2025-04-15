@@ -47,11 +47,6 @@ allprojects {
                     'xml:S125', // Sections of code should not be commented out
                 )
             }
-
-            nodeJs {
-                detectNodeJs = false
-                logNodeJsNotFound = false
-            }
         }
 
         tasks.register('allSonarlint') {
