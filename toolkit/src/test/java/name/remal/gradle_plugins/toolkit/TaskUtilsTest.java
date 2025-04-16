@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 @RequiredArgsConstructor
 class TaskUtilsTest {
 
-    private final Project project;
+    final Project project;
 
     @Test
     @MinSupportedGradleVersion("7.6")
@@ -59,6 +59,12 @@ class TaskUtilsTest {
         taskInputs.dir(project.getProjectDir());
 
         assertDoesNotThrow(() -> TaskUtils.clearRegisteredFileProperties(taskInputs, true));
+    }
+
+    @Test
+    void isTaskConfigurable() {
+        var task = project.getTasks().register("testTask").get();
+        assertTrue(TaskUtils.isTaskConfigurable(task));
     }
 
 }

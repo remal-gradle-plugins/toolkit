@@ -19,6 +19,7 @@ import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import name.remal.gradle_plugins.toolkit.reflection.TypedVoidMethod2;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskInputs;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -151,6 +152,13 @@ public abstract class TaskUtils {
                 taskInputsType
             ));
         }
+    }
+
+
+    @ReliesOnInternalGradleApi
+    public static boolean isTaskConfigurable(Task task) {
+        var taskInternal = (TaskInternal) task;
+        return taskInternal.getState().isConfigurable();
     }
 
 }
