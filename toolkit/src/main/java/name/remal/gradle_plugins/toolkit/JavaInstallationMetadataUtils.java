@@ -10,7 +10,7 @@ import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.jetbrains.annotations.Contract;
 
-@MinGradleVersion("6.7")
+@MinCompatibleGradleVersion("6.7")
 @NoArgsConstructor(access = PRIVATE)
 public abstract class JavaInstallationMetadataUtils {
 

@@ -11,7 +11,7 @@ import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
-@MinGradleVersion("6.7")
+@MinCompatibleGradleVersion("6.7")
 @NoArgsConstructor(access = PRIVATE)
 public abstract class JavaLauncherUtils {
 

@@ -5,12 +5,14 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
+import org.intellij.lang.annotations.Pattern;
 
 @Retention(RUNTIME)
 @Inherited
 @Documented
-public @interface MinJavaVersion {
+public @interface MinCompatibleGradleVersion {
 
-    int value();
+    @Pattern("\\d+(\\.\\d+)+")
+    String value();
 
 }
