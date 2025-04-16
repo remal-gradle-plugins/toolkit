@@ -15,6 +15,7 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
+import name.remal.gradle_plugins.toolkit.annotations.DynamicCompatibilityCandidate;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import name.remal.gradle_plugins.toolkit.reflection.TypedVoidMethod2;
 import org.gradle.api.Action;
@@ -28,6 +29,7 @@ import org.jetbrains.annotations.VisibleForTesting;
 public abstract class TaskUtils {
 
     @Nullable
+    @DynamicCompatibilityCandidate
     @SuppressWarnings("rawtypes")
     private static final TypedVoidMethod2<Task, String, Spec> ONLY_IF_WITH_REASON_METHOD =
         findMethod(Task.class, "onlyIf", String.class, Spec.class);

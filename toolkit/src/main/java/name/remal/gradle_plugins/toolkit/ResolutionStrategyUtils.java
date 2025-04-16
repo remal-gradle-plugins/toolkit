@@ -1,7 +1,6 @@
 package name.remal.gradle_plugins.toolkit;
 
 import static lombok.AccessLevel.PRIVATE;
-import static name.remal.gradle_plugins.toolkit.ExtensionContainerUtils.getExtension;
 import static name.remal.gradle_plugins.toolkit.reflection.MethodsInvoker.invokeMethod;
 
 import lombok.CustomLog;
@@ -26,7 +25,7 @@ public abstract class ResolutionStrategyUtils {
             };
 
             try {
-                var dependencyManagement = getExtension(project, "dependencyManagement");
+                var dependencyManagement = project.getExtensions().getByName("dependencyManagement");
                 invokeMethod(dependencyManagement, "resolutionStrategy", Action.class, untypedAction);
 
             } catch (Throwable e) {

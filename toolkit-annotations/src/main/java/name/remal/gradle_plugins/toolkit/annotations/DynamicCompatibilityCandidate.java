@@ -1,18 +1,13 @@
-package name.remal.gradle_plugins.toolkit;
+package name.remal.gradle_plugins.toolkit.annotations;
 
 import static java.lang.annotation.RetentionPolicy.CLASS;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
-import org.intellij.lang.annotations.Pattern;
 
 @Retention(CLASS)
 @Inherited
 @Documented
-public @interface MinCompatibleGradleVersion {
-
-    @Pattern("\\d+(\\.\\d+)+")
-    String value();
-
+public @interface DynamicCompatibilityCandidate {
 }

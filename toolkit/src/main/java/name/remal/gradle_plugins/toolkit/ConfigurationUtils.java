@@ -7,12 +7,14 @@ import static name.remal.gradle_plugins.toolkit.reflection.MembersFinder.findMet
 
 import java.util.Collection;
 import lombok.NoArgsConstructor;
+import name.remal.gradle_plugins.toolkit.annotations.DynamicCompatibilityCandidate;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ConfigurationUtils {
 
+    @DynamicCompatibilityCandidate
     public static boolean isDeprecatedForConsumption(Configuration conf) {
         var deprecatableConf = (DeprecatableConfiguration) conf;
 
@@ -62,6 +64,7 @@ public abstract class ConfigurationUtils {
         }
     }
 
+    @DynamicCompatibilityCandidate
     public static boolean isDeprecatedForResolution(Configuration conf) {
         var deprecatableConf = (DeprecatableConfiguration) conf;
 

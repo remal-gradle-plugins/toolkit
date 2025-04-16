@@ -26,6 +26,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
+import name.remal.gradle_plugins.toolkit.annotations.DynamicCompatibilityCandidate;
 import name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils;
 import name.remal.gradle_plugins.toolkit.reflection.TypedVoidMethod1;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -44,6 +45,7 @@ import org.gradle.api.tasks.Nested;
 public abstract class GradleManagedObjectsUtils {
 
     @Nullable
+    @DynamicCompatibilityCandidate
     private static final TypedVoidMethod1<ConfigurableFileCollection, Object[]> CONFIGURABLE_FILE_COLLECTION_CONVENTION
         = findMethod(ConfigurableFileCollection.class, "convention", Object[].class);
 

@@ -16,6 +16,7 @@ import lombok.CustomLog;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import name.remal.gradle_plugins.toolkit.StringUtils;
+import name.remal.gradle_plugins.toolkit.annotations.DynamicCompatibilityCandidate;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
@@ -35,6 +36,7 @@ import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 @CustomLog
 public abstract class TaskValidations {
 
+    @DynamicCompatibilityCandidate
     @SuppressWarnings("unchecked")
     public static boolean executeOnlyIfSpecs(Task task) {
         var taskInternal = (TaskInternal) task;
@@ -89,7 +91,7 @@ public abstract class TaskValidations {
     static void assertNoTaskPropertiesProblemsImpl(Task task, boolean rethrowExceptions) {
         var taskType = unwrapGeneratedSubclass(task.getClass());
 
-        final Collection<?> problems;
+        @DynamicCompatibilityCandidate final Collection<?> problems;
         try {
             if (isCurrentGradleVersionGreaterThanOrEqualTo("8.12")) {
                 var services = ((ProjectInternal) task.getProject()).getServices();
@@ -147,6 +149,7 @@ public abstract class TaskValidations {
     private static LocalTaskNode getLocalTaskNode(Task task) {
         var taskNodeFactory = ((ProjectInternal) task.getProject()).getServices().get(TaskNodeFactory.class);
 
+        @DynamicCompatibilityCandidate
         var getOrCreateNodeWithOrdinal = findMethod(
             (Class<TaskNodeFactory>) taskNodeFactory.getClass(),
             TaskNode.class,
@@ -162,6 +165,7 @@ public abstract class TaskValidations {
     }
 
     @SneakyThrows
+    @DynamicCompatibilityCandidate
     private static String renderProblem(Object problem) {
         return invokeStaticMethod(
             TypeValidationProblemRenderer.class,

@@ -10,12 +10,14 @@ import java.util.Objects;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
+import name.remal.gradle_plugins.toolkit.annotations.DynamicCompatibilityCandidate;
 import org.gradle.api.Action;
 import org.jetbrains.annotations.Contract;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ClosureUtils {
 
+    @DynamicCompatibilityCandidate
     private static final Class<?> CONFIGURE_UTIL_CLASS = Stream.of(
             "org.gradle.util.internal.ConfigureUtil",
             "org.gradle.util.ConfigureUtil"
