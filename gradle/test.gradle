@@ -96,8 +96,11 @@ allprojects {
                     element.open().withCloseable {
                         new ClassReader(it).accept(classNode, SKIP_CODE | SKIP_DEBUG | SKIP_FRAMES)
                     }
-                    Integer minSupportedJavaVersion = classNode.visibleAnnotations
-                        ?.find { it.desc == 'Lname/remal/gradle_plugins/toolkit/testkit/MinSupportedJavaVersion;' }
+                    Integer minTestableJavaVersion = classNode.visibleAnnotations
+                        ?.find {
+                            it.desc == 'Lname/remal/gradle_plugins/toolkit/testkit/MinTestableJavaVersion;'
+                                || it.desc == 'Lname/remal/gradle_plugins/toolkit/testkit/MinSupportedJavaVersion;'
+                        }
                         ?.with {
                             for (int i = 0; i < it.values.size() - 1; i += 2) {
                                 if (it.values[i] == 'value' && it.values[i + 1] instanceof Integer) {
@@ -106,13 +109,16 @@ allprojects {
                             }
                             return null
                         }
-                    if (minSupportedJavaVersion != null) {
-                        if (javaRuntimeVersion.get().majorVersion.toInteger() < minSupportedJavaVersion) {
+                    if (minTestableJavaVersion != null) {
+                        if (javaRuntimeVersion.get().majorVersion.toInteger() < minTestableJavaVersion) {
                             return true
                         }
                     }
-                    Integer maxSupportedJavaVersion = classNode.visibleAnnotations
-                        ?.find { it.desc == 'Lname/remal/gradle_plugins/toolkit/testkit/MaxSupportedJavaVersion;' }
+                    Integer maxTestableJavaVersion = classNode.visibleAnnotations
+                        ?.find {
+                            it.desc == 'Lname/remal/gradle_plugins/toolkit/testkit/MaxTestableJavaVersion;'
+                                || it.desc == 'Lname/remal/gradle_plugins/toolkit/testkit/MaxSupportedJavaVersion;'
+                        }
                         ?.with {
                             for (int i = 0; i < it.values.size() - 1; i += 2) {
                                 if (it.values[i] == 'value' && it.values[i + 1] instanceof Integer) {
@@ -121,8 +127,8 @@ allprojects {
                             }
                             return null
                         }
-                    if (maxSupportedJavaVersion != null) {
-                        if (javaRuntimeVersion.get().majorVersion.toInteger() > maxSupportedJavaVersion) {
+                    if (maxTestableJavaVersion != null) {
+                        if (javaRuntimeVersion.get().majorVersion.toInteger() > maxTestableJavaVersion) {
                             return true
                         }
                     }

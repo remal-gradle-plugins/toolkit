@@ -4,7 +4,7 @@ import static java.lang.String.format;
 import static org.junit.jupiter.api.extension.ConditionEvaluationResult.disabled;
 import static org.junit.jupiter.api.extension.ConditionEvaluationResult.enabled;
 
-import name.remal.gradle_plugins.toolkit.testkit.MinSupportedJavaVersion;
+import name.remal.gradle_plugins.toolkit.testkit.MaxTestableJavaVersion;
 import org.gradle.api.JavaVersion;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
@@ -12,29 +12,29 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.platform.commons.util.AnnotationUtils;
 
 @Internal
-public class MinSupportedJavaVersionExtension extends AbstractSupportedJavaVersionExtension {
+public class MaxTestableJavaVersionExtension extends AbstractTestableJavaVersionExtension {
 
     @Override
     public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
-        var annotation = AnnotationUtils.findAnnotation(context.getElement(), MinSupportedJavaVersion.class)
+        var annotation = AnnotationUtils.findAnnotation(context.getElement(), MaxTestableJavaVersion.class)
             .orElse(null);
         if (annotation == null) {
-            return enabled(format("@%s is not present", MinSupportedJavaVersion.class.getSimpleName()));
+            return enabled(format("@%s is not present", MaxTestableJavaVersion.class.getSimpleName()));
         }
 
-        var minJavaVersion = JavaVersion.toVersion(annotation.value());
+        var maxJavaVersion = JavaVersion.toVersion(annotation.value());
         var currentJavaVersion = getCurrentJavaVersion(context);
-        if (currentJavaVersion.compareTo(minJavaVersion) >= 0) {
+        if (currentJavaVersion.compareTo(maxJavaVersion) <= 0) {
             return enabled(format(
-                "Current Java version %s is greater or equal to min supported version %s",
+                "Current Java version %s is less or equal to max supported version %s",
                 currentJavaVersion.getMajorVersion(),
-                minJavaVersion.getMajorVersion()
+                maxJavaVersion.getMajorVersion()
             ));
         } else {
             return disabled(format(
-                "Current Java version %s is less than min supported version %s",
+                "Current Java version %s is greater than max supported version %s",
                 currentJavaVersion.getMajorVersion(),
-                minJavaVersion.getMajorVersion()
+                maxJavaVersion.getMajorVersion()
             ));
         }
     }

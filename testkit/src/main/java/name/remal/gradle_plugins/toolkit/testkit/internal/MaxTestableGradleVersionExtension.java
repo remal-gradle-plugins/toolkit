@@ -4,7 +4,7 @@ import static java.lang.String.format;
 import static org.junit.jupiter.api.extension.ConditionEvaluationResult.disabled;
 import static org.junit.jupiter.api.extension.ConditionEvaluationResult.enabled;
 
-import name.remal.gradle_plugins.toolkit.testkit.MaxSupportedGradleVersion;
+import name.remal.gradle_plugins.toolkit.testkit.MaxTestableGradleVersion;
 import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
@@ -12,14 +12,14 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.platform.commons.util.AnnotationUtils;
 
 @Internal
-public class MaxSupportedGradleVersionExtension extends AbstractSupportedGradleVersionExtension {
+public class MaxTestableGradleVersionExtension extends AbstractTestableGradleVersionExtension {
 
     @Override
     public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
-        var annotation = AnnotationUtils.findAnnotation(context.getElement(), MaxSupportedGradleVersion.class)
+        var annotation = AnnotationUtils.findAnnotation(context.getElement(), MaxTestableGradleVersion.class)
             .orElse(null);
         if (annotation == null) {
-            return enabled(format("@%s is not present", MaxSupportedGradleVersion.class.getSimpleName()));
+            return enabled(format("@%s is not present", MaxTestableGradleVersion.class.getSimpleName()));
         }
 
         var maxGradleVersion = GradleVersion.version(annotation.value());

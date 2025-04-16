@@ -9,15 +9,15 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import name.remal.gradle_plugins.toolkit.testkit.internal.MaxSupportedJavaVersionExtension;
+import name.remal.gradle_plugins.toolkit.testkit.internal.MinTestableJavaVersionExtension;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-@ExtendWith(MaxSupportedJavaVersionExtension.class)
+@ExtendWith(MinTestableJavaVersionExtension.class)
 @Target({TYPE, METHOD, ANNOTATION_TYPE})
 @Retention(RUNTIME)
 @Inherited
 @Documented
-public @interface MaxSupportedJavaVersion {
+public @interface MinTestableJavaVersion {
 
     int value();
 

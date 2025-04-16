@@ -10,18 +10,18 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import name.remal.gradle_plugins.toolkit.testkit.MinSupportedVersion.MinSupportedVersions;
-import name.remal.gradle_plugins.toolkit.testkit.internal.MinSupportedVersionExtension;
+import name.remal.gradle_plugins.toolkit.testkit.MinTestableVersion.MinTestableVersions;
+import name.remal.gradle_plugins.toolkit.testkit.internal.MinTestableVersionExtension;
 import org.intellij.lang.annotations.Pattern;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-@ExtendWith(MinSupportedVersionExtension.class)
+@ExtendWith(MinTestableVersionExtension.class)
 @Target({TYPE, METHOD, ANNOTATION_TYPE})
 @Retention(RUNTIME)
-@Repeatable(MinSupportedVersions.class)
+@Repeatable(MinTestableVersions.class)
 @Inherited
 @Documented
-public @interface MinSupportedVersion {
+public @interface MinTestableVersion {
 
     String module();
 
@@ -33,8 +33,8 @@ public @interface MinSupportedVersion {
     @Retention(RUNTIME)
     @Inherited
     @Documented
-    @interface MinSupportedVersions {
-        MinSupportedVersion[] value();
+    @interface MinTestableVersions {
+        MinTestableVersion[] value();
     }
 
 }

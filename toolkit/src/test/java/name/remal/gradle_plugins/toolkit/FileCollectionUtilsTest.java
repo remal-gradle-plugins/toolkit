@@ -12,7 +12,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import name.remal.gradle_plugins.toolkit.testkit.MinSupportedGradleVersion;
+import name.remal.gradle_plugins.toolkit.testkit.MinTestableGradleVersion;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.FileCollection;
@@ -42,7 +42,7 @@ class FileCollectionUtilsTest {
     }
 
     @Test
-    @MinSupportedGradleVersion("6.4")
+    @MinTestableGradleVersion("6.4")
     void getConfigurationsUsedIn_with_minus() {
         FileCollection fileCollection = project.files();
 

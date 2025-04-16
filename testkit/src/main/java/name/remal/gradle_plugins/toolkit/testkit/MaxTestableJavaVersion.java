@@ -9,18 +9,16 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import name.remal.gradle_plugins.toolkit.testkit.internal.MinSupportedGradleVersionExtension;
-import org.intellij.lang.annotations.Pattern;
+import name.remal.gradle_plugins.toolkit.testkit.internal.MaxTestableJavaVersionExtension;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-@ExtendWith(MinSupportedGradleVersionExtension.class)
+@ExtendWith(MaxTestableJavaVersionExtension.class)
 @Target({TYPE, METHOD, ANNOTATION_TYPE})
 @Retention(RUNTIME)
 @Inherited
 @Documented
-public @interface MinSupportedGradleVersion {
+public @interface MaxTestableJavaVersion {
 
-    @Pattern("\\d+(\\.\\d+)+")
-    String value();
+    int value();
 
 }

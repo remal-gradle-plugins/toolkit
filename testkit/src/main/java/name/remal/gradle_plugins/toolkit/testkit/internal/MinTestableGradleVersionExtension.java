@@ -4,7 +4,7 @@ import static java.lang.String.format;
 import static org.junit.jupiter.api.extension.ConditionEvaluationResult.disabled;
 import static org.junit.jupiter.api.extension.ConditionEvaluationResult.enabled;
 
-import name.remal.gradle_plugins.toolkit.testkit.MinSupportedGradleVersion;
+import name.remal.gradle_plugins.toolkit.testkit.MinTestableGradleVersion;
 import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
@@ -12,14 +12,14 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.platform.commons.util.AnnotationUtils;
 
 @Internal
-public class MinSupportedGradleVersionExtension extends AbstractSupportedGradleVersionExtension {
+public class MinTestableGradleVersionExtension extends AbstractTestableGradleVersionExtension {
 
     @Override
     public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
-        var annotation = AnnotationUtils.findAnnotation(context.getElement(), MinSupportedGradleVersion.class)
+        var annotation = AnnotationUtils.findAnnotation(context.getElement(), MinTestableGradleVersion.class)
             .orElse(null);
         if (annotation == null) {
-            return enabled(format("@%s is not present", MinSupportedGradleVersion.class.getSimpleName()));
+            return enabled(format("@%s is not present", MinTestableGradleVersion.class.getSimpleName()));
         }
 
         var minGradleVersion = GradleVersion.version(annotation.value());

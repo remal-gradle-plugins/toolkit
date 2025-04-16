@@ -1,26 +1,27 @@
 package name.remal.gradle_plugins.toolkit.testkit.internal;
 
 import static java.lang.String.format;
+import static java.lang.String.join;
 import static org.junit.jupiter.api.extension.ConditionEvaluationResult.disabled;
 import static org.junit.jupiter.api.extension.ConditionEvaluationResult.enabled;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import name.remal.gradle_plugins.toolkit.Version;
-import name.remal.gradle_plugins.toolkit.testkit.MaxSupportedVersion;
+import name.remal.gradle_plugins.toolkit.testkit.MinTestableVersion;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.platform.commons.util.AnnotationUtils;
 
 @Internal
-public class MaxSupportedVersionExtension extends AbstractSupportedVersionExtension {
+public class MinTestableVersionExtension extends AbstractTestableVersionExtension {
 
     @Override
     public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
-        var annotations = AnnotationUtils.findRepeatableAnnotations(context.getElement(), MaxSupportedVersion.class);
+        var annotations = AnnotationUtils.findRepeatableAnnotations(context.getElement(), MinTestableVersion.class);
         if (annotations.isEmpty()) {
-            return enabled(format("@%s is not present", MaxSupportedVersion.class.getSimpleName()));
+            return enabled(format("@%s is not present", MinTestableVersion.class.getSimpleName()));
         }
 
         Collection<String> enabledReasons = new LinkedHashSet<>();
@@ -29,28 +30,28 @@ public class MaxSupportedVersionExtension extends AbstractSupportedVersionExtens
             var module = annotation.module();
             var moduleVersion = getModuleVersion(context, module);
 
-            var maxVersion = Version.parse(annotation.version());
-            if (moduleVersion.compareTo(maxVersion) <= 0) {
+            var minVersion = Version.parse(annotation.version());
+            if (moduleVersion.compareTo(minVersion) >= 0) {
                 enabledReasons.add(format(
-                    "Module %s version %s is less or equal to max supported version %s",
+                    "Module %s version %s is greater or equal to min supported version %s",
                     module,
                     moduleVersion,
-                    maxVersion
+                    minVersion
                 ));
             } else {
                 disabledReasons.add(format(
-                    "Module %s version %s is greater than max supported version %s",
+                    "Module %s version %s is less than min supported version %s",
                     module,
                     moduleVersion,
-                    maxVersion
+                    minVersion
                 ));
             }
         }
 
         if (!disabledReasons.isEmpty()) {
-            return disabled(String.join("\n", disabledReasons));
+            return disabled(join("\n", disabledReasons));
         } else {
-            return enabled(String.join("\n", enabledReasons));
+            return enabled(join("\n", enabledReasons));
         }
     }
 

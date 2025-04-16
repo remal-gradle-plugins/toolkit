@@ -16,7 +16,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import lombok.SneakyThrows;
-import name.remal.gradle_plugins.toolkit.testkit.MinSupportedGradleVersion;
+import name.remal.gradle_plugins.toolkit.testkit.MinTestableGradleVersion;
 import org.gradle.api.Project;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
@@ -155,7 +155,7 @@ class SourceSetUtilsTest {
     }
 
     @Test
-    @MinSupportedGradleVersion("7.3")
+    @MinTestableGradleVersion("7.3")
     @SuppressWarnings("UnstableApiUsage")
     void whenTestSourceSetRegistered_jvm_test_suite() {
         Collection<SourceSet> testSourceSets = new ArrayList<>();
@@ -175,7 +175,7 @@ class SourceSetUtilsTest {
     }
 
     @Test
-    @MinSupportedGradleVersion("5.6")
+    @MinTestableGradleVersion("5.6")
     void whenTestSourceSetRegistered_test_fixtures() {
         Collection<SourceSet> testSourceSets = new ArrayList<>();
         whenTestSourceSetRegistered(project, testSourceSets::add);

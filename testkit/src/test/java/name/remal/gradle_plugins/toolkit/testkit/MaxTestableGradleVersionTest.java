@@ -5,7 +5,7 @@ import org.gradle.util.GradleVersion;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-class MaxSupportedGradleVersionTest extends AbstractSupportedGradleVersionExtensionTests {
+class MaxTestableGradleVersionTest extends AbstractSupportedGradleVersionExtensionTests {
 
     private static class CurrentGradleVersion6 extends AbstractCurrentGradleVersionRetrieverExtension {
         @Override
@@ -16,7 +16,7 @@ class MaxSupportedGradleVersionTest extends AbstractSupportedGradleVersionExtens
 
 
     @ExtendWith(CurrentGradleVersion6.class)
-    @MaxSupportedGradleVersion("5.0")
+    @MaxTestableGradleVersion("5.0")
     @ExampleTests
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class ClassExample5 {
@@ -32,7 +32,7 @@ class MaxSupportedGradleVersionTest extends AbstractSupportedGradleVersionExtens
     }
 
     @ExtendWith(CurrentGradleVersion6.class)
-    @MaxSupportedGradleVersion("6.0")
+    @MaxTestableGradleVersion("6.0")
     @ExampleTests
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class ClassExample6 {
@@ -49,7 +49,7 @@ class MaxSupportedGradleVersionTest extends AbstractSupportedGradleVersionExtens
 
 
     @ExtendWith(CurrentGradleVersion6.class)
-    @MaxSupportedGradleVersion("7.0")
+    @MaxTestableGradleVersion("7.0")
     @ExampleTests
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class ClassExample7 {
@@ -70,7 +70,7 @@ class MaxSupportedGradleVersionTest extends AbstractSupportedGradleVersionExtens
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class MethodExample5 {
         @Test
-        @MaxSupportedGradleVersion("5.0")
+        @MaxTestableGradleVersion("5.0")
         void annotated() {
         }
 
@@ -91,7 +91,7 @@ class MaxSupportedGradleVersionTest extends AbstractSupportedGradleVersionExtens
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class MethodExample6 {
         @Test
-        @MaxSupportedGradleVersion("6.0")
+        @MaxTestableGradleVersion("6.0")
         void annotated() {
         }
 
@@ -112,7 +112,7 @@ class MaxSupportedGradleVersionTest extends AbstractSupportedGradleVersionExtens
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class MethodExample7 {
         @Test
-        @MaxSupportedGradleVersion("7.0")
+        @MaxTestableGradleVersion("7.0")
         void annotated() {
         }
 

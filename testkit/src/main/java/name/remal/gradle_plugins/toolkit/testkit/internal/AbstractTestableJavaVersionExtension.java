@@ -8,10 +8,10 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
 
 @Internal
-abstract class AbstractSupportedJavaVersionExtension implements ExecutionCondition {
+abstract class AbstractTestableJavaVersionExtension implements ExecutionCondition {
 
     @VisibleForTesting
-    static final Namespace NAMESPACE = Namespace.create(AbstractSupportedJavaVersionExtension.class);
+    static final Namespace NAMESPACE = Namespace.create(AbstractTestableJavaVersionExtension.class);
 
     protected static JavaVersion getCurrentJavaVersion(ExtensionContext context) {
         var currentJavaVersionRetriever = context.getStore(NAMESPACE).getOrComputeIfAbsent(

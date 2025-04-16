@@ -8,10 +8,10 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
 
 @Internal
-abstract class AbstractSupportedGradleVersionExtension implements ExecutionCondition {
+abstract class AbstractTestableGradleVersionExtension implements ExecutionCondition {
 
     @VisibleForTesting
-    static final Namespace NAMESPACE = Namespace.create(AbstractSupportedGradleVersionExtension.class);
+    static final Namespace NAMESPACE = Namespace.create(AbstractTestableGradleVersionExtension.class);
 
     protected static GradleVersion getCurrentGradleVersion(ExtensionContext context) {
         var currentGradleVersionRetriever = context.getStore(NAMESPACE).getOrComputeIfAbsent(

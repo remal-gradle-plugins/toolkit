@@ -108,7 +108,7 @@ class TaskValidationsTest {
 
 
     @Test
-    @MinSupportedGradleVersion("7.0")
+    @MinTestableGradleVersion("7.0")
     void assertNoTaskPropertiesProblems_without_problems() {
         var task = project.getTasks().register("task", TestTaskWithoutPropertyProblems.class).get();
         assertDoesNotThrow(() -> TaskValidations.assertNoTaskPropertiesProblemsImpl(task, true));
@@ -126,7 +126,7 @@ class TaskValidationsTest {
     }
 
     @Test
-    @MinSupportedGradleVersion("7.0")
+    @MinTestableGradleVersion("7.0")
     void assertNoTaskPropertiesProblems_with_problems() {
         var task = project.getTasks().register("task", TestTaskWithPropertyProblems.class).get();
         assertThrows(AssertionError.class, () -> TaskValidations.assertNoTaskPropertiesProblemsImpl(task, true));

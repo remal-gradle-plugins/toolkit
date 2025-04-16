@@ -7,34 +7,20 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;
-import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import name.remal.gradle_plugins.toolkit.testkit.MaxSupportedVersion.MaxSupportedVersions;
-import name.remal.gradle_plugins.toolkit.testkit.internal.MaxSupportedVersionExtension;
+import name.remal.gradle_plugins.toolkit.testkit.internal.MinTestableGradleVersionExtension;
 import org.intellij.lang.annotations.Pattern;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-@ExtendWith(MaxSupportedVersionExtension.class)
+@ExtendWith(MinTestableGradleVersionExtension.class)
 @Target({TYPE, METHOD, ANNOTATION_TYPE})
 @Retention(RUNTIME)
 @Inherited
-@Repeatable(MaxSupportedVersions.class)
 @Documented
-public @interface MaxSupportedVersion {
+public @interface MinTestableGradleVersion {
 
-    String module();
-
-    @Pattern("\\d+(\\.\\d+)+([.+_-].+)?")
-    String version();
-
-
-    @Target({TYPE, METHOD, ANNOTATION_TYPE})
-    @Retention(RUNTIME)
-    @Inherited
-    @Documented
-    @interface MaxSupportedVersions {
-        MaxSupportedVersion[] value();
-    }
+    @Pattern("\\d+(\\.\\d+)+")
+    String value();
 
 }

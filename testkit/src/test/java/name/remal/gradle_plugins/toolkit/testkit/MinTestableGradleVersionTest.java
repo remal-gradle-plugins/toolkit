@@ -1,21 +1,22 @@
 package name.remal.gradle_plugins.toolkit.testkit;
 
-import name.remal.gradle_plugins.toolkit.testkit.internal.AbstractSupportedVersionExtensionTests;
+import name.remal.gradle_plugins.toolkit.testkit.internal.AbstractSupportedGradleVersionExtensionTests;
+import org.gradle.util.GradleVersion;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-class MinSupportedVersionTest extends AbstractSupportedVersionExtensionTests {
+class MinTestableGradleVersionTest extends AbstractSupportedGradleVersionExtensionTests {
 
-    private static class ModuleVersion6 extends AbstractModuleVersionStringRetrieverExtension {
+    private static class CurrentGradleVersion6 extends AbstractCurrentGradleVersionRetrieverExtension {
         @Override
-        public String getModuleVersionString(String module) {
-            return "6.0";
+        public GradleVersion getCurrentGradleVersion() {
+            return GradleVersion.version("6.0");
         }
     }
 
 
-    @ExtendWith(ModuleVersion6.class)
-    @MinSupportedVersion(module = "module", version = "5.0")
+    @ExtendWith(CurrentGradleVersion6.class)
+    @MinTestableGradleVersion("5.0")
     @ExampleTests
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class ClassExample5 {
@@ -30,8 +31,8 @@ class MinSupportedVersionTest extends AbstractSupportedVersionExtensionTests {
         tests.assertStatistics(stats -> stats.succeeded(1));
     }
 
-    @ExtendWith(ModuleVersion6.class)
-    @MinSupportedVersion(module = "module", version = "6.0")
+    @ExtendWith(CurrentGradleVersion6.class)
+    @MinTestableGradleVersion("6.0")
     @ExampleTests
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class ClassExample6 {
@@ -47,8 +48,8 @@ class MinSupportedVersionTest extends AbstractSupportedVersionExtensionTests {
     }
 
 
-    @ExtendWith(ModuleVersion6.class)
-    @MinSupportedVersion(module = "module", version = "7.0")
+    @ExtendWith(CurrentGradleVersion6.class)
+    @MinTestableGradleVersion("7.0")
     @ExampleTests
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class ClassExample7 {
@@ -64,12 +65,12 @@ class MinSupportedVersionTest extends AbstractSupportedVersionExtensionTests {
     }
 
 
-    @ExtendWith(ModuleVersion6.class)
+    @ExtendWith(CurrentGradleVersion6.class)
     @ExampleTests
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class MethodExample5 {
         @Test
-        @MinSupportedVersion(module = "module", version = "5.0")
+        @MinTestableGradleVersion("5.0")
         void annotated() {
         }
 
@@ -85,12 +86,12 @@ class MinSupportedVersionTest extends AbstractSupportedVersionExtensionTests {
     }
 
 
-    @ExtendWith(ModuleVersion6.class)
+    @ExtendWith(CurrentGradleVersion6.class)
     @ExampleTests
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class MethodExample6 {
         @Test
-        @MinSupportedVersion(module = "module", version = "6.0")
+        @MinTestableGradleVersion("6.0")
         void annotated() {
         }
 
@@ -106,12 +107,12 @@ class MinSupportedVersionTest extends AbstractSupportedVersionExtensionTests {
     }
 
 
-    @ExtendWith(ModuleVersion6.class)
+    @ExtendWith(CurrentGradleVersion6.class)
     @ExampleTests
     @SuppressWarnings({"java:S5810", "java:S2699", "java:S5790"})
     static class MethodExample7 {
         @Test
-        @MinSupportedVersion(module = "module", version = "7.0")
+        @MinTestableGradleVersion("7.0")
         void annotated() {
         }
 
