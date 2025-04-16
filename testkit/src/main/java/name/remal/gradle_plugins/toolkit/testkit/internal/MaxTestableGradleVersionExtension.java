@@ -22,8 +22,8 @@ public class MaxTestableGradleVersionExtension extends AbstractTestableGradleVer
             return enabled(format("@%s is not present", MaxTestableGradleVersion.class.getSimpleName()));
         }
 
-        var maxGradleVersion = GradleVersion.version(annotation.value());
-        var currentGradleVersion = getCurrentGradleVersion(context);
+        var maxGradleVersion = GradleVersion.version(annotation.value()).getBaseVersion();
+        var currentGradleVersion = getCurrentGradleVersion(context).getBaseVersion();
         if (currentGradleVersion.compareTo(maxGradleVersion) <= 0) {
             return enabled(format(
                 "Current Gradle version %s is less or equal to max supported version %s",

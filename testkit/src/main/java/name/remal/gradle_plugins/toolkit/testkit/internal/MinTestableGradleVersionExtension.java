@@ -22,8 +22,8 @@ public class MinTestableGradleVersionExtension extends AbstractTestableGradleVer
             return enabled(format("@%s is not present", MinTestableGradleVersion.class.getSimpleName()));
         }
 
-        var minGradleVersion = GradleVersion.version(annotation.value());
-        var currentGradleVersion = getCurrentGradleVersion(context);
+        var minGradleVersion = GradleVersion.version(annotation.value()).getBaseVersion();
+        var currentGradleVersion = getCurrentGradleVersion(context).getBaseVersion();
         if (currentGradleVersion.compareTo(minGradleVersion) >= 0) {
             return enabled(format(
                 "Current Gradle version %s is greater or equal to min supported version %s",

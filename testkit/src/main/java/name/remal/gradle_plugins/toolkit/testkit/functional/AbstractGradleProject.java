@@ -548,6 +548,7 @@ public abstract class AbstractGradleProject<
                         "--configuration-cache",
                         "--configuration-cache-problems=fail",
                         "-Dorg.gradle.configuration-cache.stable=true",
+                        "-Dorg.gradle.configuration-cache.parallel=true",
                         "-Dorg.gradle.configuration-cache.integrity-check=true"
                     )
                 ).collect(toUnmodifiableList()));
