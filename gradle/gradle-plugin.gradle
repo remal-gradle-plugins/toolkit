@@ -157,5 +157,12 @@ allprojects {
             conf.extendsFrom = []
             conf.description = 'Kotlin Gradle plugin os the same version, as Kotlin that bundled in the current Gradle instance'
         }
+
+
+        tasks.withType(ValidatePlugins).configureEach {
+            ignoreFailures = false
+            failOnWarning = true
+            enableStricterValidation = true
+        }
     }
 }
