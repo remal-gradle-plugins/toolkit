@@ -1,1 +1,3 @@
 name.remal.gradle_plugins.toolkit.internal.GsonTypeAdapters
+name.remal.gradle_plugins.toolkit.issues.GsonAdaptersIssue
+name.remal.gradle_plugins.toolkit.issues.GsonAdaptersMessage

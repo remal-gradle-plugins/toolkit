@@ -3,6 +3,7 @@ package name.remal.gradle_plugins.toolkit.issues;
 import static name.remal.gradle_plugins.toolkit.issues.Utils.compareOptionals;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
@@ -14,7 +15,7 @@ import org.jetbrains.annotations.ApiStatus.OverrideOnly;
 
 @Value.Immutable
 @Gson.TypeAdapters
-public interface Issue extends Comparable<Issue> {
+public interface Issue extends Comparable<Issue>, Serializable {
 
     static IssueBuilder newIssueBuilder() {
         return ImmutableIssue.builder();

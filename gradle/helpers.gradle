@@ -615,7 +615,7 @@ Closure<List<String>> getPluginVersions = project.ext.getPluginVersions = { Stri
     if (publishedVersionsDirRelativePath != null) {
         File publishedVersionFile = new File(rootProjectDir, "$publishedVersionsDirRelativePath/$pluginId/${pluginId}.gradle.plugin.version")
         if (publishedVersionFile.isFile()) {
-            String publishedVersion = publishedVersionFile.getText('UTF-8')
+            String publishedVersion = publishedVersionFile.getText('UTF-8').trim()
             if (!publishedVersion.isEmpty()) {
                 versions.add(publishedVersion)
             }
