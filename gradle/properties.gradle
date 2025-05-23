@@ -10,7 +10,7 @@ import org.gradle.util.GradleVersion
 
 buildscript {
     dependencies {
-        classpath('org.eclipse.jgit:org.eclipse.jgit:6.10.0.202406032230-r') {
+        classpath('org.eclipse.jgit:org.eclipse.jgit:6.10.1.202505221210-r') {
             exclude(group: 'org.slf4j')
         }
     }
