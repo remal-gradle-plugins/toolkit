@@ -1,13 +1,11 @@
 package name.remal.gradle_plugins.toolkit.testkit.internal.containers;
 
 import javax.annotation.Nullable;
-import lombok.SneakyThrows;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.junit.jupiter.api.extension.Extension;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
 import org.junit.jupiter.api.extension.ExtensionContext.Store;
-import org.junit.jupiter.api.extension.ExtensionContext.Store.CloseableResource;
 
 @Internal
 public class ExtensionStore {
@@ -55,18 +53,6 @@ public class ExtensionStore {
         var key = value.getClass();
         store.put(key, value);
         return value;
-    }
-
-    @Nullable
-    @SneakyThrows
-    public <T> T removeCurrentStoreValue(ExtensionContext context, Class<T> type) {
-        var store = getStore(context);
-        var key = type;
-        var prevValue = store.remove(key, type);
-        if (prevValue instanceof CloseableResource) {
-            ((CloseableResource) prevValue).close();
-        }
-        return prevValue;
     }
 
 }
