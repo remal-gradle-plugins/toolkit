@@ -2,18 +2,21 @@ package name.remal.gradle_plugins.toolkit.testkit.internal.containers;
 
 import static name.remal.gradle_plugins.toolkit.testkit.internal.containers.ProjectDirPrefix.getProjectDirPrefix;
 
+import com.google.errorprone.annotations.ForOverride;
 import java.util.ArrayList;
 import java.util.Collection;
+import lombok.SneakyThrows;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.api.extension.ExtensionContext.Store.CloseableResource;
 
 @Internal
-public abstract class AbstractExtensionContextContainer<Resource> implements CloseableResource {
+public abstract class AbstractExtensionContextContainer<Resource> implements AutoCloseable {
 
+    @ForOverride
     protected void cleanup(Resource resource, boolean isExceptionThrown) throws Throwable {
     }
 
+    @ForOverride
     protected void additionalCleanup(boolean isExceptionThrown) throws Throwable {
     }
 
@@ -29,7 +32,8 @@ public abstract class AbstractExtensionContextContainer<Resource> implements Clo
     }
 
     @Override
-    public final synchronized void close() throws Throwable {
+    @SneakyThrows
+    public final synchronized void close() {
         var isExceptionThrown = context.getExecutionException().isPresent();
 
         var registeredResourcesIterator = registeredResources.iterator();
