@@ -43,7 +43,7 @@ import org.xml.sax.SAXException
 buildscript {
     dependencies {
         classpath "org.json:json:20250517"
-        classpath "org.jsoup:jsoup:1.20.1"
+        classpath "org.jsoup:jsoup:1.21.1"
         classpath "com.vdurmont:semver4j:3.1.0"
     }
     repositories {

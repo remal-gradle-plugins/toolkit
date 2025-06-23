@@ -55,7 +55,7 @@ buildscript {
         'rootBuildscriptBuildDependencies',
         [
             'org.json:json:20250517',
-            'org.jsoup:jsoup:1.20.1',
+            'org.jsoup:jsoup:1.21.1',
             'com.vdurmont:semver4j:3.1.0',
             'org.eclipse.jgit:org.eclipse.jgit:6.10.1.202505221210-r',
         ]
@@ -127,7 +127,7 @@ allprojects {
             classesRelocation 'org.ow2.asm:asm-tree'
             classesRelocation 'org.ow2.asm:asm-util'
             classesRelocation 'org.json:json:20250517'
-            classesRelocation 'org.jsoup:jsoup:1.20.1'
+            classesRelocation 'org.jsoup:jsoup:1.21.1'
             classesRelocation 'org.jdom:jdom2:2.0.6.1'
 
 
