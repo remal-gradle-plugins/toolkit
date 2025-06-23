@@ -1,6 +1,5 @@
 package name.remal.gradle_plugins.toolkit;
 
-import static java.util.Arrays.stream;
 import static java.util.Collections.newSetFromMap;
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Comparator.comparing;
@@ -11,7 +10,6 @@ import static name.remal.gradle_plugins.toolkit.FileTreeElementUtils.isNotArchiv
 import static name.remal.gradle_plugins.toolkit.LazyProxy.asLazyListProxy;
 import static name.remal.gradle_plugins.toolkit.ThrowableUtils.unwrapReflectionException;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.isGetterOf;
-import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.isNotStatic;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -24,7 +22,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
@@ -167,49 +164,23 @@ public abstract class SourceSetUtils {
     }
 
 
-    private static final List<Method> GET_SOURCE_DIRECTORY_SET_METHODS = stream(SourceSet.class.getMethods())
-        .filter(ReflectionUtils::isNotStatic)
-        .filter(method -> isGetterOf(method, SourceDirectorySet.class))
-        .sorted(comparing(Method::getName))
-        .collect(toUnmodifiableList());
+    private static final List<SourceSetSourceDirectorySetsGetter> SOURCE_SET_SOURCE_DIRECTORY_SETS_GETTERS =
+        asLazyListProxy(() ->
+            loadAllCrossCompileServiceImplementations(SourceSetSourceDirectorySetsGetter.class)
+        );
 
     @Unmodifiable
-    @ReliesOnInternalGradleApi
     @SneakyThrows
-    @SuppressWarnings({"deprecation", "java:S3776"})
     public static Collection<SourceDirectorySet> getAllSourceDirectorySets(SourceSet sourceSet) {
         Collection<SourceDirectorySet> result = newSetFromMap(new IdentityHashMap<>());
-
-        for (var method : GET_SOURCE_DIRECTORY_SET_METHODS) {
-            final SourceDirectorySet sourceDirectorySet;
+        for (var getter : SOURCE_SET_SOURCE_DIRECTORY_SETS_GETTERS) {
             try {
-                sourceDirectorySet = (SourceDirectorySet) method.invoke(sourceSet);
+                var sourceDirectorySetsCollection = getter.get(sourceSet);
+                result.addAll(sourceDirectorySetsCollection);
             } catch (Throwable e) {
                 throw unwrapReflectionException(e);
             }
-
-            result.add(sourceDirectorySet);
         }
-
-        if (sourceSet instanceof org.gradle.api.internal.HasConvention) {
-            var convention = ((org.gradle.api.internal.HasConvention) sourceSet).getConvention();
-            for (var pluginEntry : convention.getPlugins().entrySet()) {
-                var plugin = pluginEntry.getValue();
-                for (var pluginMethod : plugin.getClass().getMethods()) {
-                    if (isNotStatic(pluginMethod) && isGetterOf(pluginMethod, SourceDirectorySet.class)) {
-                        final SourceDirectorySet sourceDirectorySet;
-                        try {
-                            sourceDirectorySet = (SourceDirectorySet) pluginMethod.invoke(plugin);
-                        } catch (Throwable e) {
-                            throw unwrapReflectionException(e);
-                        }
-
-                        result.add(sourceDirectorySet);
-                    }
-                }
-            }
-        }
-
         return unmodifiableCollection(result);
     }
 

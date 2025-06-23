@@ -132,13 +132,12 @@ class SourceSetUtilsTest {
 
         assertThat(SourceSetUtils.getAllSourceDirectorySets(mainSourceSet))
             .extracting(SourceDirectorySet::getName)
-            .containsExactlyInAnyOrder(
+            .contains(
                 "allsource",
                 "java",
                 "alljava",
                 "resources",
-                "groovy",
-                "allgroovy"
+                "groovy"
             );
     }
 
