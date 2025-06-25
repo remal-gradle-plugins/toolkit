@@ -1,7 +1,5 @@
 package name.remal.gradle_plugins.toolkit;
 
-import static java.lang.Boolean.FALSE;
-import static java.lang.Boolean.TRUE;
 import static java.nio.file.Files.createTempFile;
 import static java.nio.file.Files.newOutputStream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -34,7 +32,7 @@ class FileTreeElementUtilsTest {
         fileTree.visit(details -> {
             isNotArchiveEntry.set(FileTreeElementUtils.isNotArchiveEntry(details));
         });
-        assertEquals(TRUE, isNotArchiveEntry.get());
+        assertEquals(true, isNotArchiveEntry.get());
     }
 
     @Test
@@ -49,7 +47,7 @@ class FileTreeElementUtilsTest {
         fileTree.visit(details -> {
             isNotArchiveEntry.set(FileTreeElementUtils.isNotArchiveEntry(details));
         });
-        assertEquals(FALSE, isNotArchiveEntry.get());
+        assertEquals(false, isNotArchiveEntry.get());
     }
 
     @Test
