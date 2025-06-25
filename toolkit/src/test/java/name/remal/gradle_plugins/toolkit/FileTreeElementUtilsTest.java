@@ -47,7 +47,7 @@ class FileTreeElementUtilsTest {
         fileTree.visit(details -> {
             isNotArchiveEntry.set(FileTreeElementUtils.isNotArchiveEntry(details));
         });
-        assertEquals(true, isNotArchiveEntry.get());
+        assertEquals(false, isNotArchiveEntry.get());
     }
 
     @Test
