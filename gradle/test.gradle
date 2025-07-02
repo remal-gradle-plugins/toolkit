@@ -260,5 +260,11 @@ allprojects {
                 }
             }
         }
+
+        pluginManager.withPlugin('java-test-fixtures') {
+            // Disable publishing of test fixtures variants:
+            components.java.withVariantsFromConfiguration(configurations.testFixturesApiElements) { skip() }
+            components.java.withVariantsFromConfiguration(configurations.testFixturesRuntimeElements) { skip() }
+        }
     }
 }
