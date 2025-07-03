@@ -42,7 +42,7 @@ project.fatJarWith(project(':toolkit-annotations'))
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 Configuration saxonConf = configurations.create('saxon') {
-    dependencies.add(project.dependencies.create('net.sf.saxon:Saxon-HE:12.7'))
+    dependencies.add(project.dependencies.create('net.sf.saxon:Saxon-HE:12.8'))
 }
 
 TaskProvider testXsltWithSaxon = tasks.register('testXsltWithSaxon', Test) {
