@@ -3,16 +3,33 @@ if (project.isBuildSrcProject) {
 }
 
 allprojects {
+    String gnupgEnable = findProperty('signing.gnupg.enable')?.toString()
     String signingKey = findProperty('signing.key')?.toString()
-    String signingKeyId = findProperty('signing.keyId')?.toString()
-    String signingPassword = findProperty('signing.password')?.toString()
-    if (signingKey != null && !signingKey.isEmpty()) {
+    if (gnupgEnable || signingKey) {
         apply plugin: 'signing'
     }
 
     pluginManager.withPlugin('signing') {
         signing {
-            useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
+            if (gnupgEnable) {
+                useGpgCmd()
+
+            } else {
+                String signingKeyId = findProperty('signing.keyId')?.toString()
+                if (signingKeyId) {
+                    useInMemoryPgpKeys(
+                        signingKeyId,
+                        signingKey,
+                        findProperty('signing.password')?.toString()
+                    )
+
+                } else {
+                    useInMemoryPgpKeys(
+                        signingKey,
+                        findProperty('signing.password')?.toString()
+                    )
+                }
+            }
         }
     }
 }
