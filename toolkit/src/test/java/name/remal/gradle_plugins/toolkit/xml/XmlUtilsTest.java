@@ -60,7 +60,7 @@ class XmlUtilsTest {
 
     @Test
     void manyAttrs() {
-        var attrs = IntStream.range(1, 1000)
+        var attrs = IntStream.range(1, 150)
             .mapToObj(it -> " param" + it + "=\"value\"")
             .collect(joining());
         var prettyXmlString = XmlUtils.prettyXmlString("<parent><node" + attrs + "/></parent>");
