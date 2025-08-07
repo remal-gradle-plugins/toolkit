@@ -159,8 +159,7 @@ class FileTreeElementDefault implements FileTreeElement {
         throw new IllegalStateException("Relative path is not set");
     }
 
-    @Override
-    @SuppressWarnings({"deprecation", "RedundantSuppression"})
+    // keep for backward compatibility
     public int getMode() {
         return getPermissions().toUnixNumeric();
     }

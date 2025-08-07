@@ -67,6 +67,7 @@ TaskProvider testXsltWithSaxon = tasks.register('testXsltWithSaxon', Test) {
 }
 
 tasks.named('check').configure { dependsOn(testXsltWithSaxon) }
+tasks.matching { it.name == 'allTests' }.configureEach { dependsOn(testXsltWithSaxon) }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
