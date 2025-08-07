@@ -5,6 +5,7 @@ import static java.nio.file.Files.isDirectory;
 import static java.nio.file.Files.isRegularFile;
 import static java.nio.file.Files.newInputStream;
 import static java.util.Collections.emptyList;
+import static java.util.Objects.requireNonNullElse;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.ContinuousIntegrationUtils.isRunningOnCi;
 import static name.remal.gradle_plugins.toolkit.PathUtils.normalizePath;
@@ -112,7 +113,7 @@ public abstract class GitUtils {
                     } else if (attr.getState() == CUSTOM) {
                         result.put(attr.getKey(), newGitStringAttributeBuilder()
                             .name(attr.getKey())
-                            .value(attr.getValue())
+                            .value(requireNonNullElse(attr.getValue(), ""))
                             .build()
                         );
                     }

@@ -162,8 +162,9 @@ public final class EditorConfig implements Serializable {
             }
             return null;
         });
-        if (isEmpty(result)) {
-            result = "\n";
+
+        if (result == null || result.isEmpty()) {
+            return "\n";
         }
         return result;
     }
