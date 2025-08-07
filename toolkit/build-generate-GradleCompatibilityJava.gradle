@@ -30,9 +30,7 @@ generateSources.forMainSourceSet.java {
     String documentationUrl = 'https://docs.gradle.org/current/userguide/compatibility.html'
     outputs.file(project.getCacheFileForDownloadedUrl(documentationUrl)).optional()
 
-    String baseJavaPackage = project.calculateBaseJavaPackage()
-
-    classFile(baseJavaPackage, 'GradleCompatibilityJava') {
+    classFile(project.calculateBaseJavaPackage(), 'GradleCompatibilityJava') {
         SortedMap<Integer, GradleVersionRange> compatibilities = new TreeMap<>()
         def documentationDocument = loadHtmlFromUrl(documentationUrl)
         def tableElements = documentationDocument.select('h2#java_runtime + .sectionbody table.tableblock')
@@ -92,9 +90,9 @@ generateSources.forMainSourceSet.java {
         }
 
         addStaticImport('lombok.AccessLevel', 'PRIVATE')
-        addStaticImport("${baseJavaPackage}.GradleCompatibilityMode", 'SUPPORTED')
-        addStaticImport("${baseJavaPackage}.GradleCompatibilityMode", 'UNKNOWN')
-        addStaticImport("${baseJavaPackage}.GradleCompatibilityMode", 'UNSUPPORTED')
+        addStaticImport("${packageName}.GradleCompatibilityMode", 'SUPPORTED')
+        addStaticImport("${packageName}.GradleCompatibilityMode", 'UNKNOWN')
+        addStaticImport("${packageName}.GradleCompatibilityMode", 'UNSUPPORTED')
 
         addImport("lombok.NoArgsConstructor")
         addImport("org.gradle.util.GradleVersion")

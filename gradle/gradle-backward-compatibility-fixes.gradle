@@ -1,0 +1,73 @@
+import java.util.concurrent.atomic.AtomicBoolean
+import org.objectweb.asm.AnnotationVisitor
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.ClassWriter
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+buildscript {
+    dependencies {
+        classpath platform("org.ow2.asm:asm-bom:9.8")
+        classpath 'org.ow2.asm:asm-tree'
+    }
+    repositories {
+        mavenCentral()
+    }
+}
+
+if (project.isBuildSrcProject) {
+    return
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+// Add deprecated @org.gradle.api.NonNullApi where @org.jspecify.annotations.NullMarked is added.
+
+allprojects {
+    tasks.withType(AbstractCompile).configureEach { AbstractCompile task ->
+        FileTree classFiles = project.fileTree(task.destinationDirectory)
+            .matching { include('**/*.class') }
+
+        task.doLast {
+            classFiles.visit { FileVisitDetails details ->
+                if (details.directory) {
+                    return
+                }
+
+                ClassWriter classWriter = new ClassWriter(0)
+
+                List<String> annotationToAdd = [
+                    'Lorg/jspecify/annotations/NullMarked;',
+                    'Lorg/gradle/api/NonNullApi;',
+                ]
+
+                AtomicBoolean annotationsAdded = new AtomicBoolean()
+                ClassVisitor classVisitor = new ClassVisitor(classWriter.api, classWriter) {
+                    @Override
+                    AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+                        if (annotationToAdd.contains(descriptor)
+                            && annotationsAdded.compareAndSet(false, true)
+                        ) {
+                            for (String ann : annotationToAdd) {
+                                if (ann != descriptor) {
+                                    super.visitAnnotation(ann, true)
+                                }
+                            }
+
+                            return super.visitAnnotation(descriptor, true)
+                        }
+
+                        return super.visitAnnotation(descriptor, visible)
+                    }
+                }
+
+                details.open().withCloseable {
+                    new ClassReader(it).accept(classVisitor, 0)
+                }
+
+                details.file.bytes = classWriter.toByteArray()
+            }
+        }
+    }
+}
