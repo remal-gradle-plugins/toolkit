@@ -22,6 +22,7 @@ allprojects {
                 disableWarningsInGeneratedCode = true
                 disable(
                     'AssignmentExpression', // too strict rule
+                    'EffectivelyPrivate', // too strict rule
                     'StringConcatToTextBlock', // buggy with Lombok
                     'JavaxInjectOnAbstractMethod', // false positives with Gradle
                     'InjectOnConstructorOfAbstractClass', // false positives with Gradle
