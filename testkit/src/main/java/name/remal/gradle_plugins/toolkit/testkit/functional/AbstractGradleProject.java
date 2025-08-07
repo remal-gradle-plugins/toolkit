@@ -147,6 +147,11 @@ public abstract class AbstractGradleProject<
             .stackTracePrefix("org.gradle.jvm.toolchain.")
             .build(),
         SuppressedMessage.builder()
+            .startsWith(true)
+            .message("Executing Gradle on JVM versions 16 and lower has been deprecated")
+            .stackTracePrefix("org.gradle.launcher.")
+            .build(),
+        SuppressedMessage.builder()
             .message("The resolvable usage is already allowed on configuration")
             .stackTracePrefix("org.jetbrains.kotlin.gradle.plugin.")
             .build(),
