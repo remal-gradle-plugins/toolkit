@@ -26,9 +26,9 @@ class GradleCompatibilityJavaTest {
 
         assertEquals(UNSUPPORTED, getSupportOf("2.0", 9));
         assertEquals(SUPPORTED, getSupportOf("2.0", 8));
-        assertEquals(SUPPORTED, getSupportOf("2.0", 7));
+        assertEquals(UNSUPPORTED, getSupportOf("2.0", 7));
 
-        assertEquals(UNKNOWN, getSupportOf("1.0", 8));
+        assertEquals(UNKNOWN, getSupportOf("9.0", 9999));
     }
 
     private static GradleCompatibilityMode getSupportOf(String gradleVersion, int javaVersion) {

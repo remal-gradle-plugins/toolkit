@@ -1,4 +1,30 @@
+import groovy.transform.Immutable
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+import java.util.stream.Stream
 import org.gradle.util.GradleVersion
+
+@Immutable(copyWith = true, knownImmutableClasses = [
+    GradleVersion
+])
+class GradleVersionRange implements Comparable<GradleVersionRange> {
+
+    GradleVersion min
+    GradleVersion max
+
+    private static final GradleVersion MIN_VERSION = GradleVersion.version('0.0')
+    private static final GradleVersion MAX_VERSION = GradleVersion.version('9999.9999')
+
+    @Override
+    int compareTo(GradleVersionRange other) {
+        int result = (min ?: MIN_VERSION) <=> (other.min ?: MIN_VERSION)
+        if (result == 0) {
+            result = (max ?: MAX_VERSION) <=> (other.max ?: MAX_VERSION)
+        }
+        return result
+    }
+
+}
 
 generateSources.forMainSourceSet.java {
     String documentationUrl = 'https://docs.gradle.org/current/userguide/compatibility.html'
@@ -7,7 +33,7 @@ generateSources.forMainSourceSet.java {
     String baseJavaPackage = project.calculateBaseJavaPackage()
 
     classFile(baseJavaPackage, 'GradleCompatibilityJava') {
-        SortedMap<GradleVersion, Integer> compatibility = new TreeMap<>(Comparator.reverseOrder())
+        SortedMap<Integer, GradleVersionRange> compatibilities = new TreeMap<>()
         def documentationDocument = loadHtmlFromUrl(documentationUrl)
         def tableElements = documentationDocument.select('h2#java_runtime + .sectionbody table.tableblock')
         if (tableElements.isEmpty()) {
@@ -24,26 +50,45 @@ generateSources.forMainSourceSet.java {
                 throw new GradleException("Java version is empty: $trElement")
             }
 
-            String gradleVersion = trElement.select('td:eq(2)').text()
-            if (gradleVersion == 'N/A') {
+            String rangeString = trElement.select('td:eq(2)').text()
+            if (rangeString == 'N/A') {
                 return
-            } else if (gradleVersion.isEmpty()) {
-                throw new GradleException("Gradle version is empty: $trElement")
+            } else if (rangeString.isEmpty()) {
+                throw new GradleException("Gradle version range is empty: $trElement")
             }
 
-            compatibility[GradleVersion.version(gradleVersion)] = javaVersion.toInteger()
-        }
-
-        ; [
-            "2.0": 8,
-            "5.0": 11,
-            "7.3": 17,
-            "8.5": 21,
-        ].forEach { String gradleVersion, Integer javaVersion ->
-            Integer retrievedJavaVersion = compatibility.get(GradleVersion.version(gradleVersion))
-            if (retrievedJavaVersion != javaVersion) {
-                throw new GradleException("Unexpected Java version for Gradle $gradleVersion: $retrievedJavaVersion")
+            def parseGradleVersion = { String string ->
+                string = string.replaceAll(/\*/, '9999')
+                while (string.count('.') < 1) {
+                    string += '.0'
+                }
+                return GradleVersion.version(string)
             }
+
+            GradleVersionRange range =
+                rangeString.with {
+                    Matcher matcher = Pattern.compile(/(?<min>\d+(\.(\d+|\*))+) to (?<max>\d+(\.(\d+|\*))+)/).matcher(it)
+                    if (matcher.matches()) {
+                        return new GradleVersionRange(
+                            min: parseGradleVersion(matcher.group('min')),
+                            max: parseGradleVersion(matcher.group('max')),
+                        )
+                    }
+                    return null
+                }
+                    ?: rangeString.with {
+                    Matcher matcher = Pattern.compile(/(?<min>\d+(\.(\d+|\*))+) and after/).matcher(it)
+                    if (matcher.matches()) {
+                        return new GradleVersionRange(
+                            min: parseGradleVersion(matcher.group('min')),
+                            max: null,
+                        )
+                    }
+                    return null
+                }
+                    ?: with { throw new GradleException("Unsupported Gradle version range: $rangeString") }
+
+            compatibilities[javaVersion.toInteger()] = range
         }
 
         addStaticImport('lombok.AccessLevel', 'PRIVATE')
@@ -58,27 +103,40 @@ generateSources.forMainSourceSet.java {
         suppressWarningsLine("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "checkstyle:RightCurly", "java:S3776", "java:S131", "java:S1479")
         block("abstract class ${simpleName}") {
             line()
-
-            compatibility.keySet().forEach { GradleVersion gradleVersion ->
-                line("private static final GradleVersion GRADLE_${gradleVersion.version.replace('.', '_')} = GradleVersion.version(\"${gradleVersion.version}\");")
-            }
+            compatibilities.values().stream()
+                .flatMap { Stream.of(it.min, it.max) }
+                .filter { it != null }
+                .distinct()
+                .sorted()
+                .forEach {
+                    line("private static final GradleVersion GRADLE_${it.version.replace('.', '_')} = GradleVersion.version(\"${it.version}\");")
+                }
 
             line()
             block("public static GradleCompatibilityMode get(GradleVersion gradleVersion, int javaVersion)") {
                 line("gradleVersion = gradleVersion.getBaseVersion();")
 
-                Map.Entry<GradleVersion, Integer> firstEntry = compatibility.firstEntry()
-                block("if (gradleVersion.compareTo(GRADLE_${firstEntry.key.version.replace('.', '_')}) > 0)") {
-                    block("if (javaVersion <= ${firstEntry.value})") {
-                        line("return SUPPORTED;")
-                    }
-                    line("return UNKNOWN;")
+                block("if (javaVersion < ${compatibilities.firstKey()})") {
+                    line("return UNSUPPORTED;")
                 }
 
-                compatibility.forEach { GradleVersion gradleVersion, Integer javaVersion ->
-                    block("else if (gradleVersion.compareTo(GRADLE_${gradleVersion.version.replace('.', '_')}) >= 0)") {
-                        block("if (javaVersion <= ${javaVersion})") {
+                compatibilities.forEach { Integer javaVersion, GradleVersionRange range ->
+                    block("else if (javaVersion == $javaVersion)") {
+                        List<String> clauses = []
+                        if (range.min != null) {
+                            clauses.add("gradleVersion.compareTo(GRADLE_${range.min.version.replace('.', '_')}) >= 0")
+                        }
+                        if (range.max != null) {
+                            clauses.add("gradleVersion.compareTo(GRADLE_${range.max.version.replace('.', '_')}) <= 0")
+                        }
+                        if (clauses.isEmpty()) {
+                            throw new GradleException("Java version: $javaVersion: No clauses were defined for range: $range")
+                        }
+                        block("if (${clauses.join(' && ')})") {
                             line("return SUPPORTED;")
+                        }
+                        block("else") {
+                            line("return UNSUPPORTED;")
                         }
                     }
                 }
@@ -86,8 +144,6 @@ generateSources.forMainSourceSet.java {
                 block("else") {
                     line("return UNKNOWN;")
                 }
-
-                line("return UNSUPPORTED;")
             }
 
             line()
