@@ -1,4 +1,5 @@
 import static java.nio.charset.StandardCharsets.UTF_8
+import static java.util.Collections.synchronizedSet
 import static java.util.stream.Collectors.toList
 import static org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE
 import static org.gradle.api.attributes.Category.DOCUMENTATION
@@ -443,9 +444,17 @@ Closure<File> getCacheFileForDownloadedUrl = project.ext.getCacheFileForDownload
     return new File(downloadedContentCacheDir, sha512hex(url.toString()) + cacheFileNameSuffix)
 }
 
+Set<File> cacheFilesForDownloadedUrlLoadedFirstTimeOnCi = synchronizedSet(new LinkedHashSet<>())
+
 Closure<byte[]> loadUrlContent = project.ext.loadUrlContent = { Object untypedUrl, String cacheFileNameSuffix = null ->
     synchronized (MUTEX) {
         File cacheFile = getCacheFileForDownloadedUrl(untypedUrl, cacheFileNameSuffix)
+
+        if (project.isRunningOnCi && cacheFilesForDownloadedUrlLoadedFirstTimeOnCi.add(cacheFile)) {
+            // Delete the cache file if it's used first time on CI:
+            cacheFile.delete()
+        }
+
         if (cacheFile.exists()) {
             return cacheFile.bytes
         }
