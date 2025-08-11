@@ -555,8 +555,12 @@ Closure<List<GradleVersion>> getStableGradleVersions = project.ext.getStableGrad
 }.memoize()
 
 Closure<List<GradleVersion>> getMinorGradleVersions = project.ext.getMinorGradleVersions = {
-    return getStableGradleVersions().findAll { it.version.count('.') == 1 }
-}
+    Set<String> minorVersions = new LinkedHashSet<>()
+    return getStableGradleVersions().findAll { version ->
+        String minorVersion = version.version.replaceFirst(/^(\d+\.\d+).*$/, '$1')
+        return minorVersions.add(minorVersion)
+    }
+}.memoize()
 
 
 Closure<List<Integer>> getFilteredJavaRuntimeVersions = { Closure<Boolean> filter ->

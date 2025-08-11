@@ -11,7 +11,11 @@ generateSources.forMainSourceSet.java {
     }).with { it.finalizeValueOnRead(); it }
 
     Closure<String> getDocumentationUrl = { GradleVersion gradleVersion ->
-        "https://docs.gradle.org/${gradleVersion.version}/userguide/configuration_cache.html"
+        if (gradleVersion >= GradleVersion.version('9.0.0')) {
+            return "https://docs.gradle.org/${gradleVersion.version}/userguide/configuration_cache_status.html"
+        } else {
+            return "https://docs.gradle.org/${gradleVersion.version}/userguide/configuration_cache.html"
+        }
     }
 
     outputs.files(files(
@@ -20,13 +24,11 @@ generateSources.forMainSourceSet.java {
         }
     )).optional()
 
-    String baseJavaPackage = project.calculateBaseJavaPackage()
-
-    classFile(baseJavaPackage, 'CorePluginConfigurationCacheSupport') {
+    classFile(project.calculateBaseJavaPackage(), 'CorePluginConfigurationCacheSupport') {
         addStaticImport('lombok.AccessLevel', 'PRIVATE')
-        addStaticImport("${baseJavaPackage}.GradleCompatibilityMode", 'PARTIALLY_SUPPORTED')
-        addStaticImport("${baseJavaPackage}.GradleCompatibilityMode", 'SUPPORTED')
-        addStaticImport("${baseJavaPackage}.GradleCompatibilityMode", 'UNSUPPORTED')
+        addStaticImport("${packageName}.GradleCompatibilityMode", 'PARTIALLY_SUPPORTED')
+        addStaticImport("${packageName}.GradleCompatibilityMode", 'SUPPORTED')
+        addStaticImport("${packageName}.GradleCompatibilityMode", 'UNSUPPORTED')
 
         addImport("lombok.NoArgsConstructor")
         addImport("org.gradle.util.GradleVersion")
