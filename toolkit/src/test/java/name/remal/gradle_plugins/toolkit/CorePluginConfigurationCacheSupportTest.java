@@ -59,6 +59,11 @@ class CorePluginConfigurationCacheSupportTest {
 
     @Test
     void application() {
+        if (GradleVersion.current().equals(GradleVersion.version("8.0.2"))) {
+            assertEquals(PARTIALLY_SUPPORTED, getSupportOf("application"));
+            return;
+        }
+
         assertEquals(SUPPORTED, getSupportOf("application"));
     }
 
