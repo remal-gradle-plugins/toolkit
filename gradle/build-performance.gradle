@@ -60,7 +60,9 @@ gradle.buildFinished { timingsListener.buildFinished() }
 allprojects {
     tasks.withType(Test).configureEach { Test task ->
         long nanosToReport = Duration.ofSeconds(10).toNanos()
-        if (task.name == 'functionalTest') {
+        if (task.name == 'componentTest') {
+            nanosToReport = Duration.ofSeconds(20).toNanos()
+        } else if (task.name == 'functionalTest') {
             nanosToReport = Duration.ofSeconds(60).toNanos()
         }
 
