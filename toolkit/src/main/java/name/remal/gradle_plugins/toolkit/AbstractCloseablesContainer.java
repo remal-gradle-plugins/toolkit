@@ -12,9 +12,10 @@ import java.util.List;
 import java.util.Objects;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.Nullable;
 
 @SuppressWarnings("try")
-public abstract class AbstractClosablesContainer implements AutoCloseable {
+public abstract class AbstractCloseablesContainer implements AutoCloseable {
 
     @GuardedBy("this")
     private final Deque<AutoCloseable> closeables = new ArrayDeque<>();
@@ -26,7 +27,9 @@ public abstract class AbstractClosablesContainer implements AutoCloseable {
     }
 
     @Contract("_->param1")
-    protected synchronized <T extends Collection<? extends AutoCloseable>> T registerCloseables(T closeables) {
+    protected synchronized <T extends Collection<? extends @Nullable AutoCloseable>> T registerCloseables(
+        T closeables
+    ) {
         closeables.stream()
             .filter(Objects::nonNull)
             .forEach(this::registerCloseable);
@@ -58,13 +61,13 @@ public abstract class AbstractClosablesContainer implements AutoCloseable {
         } else if (exceptions.size() == 1) {
             throw exceptions.get(0);
         } else {
-            throw new ClosablesClosureException(exceptions);
+            throw new CloseablesClosingException(exceptions);
         }
     }
 
 
-    public static class ClosablesClosureException extends RuntimeException {
-        private ClosablesClosureException(Collection<? extends Throwable> exceptions) {
+    public static class CloseablesClosingException extends RuntimeException {
+        private CloseablesClosingException(Collection<? extends Throwable> exceptions) {
             super(format(
                 "Errors occurred while closing %d objects",
                 exceptions.size()
