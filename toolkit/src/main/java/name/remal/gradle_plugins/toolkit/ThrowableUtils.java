@@ -5,6 +5,7 @@ import static lombok.AccessLevel.PRIVATE;
 import java.io.UncheckedIOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.rmi.UnexpectedException;
 import java.util.concurrent.ExecutionException;
 import lombok.NoArgsConstructor;
 
@@ -48,6 +49,9 @@ public abstract class ThrowableUtils {
                 unwrapped = exception.getCause();
 
             } else if (exception instanceof UncheckedIOException) {
+                unwrapped = exception.getCause();
+
+            } else if (exception instanceof UnexpectedException) {
                 unwrapped = exception.getCause();
 
             } else {
