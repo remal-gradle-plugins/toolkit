@@ -585,12 +585,10 @@ public abstract class ReflectionUtils {
 
 
     @Contract("_ -> param1")
-    @SuppressWarnings({"deprecation", "java:S3011", "RedundantSuppression"})
+    @SuppressWarnings("java:S3011")
     public static <T extends AccessibleObject & Member> T makeAccessible(T member) {
-        if (!member.isAccessible()) {
-            if (isNotPublic(member) || isNotPublic(member.getDeclaringClass())) {
-                member.setAccessible(true);
-            }
+        if (isNotPublic(member) || isNotPublic(member.getDeclaringClass())) {
+            member.setAccessible(true);
         }
         return member;
     }
