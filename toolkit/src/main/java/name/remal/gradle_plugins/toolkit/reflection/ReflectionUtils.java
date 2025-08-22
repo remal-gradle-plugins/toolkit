@@ -36,7 +36,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import lombok.CustomLog;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
@@ -44,6 +43,7 @@ import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Unmodifiable;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.ClassReader;
 
 @NoArgsConstructor(access = PRIVATE)
@@ -161,41 +161,37 @@ public abstract class ReflectionUtils {
 
 
     public static Iterable<Class<?>> iterateClassHierarchyWithoutInterfaces(@Nullable Class<?> rootClass) {
-        return new Iterable<>() {
-            @Nonnull
-            @Override
-            public Iterator<Class<?>> iterator() {
-                if (rootClass == null) {
-                    return emptyIterator();
+        return () -> {
+            if (rootClass == null) {
+                return emptyIterator();
+            }
+
+            return new Iterator<>() {
+                @Nullable
+                private Class<?> nextClass = rootClass;
+
+                @Override
+                public boolean hasNext() {
+                    return nextClass != null;
                 }
 
-                return new Iterator<>() {
-                    @Nullable
-                    private Class<?> nextClass = rootClass;
-
-                    @Override
-                    public boolean hasNext() {
-                        return nextClass != null;
+                @Override
+                public Class<?> next() {
+                    var currentClass = nextClass;
+                    if (currentClass == null) {
+                        throw new NoSuchElementException();
                     }
 
-                    @Override
-                    public Class<?> next() {
-                        var currentClass = nextClass;
-                        if (currentClass == null) {
-                            throw new NoSuchElementException();
-                        }
-
-                        var superClass = currentClass.getSuperclass();
-                        if (superClass != null && superClass != currentClass) {
-                            nextClass = superClass;
-                        } else {
-                            nextClass = null;
-                        }
-
-                        return currentClass;
+                    var superClass = currentClass.getSuperclass();
+                    if (superClass != null && superClass != currentClass) {
+                        nextClass = superClass;
+                    } else {
+                        nextClass = null;
                     }
-                };
-            }
+
+                    return currentClass;
+                }
+            };
         };
     }
 

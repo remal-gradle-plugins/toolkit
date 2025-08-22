@@ -6,12 +6,12 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.function.Consumer;
-import javax.annotation.Nullable;
 import name.remal.gradle_plugins.toolkit.issues.ImmutableIssue.IssueBuilder;
 import org.immutables.gson.Gson;
 import org.immutables.value.Value;
 import org.immutables.value.Value.Check;
 import org.jetbrains.annotations.ApiStatus.OverrideOnly;
+import org.jspecify.annotations.Nullable;
 
 @Value.Immutable
 @Gson.TypeAdapters

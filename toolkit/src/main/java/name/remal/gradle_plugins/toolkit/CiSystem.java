@@ -1,8 +1,8 @@
 package name.remal.gradle_plugins.toolkit;
 
 import java.io.File;
-import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
+import org.jspecify.annotations.Nullable;
 
 public interface CiSystem {
 

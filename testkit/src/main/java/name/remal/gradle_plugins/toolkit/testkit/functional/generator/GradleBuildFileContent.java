@@ -4,10 +4,10 @@ import static name.remal.gradle_plugins.toolkit.testkit.functional.generator.Bui
 
 import java.nio.file.Path;
 import java.time.Duration;
-import javax.annotation.Nullable;
 import name.remal.gradle_plugins.generate_sources.generators.java_like.JavaLikeContent;
 import name.remal.gradle_plugins.toolkit.testkit.functional.generator.chunks.DefaultTaskTimeoutChunk;
 import name.remal.gradle_plugins.toolkit.testkit.functional.generator.chunks.WithDefaultTaskTimeout;
+import org.jspecify.annotations.Nullable;
 
 public interface GradleBuildFileContent<Block extends JavaLikeContent<Block>>
     extends GradleFileContent<Block>, WithDefaultTaskTimeout {

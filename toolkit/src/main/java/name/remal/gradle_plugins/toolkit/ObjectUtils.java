@@ -30,7 +30,6 @@ import java.util.function.DoubleSupplier;
 import java.util.function.IntSupplier;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
-import javax.annotation.Nullable;
 import kotlin.Lazy;
 import kotlin.jvm.functions.Function0;
 import kotlin.reflect.KCallable;
@@ -44,6 +43,7 @@ import name.remal.gradle_plugins.toolkit.SneakyThrowUtils.SneakyThrowsLongSuppli
 import name.remal.gradle_plugins.toolkit.SneakyThrowUtils.SneakyThrowsSupplier;
 import org.gradle.api.provider.Provider;
 import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.Nullable;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ObjectUtils {
@@ -243,47 +243,47 @@ public abstract class ObjectUtils {
     }
 
     @Contract(value = "null->true", pure = true)
-    public static boolean isEmpty(@Nullable Object[] value) {
+    public static boolean isEmpty(Object @Nullable [] value) {
         return value == null || value.length == 0;
     }
 
     @Contract(value = "null->true", pure = true)
-    public static boolean isEmpty(@Nullable byte[] value) {
+    public static boolean isEmpty(byte @Nullable [] value) {
         return value == null || value.length == 0;
     }
 
     @Contract(value = "null->true", pure = true)
-    public static boolean isEmpty(@Nullable short[] value) {
+    public static boolean isEmpty(short @Nullable [] value) {
         return value == null || value.length == 0;
     }
 
     @Contract(value = "null->true", pure = true)
-    public static boolean isEmpty(@Nullable int[] value) {
+    public static boolean isEmpty(int @Nullable [] value) {
         return value == null || value.length == 0;
     }
 
     @Contract(value = "null->true", pure = true)
-    public static boolean isEmpty(@Nullable long[] value) {
+    public static boolean isEmpty(long @Nullable [] value) {
         return value == null || value.length == 0;
     }
 
     @Contract(value = "null->true", pure = true)
-    public static boolean isEmpty(@Nullable float[] value) {
+    public static boolean isEmpty(float @Nullable [] value) {
         return value == null || value.length == 0;
     }
 
     @Contract(value = "null->true", pure = true)
-    public static boolean isEmpty(@Nullable double[] value) {
+    public static boolean isEmpty(double @Nullable [] value) {
         return value == null || value.length == 0;
     }
 
     @Contract(value = "null->true", pure = true)
-    public static boolean isEmpty(@Nullable char[] value) {
+    public static boolean isEmpty(char @Nullable [] value) {
         return value == null || value.length == 0;
     }
 
     @Contract(value = "null->true", pure = true)
-    public static boolean isEmpty(@Nullable boolean[] value) {
+    public static boolean isEmpty(boolean @Nullable [] value) {
         return value == null || value.length == 0;
     }
 
@@ -320,47 +320,47 @@ public abstract class ObjectUtils {
     }
 
     @Contract(value = "null->false", pure = true)
-    public static boolean isNotEmpty(@Nullable Object[] value) {
+    public static boolean isNotEmpty(Object @Nullable [] value) {
         return !isEmpty(value);
     }
 
     @Contract(value = "null->false", pure = true)
-    public static boolean isNotEmpty(@Nullable byte[] value) {
+    public static boolean isNotEmpty(byte @Nullable [] value) {
         return !isEmpty(value);
     }
 
     @Contract(value = "null->false", pure = true)
-    public static boolean isNotEmpty(@Nullable short[] value) {
+    public static boolean isNotEmpty(short @Nullable [] value) {
         return !isEmpty(value);
     }
 
     @Contract(value = "null->false", pure = true)
-    public static boolean isNotEmpty(@Nullable int[] value) {
+    public static boolean isNotEmpty(int @Nullable [] value) {
         return !isEmpty(value);
     }
 
     @Contract(value = "null->false", pure = true)
-    public static boolean isNotEmpty(@Nullable long[] value) {
+    public static boolean isNotEmpty(long @Nullable [] value) {
         return !isEmpty(value);
     }
 
     @Contract(value = "null->false", pure = true)
-    public static boolean isNotEmpty(@Nullable float[] value) {
+    public static boolean isNotEmpty(float @Nullable [] value) {
         return !isEmpty(value);
     }
 
     @Contract(value = "null->false", pure = true)
-    public static boolean isNotEmpty(@Nullable double[] value) {
+    public static boolean isNotEmpty(double @Nullable [] value) {
         return !isEmpty(value);
     }
 
     @Contract(value = "null->false", pure = true)
-    public static boolean isNotEmpty(@Nullable char[] value) {
+    public static boolean isNotEmpty(char @Nullable [] value) {
         return !isEmpty(value);
     }
 
     @Contract(value = "null->false", pure = true)
-    public static boolean isNotEmpty(@Nullable boolean[] value) {
+    public static boolean isNotEmpty(boolean @Nullable [] value) {
         return !isEmpty(value);
     }
 
@@ -402,57 +402,48 @@ public abstract class ObjectUtils {
         return isEmpty(value) ? null : value;
     }
 
-    @Nullable
     @Contract(pure = true)
-    public static Object[] nullIfEmpty(@Nullable Object[] value) {
+    public static Object @Nullable [] nullIfEmpty(Object @Nullable [] value) {
         return isEmpty(value) ? null : value;
     }
 
-    @Nullable
     @Contract(pure = true)
-    public static byte[] nullIfEmpty(@Nullable byte[] value) {
+    public static byte @Nullable [] nullIfEmpty(byte @Nullable [] value) {
         return isEmpty(value) ? null : value;
     }
 
-    @Nullable
     @Contract(pure = true)
-    public static short[] nullIfEmpty(@Nullable short[] value) {
+    public static short @Nullable [] nullIfEmpty(short @Nullable [] value) {
         return isEmpty(value) ? null : value;
     }
 
-    @Nullable
     @Contract(pure = true)
-    public static int[] nullIfEmpty(@Nullable int[] value) {
+    public static int @Nullable [] nullIfEmpty(int @Nullable [] value) {
         return isEmpty(value) ? null : value;
     }
 
-    @Nullable
     @Contract(pure = true)
-    public static long[] nullIfEmpty(@Nullable long[] value) {
+    public static long @Nullable [] nullIfEmpty(long @Nullable [] value) {
         return isEmpty(value) ? null : value;
     }
 
-    @Nullable
     @Contract(pure = true)
-    public static float[] nullIfEmpty(@Nullable float[] value) {
+    public static float @Nullable [] nullIfEmpty(float @Nullable [] value) {
         return isEmpty(value) ? null : value;
     }
 
-    @Nullable
     @Contract(pure = true)
-    public static double[] nullIfEmpty(@Nullable double[] value) {
+    public static double @Nullable [] nullIfEmpty(double @Nullable [] value) {
         return isEmpty(value) ? null : value;
     }
 
-    @Nullable
     @Contract(pure = true)
-    public static char[] nullIfEmpty(@Nullable char[] value) {
+    public static char @Nullable [] nullIfEmpty(char @Nullable [] value) {
         return isEmpty(value) ? null : value;
     }
 
-    @Nullable
     @Contract(pure = true)
-    public static boolean[] nullIfEmpty(@Nullable boolean[] value) {
+    public static boolean @Nullable [] nullIfEmpty(boolean @Nullable [] value) {
         return isEmpty(value) ? null : value;
     }
 

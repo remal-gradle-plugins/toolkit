@@ -8,7 +8,6 @@ import java.lang.reflect.Parameter;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Supplier;
-import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import name.remal.gradle_plugins.toolkit.testkit.ApplyPlugin;
@@ -18,6 +17,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateInternal;
 import org.gradle.testfixtures.ProjectBuilder;
 import org.jetbrains.annotations.ApiStatus.Internal;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 

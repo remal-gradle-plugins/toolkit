@@ -8,7 +8,7 @@ import static name.remal.gradle_plugins.toolkit.ObjectUtils.isNotEmpty;
 
 import java.io.File;
 import java.util.Optional;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public abstract class CiSystemBase implements CiSystem {
 

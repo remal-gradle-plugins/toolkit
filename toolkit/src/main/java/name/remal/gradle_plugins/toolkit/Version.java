@@ -4,11 +4,11 @@ import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Comparator;
-import javax.annotation.Nullable;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.Nullable;
 
 @ReliesOnInternalGradleApi
 public final class Version implements Comparable<Version> {

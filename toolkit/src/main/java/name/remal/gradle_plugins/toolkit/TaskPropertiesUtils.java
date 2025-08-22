@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
-import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import org.gradle.api.Task;
 import org.gradle.api.provider.Provider;
@@ -55,6 +54,7 @@ import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 import org.gradle.work.Incremental;
 import org.gradle.work.NormalizeLineEndings;
+import org.jspecify.annotations.Nullable;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class TaskPropertiesUtils {

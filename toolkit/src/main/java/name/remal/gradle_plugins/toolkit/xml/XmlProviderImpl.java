@@ -18,11 +18,11 @@ import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.Optional;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import lombok.SneakyThrows;
 import org.gradle.api.XmlProvider;
 import org.intellij.lang.annotations.Language;
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 

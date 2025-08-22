@@ -4,11 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import javax.annotation.Nullable;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 @RequiredArgsConstructor

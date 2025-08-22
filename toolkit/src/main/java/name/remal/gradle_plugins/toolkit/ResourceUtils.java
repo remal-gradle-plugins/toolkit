@@ -11,9 +11,9 @@ import com.google.errorprone.annotations.MustBeClosed;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
-import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import org.intellij.lang.annotations.Language;
+import org.jspecify.annotations.Nullable;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ResourceUtils {

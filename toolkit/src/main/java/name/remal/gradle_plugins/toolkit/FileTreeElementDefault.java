@@ -19,7 +19,6 @@ import com.google.errorprone.annotations.MustBeClosed;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
-import javax.annotation.Nullable;
 import javax.annotation.WillNotClose;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -27,6 +26,7 @@ import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.file.UserClassFilePermissions;
+import org.jspecify.annotations.Nullable;
 
 @RequiredArgsConstructor
 class FileTreeElementDefault implements FileTreeElement {

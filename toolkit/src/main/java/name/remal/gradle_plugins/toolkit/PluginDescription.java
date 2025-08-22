@@ -4,9 +4,9 @@ import static name.remal.gradle_plugins.toolkit.PluginUtils.findPluginIdFor;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.unwrapGeneratedSubclass;
 
 import com.google.errorprone.annotations.concurrent.LazyInit;
-import javax.annotation.Nullable;
 import lombok.EqualsAndHashCode;
 import org.gradle.api.Plugin;
+import org.jspecify.annotations.Nullable;
 
 @EqualsAndHashCode(of = "type")
 public final class PluginDescription {

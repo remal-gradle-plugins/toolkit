@@ -6,10 +6,10 @@ import static lombok.Builder.Default;
 
 import com.google.common.base.Splitter;
 import java.util.Objects;
-import javax.annotation.Nullable;
 import lombok.Builder;
 import lombok.Value;
 import lombok.With;
+import org.jspecify.annotations.Nullable;
 
 @Value
 @Builder

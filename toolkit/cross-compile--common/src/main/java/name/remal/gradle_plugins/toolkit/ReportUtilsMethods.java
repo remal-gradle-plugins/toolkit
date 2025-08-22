@@ -1,11 +1,11 @@
 package name.remal.gradle_plugins.toolkit;
 
 import java.io.File;
-import javax.annotation.Nullable;
 import name.remal.gradle_plugins.toolkit.annotations.DynamicCompatibilityCandidate;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.Report;
+import org.jspecify.annotations.Nullable;
 
 @DynamicCompatibilityCandidate
 interface ReportUtilsMethods {

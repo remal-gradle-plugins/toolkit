@@ -5,9 +5,9 @@ import static lombok.AccessLevel.PRIVATE;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.Nullable;
 
 @NoArgsConstructor(access = PRIVATE)
 abstract class Utils {

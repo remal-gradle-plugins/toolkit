@@ -21,7 +21,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import name.remal.gradle_plugins.generate_sources.generators.TextContent;
@@ -33,6 +32,7 @@ import name.remal.gradle_plugins.toolkit.testkit.functional.generator.GradleBuil
 import org.gradle.api.Action;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.jspecify.annotations.Nullable;
 
 @Getter
 public abstract class AbstractBaseGradleProject<

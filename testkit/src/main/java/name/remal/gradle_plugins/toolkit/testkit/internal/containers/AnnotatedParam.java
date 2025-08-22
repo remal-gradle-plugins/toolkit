@@ -9,11 +9,11 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Parameter;
 import java.util.List;
-import javax.annotation.Nullable;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.Value;
 import org.jetbrains.annotations.ApiStatus.Internal;
+import org.jspecify.annotations.Nullable;
 import org.junit.platform.commons.util.AnnotationUtils;
 
 @Value

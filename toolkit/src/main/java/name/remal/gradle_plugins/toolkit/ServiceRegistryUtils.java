@@ -2,7 +2,6 @@ package name.remal.gradle_plugins.toolkit;
 
 import static lombok.AccessLevel.PRIVATE;
 
-import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.Project;
@@ -12,6 +11,7 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.service.ServiceRegistry;
+import org.jspecify.annotations.Nullable;
 
 @ReliesOnInternalGradleApi
 @NoArgsConstructor(access = PRIVATE)

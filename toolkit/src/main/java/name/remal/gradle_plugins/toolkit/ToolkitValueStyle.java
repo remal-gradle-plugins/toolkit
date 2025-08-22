@@ -6,13 +6,13 @@ import static java.lang.annotation.RetentionPolicy.CLASS;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 import org.immutables.value.Value;
 import org.immutables.value.Value.Style.BuilderVisibility;
 import org.immutables.value.Value.Style.ImplementationVisibility;
+import org.jspecify.annotations.Nullable;
 
 @Target({TYPE, PACKAGE})
 @Retention(CLASS)
@@ -30,6 +30,7 @@ import org.immutables.value.Value.Style.ImplementationVisibility;
     allowedClasspathAnnotations = {
         org.immutables.value.Generated.class,
         Nullable.class,
+        javax.annotation.Nullable.class,
         Immutable.class,
         ThreadSafe.class,
         NotThreadSafe.class,

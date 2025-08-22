@@ -3,7 +3,7 @@ package name.remal.gradle_plugins.toolkit.reflection;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.makeAccessible;
 
 import java.lang.reflect.Method;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 abstract class AbstractTypedMethod {
 

@@ -6,8 +6,8 @@ import static javax.annotation.meta.When.UNKNOWN;
 import com.google.errorprone.annotations.OverridingMethodsMustInvokeSuper;
 import com.google.errorprone.annotations.concurrent.LazyInit;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import lombok.SneakyThrows;
+import org.jspecify.annotations.Nullable;
 
 abstract class LazyValueBase<T> {
 

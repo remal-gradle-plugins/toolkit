@@ -16,11 +16,11 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.regex.Pattern;
-import javax.annotation.Nullable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.Nullable;
 
 @Getter
 @EqualsAndHashCode

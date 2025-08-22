@@ -7,8 +7,8 @@ generateSources.forMainSourceSet.java {
         addStaticImport('lombok.AccessLevel', 'PRIVATE')
 
         addImport('java.util.Optional')
-        addImport('javax.annotation.Nullable')
         addImport('lombok.NoArgsConstructor')
+        addImport('org.jspecify.annotations.Nullable')
 
         line("@NoArgsConstructor(access = PRIVATE)")
         suppressWarningsLine("checkstyle:LineLength", "checkstyle:RightCurlyAlone", "java:S107", "java:S1128", "java:S1611")

@@ -7,13 +7,13 @@ import static java.util.Objects.requireNonNull;
 import java.io.Serializable;
 import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import javax.annotation.Nullable;
 import lombok.Getter;
 import name.remal.gradle_plugins.toolkit.GradleUtilsBuildFinishedService.Params;
 import org.gradle.api.Action;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
+import org.jspecify.annotations.Nullable;
 
 @SuppressWarnings("java:S5993")
 abstract class GradleUtilsBuildFinishedService implements BuildService<Params>, AutoCloseable {

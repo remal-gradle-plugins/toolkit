@@ -16,11 +16,11 @@ import java.io.InputStreamReader;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
-import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import org.gradle.api.Plugin;
 import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.Nullable;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class PluginUtils {

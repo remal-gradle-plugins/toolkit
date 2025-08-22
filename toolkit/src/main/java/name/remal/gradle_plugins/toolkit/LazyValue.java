@@ -2,8 +2,8 @@ package name.remal.gradle_plugins.toolkit;
 
 import static java.util.Objects.requireNonNull;
 
-import javax.annotation.Nonnull;
 import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.NonNull;
 
 public final class LazyValue<T> extends LazyValueBase<T> {
 
@@ -17,7 +17,7 @@ public final class LazyValue<T> extends LazyValueBase<T> {
         super(valueSupplier);
     }
 
-    @Nonnull
+    @NonNull
     @Override
     public T get() {
         return requireNonNull(super.get());

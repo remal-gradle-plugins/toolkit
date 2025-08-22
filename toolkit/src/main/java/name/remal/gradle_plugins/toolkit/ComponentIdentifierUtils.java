@@ -4,7 +4,6 @@ import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.reflection.MembersFinder.findMethod;
 
 import java.util.Objects;
-import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import name.remal.gradle_plugins.toolkit.reflection.TypedMethod0;
@@ -12,6 +11,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.Nullable;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ComponentIdentifierUtils {

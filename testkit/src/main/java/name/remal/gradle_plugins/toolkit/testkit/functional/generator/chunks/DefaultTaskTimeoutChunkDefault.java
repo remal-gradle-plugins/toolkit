@@ -2,10 +2,10 @@ package name.remal.gradle_plugins.toolkit.testkit.functional.generator.chunks;
 
 import java.time.Duration;
 import java.util.function.Supplier;
-import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import name.remal.gradle_plugins.generate_sources.generators.java_like.JavaLikeContent;
+import org.jspecify.annotations.Nullable;
 
 @RequiredArgsConstructor
 public class DefaultTaskTimeoutChunkDefault<Block extends JavaLikeContent<Block>>

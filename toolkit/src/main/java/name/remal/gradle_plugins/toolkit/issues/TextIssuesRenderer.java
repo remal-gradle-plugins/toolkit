@@ -9,13 +9,13 @@ import static name.remal.gradle_plugins.toolkit.issues.Utils.ifPresent;
 import static name.remal.gradle_plugins.toolkit.issues.Utils.streamIssues;
 
 import java.util.stream.Stream;
-import javax.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.With;
 import name.remal.gradle_plugins.toolkit.ObjectUtils;
 import org.intellij.lang.annotations.Language;
+import org.jspecify.annotations.Nullable;
 
 @NoArgsConstructor
 @Getter

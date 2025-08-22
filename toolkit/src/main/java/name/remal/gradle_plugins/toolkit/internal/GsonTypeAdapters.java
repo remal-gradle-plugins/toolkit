@@ -15,8 +15,8 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import javax.annotation.Nullable;
 import org.codehaus.groovy.runtime.GStringImpl;
+import org.jspecify.annotations.Nullable;
 
 public class GsonTypeAdapters implements TypeAdapterFactory {
 

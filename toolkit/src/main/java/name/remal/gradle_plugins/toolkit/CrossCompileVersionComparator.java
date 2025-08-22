@@ -3,7 +3,7 @@ package name.remal.gradle_plugins.toolkit;
 import static java.lang.Math.min;
 import static name.remal.gradle_plugins.toolkit.CrossCompileVersionComparisonResult.compareDependencyVersionToCurrentVersionObjects;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @FunctionalInterface
 public interface CrossCompileVersionComparator {

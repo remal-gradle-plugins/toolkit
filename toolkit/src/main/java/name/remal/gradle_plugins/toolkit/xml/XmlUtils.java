@@ -19,7 +19,6 @@ import java.io.StringReader;
 import java.io.Writer;
 import java.nio.file.Path;
 import java.util.function.BiFunction;
-import javax.annotation.Nullable;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -35,6 +34,7 @@ import org.jdom2.output.XMLOutputter;
 import org.jdom2.output.support.AbstractXMLOutputProcessor;
 import org.jdom2.output.support.FormatStack;
 import org.jdom2.output.support.XMLOutputProcessor;
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
@@ -553,7 +553,7 @@ public abstract class XmlUtils {
         protected void printComment(
             Writer out,
             @Nullable FormatStack fstack,
-            @Nullable org.jdom2.Comment comment
+            org.jdom2.@Nullable Comment comment
         ) throws IOException {
             removeExtraSpace = false;
             try {

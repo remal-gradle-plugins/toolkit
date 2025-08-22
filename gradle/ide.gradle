@@ -35,8 +35,8 @@ idea.project {
 
 ideaSettings {
     nullability {
-        defaultNotNullAnnotation = 'javax.annotation.Nonnull'
-        defaultNullableAnnotation = 'javax.annotation.Nullable'
+        defaultNotNullAnnotation = 'org.jspecify.annotations.NonNull'
+        defaultNullableAnnotation = 'org.jspecify.annotations.Nullable'
     }
     runOnSave {
         reformatMode = 'WHOLE_FILE'

@@ -8,11 +8,11 @@ import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.tryLo
 import groovy.lang.Closure;
 import java.util.Objects;
 import java.util.stream.Stream;
-import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import name.remal.gradle_plugins.toolkit.annotations.DynamicCompatibilityCandidate;
 import org.gradle.api.Action;
 import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.Nullable;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ClosureUtils {

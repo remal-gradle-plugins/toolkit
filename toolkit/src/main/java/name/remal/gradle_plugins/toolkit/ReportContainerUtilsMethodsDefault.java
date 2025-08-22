@@ -2,7 +2,6 @@ package name.remal.gradle_plugins.toolkit;
 
 import com.google.auto.service.AutoService;
 import java.util.ArrayList;
-import javax.annotation.Nullable;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
@@ -19,6 +18,7 @@ import org.gradle.api.reporting.internal.DefaultSingleFileReport;
 import org.gradle.api.reporting.internal.SingleDirectoryReport;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.gradle.internal.Describables;
+import org.jspecify.annotations.Nullable;
 
 @AutoService(ReportContainerUtilsMethods.class)
 @ReliesOnInternalGradleApi

@@ -6,7 +6,6 @@ import com.google.auto.service.AutoService;
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import javax.annotation.Nullable;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileCollectionInternal.Source;
@@ -15,6 +14,7 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.tasks.util.PatternSet;
 import org.jetbrains.annotations.Unmodifiable;
+import org.jspecify.annotations.Nullable;
 
 @ReliesOnInternalGradleApi
 @AutoService(FileTreeUtilsMethods.class)

@@ -5,9 +5,9 @@ import static lombok.AccessLevel.PRIVATE;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.function.Predicate;
-import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.Nullable;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class PredicateUtils {

@@ -6,9 +6,9 @@ import static name.remal.gradle_plugins.toolkit.InTestFlags.isInTest;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
-import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.Nullable;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class CiUtils {

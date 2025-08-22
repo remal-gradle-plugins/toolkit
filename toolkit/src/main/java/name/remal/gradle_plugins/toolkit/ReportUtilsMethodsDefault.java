@@ -2,12 +2,12 @@ package name.remal.gradle_plugins.toolkit;
 
 import com.google.auto.service.AutoService;
 import java.io.File;
-import javax.annotation.Nullable;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileSystemLocationProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.Report;
+import org.jspecify.annotations.Nullable;
 
 @AutoService(ReportUtilsMethods.class)
 final class ReportUtilsMethodsDefault implements ReportUtilsMethods {

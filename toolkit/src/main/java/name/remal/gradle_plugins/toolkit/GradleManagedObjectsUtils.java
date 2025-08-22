@@ -22,7 +22,6 @@ import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.unwra
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
@@ -40,6 +39,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Nested;
+import org.jspecify.annotations.Nullable;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class GradleManagedObjectsUtils {

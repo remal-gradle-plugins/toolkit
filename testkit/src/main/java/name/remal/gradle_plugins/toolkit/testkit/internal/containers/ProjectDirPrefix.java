@@ -9,11 +9,11 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.ApiStatus.Internal;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.VisibleForTesting;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 @Internal

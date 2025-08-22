@@ -20,10 +20,10 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.Unmodifiable;
+import org.jspecify.annotations.Nullable;
 
 @NoArgsConstructor(access = PUBLIC)
 class OrderedActionsTaskExtensionImpl implements OrderedActionsTaskExtension {

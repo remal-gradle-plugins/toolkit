@@ -7,7 +7,6 @@ import static name.remal.gradle_plugins.toolkit.GradleManagedObjectsUtils.copyMa
 import static name.remal.gradle_plugins.toolkit.ServiceRegistryUtils.getService;
 
 import java.util.function.BiFunction;
-import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
@@ -19,6 +18,7 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.util.GradleVersion;
+import org.jspecify.annotations.Nullable;
 
 @MinCompatibleGradleVersion("6.7")
 @NoArgsConstructor(access = PRIVATE)

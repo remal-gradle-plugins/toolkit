@@ -1,10 +1,10 @@
 package name.remal.gradle_plugins.toolkit.testkit.functional;
 
-import javax.annotation.Nullable;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
 import org.gradle.util.GradleVersion;
+import org.jspecify.annotations.Nullable;
 
 @Value
 @Builder

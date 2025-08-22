@@ -6,9 +6,9 @@ import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.wrapP
 
 import java.lang.reflect.Method;
 import java.util.stream.Stream;
-import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
+import org.jspecify.annotations.Nullable;
 
 @NoArgsConstructor(access = PRIVATE)
 abstract class MembersFinderHelpers {

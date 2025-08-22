@@ -12,7 +12,6 @@ import java.net.URLClassLoader;
 import java.time.Duration;
 import java.util.concurrent.Callable;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import lombok.CustomLog;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
@@ -21,6 +20,7 @@ import org.gradle.internal.classloader.ClassLoaderHierarchy;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
 import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.Nullable;
 
 @CustomLog
 @NoArgsConstructor(access = PRIVATE)

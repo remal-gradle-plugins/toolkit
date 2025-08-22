@@ -4,11 +4,10 @@ import static lombok.AccessLevel.PROTECTED;
 import static name.remal.gradle_plugins.toolkit.StringUtils.normalizeString;
 
 import java.io.Serializable;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.intellij.lang.annotations.Language;
+import org.jspecify.annotations.Nullable;
 
 @NoArgsConstructor(access = PROTECTED, force = true)
 public abstract class Message implements Serializable {
@@ -18,7 +17,6 @@ public abstract class Message implements Serializable {
 
 
     @Getter
-    @Nonnull
     protected final String value;
 
     protected Message(String value) {

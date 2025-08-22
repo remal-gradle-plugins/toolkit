@@ -1,11 +1,11 @@
 package name.remal.gradle_plugins.toolkit;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
 
 @FunctionalInterface
 public interface LazyValueSupplier<T> extends LazyValueSupplierBase<T> {
 
-    @Nonnull
+    @NonNull
     T get() throws Throwable;
 
 }

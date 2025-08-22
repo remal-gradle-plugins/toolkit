@@ -5,11 +5,11 @@ import static name.remal.gradle_plugins.toolkit.CrossCompileServices.loadCrossCo
 import static name.remal.gradle_plugins.toolkit.LazyProxy.asLazyProxy;
 
 import java.io.File;
-import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ConfigurableReport;
 import org.gradle.api.reporting.Report;
+import org.jspecify.annotations.Nullable;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ReportUtils {

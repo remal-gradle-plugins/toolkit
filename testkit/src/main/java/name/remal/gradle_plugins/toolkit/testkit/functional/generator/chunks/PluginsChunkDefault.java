@@ -9,10 +9,10 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
-import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import name.remal.gradle_plugins.generate_sources.generators.java_like.JavaLikeContent;
 import org.jetbrains.annotations.UnmodifiableView;
+import org.jspecify.annotations.Nullable;
 
 @RequiredArgsConstructor
 public class PluginsChunkDefault<Block extends JavaLikeContent<Block>>

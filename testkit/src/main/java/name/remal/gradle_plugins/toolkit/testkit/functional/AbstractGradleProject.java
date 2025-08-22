@@ -38,7 +38,6 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import name.remal.gradle_plugins.generate_sources.generators.java_like.JavaLikeContent;
@@ -51,6 +50,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
 import org.gradle.util.GradleVersion;
+import org.jspecify.annotations.Nullable;
 
 @Getter
 public abstract class AbstractGradleProject<

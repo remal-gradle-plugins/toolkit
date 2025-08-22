@@ -3,12 +3,12 @@ package name.remal.gradle_plugins.toolkit;
 import static lombok.AccessLevel.PRIVATE;
 
 import java.util.Optional;
-import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import org.gradle.api.JavaVersion;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.Nullable;
 
 @MinCompatibleGradleVersion("6.7")
 @NoArgsConstructor(access = PRIVATE)

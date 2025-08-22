@@ -5,7 +5,7 @@ import static org.gradle.api.reporting.Report.OutputType
 import java.nio.channels.FileChannel
 import java.nio.channels.OverlappingFileLockException
 import java.time.Duration
-import javax.annotation.Nullable
+import org.jspecify.annotations.Nullable
 
 if (project.isBuildSrcProject) {
     return

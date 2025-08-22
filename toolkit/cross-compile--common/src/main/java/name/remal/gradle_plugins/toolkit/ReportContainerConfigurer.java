@@ -1,10 +1,10 @@
 package name.remal.gradle_plugins.toolkit;
 
-import javax.annotation.Nullable;
 import org.gradle.api.reporting.CustomizableHtmlReport;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
+import org.jspecify.annotations.Nullable;
 
 interface ReportContainerConfigurer {
 

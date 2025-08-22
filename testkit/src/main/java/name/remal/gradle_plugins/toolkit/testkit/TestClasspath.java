@@ -19,8 +19,8 @@ import java.nio.file.Paths;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
-import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
+import org.jspecify.annotations.Nullable;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class TestClasspath {

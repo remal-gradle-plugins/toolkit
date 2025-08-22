@@ -6,7 +6,7 @@ import static name.remal.gradle_plugins.toolkit.PathUtils.getPathLastModifiedIfE
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @FunctionalInterface
 public interface ToolkitCacheLastModifiedGetter<Key> {

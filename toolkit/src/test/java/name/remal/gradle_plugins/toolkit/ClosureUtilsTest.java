@@ -3,9 +3,9 @@ package name.remal.gradle_plugins.toolkit;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import groovy.lang.Closure;
-import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.gradle.api.Project;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 
 @RequiredArgsConstructor
@@ -15,7 +15,7 @@ class ClosureUtilsTest {
 
     @Test
     void configureWith() {
-        ClosureUtils.configureWith(project, new Closure<Object>(this) {
+        ClosureUtils.configureWith(project, new Closure<>(this) {
             @Override
             @Nullable
             public Object call() {
@@ -29,7 +29,7 @@ class ClosureUtilsTest {
 
     @Test
     void configureUsing() {
-        var action = ClosureUtils.configureUsing(new Closure<Object>(this) {
+        var action = ClosureUtils.configureUsing(new Closure<>(this) {
             @Override
             @Nullable
             public Object call() {

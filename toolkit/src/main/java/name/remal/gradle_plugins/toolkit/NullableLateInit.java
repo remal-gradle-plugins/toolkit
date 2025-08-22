@@ -1,7 +1,7 @@
 package name.remal.gradle_plugins.toolkit;
 
-import javax.annotation.Nullable;
 import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.Nullable;
 
 public final class NullableLateInit<T> extends AbstractLateInit<T> {
 

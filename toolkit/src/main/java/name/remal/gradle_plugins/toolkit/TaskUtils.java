@@ -12,7 +12,6 @@ import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.unwra
 
 import java.io.File;
 import java.util.Optional;
-import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import name.remal.gradle_plugins.toolkit.annotations.DynamicCompatibilityCandidate;
@@ -24,6 +23,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskInputs;
 import org.jetbrains.annotations.VisibleForTesting;
+import org.jspecify.annotations.Nullable;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class TaskUtils {

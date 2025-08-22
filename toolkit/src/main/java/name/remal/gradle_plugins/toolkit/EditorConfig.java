@@ -28,7 +28,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import javax.annotation.Nullable;
 import lombok.AllArgsConstructor;
 import lombok.CustomLog;
 import lombok.NoArgsConstructor;
@@ -48,6 +47,7 @@ import org.ec4j.core.model.Version;
 import org.ec4j.core.parser.ErrorHandler;
 import org.gradle.api.Project;
 import org.jetbrains.annotations.Unmodifiable;
+import org.jspecify.annotations.Nullable;
 
 @ToString(of = "rootPath")
 @CustomLog

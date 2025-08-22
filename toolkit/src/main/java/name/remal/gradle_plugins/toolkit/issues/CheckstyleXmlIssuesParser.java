@@ -14,11 +14,11 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import name.remal.gradle_plugins.toolkit.ObjectUtils;
 import org.jdom2.Document;
 import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.Nullable;
 
 public class CheckstyleXmlIssuesParser implements IssuesParser {
 

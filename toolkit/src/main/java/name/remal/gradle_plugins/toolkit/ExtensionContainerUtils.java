@@ -6,11 +6,11 @@ import static org.gradle.api.reflect.TypeOf.typeOf;
 
 import java.util.Locale;
 import java.util.Optional;
-import javax.annotation.Nullable;
 import lombok.NoArgsConstructor;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.reflect.TypeOf;
+import org.jspecify.annotations.Nullable;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ExtensionContainerUtils {

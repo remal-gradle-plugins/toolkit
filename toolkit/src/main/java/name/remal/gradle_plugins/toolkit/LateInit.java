@@ -1,8 +1,10 @@
 package name.remal.gradle_plugins.toolkit;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import static java.util.Objects.requireNonNull;
+
 import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 public final class LateInit<T> extends AbstractLateInit<T> {
 
@@ -23,15 +25,15 @@ public final class LateInit<T> extends AbstractLateInit<T> {
 
     @Override
     @SuppressWarnings({"NullableProblems", "java:S2638"})
-    public void set(@Nonnull T value) {
+    public void set(@NonNull T value) {
         super.set(value);
     }
 
-    @Nonnull
+    @NonNull
     @Override
-    @SuppressWarnings({"DataFlowIssue", "java:S2638"})
+    @SuppressWarnings("java:S2638")
     public T get() {
-        return super.get();
+        return requireNonNull(super.get());
     }
 
 }

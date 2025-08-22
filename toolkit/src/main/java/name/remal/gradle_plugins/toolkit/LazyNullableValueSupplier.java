@@ -1,6 +1,6 @@
 package name.remal.gradle_plugins.toolkit;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @FunctionalInterface
 public interface LazyNullableValueSupplier<T> extends LazyValueSupplierBase<T> {
