@@ -143,3 +143,16 @@ allprojects {
         }
     }
 }
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+project.settingsBuildscriptClasspathDependencies.forEach { ResolvedDependency dep ->
+    if (dep.moduleGroup == 'org.gradle.toolchains' && dep.moduleName.startsWith('foojay-resolver')) {
+        JavaVersion javaRuntimeMinVersion = project.javaRuntimeMinVersion
+        if (!dep.moduleVersion.startsWith('0.') // foojay-resolver version >= 1
+            && !javaRuntimeMinVersion.isCompatibleWith(JavaVersion.VERSION_17) // Java version < 17
+        ) {
+            throw new GradleException("${dep.moduleGroup}:${dep.moduleName}:${dep.moduleVersion} is not compatible with the minimum supported Java version: ${project.javaRuntimeMinVersion}")
+        }
+    }
+}
