@@ -139,6 +139,12 @@ public abstract class PathUtils {
         }
     }
 
+    public static void tryToDeleteRecursivelyIgnoringFailure(Path path) {
+        if (!tryToDeleteRecursively(path)) {
+            // ignore failure
+        }
+    }
+
     @SneakyThrows
     public static Path createParentDirectories(Path path) {
         var parentPath = normalizePath(path).getParent();
