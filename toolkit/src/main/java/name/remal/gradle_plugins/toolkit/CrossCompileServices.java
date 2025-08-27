@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import lombok.CustomLog;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import org.gradle.api.JavaVersion;
@@ -43,10 +42,14 @@ import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.tree.ClassNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @NoArgsConstructor(access = PRIVATE)
-@CustomLog
 public abstract class CrossCompileServices {
+
+    private static final Logger logger = LoggerFactory.getLogger(CrossCompileServices.class);
+
 
     public static synchronized <T> T loadCrossCompileService(Class<T> service) {
         return loadCrossCompileService(service, null);

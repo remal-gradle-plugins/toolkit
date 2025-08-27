@@ -29,7 +29,6 @@ import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import lombok.AllArgsConstructor;
-import lombok.CustomLog;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.ToString;
@@ -48,11 +47,14 @@ import org.ec4j.core.parser.ErrorHandler;
 import org.gradle.api.Project;
 import org.jetbrains.annotations.Unmodifiable;
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ToString(of = "rootPath")
-@CustomLog
 @SuppressWarnings("java:S1948")
 public final class EditorConfig implements Serializable {
+
+    private static final Logger logger = LoggerFactory.getLogger(EditorConfig.class);
 
     private static final ErrorHandler ERROR_HANDLER = (context, errorEvent) -> {
         var message = format(

@@ -56,7 +56,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
-import lombok.CustomLog;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
@@ -88,7 +87,6 @@ import org.objectweb.asm.tree.VarInsnNode;
 
 @ReliesOnInternalGradleApi
 @NoArgsConstructor(access = PRIVATE)
-@CustomLog
 public abstract class ReportContainerUtils {
 
     private static final ReportContainerUtilsMethods METHODS = asLazyProxy(

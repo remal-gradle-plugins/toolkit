@@ -1,5 +1,6 @@
 package name.remal.gradle_plugins.toolkit;
 
+import static java.lang.System.nanoTime;
 import static java.lang.management.ManagementFactory.getRuntimeMXBean;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static javax.annotation.meta.When.UNKNOWN;
@@ -12,17 +13,16 @@ import java.net.URLClassLoader;
 import java.time.Duration;
 import java.util.concurrent.Callable;
 import javax.annotation.Nonnull;
-import lombok.CustomLog;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.classloader.ClassLoaderHierarchy;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
-@CustomLog
 @NoArgsConstructor(access = PRIVATE)
 public abstract class DebugUtils {
 
@@ -48,7 +48,10 @@ public abstract class DebugUtils {
 
 
     public static void dumpClassLoaderToLog(@Nullable ClassLoader classLoader) {
-        logger.quiet(dumpClassLoader(classLoader));
+        var logger = Logging.getLogger(DebugUtils.class);
+        if (logger.isErrorEnabled()) {
+            logger.error(dumpClassLoader(classLoader));
+        }
     }
 
     @CheckReturnValue
@@ -124,12 +127,13 @@ public abstract class DebugUtils {
     @Nonnull(when = UNKNOWN)
     @SneakyThrows
     public static <T> T logTiming(String timerName, Callable<T> action) {
-        var startNanos = System.nanoTime();
+        var startNanos = nanoTime();
         try {
             return action.call();
 
         } finally {
-            var durationNanos = System.nanoTime() - startNanos;
+            var durationNanos = nanoTime() - startNanos;
+            var logger = Logging.getLogger(DebugUtils.class);
             if (durationNanos <= MAX_NANOS_TO_DISPLAY_IN_NANOS) {
                 logger.quiet("{} took {} nanos", timerName, durationNanos);
             } else if (durationNanos <= MAX_NANOS_TO_DISPLAY_IN_MILLIS) {

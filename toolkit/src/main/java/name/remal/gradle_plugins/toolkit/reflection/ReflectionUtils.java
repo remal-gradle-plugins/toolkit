@@ -36,7 +36,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import javax.annotation.Nonnull;
-import lombok.CustomLog;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import name.remal.gradle_plugins.toolkit.annotations.ReliesOnInternalGradleApi;
@@ -47,7 +46,6 @@ import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.ClassReader;
 
 @NoArgsConstructor(access = PRIVATE)
-@CustomLog
 public abstract class ReflectionUtils {
 
     @Nullable

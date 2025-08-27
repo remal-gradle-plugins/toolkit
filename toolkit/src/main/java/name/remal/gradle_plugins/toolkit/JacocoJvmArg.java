@@ -1,7 +1,6 @@
 package name.remal.gradle_plugins.toolkit;
 
 import static java.lang.management.ManagementFactory.getRuntimeMXBean;
-import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 import static name.remal.gradle_plugins.toolkit.FileUtils.normalizeFile;
 import static name.remal.gradle_plugins.toolkit.ObjectUtils.isEmpty;
@@ -11,6 +10,7 @@ import com.google.common.base.Splitter;
 import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -121,7 +121,7 @@ public class JacocoJvmArg implements CommandLineArgumentProvider {
 
     @Override
     public Iterable<String> asArguments() {
-        return singletonList(toString());
+        return List.of(toString());
     }
 
 
