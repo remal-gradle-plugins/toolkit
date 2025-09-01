@@ -22,6 +22,12 @@ allprojects {
             basePackageForRelocatedClasses.set(provider { "${project.calculateBaseJavaPackage()}.internal._relocated" })
         }
 
+        pluginManager.withPlugin('name.remal.build-time-constants') {
+            buildTimeConstants.properties([
+                'classesRelocation.basePackageForRelocatedClasses': provider { classesRelocation.basePackageForRelocatedClasses.get() }
+            ])
+        }
+
         dependencies {
             classesRelocation 'org.apache.commons:commons-lang3:3.18.0'
             classesRelocation 'org.apache.commons:commons-text:1.14.0'
