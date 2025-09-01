@@ -67,8 +67,9 @@ allprojects {
 
     dependencies {
         components.all(GradleApiAlignmentRule)
-        components.all(BytebuddyAlignmentRule)
+        components.all(Slf4jAlignmentRule)
         components.all(ErrorproneAlignmentRule)
+        components.all(BytebuddyAlignmentRule)
         components.all(SpotBugsAlignmentRule)
         components.all(JacocoAlignmentRule)
     }
@@ -84,10 +85,10 @@ class GradleApiAlignmentRule implements ComponentMetadataRule {
     }
 }
 
-class BytebuddyAlignmentRule implements ComponentMetadataRule {
+class Slf4jAlignmentRule implements ComponentMetadataRule {
     void execute(ComponentMetadataContext context) {
         context.details.with {
-            if (id.group == 'net.bytebuddy') {
+            if (id.group == 'org.slf4j') {
                 belongsTo("${id.group}:bom:${id.version}")
             }
         }
@@ -110,6 +111,16 @@ class ErrorproneAlignmentRule implements ComponentMetadataRule {
                 ) {
                     belongsTo("${id.group}:bom:${id.version}")
                 }
+            }
+        }
+    }
+}
+
+class BytebuddyAlignmentRule implements ComponentMetadataRule {
+    void execute(ComponentMetadataContext context) {
+        context.details.with {
+            if (id.group == 'net.bytebuddy') {
+                belongsTo("${id.group}:bom:${id.version}")
             }
         }
     }
