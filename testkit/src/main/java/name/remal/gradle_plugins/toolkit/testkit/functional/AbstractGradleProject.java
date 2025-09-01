@@ -554,7 +554,8 @@ public abstract class AbstractGradleProject<
                         "--configuration-cache-problems=fail",
                         "-Dorg.gradle.configuration-cache.stable=true",
                         "-Dorg.gradle.configuration-cache.parallel=true",
-                        "-Dorg.gradle.configuration-cache.integrity-check=true"
+                        "-Dorg.gradle.configuration-cache.integrity-check=true",
+                        "-Dorg.gradle.unsafe.isolated-projects=true"
                     )
                 ).collect(toUnmodifiableList()));
             }
