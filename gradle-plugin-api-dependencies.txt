@@ -10,7 +10,7 @@ name.remal.gradle-plugins.generate-sources:generate-sources:2.0.0
 name.remal.gradle-plugins.idea-settings:idea-settings:4.0.5
 name.remal.gradle-plugins.lombok:lombok:3.1.1
 name.remal.gradle-plugins.merge-resources:merge-resources:5.0.3
-name.remal.gradle-plugins.sonarlint:sonarlint:6.0.0
+name.remal.gradle-plugins.sonarlint:sonarlint:7.0.0-rc-1
 name.remal.gradle-plugins.test-source-sets:test-source-sets:5.0.2
 net.ltgt.gradle:gradle-errorprone-plugin:4.3.0
 org.eclipse.jgit:org.eclipse.jgit:7.3.0.202506031305-r
@@ -102,12 +102,12 @@ zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.merge_reso
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.merge_resources.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils$1$1:f9b221bacb96e841451295951a05c2f08ad52d1d19e591e4aff51ed2dc71334c
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.merge_resources.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils$1:4d06a261c8495dc52372a428bfde67797308275b0d6413f3b37dd1f78d87072f
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.merge_resources.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils:c37fd213589e9587feb50968d8282d9846ac5cd157d1b48f6aa6d76ca77bafbd
-zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.AbstractSonarLintHelpTask:7d3e3ca2e80d779d940ef4df4df81011d39947707dbf734198c019ef185b3739
-zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.SonarLintPlugin:b5f6ff0e6b2841a2bd9d477a4c98d54c56b82ec1fba5da00cd1ed7c18689c139
+zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.AbstractSonarLintHelpTask:85eb52a3a6e0fe4f9153c15889c32953c4fc80c0e443cb29978583db830b29d3
+zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.SonarLintPlugin:2b52832a0bffbb4c5bd1b623ed2515d2174f0d8e0b5c63ba1a9a7b0ade6af9d3
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils$1:279cb4e41971557b91f1fcd8bcf5f50011686832fddd94852c52c951a8159b7c
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils$IfDebugEnabled:f51967382f5b61c75ecf8eda8e22f452d55ff8ff278fe16322ad570570c9a93a
-zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils:7ee7cdc18cd9199c6112cca7cf38febddf9ee446300c6f8bd2dd7b480ddfe1c2
-zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.ReportContainerUtils:3111dbb0f25cd3783ab5e7a3cf2c0306a043e6d57970db87644d9a8a036f08aa
+zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils:e6de50ccd3065962e1e9aa1d0827bdc22500abdd54404bbbb976d2fc8579374c
+zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.ReportContainerUtils:cb881662b2bc5345b3f8e287214ba362cd16433dc0fcc4d31b870c71f66f6500
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.ReportContainerUtilsMethodsDefault$1:62771ac3cad1c5adfea57fda5efeebef6dd75aaebf27f53e4cd3a927d5c1b434
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.ReportContainerUtilsMethodsDefault:f55f951e5859ba47956c41e0ff46ffbfcc160d65c010a762b6672b832eccf120
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.ReportContainerUtilsMethods_8_10_lte$TaskReportContainerImpl$1:9ce599d28ed840acbc85437422b5740f445ca500f0978ec84e6c0b8e59cc4507
@@ -116,9 +116,8 @@ zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.ServiceRegistryUtils:9217e5a7dc11e3e03963140459e2e5d6bdff3930e1ca18ee541049a9c16bd7c9
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.SourceSetSourceDirectorySetsGetterConventions:d0d8ea9a77451c795085f5ef39f22905666b19e60d7ca864b4d4595ac261450c
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.Version:23fc9f6ff62ee943d743ff30da8fa3c02aac21b0ab36a652214bf534892a0515
-zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils$1$1:f57fac21cf902939ee3522980fa8833c5400135d98bed72ebec1c2adf3551501
-zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils$1:bd4c38074c661ae87eb97dfd9dc5904f742e269e260d6a49bea8848442306eeb
-zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils:d2e0f21c5db961f627c2b50ec9add14ebae7a2b8dc95d5e7055362f8a86a395f
+zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils$1:dfe3c4165d1c56ca07ecdd03dcf5b9002e3218e543b8d575a4207fea3747600d
+zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.sonarlint.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils:e3281e152c0cb72155614c5b667e16fb30a82bc9a47d8eea7bedffd74f000982
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.test_source_sets.TestSourceSetsPlugin$1:851ebccff35da1e4676bae610ae146c0cb6aa3913e3339f4cf20bc177af86366
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.test_source_sets.TestSourceSetsPlugin:c96252d367c86c6898e9fc04be2b4ca9cc736683515b747b005585b292f4a498
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.test_source_sets.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils$1:19ba960da1af749b99f24c717eafc5efbd59bc3f87a685c222849f843e600d30
