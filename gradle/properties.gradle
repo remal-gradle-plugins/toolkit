@@ -144,7 +144,7 @@ allprojects {
     project.ext['github-actions-run-id'] = getCiProperty('github-actions-run-id', '')
     project.ext['github-actions-run-attempt'] = getCiProperty('github-actions-run-attempt', '')
     project.ext['github-actions-job'] = getCiProperty('github-actions-job', '')
-    project.ext['github-actions-job-index'] = getCiProperty('github-actions-job-index', '')
+    project.ext['github-actions-job-index'] = getCiProperty('github-actions-job-index', '0')
 
     project.ext['disable-compilation'] = getCiProperty('disable-compilation', 'false')
     project.ext['disable-tests'] = getCiProperty('disable-tests', 'false')
