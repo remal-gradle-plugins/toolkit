@@ -128,10 +128,16 @@ class SourceSetUtilsTest {
     @Test
     void isCompiledBy_kotlin() {
         project.getPluginManager().apply("org.jetbrains.kotlin.jvm");
+
         var mainKotlinCompile = project.getTasks()
             .getByName(mainSourceSet.getCompileTaskName("kotlin"));
         assertTrue(SourceSetUtils.isCompiledBy(mainSourceSet, mainKotlinCompile));
         assertFalse(SourceSetUtils.isCompiledBy(testSourceSet, mainKotlinCompile));
+
+        var testKotlinCompile = project.getTasks()
+            .getByName(testSourceSet.getCompileTaskName("kotlin"));
+        assertFalse(SourceSetUtils.isCompiledBy(mainSourceSet, testKotlinCompile));
+        assertTrue(SourceSetUtils.isCompiledBy(testSourceSet, testKotlinCompile));
     }
 
 
