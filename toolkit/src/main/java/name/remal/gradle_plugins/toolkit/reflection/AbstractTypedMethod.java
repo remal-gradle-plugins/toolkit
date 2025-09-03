@@ -13,6 +13,10 @@ abstract class AbstractTypedMethod {
         this.method = makeAccessible(method);
     }
 
+    public final Method getReflectionMethod() {
+        return method;
+    }
+
     @Override
     public final String toString() {
         return method.toString();

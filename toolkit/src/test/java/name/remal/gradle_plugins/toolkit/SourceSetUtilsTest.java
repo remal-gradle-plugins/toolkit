@@ -125,6 +125,15 @@ class SourceSetUtilsTest {
         assertTrue(SourceSetUtils.isCompiledBy(testSourceSet, testJavaCompile));
     }
 
+    @Test
+    void isCompiledBy_kotlin() {
+        project.getPluginManager().apply("org.jetbrains.kotlin.jvm");
+        var mainKotlinCompile = project.getTasks()
+            .getByName(mainSourceSet.getCompileTaskName("kotlin"));
+        assertTrue(SourceSetUtils.isCompiledBy(mainSourceSet, mainKotlinCompile));
+        assertFalse(SourceSetUtils.isCompiledBy(testSourceSet, mainKotlinCompile));
+    }
+
 
     @Test
     void getAllSourceDirectorySets() {

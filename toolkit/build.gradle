@@ -25,14 +25,35 @@ dependencies {
 
 
     testImplementation project(':testkit')
-    testImplementation 'io.spring.dependency-management:io.spring.dependency-management.gradle.plugin:1.1.7'
-    testImplementation 'com.softeq.gradle.itest:com.softeq.gradle.itest.gradle.plugin:1.0.4'
-    testImplementation 'org.unbroken-dome.test-sets:org.unbroken-dome.test-sets.gradle.plugin:4.1.0'
 
 
     components {
         withModule('org.unbroken-dome.gradle-plugins:gradle-testsets-plugin', TargetJvmVersionRule) { params(8) }
     }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+configurations.create('pluginsCompatibilityToTest') {
+    dependencies.addAll(
+        [
+            'org.jetbrains.kotlin.jvm:org.jetbrains.kotlin.jvm.gradle.plugin:2.2.10',
+            'io.spring.dependency-management:io.spring.dependency-management.gradle.plugin:1.1.7',
+            'com.softeq.gradle.itest:com.softeq.gradle.itest.gradle.plugin:1.0.4',
+            'org.unbroken-dome.test-sets:org.unbroken-dome.test-sets.gradle.plugin:4.1.0',
+        ].collect {
+            project.dependencies.create(it) { ExternalModuleDependency dep ->
+                dep.version {
+                    String overriddenVersion = project.findProperty("${dep.group}.version")?.toString()
+                    if (overriddenVersion != null) {
+                        strictly(overriddenVersion)
+                    }
+                }
+            }
+        }
+    )
+
+    configurations.testImplementation.extendsFrom(it)
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
