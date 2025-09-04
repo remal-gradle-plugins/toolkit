@@ -1,72 +1,27 @@
 package name.remal.gradle_plugins.toolkit;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.Files.createDirectories;
-import static java.nio.file.Files.createTempFile;
-import static java.nio.file.Files.write;
 import static name.remal.gradle_plugins.toolkit.ExtensionContainerUtils.getExtension;
 import static name.remal.gradle_plugins.toolkit.SourceSetUtils.whenTestSourceSetRegistered;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME;
-import static org.gradle.api.tasks.SourceSet.TEST_SOURCE_SET_NAME;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import lombok.SneakyThrows;
 import name.remal.gradle_plugins.toolkit.testkit.MinTestableGradleVersion;
 import org.gradle.api.Project;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.tasks.AbstractCopyTask;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.testing.base.TestingExtension;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-class SourceSetUtilsTest {
+class SourceSetUtilsTest extends SourceSetUtilsTestBase {
 
-    private final Project project;
-    private final SourceSetContainer sourceSets;
-    private final SourceSet mainSourceSet;
-    private final SourceSet testSourceSet;
-    private final File tempFile;
-
-    @SuppressWarnings("OptionalGetWithoutIsPresent")
-    @SneakyThrows
-    public SourceSetUtilsTest(Project project) {
-        project.getPluginManager().apply("java");
-        this.project = project;
-
-        this.sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
-
-        this.mainSourceSet = sourceSets.getByName(MAIN_SOURCE_SET_NAME);
-        var mainJavaDir = mainSourceSet.getJava().getSourceDirectories().getFiles().stream().findAny().get();
-        createDirectories(mainJavaDir.toPath());
-        write(mainJavaDir.toPath().resolve("MainJavaClass.java"), "class MainJavaClass {}".getBytes(UTF_8));
-        var mainResourcesDir = mainSourceSet.getResources().getSourceDirectories().getFiles().stream().findAny().get();
-        createDirectories(mainResourcesDir.toPath());
-        write(mainResourcesDir.toPath().resolve("main-resource.txt"), "main resource".getBytes(UTF_8));
-
-        this.testSourceSet = sourceSets.getByName(TEST_SOURCE_SET_NAME);
-        var testJavaDir = testSourceSet.getJava().getSourceDirectories().getFiles().stream().findAny().get();
-        createDirectories(testJavaDir.toPath());
-        write(testJavaDir.toPath().resolve("TestJavaClass.java"), "class TestJavaClass {}".getBytes(UTF_8));
-        var testResourcesDir = testSourceSet.getResources().getSourceDirectories().getFiles().stream().findAny().get();
-        createDirectories(testResourcesDir.toPath());
-        write(testResourcesDir.toPath().resolve("main-resource.txt"), "test resource".getBytes(UTF_8));
-
-        this.tempFile = createTempFile("file-", ".temp").toFile();
-    }
-
-    @AfterEach
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    void afterEach() {
-        tempFile.delete();
+    SourceSetUtilsTest(Project project) {
+        super(project);
     }
 
 
@@ -111,6 +66,22 @@ class SourceSetUtilsTest {
         assertFalse(SourceSetUtils.isProcessedBy(mainSourceSet, testProcessResources));
         assertTrue(SourceSetUtils.isProcessedBy(testSourceSet, testProcessResources));
     }
+
+    @Test
+    void isProcessedBy_kotlin() {
+        project.getPluginManager().apply("org.jetbrains.kotlin.jvm");
+
+        var mainKotlinCompile = project.getTasks()
+            .getByName(mainSourceSet.getCompileTaskName("kotlin"));
+        assertTrue(SourceSetUtils.isProcessedBy(mainSourceSet, mainKotlinCompile));
+        assertFalse(SourceSetUtils.isProcessedBy(testSourceSet, mainKotlinCompile));
+
+        var testKotlinCompile = project.getTasks()
+            .getByName(testSourceSet.getCompileTaskName("kotlin"));
+        assertFalse(SourceSetUtils.isProcessedBy(mainSourceSet, testKotlinCompile));
+        assertTrue(SourceSetUtils.isProcessedBy(testSourceSet, testKotlinCompile));
+    }
+
 
     @Test
     void isCompiledBy() {

@@ -1,7 +1,6 @@
 package name.remal.gradle_plugins.toolkit.issues;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.Files.write;
+import static java.nio.file.Files.writeString;
 import static name.remal.gradle_plugins.toolkit.PathUtils.createParentDirectories;
 import static name.remal.gradle_plugins.toolkit.PathUtils.normalizePath;
 
@@ -18,7 +17,7 @@ public interface IssuesRenderer {
         var content = renderIssues(issues);
         path = normalizePath(path);
         createParentDirectories(path);
-        write(path, content.getBytes(UTF_8));
+        writeString(path, content);
     }
 
     default void renderIssuesToFile(Iterable<? extends Issue> issues, File file) {

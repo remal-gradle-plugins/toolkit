@@ -1,7 +1,6 @@
 package name.remal.gradle_plugins.toolkit;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.nio.file.Files.write;
+import static java.nio.file.Files.writeString;
 import static name.remal.gradle_plugins.toolkit.ArchiveUtils.newZipArchiveWriter;
 import static name.remal.gradle_plugins.toolkit.FileUtils.normalizeFile;
 import static name.remal.gradle_plugins.toolkit.PathUtils.createParentDirectories;
@@ -25,7 +24,7 @@ class FileTreeUtilsTest {
         }
 
         var dir = normalizeFile(project.file("dir"));
-        write(createParentDirectories(dir.toPath().resolve("dir-file.txt")), "text".getBytes(UTF_8));
+        writeString(createParentDirectories(dir.toPath().resolve("dir-file.txt")), "text");
 
         var notExistingFile = normalizeFile(project.file("not-existing"));
         deleteRecursively(notExistingFile.toPath());
