@@ -1,6 +1,7 @@
 package name.remal.gradle_plugins.toolkit;
 
 import static java.util.stream.Collectors.toUnmodifiableList;
+import static name.remal.gradle_plugins.toolkit.testkit.ProjectValidations.executeAfterEvaluateActions;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
@@ -84,6 +85,7 @@ class JvmLanguageCompilationUtilsTest extends SourceSetUtilsTestBase {
     @TagKotlinPlugin
     void configureJvmLanguageCompileTasks_kotlin() {
         project.getPluginManager().apply("org.jetbrains.kotlin.jvm");
+        executeAfterEvaluateActions(project); // old Kotlin plugins configure a lot of things on afterEvaluate()
 
         var destinationDirectories = new LinkedHashSet<File>();
         JvmLanguageCompilationUtils.configureJvmLanguageCompileTasks(project.getTasks(), (task, properties) -> {

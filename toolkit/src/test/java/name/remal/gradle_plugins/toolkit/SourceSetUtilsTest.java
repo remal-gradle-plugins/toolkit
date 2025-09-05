@@ -3,6 +3,7 @@ package name.remal.gradle_plugins.toolkit;
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static name.remal.gradle_plugins.toolkit.ExtensionContainerUtils.getExtension;
 import static name.remal.gradle_plugins.toolkit.SourceSetUtils.whenTestSourceSetRegistered;
+import static name.remal.gradle_plugins.toolkit.testkit.ProjectValidations.executeAfterEvaluateActions;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -72,6 +73,7 @@ class SourceSetUtilsTest extends SourceSetUtilsTestBase {
     @TagKotlinPlugin
     void isProcessedBy_kotlin() {
         project.getPluginManager().apply("org.jetbrains.kotlin.jvm");
+        executeAfterEvaluateActions(project); // old Kotlin plugins configure a lot of things on afterEvaluate()
 
         var mainKotlinCompile = project.getTasks()
             .getByName(mainSourceSet.getCompileTaskName("kotlin"));
@@ -102,6 +104,7 @@ class SourceSetUtilsTest extends SourceSetUtilsTestBase {
     @TagKotlinPlugin
     void isCompiledBy_kotlin() {
         project.getPluginManager().apply("org.jetbrains.kotlin.jvm");
+        executeAfterEvaluateActions(project); // old Kotlin plugins configure a lot of things on afterEvaluate()
 
         var mainKotlinCompile = project.getTasks()
             .getByName(mainSourceSet.getCompileTaskName("kotlin"));
@@ -136,6 +139,7 @@ class SourceSetUtilsTest extends SourceSetUtilsTestBase {
     @TagKotlinPlugin
     void getAllSourceDirectorySets_kotlin() {
         project.getPluginManager().apply("org.jetbrains.kotlin.jvm");
+        executeAfterEvaluateActions(project); // old Kotlin plugins configure a lot of things on afterEvaluate()
 
         var allSourceDirectorySetNames = SourceSetUtils.getAllSourceDirectorySets(mainSourceSet).stream()
             .map(SourceDirectorySet::getName)

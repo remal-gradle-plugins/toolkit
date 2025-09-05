@@ -35,13 +35,13 @@ abstract class SourceSetUtilsTestBase {
         );
 
         writeString(
-            createParentDirectories(projectDir.resolve("src/main/kotlin/MainKotlinClass.kt")),
-            "class MainKotlinClass {}"
+            createParentDirectories(projectDir.resolve("src/main/groovy/MainGroovyClass.groovy")),
+            "class MainGroovyClass {}"
         );
 
         writeString(
-            createParentDirectories(projectDir.resolve("src/main/groovy/MainGroovyClass.groovy")),
-            "class MainGroovyClass {}"
+            createParentDirectories(projectDir.resolve("src/main/kotlin/MainKotlinClass.kt")),
+            "class MainKotlinClass {}"
         );
 
         writeString(
@@ -58,13 +58,13 @@ abstract class SourceSetUtilsTestBase {
         );
 
         writeString(
-            createParentDirectories(projectDir.resolve("src/test/kotlin/MainKotlinClassTest.kt")),
-            "class MainKotlinClassTest {}"
+            createParentDirectories(projectDir.resolve("src/test/groovy/MainGroovyClassTest.groovy")),
+            "class MainGroovyClassTest {}"
         );
 
         writeString(
-            createParentDirectories(projectDir.resolve("src/test/groovy/MainGroovyClassTest.groovy")),
-            "class MainGroovyClassTest {}"
+            createParentDirectories(projectDir.resolve("src/test/kotlin/MainKotlinClassTest.kt")),
+            "class MainKotlinClassTest {}"
         );
 
         writeString(

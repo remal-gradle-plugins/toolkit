@@ -2,6 +2,7 @@ package name.remal.gradle_plugins.toolkit;
 
 import static name.remal.gradle_plugins.toolkit.KotlinPluginUtils.getKotlinCompileDestinationDirectory;
 import static name.remal.gradle_plugins.toolkit.KotlinPluginUtils.getKotlinCompileSources;
+import static name.remal.gradle_plugins.toolkit.testkit.ProjectValidations.executeAfterEvaluateActions;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -18,6 +19,7 @@ class KotlinPluginUtilsTest extends SourceSetUtilsTestBase {
         super(project);
 
         project.getPluginManager().apply("org.jetbrains.kotlin.jvm");
+        executeAfterEvaluateActions(project); // old Kotlin plugins configure a lot of things on afterEvaluate()
     }
 
     @Nested
