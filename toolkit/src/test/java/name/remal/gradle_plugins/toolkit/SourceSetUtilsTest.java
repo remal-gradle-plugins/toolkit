@@ -68,6 +68,7 @@ class SourceSetUtilsTest extends SourceSetUtilsTestBase {
     }
 
     @Test
+    @TagKotlinPlugin
     void isProcessedBy_kotlin() {
         project.getPluginManager().apply("org.jetbrains.kotlin.jvm");
 
@@ -97,6 +98,7 @@ class SourceSetUtilsTest extends SourceSetUtilsTestBase {
     }
 
     @Test
+    @TagKotlinPlugin
     void isCompiledBy_kotlin() {
         project.getPluginManager().apply("org.jetbrains.kotlin.jvm");
 

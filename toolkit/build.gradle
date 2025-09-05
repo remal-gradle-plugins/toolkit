@@ -48,9 +48,9 @@ pluginsCompatibilityToTestConf.dependencies.addAll(
         'org.unbroken-dome.test-sets:org.unbroken-dome.test-sets.gradle.plugin:4.1.0',
     ].collect {
         project.dependencies.create(it) { ExternalModuleDependency dep ->
+            String versionProperty = "${dep.group}.version".toString()
+            usedPluginCompatibilityVersionProperties.add(versionProperty)
             dep.version {
-                String versionProperty = "${dep.group}.version".toString()
-                usedPluginCompatibilityVersionProperties.add(versionProperty)
                 String overriddenVersion = project.findProperty(versionProperty)?.toString()
                 if (overriddenVersion != null) {
                     strictly(overriddenVersion)
@@ -70,11 +70,14 @@ project.fatJarWith(project(':toolkit-annotations'))
 tasks.withType(Test).configureEach {
     if (project.isRunningOnCi) {
         boolean hasKotlinPluginCompatibilityVersionProperty = usedPluginCompatibilityVersionProperties
-            .findAll { "$it.".startsWith('org.jetbrains.kotlin.') }
+            .findAll { "$it.".startsWith('org.jetbrains.kotlin.') && it.endsWith('.version') }
             .any { project.findProperty(it) != null }
-        if (!hasKotlinPluginCompatibilityVersionProperty) {
-            useJUnitPlatform {
-                excludeTags = ['kotlin-plugin']
+        useJUnitPlatform {
+            String kotlinPluginTag = 'kotlin-plugin'
+            if (hasKotlinPluginCompatibilityVersionProperty) {
+                includeTags = [kotlinPluginTag]
+            } else {
+                excludeTags = [kotlinPluginTag]
             }
         }
     }
