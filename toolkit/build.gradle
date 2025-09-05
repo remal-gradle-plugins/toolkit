@@ -73,6 +73,8 @@ project.fatJarWith(project(':toolkit-annotations'))
 
 tasks.withType(Test).configureEach {
     if (project.isRunningOnCi) {
+        String kotlinPluginTag = 'kotlin-plugin'
+
         boolean hasKotlinPluginCompatibilityVersionProperty = usedPluginCompatibilityVersionProperties
             .findAll { "$it.".startsWith('org.jetbrains.kotlin.') && it.endsWith('.version') }
             .any { project.findProperty(it) != null }
@@ -81,13 +83,22 @@ tasks.withType(Test).configureEach {
         boolean isGradleLatestStable = latestStableGradleVersion == GradleVersion.current()
 
         useJUnitPlatform {
-            String kotlinPluginTag = 'kotlin-plugin'
             if (hasKotlinPluginCompatibilityVersionProperty || isGradleLatestStable) {
                 if (includeTags.isEmpty()) {
                     includeTags = [kotlinPluginTag]
                 }
             } else {
                 excludeTags = [kotlinPluginTag]
+            }
+        }
+
+        doFirst {
+            def testFramework = testFrameworkProperty.get()
+            if (testFramework.options.includeTags.contains(kotlinPluginTag)) {
+                logger.quiet("Include: ${kotlinPluginTag}")
+            }
+            if (testFramework.options.excludeTags.contains(kotlinPluginTag)) {
+                logger.quiet("Exclude: ${kotlinPluginTag}")
             }
         }
     }
