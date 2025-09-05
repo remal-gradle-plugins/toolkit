@@ -1,5 +1,6 @@
 package name.remal.gradle_plugins.toolkit;
 
+import static java.util.stream.Collectors.toUnmodifiableList;
 import static name.remal.gradle_plugins.toolkit.ExtensionContainerUtils.getExtension;
 import static name.remal.gradle_plugins.toolkit.SourceSetUtils.whenTestSourceSetRegistered;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -118,8 +119,10 @@ class SourceSetUtilsTest extends SourceSetUtilsTestBase {
     void getAllSourceDirectorySets() {
         project.getPluginManager().apply("groovy");
 
-        assertThat(SourceSetUtils.getAllSourceDirectorySets(mainSourceSet))
-            .extracting(SourceDirectorySet::getName)
+        var allSourceDirectorySetNames = SourceSetUtils.getAllSourceDirectorySets(mainSourceSet).stream()
+            .map(SourceDirectorySet::getName)
+            .collect(toUnmodifiableList());
+        assertThat(allSourceDirectorySetNames)
             .contains(
                 "allsource",
                 "java",
@@ -134,8 +137,10 @@ class SourceSetUtilsTest extends SourceSetUtilsTestBase {
     void getAllSourceDirectorySets_kotlin() {
         project.getPluginManager().apply("org.jetbrains.kotlin.jvm");
 
-        assertThat(SourceSetUtils.getAllSourceDirectorySets(mainSourceSet))
-            .extracting(SourceDirectorySet::getName)
+        var allSourceDirectorySetNames = SourceSetUtils.getAllSourceDirectorySets(mainSourceSet).stream()
+            .map(SourceDirectorySet::getName)
+            .collect(toUnmodifiableList());
+        assertThat(allSourceDirectorySetNames)
             .contains(
                 "allsource",
                 "java",
