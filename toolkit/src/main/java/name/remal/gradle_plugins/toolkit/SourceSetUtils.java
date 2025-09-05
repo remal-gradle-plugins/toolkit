@@ -7,6 +7,8 @@ import static java.util.stream.Collectors.toUnmodifiableList;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.CrossCompileServices.loadAllCrossCompileServiceImplementations;
 import static name.remal.gradle_plugins.toolkit.FileTreeElementUtils.isNotArchiveEntry;
+import static name.remal.gradle_plugins.toolkit.KotlinPluginUtils.getKotlinCompileDestinationDirectory;
+import static name.remal.gradle_plugins.toolkit.KotlinPluginUtils.getKotlinCompileSources;
 import static name.remal.gradle_plugins.toolkit.LazyProxy.asLazyListProxy;
 import static name.remal.gradle_plugins.toolkit.ThrowableUtils.unwrapReflectionException;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.isGetterOf;
@@ -22,6 +24,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
+import name.remal.gradle_plugins.toolkit.annotations.ConfigurationPhaseOnly;
 import name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
@@ -80,6 +83,20 @@ public abstract class SourceSetUtils {
     }
 
 
+    @ConfigurationPhaseOnly
+    public static boolean isProcessedBy(SourceSet sourceSet, Task task) {
+        if (task instanceof SourceTask) {
+            return isProcessedBy(sourceSet, (SourceTask) task);
+        } else if (task instanceof AbstractCopyTask) {
+            return isProcessedBy(sourceSet, (AbstractCopyTask) task);
+        } else if (isProcessedByKotlin(sourceSet, task)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @ConfigurationPhaseOnly
     public static boolean isProcessedBy(SourceSet sourceSet, SourceTask task) {
         var result = new AtomicBoolean(false);
         var allSource = sourceSet.getAllSource();
@@ -95,6 +112,7 @@ public abstract class SourceSetUtils {
         return result.get();
     }
 
+    @ConfigurationPhaseOnly
     public static boolean isProcessedBy(SourceSet sourceSet, AbstractCopyTask task) {
         var result = new AtomicBoolean(false);
         var allSource = sourceSet.getAllSource();
@@ -110,14 +128,58 @@ public abstract class SourceSetUtils {
         return result.get();
     }
 
-    public static boolean isCompiledBy(SourceSet sourceSet, AbstractCompile task) {
-        var destinationDir = task.getDestinationDirectory().getAsFile().getOrNull();
-        if (destinationDir == null) {
-            return isProcessedBy(sourceSet, task);
+    @ConfigurationPhaseOnly
+    private static boolean isProcessedByKotlin(SourceSet sourceSet, Task task) {
+        var sources = getKotlinCompileSources(task);
+        if (sources == null) {
+            return false;
         }
 
-        return sourceSet.getOutput().getClassesDirs().contains(destinationDir);
+        var result = new AtomicBoolean(false);
+        var allSource = sourceSet.getAllSource();
+        sources.getAsFileTree().visit(details -> {
+            if (isNotArchiveEntry(details)) {
+                var file = details.getFile();
+                if (allSource.contains(file)) {
+                    result.set(true);
+                    details.stopVisiting();
+                }
+            }
+        });
+        return result.get();
     }
+
+
+    @ConfigurationPhaseOnly
+    public static boolean isCompiledBy(SourceSet sourceSet, Task task) {
+        if (task instanceof AbstractCompile) {
+            return isCompiledBy(sourceSet, (AbstractCompile) task);
+        } else if (isCompiledByKotlin(sourceSet, task)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @ConfigurationPhaseOnly
+    public static boolean isCompiledBy(SourceSet sourceSet, AbstractCompile task) {
+        var destinationDir = task.getDestinationDirectory().getAsFile().getOrNull();
+        return destinationDir != null
+            && sourceSet.getOutput().getClassesDirs().contains(destinationDir);
+    }
+
+    @ConfigurationPhaseOnly
+    private static boolean isCompiledByKotlin(SourceSet sourceSet, Task task) {
+        var kotlinCompileDestinationDirectory = getKotlinCompileDestinationDirectory(task);
+        if (kotlinCompileDestinationDirectory == null) {
+            return false;
+        }
+
+        var destinationDir = kotlinCompileDestinationDirectory.getAsFile().getOrNull();
+        return destinationDir != null
+            && sourceSet.getOutput().getClassesDirs().contains(destinationDir);
+    }
+
 
     private static final Pattern GET_TASK_NAME_METHOD_NAME = Pattern.compile(
         "^get[A-Z].*[a-z]TaskName$"
@@ -150,17 +212,8 @@ public abstract class SourceSetUtils {
             }
         }
 
-        if (task instanceof AbstractCompile) {
-            return isCompiledBy(sourceSet, (AbstractCompile) task);
-        }
-        if (task instanceof SourceTask) {
-            return isProcessedBy(sourceSet, (SourceTask) task);
-        }
-        if (task instanceof AbstractCopyTask) {
-            return isProcessedBy(sourceSet, (AbstractCopyTask) task);
-        }
-
-        return false;
+        return isCompiledBy(sourceSet, task)
+            || isProcessedBy(sourceSet, task);
     }
 
 

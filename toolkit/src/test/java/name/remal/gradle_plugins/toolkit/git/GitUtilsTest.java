@@ -1,10 +1,9 @@
 package name.remal.gradle_plugins.toolkit.git;
 
 import static java.lang.String.join;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.createFile;
 import static java.nio.file.Files.createTempDirectory;
-import static java.nio.file.Files.write;
+import static java.nio.file.Files.writeString;
 import static name.remal.gradle_plugins.toolkit.git.GitBooleanAttribute.newGitBooleanAttributeBuilder;
 import static name.remal.gradle_plugins.toolkit.git.GitStringAttribute.newGitStringAttributeBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,10 +45,10 @@ class GitUtilsTest {
     @Test
     void withGitAttributesFileEntry() throws Throwable {
         createFile(repositoryRoot.resolve("file.txt"));
-        write(repositoryRoot.resolve(".gitattributes"), join(
+        writeString(repositoryRoot.resolve(".gitattributes"), join(
             "\n",
             "*.txt -text eol=crlf"
-        ).getBytes(UTF_8));
+        ));
         assertThat(GitUtils.getGitAttributesFor(repositoryRoot, "file.txt"))
             .containsExactlyInAnyOrder(
                 newGitBooleanAttributeBuilder()

@@ -200,12 +200,27 @@ jobs:
       java-gradle-only-once: false
 
   # $$$sync-with-template-modifiable: cross-versions-additional-tests $$$
+  cross-versions-tests-kotlin-plugin:
+    needs:
+    - build
+    - prepare-env-for-cross-versions-tests
+    uses: ./.github/workflows/build-cross-versions-tests.yml
+    secrets: inherit
+    with:
+      workflow-key: kotlin-plugin
+      env-json: ${{needs.prepare-env-for-cross-versions-tests.outputs.env-json}}
+      matrix: |
+        org.jetbrains.kotlin.jvm:
+          dependency: 'gradle-plugin:org.jetbrains.kotlin.jvm'
+          only:
+          - stable-minors
   # $$$sync-with-template-modifiable-end$$$
 
   cross-versions-tests-success:
     needs:
     - cross-versions-tests
     # $$$sync-with-template-modifiable: cross-versions-additional-tests-dependents $$$
+    - cross-versions-tests-kotlin-plugin
     # $$$sync-with-template-modifiable-end$$$
     runs-on: ubuntu-latest
     timeout-minutes: 5

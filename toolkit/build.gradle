@@ -1,3 +1,7 @@
+import org.gradle.util.GradleVersion
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 apply plugin: 'java-library'
 apply plugin: 'maven-publish'
 apply plugin: 'name.remal.generate-sources'
@@ -25,9 +29,6 @@ dependencies {
 
 
     testImplementation project(':testkit')
-    testImplementation 'io.spring.dependency-management:io.spring.dependency-management.gradle.plugin:1.1.7'
-    testImplementation 'com.softeq.gradle.itest:com.softeq.gradle.itest.gradle.plugin:1.0.4'
-    testImplementation 'org.unbroken-dome.test-sets:org.unbroken-dome.test-sets.gradle.plugin:4.1.0'
 
 
     components {
@@ -37,7 +38,59 @@ dependencies {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+Configuration pluginsCompatibilityToTestConf = configurations.create('pluginsCompatibilityToTest') {
+    configurations.testImplementation.extendsFrom(it)
+}
+
+Set<String> usedPluginCompatibilityVersionProperties = new LinkedHashSet<>()
+
+pluginsCompatibilityToTestConf.dependencies.addAll(
+    [
+        'org.jetbrains.kotlin.jvm:org.jetbrains.kotlin.jvm.gradle.plugin:2.2.10',
+        'io.spring.dependency-management:io.spring.dependency-management.gradle.plugin:1.1.7',
+        'com.softeq.gradle.itest:com.softeq.gradle.itest.gradle.plugin:1.0.4',
+        'org.unbroken-dome.test-sets:org.unbroken-dome.test-sets.gradle.plugin:4.1.0',
+    ].collect {
+        project.dependencies.create(it) { ExternalModuleDependency dep ->
+            String versionProperty = "${dep.group}.version".toString()
+            usedPluginCompatibilityVersionProperties.add(versionProperty)
+            dep.version {
+                String overriddenVersion = project.findProperty(versionProperty)?.toString()
+                if (overriddenVersion != null) {
+                    strictly(overriddenVersion)
+                }
+            }
+        }
+    }
+)
+
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 project.fatJarWith(project(':toolkit-annotations'))
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+tasks.withType(Test).configureEach {
+    if (project.isRunningOnCi || true) {
+        String kotlinPluginTag = 'kotlin-plugin'
+
+        boolean hasKotlinPluginCompatibilityVersionProperty = usedPluginCompatibilityVersionProperties
+            .findAll { "$it.".startsWith('org.jetbrains.kotlin.') && it.endsWith('.version') }
+            .any { project.findProperty(it) != null }
+
+        GradleVersion latestStableGradleVersion = project.getStableGradleVersions()[0]
+        boolean isGradleLatestStable = latestStableGradleVersion == project.gradleApiVersion
+
+        useJUnitPlatform {
+            if (hasKotlinPluginCompatibilityVersionProperty || isGradleLatestStable) {
+                // do nothing - test Kotlin plugin integration logic
+            } else {
+                excludeTags.add(kotlinPluginTag)
+            }
+        }
+    }
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

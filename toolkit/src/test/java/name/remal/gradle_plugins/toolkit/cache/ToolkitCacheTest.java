@@ -1,10 +1,10 @@
 package name.remal.gradle_plugins.toolkit.cache;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.lang.System.nanoTime;
 import static java.nio.file.Files.createFile;
 import static java.nio.file.Files.createTempDirectory;
 import static java.nio.file.Files.getLastModifiedTime;
-import static java.nio.file.Files.write;
+import static java.nio.file.Files.writeString;
 import static name.remal.gradle_plugins.toolkit.PathUtils.deleteRecursively;
 import static name.remal.gradle_plugins.toolkit.cache.ToolkitCaches.newPathToolkitCache;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -58,14 +58,14 @@ class ToolkitCacheTest {
         var pathCache = newPathToolkitCache(__ -> counter.incrementAndGet());
 
         var path = tempDir.resolve("file");
-        write(path, String.valueOf(System.nanoTime()).getBytes(UTF_8));
+        writeString(path, String.valueOf(nanoTime()));
         assertEquals(1, pathCache.get(path));
         assertEquals(1, pathCache.get(path));
 
         var initialLastModified = getLastModifiedTime(path);
         do {
             Thread.sleep(10);
-            write(path, String.valueOf(System.nanoTime()).getBytes(UTF_8));
+            writeString(path, String.valueOf(nanoTime()));
         } while (getLastModifiedTime(path).equals(initialLastModified));
 
         assertEquals(2, pathCache.get(path));

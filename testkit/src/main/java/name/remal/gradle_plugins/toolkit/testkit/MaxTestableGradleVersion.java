@@ -1,6 +1,5 @@
 package name.remal.gradle_plugins.toolkit.testkit;
 
-import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -14,7 +13,7 @@ import org.intellij.lang.annotations.Pattern;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(MaxTestableGradleVersionExtension.class)
-@Target({TYPE, METHOD, ANNOTATION_TYPE})
+@Target({TYPE, METHOD})
 @Retention(RUNTIME)
 @Inherited
 @Documented

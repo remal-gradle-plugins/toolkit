@@ -172,6 +172,16 @@ allprojects {
                     }
                 }
             }
+
+            doFirst { Test task ->
+                def testFrameworkOptions = task.testFrameworkProperty.get().options
+                if (!testFrameworkOptions.includeTags.isEmpty()) {
+                    task.logger.warn('{} - include tags: `{}`', task, testFrameworkOptions.includeTags.join('`, `'))
+                }
+                if (!testFrameworkOptions.excludeTags.isEmpty()) {
+                    task.logger.warn('{} - exclude tags: `{}`', task, testFrameworkOptions.excludeTags.join('`, `'))
+                }
+            }
         }
 
 
