@@ -81,6 +81,8 @@ class SourceSetUtilsTest extends SourceSetUtilsTestBase {
             .getByName(testSourceSet.getCompileTaskName("kotlin"));
         assertFalse(SourceSetUtils.isProcessedBy(mainSourceSet, testKotlinCompile));
         assertTrue(SourceSetUtils.isProcessedBy(testSourceSet, testKotlinCompile));
+
+        throw new AssertionError("executed");
     }
 
 

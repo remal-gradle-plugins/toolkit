@@ -1,3 +1,7 @@
+import org.gradle.util.GradleVersion
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 apply plugin: 'java-library'
 apply plugin: 'maven-publish'
 apply plugin: 'name.remal.generate-sources'
@@ -72,10 +76,16 @@ tasks.withType(Test).configureEach {
         boolean hasKotlinPluginCompatibilityVersionProperty = usedPluginCompatibilityVersionProperties
             .findAll { "$it.".startsWith('org.jetbrains.kotlin.') && it.endsWith('.version') }
             .any { project.findProperty(it) != null }
+
+        GradleVersion latestStableGradleVersion = project.getStableGradleVersions()[0]
+        boolean isGradleLatestStable = latestStableGradleVersion == GradleVersion.current()
+
         useJUnitPlatform {
             String kotlinPluginTag = 'kotlin-plugin'
-            if (hasKotlinPluginCompatibilityVersionProperty) {
-                includeTags = [kotlinPluginTag]
+            if (hasKotlinPluginCompatibilityVersionProperty || isGradleLatestStable) {
+                if (includeTags.isEmpty()) {
+                    includeTags = [kotlinPluginTag]
+                }
             } else {
                 excludeTags = [kotlinPluginTag]
             }
