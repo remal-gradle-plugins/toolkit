@@ -18,8 +18,6 @@ class KotlinPluginUtilsTest extends SourceSetUtilsTestBase {
         super(project);
 
         project.getPluginManager().apply("org.jetbrains.kotlin.jvm");
-
-        throw new ArrayStoreException("Kotlin plugin test executed");
     }
 
     @Nested

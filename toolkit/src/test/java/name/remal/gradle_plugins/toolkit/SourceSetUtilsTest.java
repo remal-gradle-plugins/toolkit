@@ -95,8 +95,6 @@ class SourceSetUtilsTest extends SourceSetUtilsTestBase {
             .getByName(testSourceSet.getCompileJavaTaskName());
         assertFalse(SourceSetUtils.isCompiledBy(mainSourceSet, testJavaCompile));
         assertTrue(SourceSetUtils.isCompiledBy(testSourceSet, testJavaCompile));
-
-        throw new ArrayStoreException("Test executed");
     }
 
     @Test
@@ -131,6 +129,22 @@ class SourceSetUtilsTest extends SourceSetUtilsTestBase {
             );
     }
 
+    @Test
+    @TagKotlinPlugin
+    void getAllSourceDirectorySets_kotlin() {
+        project.getPluginManager().apply("org.jetbrains.kotlin.jvm");
+
+        assertThat(SourceSetUtils.getAllSourceDirectorySets(mainSourceSet))
+            .extracting(SourceDirectorySet::getName)
+            .contains(
+                "allsource",
+                "java",
+                "alljava",
+                "resources",
+                "main Kotlin source"
+            );
+    }
+
 
     @Test
     void whenTestSourceSetRegistered_default() {
@@ -145,7 +159,6 @@ class SourceSetUtilsTest extends SourceSetUtilsTestBase {
 
     @Test
     @MinTestableGradleVersion("7.3")
-    @SuppressWarnings("UnstableApiUsage")
     void whenTestSourceSetRegistered_jvm_test_suite() {
         Collection<SourceSet> testSourceSets = new ArrayList<>();
         whenTestSourceSetRegistered(project, testSourceSets::add);
