@@ -1,4 +1,4 @@
-package name.remal.gradle_plugins.toolkit.testkit;
+package name.remal.gradle_plugins.toolkit;
 
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.TYPE;
@@ -8,16 +8,12 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-import name.remal.gradle_plugins.toolkit.testkit.internal.MaxTestableJavaVersionExtension;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.Tag;
 
-@ExtendWith(MaxTestableJavaVersionExtension.class)
+@Tag("kotlin-plugin")
 @Target({TYPE, METHOD})
 @Retention(RUNTIME)
-@Inherited
 @Documented
-public @interface MaxTestableJavaVersion {
-
-    int value();
-
+@Inherited
+public @interface TagKotlinPlugin {
 }

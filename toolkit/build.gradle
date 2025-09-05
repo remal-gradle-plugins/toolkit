@@ -34,31 +34,51 @@ dependencies {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-configurations.create('pluginsCompatibilityToTest') {
-    dependencies.addAll(
-        [
-            'org.jetbrains.kotlin.jvm:org.jetbrains.kotlin.jvm.gradle.plugin:2.2.10',
-            'io.spring.dependency-management:io.spring.dependency-management.gradle.plugin:1.1.7',
-            'com.softeq.gradle.itest:com.softeq.gradle.itest.gradle.plugin:1.0.4',
-            'org.unbroken-dome.test-sets:org.unbroken-dome.test-sets.gradle.plugin:4.1.0',
-        ].collect {
-            project.dependencies.create(it) { ExternalModuleDependency dep ->
-                dep.version {
-                    String overriddenVersion = project.findProperty("${dep.group}.version")?.toString()
-                    if (overriddenVersion != null) {
-                        strictly(overriddenVersion)
-                    }
+Configuration pluginsCompatibilityToTestConf = configurations.create('pluginsCompatibilityToTest') {
+    configurations.testImplementation.extendsFrom(it)
+}
+
+Set<String> usedPluginCompatibilityVersionProperties = new LinkedHashSet<>()
+
+pluginsCompatibilityToTestConf.dependencies.addAll(
+    [
+        'org.jetbrains.kotlin.jvm:org.jetbrains.kotlin.jvm.gradle.plugin:2.2.10',
+        'io.spring.dependency-management:io.spring.dependency-management.gradle.plugin:1.1.7',
+        'com.softeq.gradle.itest:com.softeq.gradle.itest.gradle.plugin:1.0.4',
+        'org.unbroken-dome.test-sets:org.unbroken-dome.test-sets.gradle.plugin:4.1.0',
+    ].collect {
+        project.dependencies.create(it) { ExternalModuleDependency dep ->
+            dep.version {
+                String versionProperty = "${dep.group}.version".toString()
+                usedPluginCompatibilityVersionProperties.add(versionProperty)
+                String overriddenVersion = project.findProperty(versionProperty)?.toString()
+                if (overriddenVersion != null) {
+                    strictly(overriddenVersion)
                 }
             }
         }
-    )
+    }
+)
 
-    configurations.testImplementation.extendsFrom(it)
-}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 project.fatJarWith(project(':toolkit-annotations'))
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+tasks.withType(Test).configureEach {
+    if (project.isRunningOnCi) {
+        boolean hasKotlinPluginCompatibilityVersionProperty = usedPluginCompatibilityVersionProperties
+            .findAll { "$it.".startsWith('org.jetbrains.kotlin.') }
+            .any { project.findProperty(it) != null }
+        if (!hasKotlinPluginCompatibilityVersionProperty) {
+            useJUnitPlatform {
+                excludeTags = ['kotlin-plugin']
+            }
+        }
+    }
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

@@ -13,7 +13,7 @@ import name.remal.gradle_plugins.toolkit.testkit.internal.MinTestableJavaVersion
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(MinTestableJavaVersionExtension.class)
-@Target({TYPE, METHOD, ANNOTATION_TYPE})
+@Target({TYPE, METHOD})
 @Retention(RUNTIME)
 @Inherited
 @Documented

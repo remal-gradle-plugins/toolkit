@@ -11,12 +11,15 @@ import org.gradle.api.tasks.compile.JavaCompile;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+@TagKotlinPlugin
 class KotlinPluginUtilsTest extends SourceSetUtilsTestBase {
 
     KotlinPluginUtilsTest(Project project) {
         super(project);
 
         project.getPluginManager().apply("org.jetbrains.kotlin.jvm");
+
+        throw new ArrayStoreException(KotlinPluginUtilsTest.class.getName() + " - executed");
     }
 
     @Nested

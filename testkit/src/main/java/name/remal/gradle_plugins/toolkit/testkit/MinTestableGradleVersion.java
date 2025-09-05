@@ -14,7 +14,7 @@ import org.intellij.lang.annotations.Pattern;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(MinTestableGradleVersionExtension.class)
-@Target({TYPE, METHOD, ANNOTATION_TYPE})
+@Target({TYPE, METHOD})
 @Retention(RUNTIME)
 @Inherited
 @Documented
