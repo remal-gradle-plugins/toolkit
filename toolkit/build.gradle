@@ -80,13 +80,11 @@ tasks.withType(Test).configureEach {
             .any { project.findProperty(it) != null }
 
         GradleVersion latestStableGradleVersion = project.getStableGradleVersions()[0]
-        boolean isGradleLatestStable = latestStableGradleVersion == GradleVersion.current()
+        boolean isGradleLatestStable = latestStableGradleVersion == project.gradleApiVersion
 
         useJUnitPlatform {
             if (hasKotlinPluginCompatibilityVersionProperty || isGradleLatestStable) {
-                if (includeTags.isEmpty()) {
-                    includeTags.add(kotlinPluginTag)
-                }
+                // do nothing - test Kotlin plugin integration logic
             } else {
                 excludeTags.add(kotlinPluginTag)
             }
