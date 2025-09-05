@@ -213,7 +213,7 @@ jobs:
         org.jetbrains.kotlin.jvm:
           dependency: 'gradle-plugin:org.jetbrains.kotlin.jvm'
           only:
-          - stable-minors+current-unstable
+          - stable-minors
   # $$$sync-with-template-modifiable-end$$$
 
   cross-versions-tests-success:
