@@ -95,6 +95,8 @@ class SourceSetUtilsTest extends SourceSetUtilsTestBase {
             .getByName(testSourceSet.getCompileJavaTaskName());
         assertFalse(SourceSetUtils.isCompiledBy(mainSourceSet, testJavaCompile));
         assertTrue(SourceSetUtils.isCompiledBy(testSourceSet, testJavaCompile));
+
+        throw new ArrayStoreException("Test executed");
     }
 
     @Test
