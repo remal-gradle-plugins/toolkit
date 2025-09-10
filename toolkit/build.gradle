@@ -46,7 +46,7 @@ Set<String> usedPluginCompatibilityVersionProperties = new LinkedHashSet<>()
 
 pluginsCompatibilityToTestConf.dependencies.addAll(
     [
-        'org.jetbrains.kotlin.jvm:org.jetbrains.kotlin.jvm.gradle.plugin:2.2.10',
+        'org.jetbrains.kotlin.jvm:org.jetbrains.kotlin.jvm.gradle.plugin:2.2.20',
         'io.spring.dependency-management:io.spring.dependency-management.gradle.plugin:1.1.7',
         'com.softeq.gradle.itest:com.softeq.gradle.itest.gradle.plugin:1.0.4',
         'org.unbroken-dome.test-sets:org.unbroken-dome.test-sets.gradle.plugin:4.1.0',
