@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+@SuppressWarnings("StringJoin")
 class EditorConfigTest {
 
     Path tempDir;
