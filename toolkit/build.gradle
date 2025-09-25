@@ -24,7 +24,7 @@ dependencies {
         exclude group: 'org.slf4j'
     }
 
-    optional platform('org.immutables:bom:2.11.3')
+    optional platform('org.immutables:bom:2.11.4')
     optional 'org.immutables:gson'
 
 
