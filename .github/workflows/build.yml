@@ -192,7 +192,7 @@ jobs:
     uses: ./.github/workflows/build-cross-versions-tests.yml
     secrets: inherit
     with:
-      env-json: ${{needs.prepare-env-for-cross-versions-tests.outputs.env-json}}
+      env-json: ${{needs.build.outputs.env-json}}
       versions-matrix-spec: |
         org.jetbrains.kotlin.jvm:
           dependency: 'gradle-plugin:org.jetbrains.kotlin.jvm'
