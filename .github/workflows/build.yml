@@ -193,6 +193,7 @@ jobs:
     secrets: inherit
     with:
       env-json: ${{needs.build.outputs.env-json}}
+      gradle-stable-only: true
       versions-matrix-spec: |
         org.jetbrains.kotlin.jvm:
           dependency: 'gradle-plugin:org.jetbrains.kotlin.jvm'
