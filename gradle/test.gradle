@@ -79,12 +79,22 @@ allprojects {
                 if (javaRuntimeVersion.get() <= JavaVersion.VERSION_16) {
                     jvmArgs('--illegal-access=deny')
                 }
+            }
 
-                /*
-                 * Required for `org.gradle.testfixtures.ProjectBuilder`.
-                 * See https://github.com/gradle/gradle/issues/18647
-                 */
-                jvmArgs('--add-opens=java.base/java.lang=ALL-UNNAMED')
+            onlyIf {
+                boolean hasGradleApi = classpath.any { it.name ==~ /^gradle-api(-\d.*)?\.jar$/ }
+                if (hasGradleApi) {
+                    if (javaRuntimeVersion.get() >= JavaVersion.VERSION_1_9) {
+                        // see https://github.com/gradle/gradle/issues/18647
+                        jvmArgs('--add-opens=java.base/java.lang=ALL-UNNAMED')
+                    }
+
+                    if (javaRuntimeVersion.get() >= JavaVersion.VERSION_24) {
+                        // see https://github.com/gradle/gradle/issues/31625
+                        jvmArgs('--enable-native-access=ALL-UNNAMED')
+                    }
+                }
+                return true
             }
 
             exclude { FileTreeElement element ->
