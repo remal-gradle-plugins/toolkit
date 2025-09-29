@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import lombok.SneakyThrows;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -49,10 +48,10 @@ abstract class SourceSetUtilsTestBase {
         if (useMavenCentral()) {
             project.getRepositories().mavenCentral();
         } else {
-            project.getConfigurations().all(conf -> {
-                var deps = conf.getDependencies();
-                deps.withType(ExternalDependency.class).all(deps::remove);
-            });
+            var props = project.getExtensions().getExtraProperties();
+            props.set("kotlin.stdlib.default.dependency", "false");
+            props.set("kotlin.test.infer.jvm.variant", "false");
+            props.set("kotlin.js.stdlib.dom.api.included", "false");
         }
 
         this.generalDependencyFile = newEmptyZipArchive(projectDir.resolve("dependency.jar"));

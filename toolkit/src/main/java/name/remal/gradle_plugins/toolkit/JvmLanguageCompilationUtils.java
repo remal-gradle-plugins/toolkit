@@ -8,7 +8,6 @@ import static name.remal.gradle_plugins.toolkit.KotlinPluginUtils.setKotlinLibra
 import static name.remal.gradle_plugins.toolkit.SneakyThrowUtils.sneakyThrowsAction;
 import static org.gradle.api.specs.Specs.satisfyAll;
 
-import java.util.LinkedHashSet;
 import lombok.NoArgsConstructor;
 import name.remal.gradle_plugins.toolkit.annotations.ConfigurationPhaseOnly;
 import org.gradle.api.Task;
@@ -18,99 +17,54 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.compile.AbstractCompile;
+import org.jspecify.annotations.Nullable;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class JvmLanguageCompilationUtils {
 
     public static boolean isJvmLanguageCompileTask(Task task) {
+        return getJvmLanguagesCompileTaskProperties(task) != null;
+    }
+
+
+    @Nullable
+    public static JvmLanguagesCompileTaskProperties getJvmLanguagesCompileTaskProperties(Task task) {
         if (task instanceof AbstractCompile) {
-            return true;
+            var compileTask = (AbstractCompile) task;
+            return new JvmLanguagesCompileTaskProperties() {
+                @Override
+                public FileTree getSource() {
+                    return compileTask.getSource();
+                }
+
+                @Override
+                public DirectoryProperty getDestinationDirectory() {
+                    return compileTask.getDestinationDirectory();
+                }
+
+                @Override
+                public FileCollection getClasspath() {
+                    return compileTask.getClasspath();
+                }
+
+                @Override
+                public void setClasspath(FileCollection classpath) {
+                    compileTask.setClasspath(classpath);
+                }
+
+                @Override
+                public String toString() {
+                    return "JVM compilation properties of task " + compileTask;
+                }
+            };
         }
 
         var kotlinCompileSources = getKotlinCompileSources(task);
         if (kotlinCompileSources != null) {
             var kotlinCompileDestinationDirectory = getKotlinCompileDestinationDirectory(task);
             if (kotlinCompileDestinationDirectory != null) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-
-    @ConfigurationPhaseOnly
-    public static void configureJvmLanguageCompileTasks(
-        TaskContainer tasks,
-        JvmLanguagesCompileTaskConfigurer configurer
-    ) {
-        configureJvmLanguageCompileTasks(tasks, satisfyAll(), configurer);
-    }
-
-    @ConfigurationPhaseOnly
-    public static void configureJvmLanguageCompileTasks(
-        TaskContainer tasks,
-        Spec<? super Task> spec,
-        JvmLanguagesCompileTaskConfigurer configurer
-    ) {
-        var configuredTasks = new LinkedHashSet<Task>();
-
-        tasks.withType(AbstractCompile.class)
-            .matching(spec)
-            .matching(configuredTasks::add)
-            .configureEach(sneakyThrowsAction(task -> {
-                var properties = new JvmLanguagesCompileTaskProperties() {
-                    @Override
-                    public FileTree getSource() {
-                        return task.getSource();
-                    }
-
-                    @Override
-                    public DirectoryProperty getDestinationDirectory() {
-                        return task.getDestinationDirectory();
-                    }
-
-                    @Override
-                    public FileCollection getClasspath() {
-                        return task.getClasspath();
-                    }
-
-                    @Override
-                    public void setClasspath(FileCollection classpath) {
-                        task.setClasspath(classpath);
-                    }
-
-                    @Override
-                    public String toString() {
-                        return "Properties of task " + task;
-                    }
-                };
-                configurer.configure(task, properties);
-            }));
-
-        tasks
-            .matching(spec)
-            .configureEach(sneakyThrowsAction(task -> {
-                if (configuredTasks.contains(task)) {
-                    return;
-                }
-
-                var kotlinCompileSources = getKotlinCompileSources(task);
-                if (kotlinCompileSources == null) {
-                    return; // not a Kotlin compilation task
-                }
-
-                var kotlinCompileDestinationDirectory = getKotlinCompileDestinationDirectory(task);
-                if (kotlinCompileDestinationDirectory == null) {
-                    return; // not a Kotlin compilation task
-                }
-
-                if (!configuredTasks.add(task)) {
-                    return;
-                }
-
                 var kotlinCompileSourcesTree = kotlinCompileSources.getAsFileTree();
-                var properties = new JvmLanguagesCompileTaskProperties() {
+                return new JvmLanguagesCompileTaskProperties() {
                     @Override
                     public FileTree getSource() {
                         return kotlinCompileSourcesTree;
@@ -139,16 +93,13 @@ public abstract class JvmLanguageCompilationUtils {
 
                     @Override
                     public String toString() {
-                        return "Properties of task " + task;
+                        return "JVM compilation properties of task " + task;
                     }
                 };
-                configurer.configure(task, properties);
-            }));
-    }
+            }
+        }
 
-    @FunctionalInterface
-    public interface JvmLanguagesCompileTaskConfigurer {
-        void configure(Task task, JvmLanguagesCompileTaskProperties properties) throws Throwable;
+        return null; // not a known JVM language compilation task
     }
 
     public interface JvmLanguagesCompileTaskProperties {
@@ -161,6 +112,34 @@ public abstract class JvmLanguageCompilationUtils {
 
         void setClasspath(FileCollection classpath);
 
+    }
+
+
+    @ConfigurationPhaseOnly
+    public static void configureJvmLanguageCompileTasks(
+        TaskContainer tasks,
+        JvmLanguagesCompileTaskConfigurer configurer
+    ) {
+        configureJvmLanguageCompileTasks(tasks, satisfyAll(), configurer);
+    }
+
+    @ConfigurationPhaseOnly
+    public static void configureJvmLanguageCompileTasks(
+        TaskContainer tasks,
+        Spec<? super Task> spec,
+        JvmLanguagesCompileTaskConfigurer configurer
+    ) {
+        tasks.matching(spec).configureEach(sneakyThrowsAction(task -> {
+            var properties = getJvmLanguagesCompileTaskProperties(task);
+            if (properties != null) {
+                configurer.configure(task, properties);
+            }
+        }));
+    }
+
+    @FunctionalInterface
+    public interface JvmLanguagesCompileTaskConfigurer {
+        void configure(Task task, JvmLanguagesCompileTaskProperties properties) throws Throwable;
     }
 
 }
