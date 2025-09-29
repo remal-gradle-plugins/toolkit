@@ -1,8 +1,12 @@
 package name.remal.gradle_plugins.toolkit;
 
 import static java.util.stream.Collectors.toUnmodifiableList;
+import static name.remal.gradle_plugins.toolkit.JvmLanguageCompilationUtils.configureJvmLanguageCompileTasks;
+import static name.remal.gradle_plugins.toolkit.JvmLanguageCompilationUtils.isJvmLanguageCompileTask;
 import static name.remal.gradle_plugins.toolkit.testkit.ProjectValidations.executeAfterEvaluateActions;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.util.Collection;
@@ -11,6 +15,7 @@ import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetOutput;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 class JvmLanguageCompilationUtilsTest extends SourceSetUtilsTestBase {
@@ -19,100 +24,133 @@ class JvmLanguageCompilationUtilsTest extends SourceSetUtilsTestBase {
         super(project);
     }
 
-    @Test
-    void configureJvmLanguageCompileTasks() {
-        var destinationDirectories = new LinkedHashSet<File>();
-        JvmLanguageCompilationUtils.configureJvmLanguageCompileTasks(project.getTasks(), (task, properties) -> {
-            destinationDirectories.add(properties.getDestinationDirectory().getAsFile().get());
-        });
+    @Nested
+    class IsJvmLanguageCompileTask {
 
-        project.getTasks().forEach(task -> {
-            // execute all configureEach()
-        });
+        @Test
+        void notCompilationTask() {
+            assertFalse(isJvmLanguageCompileTask(tasks.named(mainSourceSet.getProcessResourcesTaskName()).get()));
+        }
 
+        @Test
+        void java() {
+            assertTrue(isJvmLanguageCompileTask(tasks.named(mainSourceSet.getCompileJavaTaskName()).get()));
+        }
 
-        assertThat(destinationDirectories).anySatisfy(dir -> {
-            assertThat(dir.getAbsolutePath().replace(File.separatorChar, '/'))
-                .endsWith("/build/classes/java/main");
-        });
+        @Test
+        void groovy() {
+            project.getPluginManager().apply("groovy");
 
+            assertTrue(isJvmLanguageCompileTask(tasks.named(mainSourceSet.getCompileTaskName("groovy")).get()));
+        }
 
-        var allClassesDirs = sourceSets.stream()
-            .map(SourceSet::getOutput)
-            .map(SourceSetOutput::getClassesDirs)
-            .map(FileCollection::getFiles)
-            .flatMap(Collection::stream)
-            .distinct()
-            .collect(toUnmodifiableList());
+        @Test
+        @TagKotlinPlugin
+        void kotlin() {
+            project.getPluginManager().apply("org.jetbrains.kotlin.jvm");
+            executeAfterEvaluateActions(project); // old Kotlin plugins configure a lot of things on afterEvaluate()
 
-        assertThat(destinationDirectories)
-            .containsExactlyInAnyOrderElementsOf(allClassesDirs);
+            assertTrue(isJvmLanguageCompileTask(tasks.named(mainSourceSet.getCompileTaskName("kotlin")).get()));
+        }
+
     }
 
-    @Test
-    void configureJvmLanguageCompileTasks_groovy() {
-        project.getPluginManager().apply("groovy");
 
-        var destinationDirectories = new LinkedHashSet<File>();
-        JvmLanguageCompilationUtils.configureJvmLanguageCompileTasks(project.getTasks(), (task, properties) -> {
-            destinationDirectories.add(properties.getDestinationDirectory().getAsFile().get());
-        });
+    @Nested
+    class ConfigureJvmLanguageCompileTasks {
 
-        project.getTasks().forEach(task -> {
-            // execute all configureEach()
-        });
+        @Test
+        void java() {
+            var destinationDirectories = new LinkedHashSet<File>();
+            configureJvmLanguageCompileTasks(tasks, (task, properties) -> {
+                destinationDirectories.add(properties.getDestinationDirectory().getAsFile().get());
+            });
 
-
-        assertThat(destinationDirectories).anySatisfy(dir -> {
-            assertThat(dir.getAbsolutePath().replace(File.separatorChar, '/'))
-                .endsWith("/build/classes/groovy/main");
-        });
+            tasks.forEach(task -> {
+                // execute all configureEach()
+            });
 
 
-        var allClassesDirs = sourceSets.stream()
-            .map(SourceSet::getOutput)
-            .map(SourceSetOutput::getClassesDirs)
-            .map(FileCollection::getFiles)
-            .flatMap(Collection::stream)
-            .distinct()
-            .collect(toUnmodifiableList());
-
-        assertThat(destinationDirectories)
-            .containsExactlyInAnyOrderElementsOf(allClassesDirs);
-    }
-
-    @Test
-    @TagKotlinPlugin
-    void configureJvmLanguageCompileTasks_kotlin() {
-        project.getPluginManager().apply("org.jetbrains.kotlin.jvm");
-        executeAfterEvaluateActions(project); // old Kotlin plugins configure a lot of things on afterEvaluate()
-
-        var destinationDirectories = new LinkedHashSet<File>();
-        JvmLanguageCompilationUtils.configureJvmLanguageCompileTasks(project.getTasks(), (task, properties) -> {
-            destinationDirectories.add(properties.getDestinationDirectory().getAsFile().get());
-        });
-
-        project.getTasks().forEach(task -> {
-            // execute all configureEach()
-        });
+            assertThat(destinationDirectories).anySatisfy(dir -> {
+                assertThat(dir.getAbsolutePath().replace(File.separatorChar, '/')).endsWith("/build/classes/java/main");
+            });
 
 
-        assertThat(destinationDirectories).anySatisfy(dir -> {
-            assertThat(dir.getAbsolutePath().replace(File.separatorChar, '/'))
-                .endsWith("/build/classes/kotlin/main");
-        });
+            var allClassesDirs = sourceSets.stream()
+                .map(SourceSet::getOutput)
+                .map(SourceSetOutput::getClassesDirs)
+                .map(FileCollection::getFiles)
+                .flatMap(Collection::stream)
+                .distinct()
+                .collect(toUnmodifiableList());
+
+            assertThat(destinationDirectories).containsExactlyInAnyOrderElementsOf(allClassesDirs);
+        }
+
+        @Test
+        void groovy() {
+            project.getPluginManager().apply("groovy");
+
+            var destinationDirectories = new LinkedHashSet<File>();
+            configureJvmLanguageCompileTasks(tasks, (task, properties) -> {
+                destinationDirectories.add(properties.getDestinationDirectory().getAsFile().get());
+            });
+
+            tasks.forEach(task -> {
+                // execute all configureEach()
+            });
 
 
-        var allClassesDirs = sourceSets.stream()
-            .map(SourceSet::getOutput)
-            .map(SourceSetOutput::getClassesDirs)
-            .map(FileCollection::getFiles)
-            .flatMap(Collection::stream)
-            .distinct()
-            .collect(toUnmodifiableList());
+            assertThat(destinationDirectories).anySatisfy(dir -> {
+                assertThat(dir.getAbsolutePath()
+                    .replace(File.separatorChar, '/')).endsWith("/build/classes/groovy/main");
+            });
 
-        assertThat(destinationDirectories)
-            .containsExactlyInAnyOrderElementsOf(allClassesDirs);
+
+            var allClassesDirs = sourceSets.stream()
+                .map(SourceSet::getOutput)
+                .map(SourceSetOutput::getClassesDirs)
+                .map(FileCollection::getFiles)
+                .flatMap(Collection::stream)
+                .distinct()
+                .collect(toUnmodifiableList());
+
+            assertThat(destinationDirectories).containsExactlyInAnyOrderElementsOf(allClassesDirs);
+        }
+
+        @Test
+        @TagKotlinPlugin
+        void kotlin() {
+            project.getPluginManager().apply("org.jetbrains.kotlin.jvm");
+            executeAfterEvaluateActions(project); // old Kotlin plugins configure a lot of things on afterEvaluate()
+
+            var destinationDirectories = new LinkedHashSet<File>();
+            configureJvmLanguageCompileTasks(tasks, (task, properties) -> {
+                destinationDirectories.add(properties.getDestinationDirectory().getAsFile().get());
+            });
+
+            tasks.forEach(task -> {
+                // execute all configureEach()
+            });
+
+
+            assertThat(destinationDirectories).anySatisfy(dir -> {
+                assertThat(dir.getAbsolutePath()
+                    .replace(File.separatorChar, '/')).endsWith("/build/classes/kotlin/main");
+            });
+
+
+            var allClassesDirs = sourceSets.stream()
+                .map(SourceSet::getOutput)
+                .map(SourceSetOutput::getClassesDirs)
+                .map(FileCollection::getFiles)
+                .flatMap(Collection::stream)
+                .distinct()
+                .collect(toUnmodifiableList());
+
+            assertThat(destinationDirectories).containsExactlyInAnyOrderElementsOf(allClassesDirs);
+        }
+
     }
 
 }

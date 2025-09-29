@@ -45,12 +45,12 @@ class SourceSetUtilsTest extends SourceSetUtilsTestBase {
 
     @Test
     void isProcessedBy_SourceTask() {
-        var mainJavaCompile = project.getTasks().withType(JavaCompile.class)
+        var mainJavaCompile = tasks.withType(JavaCompile.class)
             .getByName(mainSourceSet.getCompileJavaTaskName());
         assertTrue(SourceSetUtils.isProcessedBy(mainSourceSet, mainJavaCompile));
         assertFalse(SourceSetUtils.isProcessedBy(testSourceSet, mainJavaCompile));
 
-        var testJavaCompile = project.getTasks().withType(JavaCompile.class)
+        var testJavaCompile = tasks.withType(JavaCompile.class)
             .getByName(testSourceSet.getCompileJavaTaskName());
         assertFalse(SourceSetUtils.isProcessedBy(mainSourceSet, testJavaCompile));
         assertTrue(SourceSetUtils.isProcessedBy(testSourceSet, testJavaCompile));
@@ -58,12 +58,12 @@ class SourceSetUtilsTest extends SourceSetUtilsTestBase {
 
     @Test
     void isProcessedBy_AbstractCopyTask() {
-        var mainProcessResources = project.getTasks().withType(AbstractCopyTask.class)
+        var mainProcessResources = tasks.withType(AbstractCopyTask.class)
             .getByName(mainSourceSet.getProcessResourcesTaskName());
         assertTrue(SourceSetUtils.isProcessedBy(mainSourceSet, mainProcessResources));
         assertFalse(SourceSetUtils.isProcessedBy(testSourceSet, mainProcessResources));
 
-        var testProcessResources = project.getTasks().withType(AbstractCopyTask.class)
+        var testProcessResources = tasks.withType(AbstractCopyTask.class)
             .getByName(testSourceSet.getProcessResourcesTaskName());
         assertFalse(SourceSetUtils.isProcessedBy(mainSourceSet, testProcessResources));
         assertTrue(SourceSetUtils.isProcessedBy(testSourceSet, testProcessResources));
@@ -75,12 +75,12 @@ class SourceSetUtilsTest extends SourceSetUtilsTestBase {
         project.getPluginManager().apply("org.jetbrains.kotlin.jvm");
         executeAfterEvaluateActions(project); // old Kotlin plugins configure a lot of things on afterEvaluate()
 
-        var mainKotlinCompile = project.getTasks()
+        var mainKotlinCompile = tasks
             .getByName(mainSourceSet.getCompileTaskName("kotlin"));
         assertTrue(SourceSetUtils.isProcessedBy(mainSourceSet, mainKotlinCompile));
         assertFalse(SourceSetUtils.isProcessedBy(testSourceSet, mainKotlinCompile));
 
-        var testKotlinCompile = project.getTasks()
+        var testKotlinCompile = tasks
             .getByName(testSourceSet.getCompileTaskName("kotlin"));
         assertFalse(SourceSetUtils.isProcessedBy(mainSourceSet, testKotlinCompile));
         assertTrue(SourceSetUtils.isProcessedBy(testSourceSet, testKotlinCompile));
@@ -89,12 +89,12 @@ class SourceSetUtilsTest extends SourceSetUtilsTestBase {
 
     @Test
     void isCompiledBy() {
-        var mainJavaCompile = project.getTasks().withType(JavaCompile.class)
+        var mainJavaCompile = tasks.withType(JavaCompile.class)
             .getByName(mainSourceSet.getCompileJavaTaskName());
         assertTrue(SourceSetUtils.isCompiledBy(mainSourceSet, mainJavaCompile));
         assertFalse(SourceSetUtils.isCompiledBy(testSourceSet, mainJavaCompile));
 
-        var testJavaCompile = project.getTasks().withType(JavaCompile.class)
+        var testJavaCompile = tasks.withType(JavaCompile.class)
             .getByName(testSourceSet.getCompileJavaTaskName());
         assertFalse(SourceSetUtils.isCompiledBy(mainSourceSet, testJavaCompile));
         assertTrue(SourceSetUtils.isCompiledBy(testSourceSet, testJavaCompile));
@@ -106,12 +106,12 @@ class SourceSetUtilsTest extends SourceSetUtilsTestBase {
         project.getPluginManager().apply("org.jetbrains.kotlin.jvm");
         executeAfterEvaluateActions(project); // old Kotlin plugins configure a lot of things on afterEvaluate()
 
-        var mainKotlinCompile = project.getTasks()
+        var mainKotlinCompile = tasks
             .getByName(mainSourceSet.getCompileTaskName("kotlin"));
         assertTrue(SourceSetUtils.isCompiledBy(mainSourceSet, mainKotlinCompile));
         assertFalse(SourceSetUtils.isCompiledBy(testSourceSet, mainKotlinCompile));
 
-        var testKotlinCompile = project.getTasks()
+        var testKotlinCompile = tasks
             .getByName(testSourceSet.getCompileTaskName("kotlin"));
         assertFalse(SourceSetUtils.isCompiledBy(mainSourceSet, testKotlinCompile));
         assertTrue(SourceSetUtils.isCompiledBy(testSourceSet, testKotlinCompile));

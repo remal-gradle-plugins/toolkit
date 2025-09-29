@@ -27,7 +27,7 @@ class KotlinPluginUtilsTest extends SourceSetUtilsTestBase {
 
         @Test
         void javaCompile() {
-            var task = project.getTasks().withType(JavaCompile.class)
+            var task = tasks.withType(JavaCompile.class)
                 .getByName(mainSourceSet.getCompileJavaTaskName());
             var sources = getKotlinCompileSources(task);
             assertNull(sources);
@@ -35,7 +35,7 @@ class KotlinPluginUtilsTest extends SourceSetUtilsTestBase {
 
         @Test
         void kotlinCompile() {
-            var task = project.getTasks()
+            var task = tasks
                 .getByName(mainSourceSet.getCompileTaskName("kotlin"));
             var sources = getKotlinCompileSources(task);
             assertNotNull(sources);
@@ -50,7 +50,7 @@ class KotlinPluginUtilsTest extends SourceSetUtilsTestBase {
 
         @Test
         void javaCompile() {
-            var task = project.getTasks().withType(JavaCompile.class)
+            var task = tasks.withType(JavaCompile.class)
                 .getByName(mainSourceSet.getCompileJavaTaskName());
             var destinationDirectory = getKotlinCompileDestinationDirectory(task);
             assertNull(destinationDirectory);
@@ -58,7 +58,7 @@ class KotlinPluginUtilsTest extends SourceSetUtilsTestBase {
 
         @Test
         void kotlinCompile() {
-            var task = project.getTasks()
+            var task = tasks
                 .getByName(mainSourceSet.getCompileTaskName("kotlin"));
             var destinationDirectory = getKotlinCompileDestinationDirectory(task);
             assertNotNull(destinationDirectory);

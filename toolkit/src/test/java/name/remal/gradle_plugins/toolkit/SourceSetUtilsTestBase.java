@@ -9,10 +9,12 @@ import lombok.SneakyThrows;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.api.tasks.TaskContainer;
 
 abstract class SourceSetUtilsTestBase {
 
     final Project project;
+    final TaskContainer tasks;
     final SourceSetContainer sourceSets;
     final SourceSet mainSourceSet;
     final SourceSet testSourceSet;
@@ -22,10 +24,12 @@ abstract class SourceSetUtilsTestBase {
         this.project = project;
         var projectDir = project.getProjectDir().toPath();
 
+        this.tasks = project.getTasks();
+
+
         project.getPluginManager().apply("java");
-
-
         this.sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
+
 
         this.mainSourceSet = sourceSets.getByName(MAIN_SOURCE_SET_NAME);
 

@@ -19,6 +19,23 @@ import org.gradle.api.tasks.compile.AbstractCompile;
 @NoArgsConstructor(access = PRIVATE)
 public abstract class JvmLanguageCompilationUtils {
 
+    public static boolean isJvmLanguageCompileTask(Task task) {
+        if (task instanceof AbstractCompile) {
+            return true;
+        }
+
+        var kotlinCompileSources = getKotlinCompileSources(task);
+        if (kotlinCompileSources != null) {
+            var kotlinCompileDestinationDirectory = getKotlinCompileDestinationDirectory(task);
+            if (kotlinCompileDestinationDirectory != null) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
     @ConfigurationPhaseOnly
     public static void configureJvmLanguageCompileTasks(
         TaskContainer tasks,
