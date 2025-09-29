@@ -2,10 +2,14 @@ package name.remal.gradle_plugins.toolkit;
 
 import static name.remal.gradle_plugins.toolkit.KotlinPluginUtils.getKotlinCompileDestinationDirectory;
 import static name.remal.gradle_plugins.toolkit.KotlinPluginUtils.getKotlinCompileSources;
+import static name.remal.gradle_plugins.toolkit.KotlinPluginUtils.getKotlinLibraries;
+import static name.remal.gradle_plugins.toolkit.KotlinPluginUtils.setKotlinLibraries;
 import static name.remal.gradle_plugins.toolkit.testkit.ProjectValidations.executeAfterEvaluateActions;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.gradle.api.Project;
 import org.gradle.api.tasks.compile.JavaCompile;
@@ -64,6 +68,37 @@ class KotlinPluginUtilsTest extends SourceSetUtilsTestBase {
             assertNotNull(destinationDirectory);
             assertThat(mainSourceSet.getOutput().getClassesDirs())
                 .contains(destinationDirectory.getAsFile().get());
+        }
+
+    }
+
+    @Nested
+    class Libraries {
+
+        @Test
+        void javaCompile() {
+            var task = tasks.withType(JavaCompile.class)
+                .getByName(mainSourceSet.getCompileJavaTaskName());
+            var libraries = getKotlinLibraries(task);
+            assertNull(libraries);
+
+            assertFalse(setKotlinLibraries(task, project.files(generalDependencyFile)));
+        }
+
+        @Test
+        void kotlinCompile() {
+            var task = tasks
+                .getByName(mainSourceSet.getCompileTaskName("kotlin"));
+            var libraries = getKotlinLibraries(task);
+            assertNotNull(libraries);
+            assertThat(libraries.getFiles())
+                .contains(mainDependencyFile.toFile());
+
+            assertTrue(setKotlinLibraries(task, project.files(generalDependencyFile)));
+            libraries = getKotlinLibraries(task);
+            assertNotNull(libraries);
+            assertThat(libraries.getFiles())
+                .containsOnly(generalDependencyFile.toFile());
         }
 
     }

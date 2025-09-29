@@ -3,6 +3,8 @@ package name.remal.gradle_plugins.toolkit;
 import static lombok.AccessLevel.PRIVATE;
 import static name.remal.gradle_plugins.toolkit.KotlinPluginUtils.getKotlinCompileDestinationDirectory;
 import static name.remal.gradle_plugins.toolkit.KotlinPluginUtils.getKotlinCompileSources;
+import static name.remal.gradle_plugins.toolkit.KotlinPluginUtils.getKotlinLibraries;
+import static name.remal.gradle_plugins.toolkit.KotlinPluginUtils.setKotlinLibraries;
 import static name.remal.gradle_plugins.toolkit.SneakyThrowUtils.sneakyThrowsAction;
 import static org.gradle.api.specs.Specs.satisfyAll;
 
@@ -11,6 +13,7 @@ import lombok.NoArgsConstructor;
 import name.remal.gradle_plugins.toolkit.annotations.ConfigurationPhaseOnly;
 import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
@@ -66,6 +69,21 @@ public abstract class JvmLanguageCompilationUtils {
                     public DirectoryProperty getDestinationDirectory() {
                         return task.getDestinationDirectory();
                     }
+
+                    @Override
+                    public FileCollection getClasspath() {
+                        return task.getClasspath();
+                    }
+
+                    @Override
+                    public void setClasspath(FileCollection classpath) {
+                        task.setClasspath(classpath);
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "Properties of task " + task;
+                    }
                 };
                 configurer.configure(task, properties);
             }));
@@ -102,6 +120,27 @@ public abstract class JvmLanguageCompilationUtils {
                     public DirectoryProperty getDestinationDirectory() {
                         return kotlinCompileDestinationDirectory;
                     }
+
+                    @Override
+                    public FileCollection getClasspath() {
+                        var libraries = getKotlinLibraries(task);
+                        if (libraries == null) {
+                            throw new UnsupportedOperationException("Can't get Kotlin libraries of task " + task);
+                        }
+                        return libraries;
+                    }
+
+                    @Override
+                    public void setClasspath(FileCollection classpath) {
+                        if (!setKotlinLibraries(task, classpath)) {
+                            throw new UnsupportedOperationException("Can't set Kotlin libraries for task " + task);
+                        }
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "Properties of task " + task;
+                    }
                 };
                 configurer.configure(task, properties);
             }));
@@ -117,6 +156,10 @@ public abstract class JvmLanguageCompilationUtils {
         FileTree getSource();
 
         DirectoryProperty getDestinationDirectory();
+
+        FileCollection getClasspath();
+
+        void setClasspath(FileCollection classpath);
 
     }
 

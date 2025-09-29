@@ -29,19 +29,19 @@ class JvmLanguageCompilationUtilsTest extends SourceSetUtilsTestBase {
 
         @Test
         void notCompilationTask() {
-            assertFalse(isJvmLanguageCompileTask(tasks.named(mainSourceSet.getProcessResourcesTaskName()).get()));
+            assertFalse(isJvmLanguageCompileTask(tasks.getByName(mainSourceSet.getProcessResourcesTaskName())));
         }
 
         @Test
         void java() {
-            assertTrue(isJvmLanguageCompileTask(tasks.named(mainSourceSet.getCompileJavaTaskName()).get()));
+            assertTrue(isJvmLanguageCompileTask(tasks.getByName(mainSourceSet.getCompileJavaTaskName())));
         }
 
         @Test
         void groovy() {
             project.getPluginManager().apply("groovy");
 
-            assertTrue(isJvmLanguageCompileTask(tasks.named(mainSourceSet.getCompileTaskName("groovy")).get()));
+            assertTrue(isJvmLanguageCompileTask(tasks.getByName(mainSourceSet.getCompileTaskName("groovy"))));
         }
 
         @Test
@@ -50,7 +50,7 @@ class JvmLanguageCompilationUtilsTest extends SourceSetUtilsTestBase {
             project.getPluginManager().apply("org.jetbrains.kotlin.jvm");
             executeAfterEvaluateActions(project); // old Kotlin plugins configure a lot of things on afterEvaluate()
 
-            assertTrue(isJvmLanguageCompileTask(tasks.named(mainSourceSet.getCompileTaskName("kotlin")).get()));
+            assertTrue(isJvmLanguageCompileTask(tasks.getByName(mainSourceSet.getCompileTaskName("kotlin"))));
         }
 
     }

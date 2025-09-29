@@ -22,8 +22,7 @@ public abstract class ArchiveUtils {
 
     @MustBeClosed
     @SneakyThrows
-    @SuppressWarnings("java:S2095")
-    public static ArchiveWriter newZipArchiveWriter(Path path) {
+    public static ZipOutputStream newZipOutputStream(Path path) {
         path = normalizePath(path);
         createParentDirectories(path);
 
@@ -31,6 +30,36 @@ public abstract class ArchiveUtils {
         var zipOutputStream = new ZipOutputStream(outputStream, UTF_8);
         zipOutputStream.setMethod(DEFLATED);
         zipOutputStream.setLevel(BEST_COMPRESSION);
+
+        return zipOutputStream;
+    }
+
+    @MustBeClosed
+    public static ZipOutputStream newZipOutputStream(File file) {
+        return newZipOutputStream(file.toPath());
+    }
+
+
+    @SneakyThrows
+    @SuppressWarnings({"try", "EmptyTryBlock"})
+    public static Path newEmptyZipArchive(Path path) {
+        path = normalizePath(path);
+        try (var out = newOutputStream(path)) {
+            // empty ZIP archive
+        }
+        return path;
+    }
+
+    public static File newEmptyZipArchive(File file) {
+        return newEmptyZipArchive(file.toPath()).toFile();
+    }
+
+
+    @MustBeClosed
+    @SneakyThrows
+    @SuppressWarnings({"java:S2095", "resource", "MustBeClosedChecker"})
+    public static ArchiveWriter newZipArchiveWriter(Path path) {
+        var zipOutputStream = newZipOutputStream(path);
         return new ArchiveWriter() {
             @Override
             public void writeEntry(String entryName, byte[] bytes) throws IOException {

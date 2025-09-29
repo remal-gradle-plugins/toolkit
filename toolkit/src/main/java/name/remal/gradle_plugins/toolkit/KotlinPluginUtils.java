@@ -12,8 +12,10 @@ import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
 import name.remal.gradle_plugins.toolkit.annotations.ConfigurationPhaseOnly;
 import name.remal.gradle_plugins.toolkit.annotations.DynamicCompatibilityCandidate;
+import name.remal.gradle_plugins.toolkit.annotations.ReliesOnExternalDependency;
 import name.remal.gradle_plugins.toolkit.reflection.TypedMethod0;
 import org.gradle.api.Task;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.compile.AbstractCompile;
@@ -21,6 +23,7 @@ import org.jspecify.annotations.Nullable;
 
 @NoArgsConstructor(access = PRIVATE)
 @DynamicCompatibilityCandidate
+@ReliesOnExternalDependency
 public abstract class KotlinPluginUtils {
 
     @Nullable
@@ -64,12 +67,12 @@ public abstract class KotlinPluginUtils {
                 return Optional.empty();
             }
 
-            var destinationDirectoryMethod = findMethod(
+            var method = findMethod(
                 (Class<Object>) baseClass,
                 FileCollection.class,
                 "getSources"
             );
-            return Optional.ofNullable(destinationDirectoryMethod);
+            return Optional.ofNullable(method);
         }));
 
 
@@ -114,12 +117,91 @@ public abstract class KotlinPluginUtils {
                 return Optional.empty();
             }
 
-            var destinationDirectoryMethod = findMethod(
+            var method = findMethod(
                 (Class<Object>) baseClass,
                 DirectoryProperty.class,
                 "getDestinationDirectory"
             );
-            return Optional.ofNullable(destinationDirectoryMethod);
+            return Optional.ofNullable(method);
+        }));
+
+
+    @Nullable
+    @ConfigurationPhaseOnly
+    @SneakyThrows
+    public static FileCollection getKotlinLibraries(Task task) {
+        var taskClass = unwrapGeneratedSubclass(task.getClass());
+        if (taskClass.getName().startsWith("org.gradle.")) {
+            return null;
+        }
+
+        if (task instanceof AbstractCompile
+            && taskClass.getName().startsWith("org.jetbrains.kotlin.")
+        ) {
+            // Kotlin <=1.6.*
+            return ((AbstractCompile) task).getClasspath();
+        }
+
+        var taskClassLoader = taskClass.getClassLoader();
+        var getLibraries = GET_LIBRARIES_CACHE.get(taskClassLoader).orElse(null);
+        if (getLibraries != null
+            && getLibraries.getReflectionMethod().getDeclaringClass().isInstance(task)
+        ) {
+            return getLibraries.invoke(task);
+        }
+
+        return null;
+    }
+
+    @ConfigurationPhaseOnly
+    @SneakyThrows
+    public static boolean setKotlinLibraries(Task task, FileCollection libraries) {
+        var taskClass = unwrapGeneratedSubclass(task.getClass());
+        if (taskClass.getName().startsWith("org.gradle.")) {
+            return false;
+        }
+
+        if (task instanceof AbstractCompile
+            && taskClass.getName().startsWith("org.jetbrains.kotlin.")
+        ) {
+            // Kotlin <=1.6.*
+            ((AbstractCompile) task).setClasspath(libraries);
+            return true;
+        }
+
+        var taskClassLoader = taskClass.getClassLoader();
+        var getLibraries = GET_LIBRARIES_CACHE.get(taskClassLoader).orElse(null);
+        if (getLibraries != null
+            && getLibraries.getReflectionMethod().getDeclaringClass().isInstance(task)
+        ) {
+            var librariesCollection = getLibraries.invoke(task);
+            librariesCollection.setFrom(libraries);
+            return true;
+        }
+
+        return false;
+    }
+
+    @SuppressWarnings({"unchecked", "checkstyle:LineLength"})
+    private static final LoadingCache<ClassLoader, Optional<TypedMethod0<Object, ConfigurableFileCollection>>> GET_LIBRARIES_CACHE =
+        CacheBuilder.newBuilder().weakKeys().build(CacheLoader.from(classLoader -> {
+            final Class<?> baseClass;
+            try {
+                baseClass = Class.forName(
+                    "org.jetbrains.kotlin.gradle.tasks.KotlinCompileTool",
+                    false,
+                    classLoader
+                );
+            } catch (ClassNotFoundException e) {
+                return Optional.empty();
+            }
+
+            var method = findMethod(
+                (Class<Object>) baseClass,
+                ConfigurableFileCollection.class,
+                "getLibraries"
+            );
+            return Optional.ofNullable(method);
         }));
 
 }

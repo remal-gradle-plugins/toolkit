@@ -72,7 +72,7 @@ project.fatJarWith(project(':toolkit-annotations'))
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 tasks.withType(Test).configureEach {
-    if (project.isRunningOnCi || true) {
+    if (project.isRunningOnCi) {
         String kotlinPluginTag = 'kotlin-plugin'
 
         boolean hasKotlinPluginCompatibilityVersionProperty = usedPluginCompatibilityVersionProperties
