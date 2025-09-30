@@ -80,7 +80,7 @@ rootProject.allprojects {
 
             useJUnitPlatform {
                 if (isGradleLatestStable) {
-                    // do nothing - test Kotlin plugin integration logic
+                    // do nothing - test Kotlin plugin integration logic with all other tests
                 } else if (hasKotlinPluginCompatibilityVersionProperty) {
                     includeTags.add(kotlinPluginTag)
                 } else {
