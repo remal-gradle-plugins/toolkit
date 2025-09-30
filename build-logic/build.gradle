@@ -22,13 +22,10 @@ apply plugin: 'name.remal.generate-sources'
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-afterEvaluate {
-    tasks.matching { isVerificationTask(it) }.configureEach {
-        if (project.javaRuntimeVersion != JavaVersion.current()
-            || project.gradleApiVersion != GradleVersion.current()
-        ) {
-            disableTask(it)
-        }
+tasks.withType(Test).configureEach {
+    onlyIf {
+        return project.javaRuntimeVersion == JavaVersion.current()
+            && project.gradleApiVersion == GradleVersion.current()
     }
 }
 
