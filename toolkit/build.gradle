@@ -38,11 +38,15 @@ dependencies {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+project.fatJarWith(project(':toolkit-annotations'))
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 Configuration pluginsCompatibilityToTestConf = configurations.create('pluginsCompatibilityToTest') {
     configurations.testImplementation.extendsFrom(it)
 }
 
-Set<String> usedPluginCompatibilityVersionProperties = new LinkedHashSet<>()
+Set<String> usedPluginCompatibilityVersionProperties = Collections.synchronizedSet(new LinkedHashSet<>())
 
 pluginsCompatibilityToTestConf.dependencies.addAll(
     [
@@ -64,29 +68,26 @@ pluginsCompatibilityToTestConf.dependencies.addAll(
     }
 )
 
+rootProject.allprojects {
+    tasks.withType(Test).configureEach {
+        if (project.isRunningOnCi) {
+            String kotlinPluginTag = 'kotlin-plugin'
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+            GradleVersion latestStableGradleVersion = project.getStableGradleVersions()[0]
+            boolean isGradleLatestStable = latestStableGradleVersion == project.gradleApiVersion
 
-project.fatJarWith(project(':toolkit-annotations'))
+            boolean hasKotlinPluginCompatibilityVersionProperty = usedPluginCompatibilityVersionProperties
+                .findAll { "$it.".startsWith('org.jetbrains.kotlin.') && it.endsWith('.version') }
+                .any { project.findProperty(it) != null }
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-tasks.withType(Test).configureEach {
-    if (project.isRunningOnCi) {
-        String kotlinPluginTag = 'kotlin-plugin'
-
-        boolean hasKotlinPluginCompatibilityVersionProperty = usedPluginCompatibilityVersionProperties
-            .findAll { "$it.".startsWith('org.jetbrains.kotlin.') && it.endsWith('.version') }
-            .any { project.findProperty(it) != null }
-
-        GradleVersion latestStableGradleVersion = project.getStableGradleVersions()[0]
-        boolean isGradleLatestStable = latestStableGradleVersion == project.gradleApiVersion
-
-        useJUnitPlatform {
-            if (hasKotlinPluginCompatibilityVersionProperty || isGradleLatestStable) {
-                // do nothing - test Kotlin plugin integration logic
-            } else {
-                excludeTags.add(kotlinPluginTag)
+            useJUnitPlatform {
+                if (isGradleLatestStable) {
+                    // do nothing - test Kotlin plugin integration logic
+                } else if (hasKotlinPluginCompatibilityVersionProperty) {
+                    includeTags.add(kotlinPluginTag)
+                } else {
+                    excludeTags.add(kotlinPluginTag)
+                }
             }
         }
     }

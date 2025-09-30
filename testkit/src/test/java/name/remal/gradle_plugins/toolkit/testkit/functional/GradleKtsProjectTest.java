@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import name.remal.gradle_plugins.toolkit.testkit.MinTestableGradleVersion;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -18,6 +19,7 @@ class GradleKtsProjectTest extends GradleProjectTestBase<GradleKtsProject> {
 
 
     @Test
+    @MinTestableGradleVersion("8.2")
     void kotlinDslWarningsAsErrorsByDefault() {
         project.withoutConfigurationCache();
 
@@ -50,6 +52,7 @@ class GradleKtsProjectTest extends GradleProjectTestBase<GradleKtsProject> {
     }
 
     @Nested
+    @MinTestableGradleVersion("8.1")
     class ConfigurationCache {
 
         @Test
@@ -84,6 +87,7 @@ class GradleKtsProjectTest extends GradleProjectTestBase<GradleKtsProject> {
         }
 
         @Test
+        @MinTestableGradleVersion("8.14")
         void integrityCheck() {
             project.forBuildFile(build -> {
                 build.addImport(Serializable.class);
@@ -130,6 +134,7 @@ class GradleKtsProjectTest extends GradleProjectTestBase<GradleKtsProject> {
         }
 
         @Test
+        @MinTestableGradleVersion("8.8")
         void isolatedProjects() {
             project.newChildProject("child").forBuildFile(build -> {
                 build.applyPlugin("java");

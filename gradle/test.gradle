@@ -1,6 +1,4 @@
-import static org.objectweb.asm.ClassReader.SKIP_CODE
-import static org.objectweb.asm.ClassReader.SKIP_DEBUG
-import static org.objectweb.asm.ClassReader.SKIP_FRAMES
+import static org.objectweb.asm.ClassReader.*
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
@@ -170,7 +168,7 @@ allprojects {
                     testsWithStdErr.add(descr.id)
                 }
 
-                List<String> testMessages = testsMessages.computeIfAbsent(descr.id, { new ArrayList<>() })
+                List<String> testMessages = testsMessages.computeIfAbsent(descr.id, { Collections.synchronizedList(new ArrayList<>()) })
                 testMessages.add(event.getMessage())
             }
             afterTest { TestDescriptor descr, TestResult result ->
