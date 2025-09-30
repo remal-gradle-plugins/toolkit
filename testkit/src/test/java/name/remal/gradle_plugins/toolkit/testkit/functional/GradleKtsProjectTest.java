@@ -59,7 +59,8 @@ class GradleKtsProjectTest extends GradleProjectTestBase<GradleKtsProject> {
             var buildResult = project.assertBuildFails("help");
             var normalizedOutput = normalizeString(buildResult.getOutput());
 
-            assertThat(normalizedOutput).contains("registration of listener on 'Gradle.addBuildListener' is unsupported");
+            assertThat(normalizedOutput)
+                .contains("registration of listener on 'Gradle.addBuildListener' is unsupported");
         }
 
         @Test
