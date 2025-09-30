@@ -18,6 +18,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.provider.HasConfigurableValue;
 import org.jetbrains.annotations.Unmodifiable;
 import org.jspecify.annotations.Nullable;
 
@@ -28,6 +29,30 @@ public abstract class FileCollectionUtils {
         FileCollectionUtilsMethods.class,
         () -> loadCrossCompileService(FileCollectionUtilsMethods.class)
     );
+
+    public static void finalizeFileCollectionValue(FileCollection fileCollection) {
+        if (fileCollection instanceof HasConfigurableValue) {
+            ((HasConfigurableValue) fileCollection).finalizeValue();
+        }
+    }
+
+    public static void finalizeFileCollectionValueOnRead(FileCollection fileCollection) {
+        if (fileCollection instanceof HasConfigurableValue) {
+            ((HasConfigurableValue) fileCollection).finalizeValueOnRead();
+        }
+    }
+
+    public static void disallowFileCollectionChanges(FileCollection fileCollection) {
+        if (fileCollection instanceof HasConfigurableValue) {
+            ((HasConfigurableValue) fileCollection).disallowChanges();
+        }
+    }
+
+    public static void disallowFileCollectionUnsafeRead(FileCollection fileCollection) {
+        if (fileCollection instanceof HasConfigurableValue) {
+            ((HasConfigurableValue) fileCollection).disallowUnsafeRead();
+        }
+    }
 
     @Unmodifiable
     public static Set<Configuration> getConfigurationsUsedIn(@Nullable FileCollection fileCollection) {
