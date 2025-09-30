@@ -146,13 +146,45 @@ allprojects {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+Closure<Integer> getMajorVersionOfDependency = { Object dep ->
+    String moduleVersion = null
+    if (dep instanceof ModuleDependency) {
+        moduleVersion = dep.version
+    } else if (dep instanceof ResolvedDependency) {
+        moduleVersion = dep.moduleVersion
+    }
+    if (moduleVersion == null || moduleVersion.isEmpty()) {
+        return null
+    }
+
+    String majorVersionStr = moduleVersion.split('\\.')[0]
+    return majorVersionStr.isInteger() ? majorVersionStr.toInteger() : null
+}
+
 project.settingsBuildscriptClasspathDependencies.forEach { ResolvedDependency dep ->
     if (dep.moduleGroup == 'org.gradle.toolchains' && dep.moduleName.startsWith('foojay-resolver')) {
+        Integer majorVersion = getMajorVersionOfDependency(dep)
+        if (majorVersion == null) {
+            return
+        }
+
         JavaVersion javaRuntimeMinVersion = project.javaRuntimeMinVersion
-        if (!dep.moduleVersion.startsWith('0.') // foojay-resolver version >= 1
-            && !javaRuntimeMinVersion.isCompatibleWith(JavaVersion.VERSION_17) // Java version < 17
-        ) {
+        if (majorVersion >= 1 && javaRuntimeMinVersion < JavaVersion.VERSION_17) {
             throw new GradleException("${dep.moduleGroup}:${dep.moduleName}:${dep.moduleVersion} is not compatible with the minimum supported Java version: ${project.javaRuntimeMinVersion}")
+        }
+    }
+}
+
+configurations.testConstraints.dependencies.all { Dependency dep ->
+    if (dep.group == 'org.junit') {
+        Integer majorVersion = getMajorVersionOfDependency(dep)
+        if (majorVersion == null) {
+            return
+        }
+
+        JavaVersion javaRuntimeMinVersion = project.javaRuntimeMinVersion
+        if (majorVersion >= 6 && javaRuntimeMinVersion < JavaVersion.VERSION_17) {
+            throw new GradleException("${dep.group}:${dep.name}:${dep.version} is not compatible with the minimum supported Java version: ${project.javaRuntimeMinVersion}")
         }
     }
 }
