@@ -149,7 +149,7 @@ allprojects {
             systemProperty('junit.jupiter.execution.parallel.enabled', 'true')
             systemProperty('junit.jupiter.execution.parallel.config.strategy', 'fixed')
             systemProperty('junit.jupiter.execution.parallel.config.fixed.parallelism', String.valueOf(Math.max(2, (int) Math.floor(0.75 * Runtime.getRuntime().availableProcessors()))))
-            systemProperty('junit.jupiter.execution.parallel.mode.default', 'concurrent')
+            //systemProperty('junit.jupiter.execution.parallel.mode.default', 'concurrent') // makes Gradle tests flaky
             enableAssertions = true
 
             testLogging {
