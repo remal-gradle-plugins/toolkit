@@ -6,6 +6,8 @@ apply plugin: 'java-library'
 apply plugin: 'maven-publish'
 apply plugin: 'name.remal.generate-sources'
 
+project.fatJarWith(project(':toolkit-annotations'))
+
 ; [
     'build-generate-checkstyle.xsl.gradle',
     'build-generate-CorePluginConfigurationCacheSupport.gradle',
@@ -35,10 +37,6 @@ dependencies {
         withModule('org.unbroken-dome.gradle-plugins:gradle-testsets-plugin', TargetJvmVersionRule) { params(8) }
     }
 }
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-project.fatJarWith(project(':toolkit-annotations'))
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
