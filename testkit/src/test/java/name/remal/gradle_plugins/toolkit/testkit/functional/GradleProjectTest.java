@@ -31,14 +31,6 @@ class GradleProjectTest extends GradleProjectTestBase<GradleProject> {
         check("project.findProperty('org.gradle.daemon') == null");
         check("project.findProperty('org.gradle.daemon.idletimeout')?.toString() == '5000'");
 
-
-        check("System.getProperty('java.awt.headless') == 'true'");
-        check("System.getProperty('http.keepAlive') == 'false'");
-        check("System.getProperty('sun.net.http.retryPost') == 'false'");
-        check("System.getProperty('sun.io.useCanonCaches') == 'false'");
-        check("System.getProperty('sun.net.client.defaultConnectTimeout') == '5000'");
-        check("System.getProperty('sun.net.client.defaultReadTimeout') == '300000'");
-
         project.assertBuildSuccessfully("help");
     }
 

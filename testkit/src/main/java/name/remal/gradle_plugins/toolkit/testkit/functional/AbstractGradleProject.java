@@ -114,13 +114,6 @@ public abstract class AbstractGradleProject<
 
         putGradlePropertyIfAbsent("systemProp.maven.repo.local", mavenLocalRepoDir);
 
-        putGradlePropertyIfAbsent("systemProp.java.awt.headless", true);
-        putGradlePropertyIfAbsent("systemProp.http.keepAlive", false);
-        putGradlePropertyIfAbsent("systemProp.sun.net.http.retryPost", false);
-        putGradlePropertyIfAbsent("systemProp.sun.io.useCanonCaches", false);
-        putGradlePropertyIfAbsent("systemProp.sun.net.client.defaultConnectTimeout", 5_000);
-        putGradlePropertyIfAbsent("systemProp.sun.net.client.defaultReadTimeout", 300_000);
-
 
         super.writeToDisk();
 
