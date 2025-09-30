@@ -26,32 +26,32 @@ public class GradleProject
     }
 
     @Override
-    protected String getBuildFileName() {
+    protected final String getBuildFileName() {
         return "build.gradle";
     }
 
     @Override
-    protected GradleBuildFileContentGroovy createBuildFileContent() {
+    protected final GradleBuildFileContentGroovy createBuildFileContent() {
         return new GradleBuildFileContentGroovyDefault();
     }
 
     @Override
-    protected String getSettingsFileName() {
+    protected final String getSettingsFileName() {
         return "settings.gradle";
     }
 
     @Override
-    protected GradleSettingsFileContentGroovy createSettingsFileContent() {
+    protected final GradleSettingsFileContentGroovy createSettingsFileContent() {
         return new GradleSettingsFileContentGroovyDefault();
     }
 
     @Override
-    protected GradleChildProject createChildProject(File childProjectDir) {
+    protected final GradleChildProject createChildProject(File childProjectDir) {
         return new GradleChildProject(childProjectDir);
     }
 
     @Override
-    protected void injectJacocoDumperImpl() {
+    protected final void injectJacocoDumperImpl() {
         settingsFile.addImport(MBeanServer.class);
         settingsFile.addImport(ManagementFactory.class);
         settingsFile.addImport(ObjectName.class);

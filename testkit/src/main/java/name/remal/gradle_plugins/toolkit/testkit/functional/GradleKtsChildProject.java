@@ -13,12 +13,12 @@ public class GradleKtsChildProject
     }
 
     @Override
-    protected GradleBuildFileContentKotlin createBuildFileContent() {
+    protected final GradleBuildFileContentKotlin createBuildFileContent() {
         return new GradleBuildFileContentKotlinDefault();
     }
 
     @Override
-    protected String getBuildFileName() {
+    protected final String getBuildFileName() {
         return "build.gradle.kts";
     }
 

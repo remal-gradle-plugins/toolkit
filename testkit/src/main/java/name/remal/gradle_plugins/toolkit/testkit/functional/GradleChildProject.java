@@ -13,12 +13,12 @@ public class GradleChildProject
     }
 
     @Override
-    protected GradleBuildFileContentGroovy createBuildFileContent() {
+    protected final GradleBuildFileContentGroovy createBuildFileContent() {
         return new GradleBuildFileContentGroovyDefault();
     }
 
     @Override
-    protected String getBuildFileName() {
+    protected final String getBuildFileName() {
         return "build.gradle";
     }
 

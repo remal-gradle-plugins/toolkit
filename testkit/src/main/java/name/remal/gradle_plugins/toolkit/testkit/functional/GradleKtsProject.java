@@ -25,32 +25,32 @@ public class GradleKtsProject
     }
 
     @Override
-    protected String getBuildFileName() {
+    protected final String getBuildFileName() {
         return "build.gradle.kts";
     }
 
     @Override
-    protected GradleBuildFileContentKotlin createBuildFileContent() {
+    protected final GradleBuildFileContentKotlin createBuildFileContent() {
         return new GradleBuildFileContentKotlinDefault();
     }
 
     @Override
-    protected String getSettingsFileName() {
+    protected final String getSettingsFileName() {
         return "settings.gradle.kts";
     }
 
     @Override
-    protected GradleSettingsFileContentKotlin createSettingsFileContent() {
+    protected final GradleSettingsFileContentKotlin createSettingsFileContent() {
         return new GradleSettingsFileContentKotlinDefault();
     }
 
     @Override
-    protected GradleKtsChildProject createChildProject(File childProjectDir) {
+    protected final GradleKtsChildProject createChildProject(File childProjectDir) {
         return new GradleKtsChildProject(childProjectDir);
     }
 
     @Override
-    protected void injectJacocoDumperImpl() {
+    protected final void injectJacocoDumperImpl() {
         settingsFile.addImport(ManagementFactory.class);
         settingsFile.addImport(ObjectName.class);
 

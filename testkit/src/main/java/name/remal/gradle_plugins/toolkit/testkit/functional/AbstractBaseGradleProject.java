@@ -59,41 +59,60 @@ public abstract class AbstractBaseGradleProject<
 
     protected final File projectDir;
     protected final BuildFileType buildFile;
-    protected final Map<String, Object> gradleProperties = new LinkedHashMap<>();
+    protected final Map<String, @Nullable Object> gradleProperties = new LinkedHashMap<>();
 
     AbstractBaseGradleProject(File projectDir) {
         this.projectDir = normalizeFile(projectDir);
         this.buildFile = createBuildFileContent();
     }
 
-    public String getName() {
+    public final String getName() {
         return projectDir.getName();
     }
 
     @Override
-    public String toString() {
+    public final String toString() {
         return getName();
     }
 
-    public void forBuildFile(Action<BuildFileType> action) {
+    public final void forBuildFile(Action<BuildFileType> action) {
         action.execute(buildFile);
     }
 
-    public void forGradleProperties(Action<Map<String, Object>> action) {
+    public final void forGradleProperties(Action<Map<String, @Nullable Object>> action) {
         action.execute(gradleProperties);
     }
 
-    public void setGradleProperties(Map<String, Object> gradleProperties) {
+    public final void cleanGradleProperties() {
         this.gradleProperties.clear();
-        this.gradleProperties.putAll(gradleProperties);
     }
 
-    public void setGradleProperty(String key, @Nullable Object value) {
-        gradleProperties.put(key, value);
+    @SuppressWarnings("java:S2259")
+    public final void putGradleProperties(Map<String, @Nullable Object> gradleProperties) {
+        gradleProperties.forEach(this::putGradleProperty);
+    }
+
+    public final void putGradleProperty(String key, @Nullable Object value) {
+        if (value != null) {
+            gradleProperties.put(key, value);
+        } else {
+            gradleProperties.remove(key);
+        }
+    }
+
+    public final void putGradlePropertyIfAbsent(String key, @Nullable Object value) {
+        if (value != null && gradleProperties.get(key) == null) {
+            gradleProperties.put(key, value);
+        }
+    }
+
+    @Nullable
+    public final Object getGradleProperty(String key) {
+        return gradleProperties.get(key);
     }
 
     @SneakyThrows
-    protected final void writeGradlePropertiesToDisk() {
+    private void writeGradlePropertiesToDisk() {
         var properties = new Properties();
         gradleProperties.forEach((key, value) -> {
             value = unwrapProviders(value);
@@ -114,7 +133,7 @@ public abstract class AbstractBaseGradleProject<
 
 
     @SneakyThrows
-    public void writeBinaryFile(String relativeFilePath, byte[] bytes) {
+    public final void writeBinaryFile(String relativeFilePath, byte[] bytes) {
         if (GRADLE_PROPERTIES_RELATIVE_PATH.equals(relativeFilePath)) {
             throw new IllegalArgumentException(format(
                 "Use methods of %s to set Gradle properties",
@@ -127,33 +146,33 @@ public abstract class AbstractBaseGradleProject<
         write(destPath, bytes);
     }
 
-    public void writeTextFile(String relativeFilePath, String content, Charset charset) {
+    public final void writeTextFile(String relativeFilePath, String content, Charset charset) {
         writeBinaryFile(relativeFilePath, content.getBytes(charset));
     }
 
-    public void writeTextFile(String relativeFilePath, String content) {
+    public final void writeTextFile(String relativeFilePath, String content) {
         writeTextFile(relativeFilePath, content, DEFAULT_TEST_FILE_CHARSET);
     }
 
-    public void writeTextFile(String relativeFilePath, TextContent content, Charset charset) {
+    public final void writeTextFile(String relativeFilePath, TextContent content, Charset charset) {
         writeTextFile(relativeFilePath, content.toString(), charset);
     }
 
-    public void writeTextFile(String relativeFilePath, TextContent content) {
+    public final void writeTextFile(String relativeFilePath, TextContent content) {
         writeTextFile(relativeFilePath, content, DEFAULT_TEST_FILE_CHARSET);
     }
 
-    public void writeTextFile(String relativeFilePath, Action<TextContent> contentAction, Charset charset) {
+    public final void writeTextFile(String relativeFilePath, Action<TextContent> contentAction, Charset charset) {
         var content = new TextContentDefault();
         contentAction.execute(content);
         writeTextFile(relativeFilePath, content, charset);
     }
 
-    public void writeTextFile(String relativeFilePath, Action<TextContent> contentAction) {
+    public final void writeTextFile(String relativeFilePath, Action<TextContent> contentAction) {
         writeTextFile(relativeFilePath, contentAction, DEFAULT_TEST_FILE_CHARSET);
     }
 
-    public void writeJavaClassSourceFile(
+    public final void writeJavaClassSourceFile(
         String relativeSourcesRootPath,
         JavaClassFileContent content,
         Charset charset
@@ -169,11 +188,11 @@ public abstract class AbstractBaseGradleProject<
         writeTextFile(relativeFilePath.toString(), content.toString(), charset);
     }
 
-    public void writeJavaClassSourceFile(String relativeSourcesRootPath, JavaClassFileContent content) {
+    public final void writeJavaClassSourceFile(String relativeSourcesRootPath, JavaClassFileContent content) {
         writeTextFile(relativeSourcesRootPath, content, DEFAULT_TEST_FILE_CHARSET);
     }
 
-    public void writeJavaClassSourceFile(
+    public final void writeJavaClassSourceFile(
         String relativeSourcesRootPath,
         @Nullable String packageName,
         String simpleName,
@@ -185,7 +204,7 @@ public abstract class AbstractBaseGradleProject<
         writeJavaClassSourceFile(relativeSourcesRootPath, content, charset);
     }
 
-    public void writeJavaClassSourceFile(
+    public final void writeJavaClassSourceFile(
         String relativeSourcesRootPath,
         @Nullable String packageName,
         String simpleName,
@@ -215,7 +234,7 @@ public abstract class AbstractBaseGradleProject<
     }
 
 
-    public Path resolveRelativePath(String relativeFilePath) {
+    public final Path resolveRelativePath(String relativeFilePath) {
         var relativePath = Paths.get(relativeFilePath);
         if (relativePath.isAbsolute()) {
             throw new IllegalArgumentException("Not a relative path: " + relativeFilePath);

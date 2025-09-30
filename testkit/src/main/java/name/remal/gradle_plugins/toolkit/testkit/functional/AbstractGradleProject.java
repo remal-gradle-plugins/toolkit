@@ -1,13 +1,13 @@
 package name.remal.gradle_plugins.toolkit.testkit.functional;
 
+import static java.lang.Math.floor;
+import static java.lang.Math.max;
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
-import static java.util.function.Function.identity;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static lombok.AccessLevel.NONE;
-import static name.remal.gradle_plugins.toolkit.GradleCompatibilityMode.SUPPORTED;
 import static name.remal.gradle_plugins.toolkit.GradleCompatibilityMode.UNSUPPORTED;
 import static name.remal.gradle_plugins.toolkit.GradleCompatibilityUtils.getGradleJavaCompatibility;
 import static name.remal.gradle_plugins.toolkit.GradleVersionUtils.isCurrentGradleVersionGreaterThanOrEqualTo;
@@ -37,11 +37,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import name.remal.gradle_plugins.generate_sources.generators.java_like.JavaLikeContent;
-import name.remal.gradle_plugins.toolkit.ConfigurationCacheUtils;
 import name.remal.gradle_plugins.toolkit.StringUtils;
 import name.remal.gradle_plugins.toolkit.testkit.functional.generator.GradleBuildFileContent;
 import name.remal.gradle_plugins.toolkit.testkit.functional.generator.GradleSettingsFileContent;
@@ -73,9 +71,18 @@ public abstract class AbstractGradleProject<
     protected abstract void injectJacocoDumperImpl();
 
 
-    private static final GradleVersion MIN_GRADLE_VERSION_WITH_RUNNER_ENVIRONMENT = GradleVersion.version("5.2");
     private static final GradleVersion MIN_GRADLE_VERSION_WITH_CONFIGURATION_CACHE = GradleVersion.version("6.6");
 
+    private static final GradleVersion MIN_GRADLE_VERSION_WITH_RUNNER_ENVIRONMENT = GradleVersion.version("5.2");
+
+    private static final boolean IS_CONFIGURATION_CACHE_SUPPORTED =
+        isCurrentGradleVersionGreaterThanOrEqualTo(MIN_GRADLE_VERSION_WITH_CONFIGURATION_CACHE);
+
+    private static final boolean IS_RUNNER_ENVIRONMENT_SUPPORTED =
+        isCurrentGradleVersionGreaterThanOrEqualTo(MIN_GRADLE_VERSION_WITH_RUNNER_ENVIRONMENT);
+
+
+    protected final File mavenLocalRepoDir = new File(projectDir, ".m2");
 
     protected final Map<String, Child> children = new LinkedHashMap<>();
 
@@ -87,19 +94,42 @@ public abstract class AbstractGradleProject<
     }
 
 
-    public void forSettingsFile(Action<SettingsFileType> action) {
+    public final void forSettingsFile(Action<SettingsFileType> action) {
         action.execute(settingsFile);
     }
 
     @Override
     @OverridingMethodsMustInvokeSuper
     protected void writeToDisk() {
+        int maxWorkers = max(2, (int) floor(0.75 * Runtime.getRuntime().availableProcessors()));
+
+        putGradlePropertyIfAbsent("org.gradle.parallel", true);
+        putGradlePropertyIfAbsent("org.gradle.workers.max", maxWorkers);
+        putGradlePropertyIfAbsent("org.gradle.daemon.idletimeout", 5_000);
+        putGradlePropertyIfAbsent("org.gradle.vfs.watch", false);
+        putGradlePropertyIfAbsent("org.gradle.kotlin.dsl.allWarningsAsErrors", true);
+        putGradlePropertyIfAbsent("org.gradle.dependency.verification", "strict");
+        putGradlePropertyIfAbsent("org.gradle.dependency.verification.console", "verbose");
+        putGradlePropertyIfAbsent("org.gradle.internal.launcher.welcomeMessageEnabled", false);
+
+        putGradlePropertyIfAbsent("systemProp.maven.repo.local", mavenLocalRepoDir);
+
+        putGradlePropertyIfAbsent("systemProp.java.awt.headless", true);
+        putGradlePropertyIfAbsent("systemProp.http.keepAlive", false);
+        putGradlePropertyIfAbsent("systemProp.sun.net.http.retryPost", false);
+        putGradlePropertyIfAbsent("systemProp.sun.io.useCanonCaches", false);
+        putGradlePropertyIfAbsent("systemProp.sun.net.client.defaultConnectTimeout", 5_000);
+        putGradlePropertyIfAbsent("systemProp.sun.net.client.defaultReadTimeout", 300_000);
+
+
         super.writeToDisk();
+
+
         writeTextFile(getSettingsFileName(), settingsFile.toString());
         children.values().forEach(AbstractBaseGradleProject::writeToDisk);
     }
 
-    public Child newChildProject(String name) {
+    public final Child newChildProject(String name) {
         return children.computeIfAbsent(name, __ -> {
             var childProjectDir = new File(projectDir, name);
             var child = createChildProject(childProjectDir);
@@ -108,7 +138,7 @@ public abstract class AbstractGradleProject<
         });
     }
 
-    public Child newChildProject(String name, Action<Child> action) {
+    public final Child newChildProject(String name, Action<Child> action) {
         var child = newChildProject(name);
         action.execute(child);
         return child;
@@ -215,37 +245,37 @@ public abstract class AbstractGradleProject<
     private final List<SuppressedMessage> suppressedOptimizationsDisabledWarnings =
         new ArrayList<>(DEFAULT_SUPPRESSED_OPTIMIZATIONS_DISABLED_WARNINGS);
 
-    public void addForbiddenMessage(String message) {
+    public final void addForbiddenMessage(String message) {
         forbiddenMessages.add(message);
     }
 
-    public void addSuppressedForbiddenMessage(SuppressedMessage suppressedMessage) {
+    public final void addSuppressedForbiddenMessage(SuppressedMessage suppressedMessage) {
         suppressedForbiddenMessages.add(suppressedMessage);
     }
 
-    public void addDeprecationMessage(String message) {
+    public final void addDeprecationMessage(String message) {
         deprecationMessages.add(message);
     }
 
-    public void addSuppressedDeprecationMessage(SuppressedMessage suppressedMessage) {
+    public final void addSuppressedDeprecationMessage(SuppressedMessage suppressedMessage) {
         suppressedDeprecationMessages.add(suppressedMessage);
     }
 
-    public void addMutableProjectStateWarning(String message) {
+    public final void addMutableProjectStateWarning(String message) {
         mutableProjectStateWarnings.add(message);
     }
 
-    public void addSuppressedMutableProjectStateWarning(
+    public final void addSuppressedMutableProjectStateWarning(
         SuppressedMessage suppressedMessage
     ) {
         suppressedMutableProjectStateWarnings.add(suppressedMessage);
     }
 
-    public void addOptimizationsDisabledWarning(String message) {
+    public final void addOptimizationsDisabledWarning(String message) {
         optimizationsDisabledWarnings.add(message);
     }
 
-    public void addSuppressedOptimizationsDisabledWarning(
+    public final void addSuppressedOptimizationsDisabledWarning(
         SuppressedMessage suppressedMessage
     ) {
         suppressedOptimizationsDisabledWarnings.add(suppressedMessage);
@@ -254,24 +284,24 @@ public abstract class AbstractGradleProject<
 
     private boolean withPluginClasspath = true;
 
-    public void withoutPluginClasspath() {
+    public final void withoutPluginClasspath() {
         withPluginClasspath = false;
     }
 
 
-    private boolean withConfigurationCache =
-        isCurrentGradleVersionGreaterThanOrEqualTo(MIN_GRADLE_VERSION_WITH_CONFIGURATION_CACHE);
+    private boolean withConfigurationCache = IS_CONFIGURATION_CACHE_SUPPORTED;
 
-    public void withoutConfigurationCache() {
+    public final void withoutConfigurationCache() {
         withConfigurationCache = false;
     }
 
     private boolean withJacoco = currentJvmArgsHaveJacocoJvmArg();
 
-    public void withoutJacoco() {
+    public final void withoutJacoco() {
         withJacoco = false;
     }
 
+    @OverridingMethodsMustInvokeSuper
     public void cleanBuildDir() {
         logger.lifecycle("Deleting the build dir...");
         deleteRecursively(getProjectDir().toPath().resolve("build"));
@@ -288,7 +318,7 @@ public abstract class AbstractGradleProject<
     }
 
     @SneakyThrows
-    @SuppressWarnings({"java:S106", "java:S3776", "UnstableApiUsage"})
+    @SuppressWarnings({"java:S106", "java:S3776", "java:S2583", "ConstantValue"})
     private BuildResult build(String[] arguments, boolean isExpectingSuccess) {
         if (isExpectingSuccess) {
             logger.lifecycle("Building (expecting success)...");
@@ -296,14 +326,16 @@ public abstract class AbstractGradleProject<
             logger.lifecycle("Building (expecting failure)...");
         }
 
+
         if (withJacoco) {
             injectJacocoDumper();
         }
 
         writeToDisk();
 
+
         File jacocoProjectDir = null;
-        if (withJacoco && withConfigurationCache) {
+        if (withJacoco && withConfigurationCache && isExpectingSuccess) {
             jacocoProjectDir = new File(
                 projectDir.getParentFile(),
                 projectDir.getName() + ".jacoco"
@@ -334,6 +366,7 @@ public abstract class AbstractGradleProject<
             buildResult = runner.buildAndFail();
         }
 
+
         var output = buildResult.getOutput();
         List<String> outputLines = Splitter.onPattern("[\\n\\r]+").splitToStream(output)
             .map(StringUtils::trimRight)
@@ -356,6 +389,8 @@ public abstract class AbstractGradleProject<
                 jacocoRunner.buildAndFail();
             }
         }
+
+
         return buildResult;
     }
 
@@ -494,6 +529,7 @@ public abstract class AbstractGradleProject<
 
 
     @SneakyThrows
+    @SuppressWarnings("java:S2259")
     private GradleRunner createGradleRunner(File projectDir, boolean withConfigurationCache, String[] arguments) {
         var gradleJavaCompatibility = getGradleJavaCompatibility();
         if (gradleJavaCompatibility == UNSUPPORTED) {
@@ -508,25 +544,25 @@ public abstract class AbstractGradleProject<
             new String[]{
                 "--stacktrace",
                 "--warning-mode=all",
-                "-Dorg.gradle.parallel=true",
-                "-Dorg.gradle.workers.max=4",
-                "-Dorg.gradle.kotlin.dsl.allWarningsAsErrors=true",
-                "-Dmaven.repo.local=" + new File(projectDir, ".m2-auto").getAbsolutePath(),
-                "-Dorg.gradle.vfs.watch=false",
-                "-Dorg.gradle.daemon=false",
-                "-Dhttp.keepAlive=false",
-                "-Dsun.net.http.retryPost=false",
-                "-Dsun.io.useCanonCaches=false",
-                "-Dsun.net.client.defaultConnectTimeout=15000",
-                "-Dsun.net.client.defaultReadTimeout=300000",
-                "-Djava.awt.headless=true",
-                "-Dorg.gradle.dependency.verification.console=verbose",
-                "-Dorg.gradle.daemon.idletimeout=10000",
-                "-Dorg.gradle.daemon.performance.disable-logging=true",
-                "-Dorg.gradle.internal.launcher.welcomeMessageEnabled=false"
             },
             arguments
         );
+
+        if (withConfigurationCache) {
+            allArguments = concatArguments(
+                allArguments,
+                new String[]{
+                    "--configuration-cache",
+                    "--configuration-cache-problems=fail",
+                    // TODO: add test (https://github.com/remal-gradle-plugins/toolkit/issues/1017):
+                    "-Dorg.gradle.configuration-cache.stable=true",
+                    // TODO: add test (https://github.com/remal-gradle-plugins/toolkit/issues/1018):
+                    "-Dorg.gradle.configuration-cache.parallel=true",
+                    "-Dorg.gradle.configuration-cache.integrity-check=true",
+                    "-Dorg.gradle.unsafe.isolated-projects=true",
+                }
+            );
+        }
 
         var runner = GradleRunner.create()
             .withProjectDir(projectDir)
@@ -534,7 +570,7 @@ public abstract class AbstractGradleProject<
             //.withDebug(isDebugEnabled())
             .withArguments(allArguments);
 
-        if (isCurrentGradleVersionGreaterThanOrEqualTo(MIN_GRADLE_VERSION_WITH_RUNNER_ENVIRONMENT)) {
+        if (IS_RUNNER_ENVIRONMENT_SUPPORTED) {
             runner.withEnvironment(ImmutableMap.of(
                 IS_IN_TEST_ENV_VAR, "true",
                 IS_IN_FUNCTIONAL_TEST_ENV_VAR, "true"
@@ -543,22 +579,6 @@ public abstract class AbstractGradleProject<
 
         if (withPluginClasspath) {
             runner.withPluginClasspath();
-        }
-
-        if (withConfigurationCache) {
-            if (isConfigurationCacheSupportedWithAppliedPlugins()) {
-                runner.withArguments(Stream.concat(
-                    runner.getArguments().stream(),
-                    Stream.of(
-                        "--configuration-cache",
-                        "--configuration-cache-problems=fail",
-                        "-Dorg.gradle.configuration-cache.stable=true",
-                        "-Dorg.gradle.configuration-cache.parallel=true",
-                        "-Dorg.gradle.configuration-cache.integrity-check=true",
-                        "-Dorg.gradle.unsafe.isolated-projects=true"
-                    )
-                ).collect(toUnmodifiableList()));
-            }
         }
 
         String gradleDistribMirror = System.getenv("GRADLE_DISTRIBUTIONS_MIRROR");
@@ -573,24 +593,6 @@ public abstract class AbstractGradleProject<
         }
 
         return runner;
-    }
-
-    private boolean isConfigurationCacheSupportedWithAppliedPlugins() {
-        var allAppliedPlugins = Stream.of(
-                getSettingsFile().getAppliedPlugins().stream(),
-                getBuildFile().getAppliedPlugins().stream(),
-                getChildren().values().stream().flatMap(project -> project.getBuildFile().getAppliedPlugins().stream())
-            )
-            .flatMap(identity())
-            .distinct()
-            .collect(toUnmodifiableList());
-        if (allAppliedPlugins.isEmpty()) {
-            return true;
-        }
-
-        return allAppliedPlugins.stream()
-            .map(ConfigurationCacheUtils::getCorePluginConfigurationCacheSupport)
-            .allMatch(SUPPORTED::equals);
     }
 
     private void injectJacocoArgs(GradleRunner runner) {
