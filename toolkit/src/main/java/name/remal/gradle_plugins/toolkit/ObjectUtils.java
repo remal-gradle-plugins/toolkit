@@ -243,7 +243,7 @@ public abstract class ObjectUtils {
     }
 
     @Contract(value = "null->true", pure = true)
-    public static boolean isEmpty(Object @Nullable [] value) {
+    public static boolean isEmpty(@Nullable Object @Nullable [] value) {
         return value == null || value.length == 0;
     }
 
@@ -320,7 +320,7 @@ public abstract class ObjectUtils {
     }
 
     @Contract(value = "null->false", pure = true)
-    public static boolean isNotEmpty(Object @Nullable [] value) {
+    public static boolean isNotEmpty(@Nullable Object @Nullable [] value) {
         return !isEmpty(value);
     }
 

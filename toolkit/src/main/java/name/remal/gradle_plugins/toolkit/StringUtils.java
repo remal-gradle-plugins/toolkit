@@ -266,6 +266,7 @@ public abstract class StringUtils {
 
     public static String escapeGroovy(String string) {
         return escapeJava(string)
+            .replace("'", "\\'")
             .replace("$", "\\$")
             ;
     }

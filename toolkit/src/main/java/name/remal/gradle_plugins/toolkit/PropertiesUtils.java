@@ -104,7 +104,11 @@ public abstract class PropertiesUtils {
             : new BufferedWriter(writer);
         try {
             var map = new TreeMap<String, String>();
-            properties.forEach((key, value) -> map.put(key.toString(), value.toString()));
+            properties.forEach((key, value) -> {
+                if (key != null && value != null) {
+                    map.put(key.toString(), value.toString());
+                }
+            });
             for (var entry : map.entrySet()) {
                 writeEscaped(entry.getKey(), true, writer);
                 writer.append('=');

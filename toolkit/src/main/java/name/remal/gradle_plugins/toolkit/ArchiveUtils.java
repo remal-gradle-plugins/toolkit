@@ -44,7 +44,7 @@ public abstract class ArchiveUtils {
     @SuppressWarnings({"try", "EmptyTryBlock"})
     public static Path newEmptyZipArchive(Path path) {
         path = normalizePath(path);
-        try (var out = newOutputStream(path)) {
+        try (var out = newZipOutputStream(path)) {
             // empty ZIP archive
         }
         return path;
