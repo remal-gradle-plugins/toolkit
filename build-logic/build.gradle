@@ -24,8 +24,7 @@ apply plugin: 'name.remal.generate-sources'
 
 tasks.withType(Test).configureEach {
     onlyIf {
-        return project.javaRuntimeVersion == JavaVersion.current()
-            && project.gradleApiVersion == GradleVersion.current()
+        return project.gradleApiVersion == GradleVersion.current()
     }
 }
 
