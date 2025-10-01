@@ -4,5 +4,5 @@ import name.remal.gradle_plugins.generate_sources.generators.java_like.kotlin.Ko
 import name.remal.gradle_plugins.toolkit.testkit.functional.generator.GradleBuildFileContent;
 
 public interface GradleBuildFileContentKotlin
-    extends GradleBuildFileContent<KotlinContent> {
+    extends GradleBuildFileContent<KotlinContent>, KotlinContent {
 }

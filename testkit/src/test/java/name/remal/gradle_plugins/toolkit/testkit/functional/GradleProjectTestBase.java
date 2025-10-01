@@ -14,9 +14,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @RequiredArgsConstructor(access = PROTECTED)
-abstract class GradleProjectTestBase<T extends AbstractGradleProject<?, ?, ?, ?>> {
+abstract class GradleProjectTestBase<GradleProjectType extends AbstractGradleProject<?, ?, ?, ?>> {
 
-    protected final T project;
+    protected final GradleProjectType project;
 
     @BeforeEach
     @OverridingMethodsMustInvokeSuper

@@ -4,5 +4,5 @@ import name.remal.gradle_plugins.generate_sources.generators.java_like.groovy.Gr
 import name.remal.gradle_plugins.toolkit.testkit.functional.generator.GradleSettingsFileContent;
 
 public interface GradleSettingsFileContentGroovy
-    extends GradleSettingsFileContent<GroovyContent> {
+    extends GradleSettingsFileContent<GroovyContent>, GroovyContent {
 }
