@@ -94,8 +94,6 @@ jobs:
         fetch-depth: 1
     - name: Cache Gradle
       uses: remal-github-actions/cache-gradle@main
-      with:
-        build-cache-for-branches-only: 'true'
     - name: Setup Java ${{env.DEFAULT_JAVA_VERSION}}
       uses: actions/setup-java@v5
       with:
@@ -242,8 +240,6 @@ jobs:
         fetch-depth: 1
     - name: Cache Gradle
       uses: remal-github-actions/cache-gradle@main
-      with:
-        build-cache-for-branches-only: 'true'
     - name: Setup Java ${{env.DEFAULT_JAVA_VERSION}}
       uses: actions/setup-java@v5
       with:
@@ -354,8 +350,6 @@ jobs:
         fetch-depth: 1
     - name: Cache Gradle
       uses: remal-github-actions/cache-gradle@main
-      with:
-        build-cache-for-branches-only: 'true'
     - name: Setup Java ${{env.DEFAULT_JAVA_VERSION}}
       uses: actions/setup-java@v5
       with:
@@ -401,8 +395,6 @@ jobs:
         fetch-depth: 1
     - name: Cache Gradle
       uses: remal-github-actions/cache-gradle@main
-      with:
-        build-cache-for-branches-only: 'true'
     - name: Setup Java ${{env.DEFAULT_JAVA_VERSION}}
       uses: actions/setup-java@v5
       with:
