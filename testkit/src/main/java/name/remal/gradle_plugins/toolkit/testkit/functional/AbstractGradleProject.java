@@ -71,15 +71,11 @@ public abstract class AbstractGradleProject<
     protected abstract void injectJacocoDumperImpl();
 
 
-    private static final GradleVersion MIN_GRADLE_VERSION_WITH_CONFIGURATION_CACHE = GradleVersion.version("6.6");
+    private static final boolean IS_CONFIGURATION_CACHE_SUPPORTED = isCurrentGradleVersionGreaterThanOrEqualTo("6.6");
 
-    private static final GradleVersion MIN_GRADLE_VERSION_WITH_RUNNER_ENVIRONMENT = GradleVersion.version("5.2");
+    private static final boolean ARE_ISOLATED_PROJECTS_SUPPORTED = isCurrentGradleVersionGreaterThanOrEqualTo("8.5");
 
-    private static final boolean IS_CONFIGURATION_CACHE_SUPPORTED =
-        isCurrentGradleVersionGreaterThanOrEqualTo(MIN_GRADLE_VERSION_WITH_CONFIGURATION_CACHE);
-
-    private static final boolean IS_RUNNER_ENVIRONMENT_SUPPORTED =
-        isCurrentGradleVersionGreaterThanOrEqualTo(MIN_GRADLE_VERSION_WITH_RUNNER_ENVIRONMENT);
+    private static final boolean IS_RUNNER_ENVIRONMENT_SUPPORTED = isCurrentGradleVersionGreaterThanOrEqualTo("5.2");
 
 
     protected final File mavenLocalRepoDir = new File(projectDir, ".m2");
@@ -281,11 +277,16 @@ public abstract class AbstractGradleProject<
         withPluginClasspath = false;
     }
 
-
     private boolean withConfigurationCache = IS_CONFIGURATION_CACHE_SUPPORTED;
 
     public final void withoutConfigurationCache() {
         withConfigurationCache = false;
+    }
+
+    private boolean withIsolatedProjects = withConfigurationCache && ARE_ISOLATED_PROJECTS_SUPPORTED;
+
+    public final void withoutIsolatedProjects() {
+        withIsolatedProjects = false;
     }
 
     private boolean withJacoco = currentJvmArgsHaveJacocoJvmArg();
@@ -523,7 +524,11 @@ public abstract class AbstractGradleProject<
 
     @SneakyThrows
     @SuppressWarnings("java:S2259")
-    private GradleRunner createGradleRunner(File projectDir, boolean withConfigurationCache, String[] arguments) {
+    private GradleRunner createGradleRunner(
+        File projectDir,
+        boolean withConfigurationCache,
+        @Nullable String[] arguments
+    ) {
         var gradleJavaCompatibility = getGradleJavaCompatibility();
         if (gradleJavaCompatibility == UNSUPPORTED) {
             throw new AssertionError(format(
@@ -534,7 +539,7 @@ public abstract class AbstractGradleProject<
         }
 
         var allArguments = concatArguments(
-            new String[]{
+            new @Nullable String[]{
                 "--stacktrace",
                 "--warning-mode=all",
             },
@@ -544,7 +549,7 @@ public abstract class AbstractGradleProject<
         if (withConfigurationCache) {
             allArguments = concatArguments(
                 allArguments,
-                new String[]{
+                new @Nullable String[]{
                     "--configuration-cache",
                     "--configuration-cache-problems=fail",
                     // TODO: add test (https://github.com/remal-gradle-plugins/toolkit/issues/1017):
@@ -552,7 +557,7 @@ public abstract class AbstractGradleProject<
                     // TODO: add test (https://github.com/remal-gradle-plugins/toolkit/issues/1018):
                     "-Dorg.gradle.configuration-cache.parallel=true",
                     "-Dorg.gradle.configuration-cache.integrity-check=true",
-                    "-Dorg.gradle.unsafe.isolated-projects=true",
+                    withIsolatedProjects ? "-Dorg.gradle.unsafe.isolated-projects=true" : null,
                 }
             );
         }
@@ -620,7 +625,11 @@ public abstract class AbstractGradleProject<
     }
 
 
-    private static String[] concatArguments(String[]... argumentsArray) {
+    private static String[] concatArguments(@Nullable String @Nullable []... argumentsArray) {
+        if (argumentsArray == null) {
+            return new String[0];
+        }
+
         return stream(argumentsArray)
             .filter(Objects::nonNull)
             .flatMap(Arrays::stream)
