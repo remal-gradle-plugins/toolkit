@@ -1,5 +1,6 @@
 package name.remal.gradle_plugins.toolkit.testkit.functional;
 
+import static java.lang.String.join;
 import static lombok.AccessLevel.PROTECTED;
 
 import com.google.errorprone.annotations.OverridingMethodsMustInvokeSuper;
@@ -26,6 +27,18 @@ abstract class GradleProjectTestTasksTestBase<GradleProjectType extends Abstract
     void simple() {
         project.getBuildFile().applyPlugin("java");
         GradleProjectTestTasks.configureJunitTests((JavaLikeContent) project.getBuildFile());
+
+        project.writeTextFile("src/test/java/SimpleTest.java", join("\n",
+            "import static org.junit.jupiter.api.Assertions.*;",
+            "import org.junit.jupiter.api.Test;",
+            "class SimpleTest {",
+            "    @Test",
+            "    void test() {",
+            "        assertEquals(2, 1 + 1);",
+            "    }",
+            "}"
+        ));
+
         project.assertBuildSuccessfully("test");
     }
 
