@@ -50,17 +50,37 @@ allprojects {
         }
     }
 
+
     if (project.parent == null) {
         afterEvaluate {
-            tasks.maybeCreate('allTests')
+            Task allTests = tasks.maybeCreate('allTests')
+            allTests.group = allTests.group ?: 'verification'
         }
     }
 
-    tasks.register('buildWithAllTests') {
-        group = 'build'
-        dependsOn(project.tasks.matching { it.name == 'build' })
-        dependsOn(project.tasks.matching { it.name == 'allTests' })
+
+    tasks.register('allChecks') {
+        group = 'verification'
+        dependsOn(project.tasks.matching { project.isVerificationTask(it) })
     }
+
+    ; [
+        'allTests',
+        'allChecks',
+    ].forEach { String taskName ->
+        tasks.register("buildWith${taskName.capitalize()}") {
+            group = 'build'
+            dependsOn(project.tasks.matching { it.name == 'build' })
+            dependsOn(project.tasks.matching { it.name == taskName })
+        }
+
+        tasks.register("buildInstallWith${taskName.capitalize()}") {
+            group = 'build'
+            dependsOn("buildWith${taskName.capitalize()}")
+            dependsOn(project.tasks.matching { it.name == 'publishToMavenLocal' })
+        }
+    }
+
 
     tasks.register('buildInstall') {
         group = 'build'
@@ -68,11 +88,6 @@ allprojects {
         dependsOn(project.tasks.matching { it.name == 'publishToMavenLocal' })
     }
 
-    tasks.register('buildInstallWithAllTests') {
-        group = 'build'
-        dependsOn('buildWithAllTests')
-        dependsOn(project.tasks.matching { it.name == 'publishToMavenLocal' })
-    }
 
     tasks.register('pushBackTasks')
 
