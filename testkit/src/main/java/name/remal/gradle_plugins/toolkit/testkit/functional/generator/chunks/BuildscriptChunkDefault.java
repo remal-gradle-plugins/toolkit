@@ -23,11 +23,12 @@ public class BuildscriptChunkDefault<Block extends JavaLikeContent<Block>>
             return "";
         }
 
-        var wrapper = blockFactory.get();
-        wrapper.block("buildscript", inner ->
+        var content = blockFactory.get();
+        content.block("buildscript", inner ->
             inner.line(buildscript)
         );
-        return wrapper.toString();
+        content.line();
+        return content.toString();
     }
 
 }

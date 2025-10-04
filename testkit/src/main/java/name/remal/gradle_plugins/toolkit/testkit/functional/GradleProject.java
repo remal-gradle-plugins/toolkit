@@ -59,6 +59,7 @@ public class GradleProject
         settingsFile.line();
         settingsFile.line("/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */");
         settingsFile.line("// Jacoco dumper logic:");
+        settingsFile.line();
 
         Action<GroovyContent> mainAction = block -> {
             block.line("MBeanServer mbeanServer = ManagementFactory.getPlatformMBeanServer()");
@@ -90,7 +91,7 @@ public class GradleProject
 
             settingsFile.line("gradle.sharedServices.registerIfAbsent(");
             settingsFile.indent(inner -> {
-                inner.line("\"%s\",", settingsFile.escapeString(GradleKtsProject.class.getName() + ":jacocoDumper"));
+                inner.line("\"%s\",", settingsFile.escapeString(getClass().getName() + ":jacocoDumper"));
                 inner.line("JacocoDumper,");
                 inner.line("{ }");
             });

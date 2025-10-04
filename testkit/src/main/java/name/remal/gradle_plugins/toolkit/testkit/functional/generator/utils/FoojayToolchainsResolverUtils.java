@@ -7,17 +7,13 @@ import static name.remal.gradle_plugins.toolkit.testkit.functional.GradleSetting
 import java.util.function.BooleanSupplier;
 import lombok.NoArgsConstructor;
 import name.remal.gradle_plugins.toolkit.testkit.functional.generator.GradleSettingsFileContent;
-import org.gradle.util.GradleVersion;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class FoojayToolchainsResolverUtils {
 
     public static final boolean WITH_FOOJAY_TOOLCHAINS_RESOLVER_DEFAULT = true;
 
-    private static final GradleVersion MIN_GRADLE_VERSION_WITH_TOOLCHAIN_RESOLVER = GradleVersion.version("7.6");
-
-    private static final boolean IS_TOOLCHAINS_RESOLVER_AVAILABLE =
-        isCurrentGradleVersionGreaterThanOrEqualTo(MIN_GRADLE_VERSION_WITH_TOOLCHAIN_RESOLVER);
+    private static final boolean IS_TOOLCHAINS_RESOLVER_AVAILABLE = isCurrentGradleVersionGreaterThanOrEqualTo("7.6");
 
     private static final String FOOJAY_TOOLCHAINS_RESOLVER_CONVENTION_PLUGIN_ID =
         "org.gradle.toolchains.foojay-resolver-convention";
@@ -30,7 +26,7 @@ public abstract class FoojayToolchainsResolverUtils {
         BooleanSupplier isEnabled
     ) {
         settingsFile.applyPlugin(FOOJAY_TOOLCHAINS_RESOLVER_CONVENTION_PLUGIN_ID, () -> {
-            if (isEnabled.getAsBoolean() && IS_TOOLCHAINS_RESOLVER_AVAILABLE) {
+            if (IS_TOOLCHAINS_RESOLVER_AVAILABLE && isEnabled.getAsBoolean()) {
                 return FOOJAY_TOOLCHAINS_RESOLVER_CONVENTION_PLUGIN_VERSION;
             }
             return null;

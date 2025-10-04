@@ -57,6 +57,7 @@ public class GradleKtsProject
         settingsFile.line();
         settingsFile.line("/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */");
         settingsFile.line("// Jacoco dumper logic:");
+        settingsFile.line();
 
         Action<KotlinContent> mainAction = block -> {
             block.line("val mbeanServer = ManagementFactory.getPlatformMBeanServer()");
@@ -88,7 +89,7 @@ public class GradleKtsProject
 
             settingsFile.line("gradle.sharedServices.registerIfAbsent(");
             settingsFile.indent(inner -> {
-                inner.line("\"%s\",", settingsFile.escapeString(GradleKtsProject.class.getName() + ":jacocoDumper"));
+                inner.line("\"%s\",", settingsFile.escapeString(getClass().getName() + ":jacocoDumper"));
                 inner.line("JacocoDumper::class,");
                 inner.line("{ }");
             });

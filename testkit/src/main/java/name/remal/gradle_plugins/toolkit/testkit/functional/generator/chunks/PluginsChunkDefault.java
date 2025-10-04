@@ -72,6 +72,7 @@ public class PluginsChunkDefault<Block extends JavaLikeContent<Block>>
                 plugins.line(decl.toString());
             });
         });
+        content.line();
         return content.toString();
     }
 
