@@ -19,7 +19,7 @@ project.fatJarWith(project(':toolkit-annotations'))
 }
 
 dependencies {
-    classesRelocation 'io.github.classgraph:classgraph:4.8.181'
+    classesRelocation 'io.github.classgraph:classgraph:4.8.184'
     classesRelocation 'org.ec4j.core:ec4j-core:1.1.1'
     classesRelocation 'net.htmlparser.jericho:jericho-html:3.4'
     classesRelocation('org.eclipse.jgit:org.eclipse.jgit:6.10.1.202505221210-r') {
