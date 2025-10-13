@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import name.remal.gradle_plugins.toolkit.testkit.AbstractJupiterTestEngineTests;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.testkit.engine.Events;
 
 class FunctionalTestExtensionTest extends AbstractJupiterTestEngineTests {
@@ -54,11 +55,17 @@ class FunctionalTestExtensionTest extends AbstractJupiterTestEngineTests {
         ).forEach((type, eventsSupplier) -> {
             var events = eventsSupplier.get();
             events.stream().forEach(event -> {
-                throw new AssertionError(format(
-                    "%s event: %s",
-                    type,
-                    event
-                ));
+                var cause = event.getPayload(TestExecutionResult.class)
+                    .flatMap(TestExecutionResult::getThrowable)
+                    .orElse(null);
+                throw new AssertionError(
+                    format(
+                        "%s event: %s",
+                        type,
+                        event
+                    ),
+                    cause
+                );
             });
         });
 

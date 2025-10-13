@@ -136,7 +136,7 @@ public abstract class ModuleNameParser {
     }
 
     private static final Pattern FILE_NAME_PART = Pattern.compile("^(?:[^!?#]*[/\\\\]+)?([^!?#/\\\\]+)(?:[!?#].*)?$");
-    private static final Pattern VERSION_PART = Pattern.compile("-\\d+(\\..*)?$");
+    private static final Pattern VERSION_PART = Pattern.compile("-(\\d+(\\..*)?)$");
 
     @Nullable
     private static String getModuleNameForPath(String path) {
