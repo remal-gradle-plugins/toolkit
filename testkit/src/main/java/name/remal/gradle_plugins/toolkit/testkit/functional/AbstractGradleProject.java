@@ -1,13 +1,17 @@
 package name.remal.gradle_plugins.toolkit.testkit.functional;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.lang.Math.floor;
 import static java.lang.Math.max;
 import static java.lang.String.format;
+import static java.lang.String.join;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
+import static java.util.function.Function.identity;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static lombok.AccessLevel.NONE;
+import static name.remal.gradle_plugins.toolkit.ConfigurationCacheUtils.getPluginConfigurationCacheSupport;
 import static name.remal.gradle_plugins.toolkit.GradleCompatibilityMode.UNSUPPORTED;
 import static name.remal.gradle_plugins.toolkit.GradleCompatibilityUtils.getGradleJavaCompatibility;
 import static name.remal.gradle_plugins.toolkit.GradleVersionUtils.isCurrentGradleVersionGreaterThanOrEqualTo;
@@ -35,8 +39,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import name.remal.gradle_plugins.generate_sources.generators.java_like.JavaLikeContent;
@@ -48,6 +54,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
 import org.gradle.util.GradleVersion;
+import org.jetbrains.annotations.Unmodifiable;
 import org.jspecify.annotations.Nullable;
 
 @Getter
@@ -328,6 +335,20 @@ public abstract class AbstractGradleProject<
         writeToDisk();
 
 
+        var withConfigurationCache = this.withConfigurationCache;
+        var pluginsWithoutConfigurationCacheSupport = getAppliedPluginsThatDoNotSupportConfigurationCache();
+        if (!pluginsWithoutConfigurationCacheSupport.isEmpty()) {
+            if (logger.isWarnEnabled()) {
+                logger.warn(
+                    "Configuration Cache testing was disabled"
+                        + " because some of the applied plugins knowingly don't support it: {}",
+                    join(", ", pluginsWithoutConfigurationCacheSupport)
+                );
+            }
+            withConfigurationCache = false;
+        }
+
+
         File jacocoProjectDir = null;
         if (withJacoco && withConfigurationCache && isExpectingSuccess) {
             jacocoProjectDir = new File(
@@ -386,6 +407,18 @@ public abstract class AbstractGradleProject<
 
 
         return buildResult;
+    }
+
+    @Unmodifiable
+    private Set<String> getAppliedPluginsThatDoNotSupportConfigurationCache() {
+        return Stream.of(
+                getSettingsFile().getAppliedPlugins().stream(),
+                getBuildFile().getAppliedPlugins().stream(),
+                getChildren().values().stream().flatMap(project -> project.getBuildFile().getAppliedPlugins().stream())
+            )
+            .flatMap(identity())
+            .filter(pluginId -> getPluginConfigurationCacheSupport(pluginId) == UNSUPPORTED)
+            .collect(toImmutableSet());
     }
 
     private void assertNoForbiddenMessages(List<String> outputLines) {
