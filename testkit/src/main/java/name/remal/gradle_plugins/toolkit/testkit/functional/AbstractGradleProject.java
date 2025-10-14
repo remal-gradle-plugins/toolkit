@@ -208,6 +208,22 @@ public abstract class AbstractGradleProject<
         new ArrayList<>(DEFAULT_SUPPRESSED_DEPRECATIONS_MESSAGES);
 
 
+    private static final List<String> DEFAULT_TASK_CONFIGURATION_WARNINGS = List.of(
+        "A problem was found with the configuration of task "
+    );
+
+    @Getter(NONE)
+    private final List<String> taskConfigurationWarnings =
+        new ArrayList<>(DEFAULT_TASK_CONFIGURATION_WARNINGS);
+
+    private static final List<SuppressedMessage> DEFAULT_SUPPRESSED_TASK_CONFIGURATION_WARNINGS =
+        emptyList();
+
+    @Getter(NONE)
+    private final List<SuppressedMessage> suppressedTaskConfigurationWarnings =
+        new ArrayList<>(DEFAULT_SUPPRESSED_TASK_CONFIGURATION_WARNINGS);
+
+
     private static final List<String> DEFAULT_MUTABLE_PROJECT_STATE_WARNINGS = List.of(
         "was resolved without accessing the project in a safe manner",
         "configuration is resolved from a thread not managed by Gradle"
@@ -255,6 +271,10 @@ public abstract class AbstractGradleProject<
 
     public final void addSuppressedDeprecationMessage(SuppressedMessage suppressedMessage) {
         suppressedDeprecationMessages.add(suppressedMessage);
+    }
+
+    public final void addTaskConfigurationWarnings(String message) {
+        taskConfigurationWarnings.add(message);
     }
 
     public final void addMutableProjectStateWarning(String message) {
@@ -389,6 +409,7 @@ public abstract class AbstractGradleProject<
             .collect(toUnmodifiableList());
         assertNoForbiddenMessages(outputLines);
         assertNoDeprecationMessages(outputLines);
+        assertNoTaskConfigurationWarnings(outputLines);
         assertNoMutableProjectStateWarnings(outputLines);
         assertNoOptimizationsDisabledWarnings(outputLines);
 
@@ -446,6 +467,21 @@ public abstract class AbstractGradleProject<
         if (!errors.isEmpty()) {
             var sb = new StringBuilder();
             sb.append("Deprecation warnings were found:");
+            errors.forEach(it -> sb.append("\n  * ").append(it));
+            throw new AssertionError(sb.toString());
+        }
+    }
+
+    private void assertNoTaskConfigurationWarnings(List<String> outputLines) {
+        var errors = parseErrors(
+            outputLines,
+            taskConfigurationWarnings,
+            suppressedTaskConfigurationWarnings,
+            null
+        );
+        if (!errors.isEmpty()) {
+            var sb = new StringBuilder();
+            sb.append("Task configuration warnings were found:");
             errors.forEach(it -> sb.append("\n  * ").append(it));
             throw new AssertionError(sb.toString());
         }

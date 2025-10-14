@@ -115,6 +115,7 @@ class GradleKtsProjectTest extends GradleProjectTestBase<GradleKtsProject> {
                     });
 
                 build.block("abstract class FailingTask : DefaultTask()", clazz -> {
+                    clazz.line("@get:Input");
                     clazz.line("var user: User = User(\"John\", 23)");
 
                     clazz.line("@TaskAction");
