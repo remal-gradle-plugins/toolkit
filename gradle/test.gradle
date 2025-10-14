@@ -75,27 +75,35 @@ allprojects {
                 //vendor = project.defaultJvmVendor
             }
 
-            if (javaRuntimeVersion.get().isJava9Compatible()) {
-                if (javaRuntimeVersion.get() <= JavaVersion.VERSION_16) {
-                    jvmArgs('--illegal-access=deny')
-                }
-            }
+            jvmArgumentProviders.add((CommandLineArgumentProvider) {
+                List<String> args = []
+                var javaVersion = javaLauncher.get().metadata.languageVersion.asInt()
 
-            onlyIf {
+                if (javaVersion >= 9) {
+                    if (javaVersion <= 16) {
+                        jvmArgs('--illegal-access=deny') // obsolete in Java 17+
+                    }
+                }
+
+                if (javaVersion >= 24) {
+                    jvmArgs('--illegal-native-access=deny')
+                }
+
                 boolean hasGradleApi = classpath.any { it.name ==~ /^gradle-api(-\d.*)?\.jar$/ }
                 if (hasGradleApi) {
-                    if (javaRuntimeVersion.get() >= JavaVersion.VERSION_1_9) {
+                    if (javaVersion >= 9) {
                         // see https://github.com/gradle/gradle/issues/18647
-                        jvmArgs('--add-opens=java.base/java.lang=ALL-UNNAMED')
+                        args.add('--add-opens=java.base/java.lang=ALL-UNNAMED')
                     }
 
-                    if (javaRuntimeVersion.get() >= JavaVersion.VERSION_24) {
+                    if (javaVersion >= 24) {
                         // see https://github.com/gradle/gradle/issues/31625
-                        jvmArgs('--enable-native-access=ALL-UNNAMED')
+                        args.add('--enable-native-access=ALL-UNNAMED')
                     }
                 }
-                return true
-            }
+
+                return args
+            })
 
             exclude { FileTreeElement element ->
                 if (element.directory) {
@@ -152,6 +160,7 @@ allprojects {
             systemProperty('junit.jupiter.execution.parallel.config.strategy', 'fixed')
             systemProperty('junit.jupiter.execution.parallel.config.fixed.parallelism', String.valueOf(Math.max(2, (int) Math.floor(0.75 * Runtime.getRuntime().availableProcessors()))))
             //systemProperty('junit.jupiter.execution.parallel.mode.default', 'concurrent') // makes Gradle tests flaky
+
             enableAssertions = true
 
             testLogging {

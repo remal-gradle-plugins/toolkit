@@ -1,6 +1,8 @@
 package name.remal.gradle_plugins.toolkit.git;
 
-public interface GitAttribute {
+import java.io.Serializable;
+
+public interface GitAttribute extends Serializable {
 
     String getName();
 

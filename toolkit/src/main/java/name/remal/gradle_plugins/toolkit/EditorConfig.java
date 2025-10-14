@@ -50,7 +50,7 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@ToString(of = "rootPath")
+@ToString(of = "rootDir")
 @SuppressWarnings("java:S1948")
 public final class EditorConfig implements Serializable {
 
@@ -73,18 +73,22 @@ public final class EditorConfig implements Serializable {
     private static final Cache CACHE = permanent();
 
 
-    private final Path rootPath;
+    private final Path rootDir;
     private final ResourcePropertiesService service;
 
-    public EditorConfig(Path rootPath) {
-        this.rootPath = normalizePath(rootPath);
+    public EditorConfig(Path rootDir) {
+        this.rootDir = normalizePath(rootDir);
 
         this.service = ResourcePropertiesService.builder()
-            .rootDirectory(ResourcePaths.ofPath(this.rootPath, UTF_8))
+            .rootDirectory(ResourcePaths.ofPath(this.rootDir, UTF_8))
             .loader(EDITOR_CONFIG_LOADER)
             .keepUnset(false)
             .cache(CACHE)
             .build();
+    }
+
+    public EditorConfig(File rootDir) {
+        this(rootDir.toPath());
     }
 
     public EditorConfig(Project project) {
@@ -97,8 +101,8 @@ public final class EditorConfig implements Serializable {
     @SuppressWarnings("java:S3776")
     public Map<String, String> getPropertiesFor(Path path) {
         path = normalizePath(path);
-        if (!path.startsWith(rootPath)) {
-            throw new PathIsOutOfRootPathException(path, rootPath);
+        if (!path.startsWith(rootDir)) {
+            throw new PathIsOutOfRootPathException(path, rootDir);
         }
 
         synchronized (CACHE) {
@@ -118,8 +122,8 @@ public final class EditorConfig implements Serializable {
             var isCharsetNotSet = isEmpty(result.get(charset.getName()));
             var isEndOfLineNotSet = isEmpty(result.get(end_of_line.getName()));
             if (isCharsetNotSet || isEndOfLineNotSet) {
-                var relativePath = rootPath.relativize(path).toString();
-                getGitAttributesFor(rootPath, relativePath).stream()
+                var relativePath = rootDir.relativize(path).toString();
+                getGitAttributesFor(rootDir, relativePath).stream()
                     .filter(GitStringAttribute.class::isInstance)
                     .map(GitStringAttribute.class::cast)
                     .forEach(attr -> {
@@ -208,7 +212,7 @@ public final class EditorConfig implements Serializable {
             throw new IllegalArgumentException("Not a file extension: " + extension);
         }
 
-        return rootPath.resolve("file." + extension);
+        return rootDir.resolve("file." + extension);
     }
 
     @FunctionalInterface
@@ -233,7 +237,7 @@ public final class EditorConfig implements Serializable {
     // region serialization
 
     private Object writeReplace() {
-        return new EditorConfigSer(rootPath.toUri(), null);
+        return new EditorConfigSer(rootDir.toUri(), null);
     }
 
     private void readObject(ObjectInputStream inputStream) throws InvalidObjectException {

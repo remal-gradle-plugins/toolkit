@@ -18,6 +18,7 @@ import org.gradle.api.Project;
 @NoArgsConstructor(access = PRIVATE)
 public abstract class LayoutUtils {
 
+    @SuppressWarnings("java:S2259")
     public static Path getRootPathOf(Path topLevelDir) {
         var repositoryRoot = findGitRepositoryRootFor(topLevelDir);
         if (repositoryRoot != null) {
@@ -41,6 +42,10 @@ public abstract class LayoutUtils {
 
     public static File getRootDirOf(Path topLevelDir) {
         return getRootPathOf(topLevelDir).toFile();
+    }
+
+    public static File getRootDirOf(File topLevelDir) {
+        return getRootDirOf(topLevelDir.toPath());
     }
 
     public static File getRootDirOf(Project project) {

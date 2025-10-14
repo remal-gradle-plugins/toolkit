@@ -152,8 +152,8 @@ public abstract class GitUtils {
 
     public static boolean isGitRepositoryRoot(Path path) {
         var dotGit = path.resolve(DOT_GIT);
-        var notRoot = path.resolve(".git-not-root");
-        return isDirectory(dotGit) && !isRegularFile(notRoot);
+        var notRootRepoMarker = path.resolve(".git-not-root");
+        return isDirectory(dotGit) && !isRegularFile(notRootRepoMarker);
     }
 
 }
