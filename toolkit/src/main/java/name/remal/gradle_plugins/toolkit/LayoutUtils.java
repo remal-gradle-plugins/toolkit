@@ -26,7 +26,7 @@ public abstract class LayoutUtils {
         }
 
         var ciBuildDir = getCiSystem()
-            .map(CiSystem::getBuildDirIfSupported)
+            .map(CiSystem::getBuildDir)
             .orElse(null);
         if (ciBuildDir != null) {
             return ciBuildDir.toPath();

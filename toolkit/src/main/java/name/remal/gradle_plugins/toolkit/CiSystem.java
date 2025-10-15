@@ -1,29 +1,16 @@
 package name.remal.gradle_plugins.toolkit;
 
 import java.io.File;
-import javax.annotation.OverridingMethodsMustInvokeSuper;
-import org.jspecify.annotations.Nullable;
+import java.io.Serializable;
+import org.immutables.gson.Gson;
+import org.immutables.value.Value;
 
-public interface CiSystem {
+@Value.Immutable
+@Gson.TypeAdapters
+public interface CiSystem extends Serializable {
 
-    default String getName() {
-        return this.getClass().getSimpleName();
-    }
+    String getName();
 
-    boolean isDetected();
-
-    @OverridingMethodsMustInvokeSuper
-    default File getBuildDir() {
-        var buildDir = getBuildDirIfSupported();
-        if (buildDir == null) {
-            throw new UnsupportedOperationException();
-        }
-        return buildDir;
-    }
-
-    @Nullable
-    default File getBuildDirIfSupported() {
-        return null;
-    }
+    File getBuildDir();
 
 }

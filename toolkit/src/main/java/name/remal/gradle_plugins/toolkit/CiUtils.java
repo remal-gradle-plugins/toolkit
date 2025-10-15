@@ -1,8 +1,10 @@
 package name.remal.gradle_plugins.toolkit;
 
 import static lombok.AccessLevel.PRIVATE;
+import static name.remal.gradle_plugins.toolkit.ConfigurationCacheSafeSystem.EnvironmentVariableNotSetOrEmptyException;
 import static name.remal.gradle_plugins.toolkit.InTestFlags.isInTest;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.stream.StreamSupport;
@@ -15,13 +17,22 @@ public abstract class CiUtils {
 
     @Nullable
     private static final CiSystem CI_SYSTEM = StreamSupport.stream(
-            ServiceLoader.load(CiSystem.class, CiSystem.class.getClassLoader()).spliterator(),
+            ServiceLoader.load(CiSystemDetector.class, CiSystemDetector.class.getClassLoader()).spliterator(),
             false
         )
-        .filter(CiSystem::isDetected)
+        .sorted()
+        .map(detector -> {
+            try {
+                return detector.detect();
+            } catch (EnvironmentVariableNotSetOrEmptyException ignored) {
+                return null; // can't detect this CI system
+            }
+        })
+        .filter(Objects::nonNull)
         .findFirst()
         .orElse(null);
 
+    @Contract(pure = true)
     public static Optional<CiSystem> getCiSystem() {
         if (isInTest()) {
             return Optional.empty();
@@ -32,9 +43,7 @@ public abstract class CiUtils {
 
     @Contract(pure = true)
     public static boolean isRunningOnCi() {
-        return getCiSystem()
-            .map(CiSystem::isDetected)
-            .orElse(false);
+        return getCiSystem().isPresent();
     }
 
     @Contract(pure = true)
