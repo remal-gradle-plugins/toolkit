@@ -5,6 +5,7 @@ import static org.gradle.api.reporting.Report.OutputType
 import java.nio.channels.FileChannel
 import java.nio.channels.OverlappingFileLockException
 import java.time.Duration
+import org.gradle.work.DisableCachingByDefault
 import org.jspecify.annotations.Nullable
 
 if (project.isBuildSrcProject) {
@@ -83,7 +84,7 @@ allprojects {
                 long startTime = System.nanoTime()
                 long maxTimeout = Duration.ofSeconds(10).toNanos()
                 long timeoutTime = startTime + maxTimeout
-                for (int attempt = 1; System.nanoTime() < timeoutTime; ++attempt) {
+                for (int attempt = 1; System.nanoTime() < timeoutTime && attempt <= 100; ++attempt) {
                     if (attempt > 1) {
                         Thread.sleep(1_000)
                     }
@@ -119,82 +120,6 @@ allprojects {
         }
     }
 }
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-apply plugin: 'jacoco'
-
-TaskProvider<JacocoReport> jacocoReportMerged = tasks.register('jacocoReportMerged', JacocoReport) { JacocoReport task ->
-    task.group = 'verification'
-    task.reports.configureEach { ConfigurableReport report ->
-        DirectoryProperty reportsDir = project.jacoco.reportsDirectory
-        if (report.getOutputType() == OutputType.DIRECTORY) {
-            report.outputLocation.convention(reportsDir.dir("${task.name}/${report.name}"))
-        } else {
-            report.outputLocation.convention(reportsDir.file("${task.name}/${task.name}.${report.name}"))
-        }
-    }
-}
-
-allprojects {
-    pluginManager.withPlugin('jacoco') {
-        JacocoReport task = jacocoReportMerged.get()
-
-        TaskCollection<Test> testTasks = tasks.withType(Test)
-        task.dependsOn(testTasks)
-
-        TaskCollection<JacocoReport> reportTasks = tasks.withType(JacocoReport).matching { it.name.matches(/jacoco[A-Z].*Report/) }
-        task.dependsOn(reportTasks)
-
-        task.executionData(testTasks)
-
-        if (project.isIncludedInFatJar(project)) {
-            return
-        }
-
-        pluginManager.withPlugin('java') {
-            task.sourceSets(sourceSets.main)
-        }
-    }
-}
-
-tasks.register('displayTotalCodeCoverage') { Task task ->
-    task.dependsOn(jacocoReportMerged)
-    task.group = 'verification'
-
-    RegularFileProperty xmlReportFile = objects.fileProperty().fileProvider(provider {
-        jacocoReportMerged.get().reports.xml.outputLocation.asFile.get()
-    }).with { it.finalizeValueOnRead(); it }
-
-    doLast {
-        Class XmlParser = Class.forName('groovy.xml.XmlParser')
-        def xmlParser = XmlParser.getConstructor(Boolean.TYPE, Boolean.TYPE, Boolean.TYPE).newInstance(false, false, true)
-        Closure setFeatureQuietly = { String feature, Object value ->
-            try {
-                xmlParser.setFeature(feature, value)
-            } catch (Exception ignored) {
-                // do nothing
-            }
-        }
-        setFeatureQuietly('http://apache.org/xml/features/disallow-doctype-decl', false)
-        setFeatureQuietly('http://apache.org/xml/features/nonvalidating/load-external-dtd', false)
-        setFeatureQuietly('http://javax.xml.XMLConstants/feature/secure-processing', true)
-
-        Node reportNode = xmlParser.parse(xmlReportFile.get().asFile)
-        reportNode.counter?.forEach { Node counterNode ->
-            String type = counterNode['@type']
-            long missed = (counterNode['@missed'] ?: '0').toString().toLong()
-            long covered = (counterNode['@covered'] ?: '0').toString().toLong()
-            long total = missed + covered
-            double coverage = ((double) covered) / total
-            if ('LINE'.equalsIgnoreCase(type)) {
-                logger.quiet(String.format('Total code coverage: %.2f%% lines', coverage * 100.0))
-            }
-        }
-    }
-}
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 class FailsCounterTestListener implements TestListener {
 
@@ -254,3 +179,113 @@ class FailsCounterTestListener implements TestListener {
     }
 
 }
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+apply plugin: 'jacoco'
+
+TaskProvider<MergedJacocoReport> jacocoReportMerged = tasks.register('jacocoReportMerged', MergedJacocoReport)
+
+allprojects {
+    pluginManager.withPlugin('jacoco') {
+        MergedJacocoReport task = jacocoReportMerged.get()
+
+        TaskCollection<Test> testTasks = tasks.withType(Test)
+        task.dependsOn(testTasks)
+
+        task.executionData(testTasks)
+    }
+}
+
+tasks.register('displayTotalCodeCoverage', DisplayTotalCodeCoverage) {
+    dependsOn(jacocoReportMerged)
+    xmlReportFile.fileProvider(provider { jacocoReportMerged.get().reports.xml.outputLocation.asFile.get() })
+}
+
+
+TaskProvider<MergedJacocoReport> jacocoMatrixReportMerged = tasks.register('jacocoMatrixReportMerged', MergedJacocoReport) { MergedJacocoReport task ->
+    String jacocoAllExecFilesDirPath = project.findProperty('jacoco-all-exec-files-dir')?.toString()
+    if (jacocoAllExecFilesDirPath == null) {
+        return
+    }
+
+    FileTree jacocoAllExecFiles = project.fileTree(jacocoAllExecFilesDirPath).matching { include '**/*.exec' }
+    task.executionData(jacocoAllExecFiles)
+}
+
+tasks.register('displayMatrixTotalCodeCoverage', DisplayTotalCodeCoverage) {
+    dependsOn(jacocoMatrixReportMerged)
+    xmlReportFile.fileProvider(provider { jacocoMatrixReportMerged.get().reports.xml.outputLocation.asFile.get() })
+}
+
+
+@CacheableTask
+abstract class MergedJacocoReport extends JacocoReport {}
+
+tasks.withType(MergedJacocoReport).configureEach { MergedJacocoReport task ->
+    task.group = 'verification'
+    task.reports.configureEach { ConfigurableReport report ->
+        DirectoryProperty reportsDir = project.jacoco.reportsDirectory
+        if (report.getOutputType() == OutputType.DIRECTORY) {
+            report.outputLocation.convention(reportsDir.dir("${task.name}/${report.name}"))
+        } else {
+            report.outputLocation.convention(reportsDir.file("${task.name}/${task.name}.${report.name}"))
+        }
+    }
+}
+
+Project currentProject = project
+allprojects {
+    pluginManager.withPlugin('jacoco') {
+        pluginManager.withPlugin('java') {
+            currentProject.tasks.withType(MergedJacocoReport).configureEach { MergedJacocoReport task ->
+                task.sourceSets(sourceSets.main)
+            }
+        }
+    }
+}
+
+
+@DisableCachingByDefault(because = "This task only produces console output")
+@UntrackedTask(because = "This task only produces console output")
+abstract class DisplayTotalCodeCoverage extends DefaultTask {
+
+    {
+        group = 'verification'
+        description = 'Displays the total code coverage percentage from the Jacoco XML report'
+    }
+
+    @Console
+    abstract RegularFileProperty getXmlReportFile()
+
+    @TaskAction
+    void execute() {
+        Class XmlParser = Class.forName('groovy.xml.XmlParser')
+        def xmlParser = XmlParser.getConstructor(Boolean.TYPE, Boolean.TYPE, Boolean.TYPE).newInstance(false, false, true)
+        Closure setFeatureQuietly = { String feature, Object value ->
+            try {
+                xmlParser.setFeature(feature, value)
+            } catch (Exception ignored) {
+                // do nothing
+            }
+        }
+        setFeatureQuietly('http://apache.org/xml/features/disallow-doctype-decl', false)
+        setFeatureQuietly('http://apache.org/xml/features/nonvalidating/load-external-dtd', false)
+        setFeatureQuietly('http://javax.xml.XMLConstants/feature/secure-processing', true)
+
+        Node reportNode = xmlParser.parse(xmlReportFile.get().asFile)
+        reportNode.counter?.forEach { Node counterNode ->
+            String type = counterNode['@type']
+            long missed = (counterNode['@missed'] ?: '0').toString().toLong()
+            long covered = (counterNode['@covered'] ?: '0').toString().toLong()
+            long total = missed + covered
+            double coverage = ((double) covered) / total
+            if ('LINE'.equalsIgnoreCase(type)) {
+                logger.quiet(String.format('Total code coverage: %.2f%% lines', coverage * 100.0))
+            }
+        }
+    }
+
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
