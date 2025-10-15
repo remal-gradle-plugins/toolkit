@@ -43,7 +43,7 @@ public abstract class GradleProjectTestTasks {
             throw new UnsupportedOperationException();
         }
         buildFileBlock.block(taskConfigStmt, task -> {
-            task.block("useJUnitPlatform", useJUnitPlatformConfigurer::execute); // TODO: simplify
+            task.block("useJUnitPlatform", useJUnitPlatformConfigurer);
             task.line("enableAssertions = true");
             task.block("testLogging", logging -> {
                 logging.line("showExceptions = true");

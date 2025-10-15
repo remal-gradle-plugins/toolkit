@@ -8,7 +8,7 @@ dependencies {
     optional 'name.remal.gradle-api:gradle-test-kit'
 
     api project(':toolkit')
-    api 'name.remal.gradle-plugins.generate-sources:generators:2.0.1'
+    api 'name.remal.gradle-plugins.generate-sources:generators:2.0.2'
 
 
     testImplementation 'org.junit.jupiter:junit-jupiter-engine'
