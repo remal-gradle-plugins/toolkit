@@ -27,6 +27,7 @@ import static name.remal.gradle_plugins.toolkit.testkit.functional.GradleRunnerU
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
+import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.ForOverride;
 import com.google.errorprone.annotations.OverridingMethodsMustInvokeSuper;
 import java.io.File;
@@ -334,6 +335,10 @@ public abstract class AbstractGradleProject<
         return build(arguments, true);
     }
 
+    /**
+     * Check why exactly the build failed.
+     */
+    @CheckReturnValue
     public final BuildResult assertBuildFails(String argument, String... otherArguments) {
         var arguments = concatArguments(new String[]{argument}, otherArguments);
         return build(arguments, false);
