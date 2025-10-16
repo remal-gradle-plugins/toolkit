@@ -18,7 +18,7 @@ public abstract class PluginManagerUtils {
     public static void withAnyOfPlugins(
         PluginManager pluginManager,
         Iterable<String> pluginIds,
-        Action<AppliedPlugin> action
+        Action<? super AppliedPlugin> action
     ) {
         var isExecuted = new AtomicBoolean(false);
         toUnique(pluginIds).forEach(pluginId ->
@@ -33,7 +33,7 @@ public abstract class PluginManagerUtils {
     public static void withAnyOfPlugins(
         PluginManager pluginManager,
         String pluginId1,
-        Action<AppliedPlugin> action
+        Action<? super AppliedPlugin> action
     ) {
         withAnyOfPlugins(
             pluginManager,
@@ -46,7 +46,7 @@ public abstract class PluginManagerUtils {
         PluginManager pluginManager,
         String pluginId1,
         String pluginId2,
-        Action<AppliedPlugin> action
+        Action<? super AppliedPlugin> action
     ) {
         withAnyOfPlugins(
             pluginManager,
@@ -60,7 +60,7 @@ public abstract class PluginManagerUtils {
         String pluginId1,
         String pluginId2,
         String pluginId3,
-        Action<AppliedPlugin> action
+        Action<? super AppliedPlugin> action
     ) {
         withAnyOfPlugins(
             pluginManager,
@@ -75,7 +75,7 @@ public abstract class PluginManagerUtils {
         String pluginId2,
         String pluginId3,
         String pluginId4,
-        Action<AppliedPlugin> action
+        Action<? super AppliedPlugin> action
     ) {
         withAnyOfPlugins(
             pluginManager,
@@ -91,7 +91,7 @@ public abstract class PluginManagerUtils {
         String pluginId3,
         String pluginId4,
         String pluginId5,
-        Action<AppliedPlugin> action
+        Action<? super AppliedPlugin> action
     ) {
         withAnyOfPlugins(
             pluginManager,
@@ -104,7 +104,7 @@ public abstract class PluginManagerUtils {
     public static void withAllPlugins(
         PluginManager pluginManager,
         Iterable<String> pluginIds,
-        Action<AppliedPlugin> action
+        Action<? super AppliedPlugin> action
     ) {
         var pluginIdsToApply = toUnique(pluginIds);
         new ArrayList<>(pluginIdsToApply).forEach(pluginId ->
@@ -122,7 +122,7 @@ public abstract class PluginManagerUtils {
     public static void withAllPlugins(
         PluginManager pluginManager,
         String pluginId1,
-        Action<AppliedPlugin> action
+        Action<? super AppliedPlugin> action
     ) {
         withAllPlugins(
             pluginManager,
@@ -135,7 +135,7 @@ public abstract class PluginManagerUtils {
         PluginManager pluginManager,
         String pluginId1,
         String pluginId2,
-        Action<AppliedPlugin> action
+        Action<? super AppliedPlugin> action
     ) {
         withAllPlugins(
             pluginManager,
@@ -149,7 +149,7 @@ public abstract class PluginManagerUtils {
         String pluginId1,
         String pluginId2,
         String pluginId3,
-        Action<AppliedPlugin> action
+        Action<? super AppliedPlugin> action
     ) {
         withAllPlugins(
             pluginManager,
@@ -164,7 +164,7 @@ public abstract class PluginManagerUtils {
         String pluginId2,
         String pluginId3,
         String pluginId4,
-        Action<AppliedPlugin> action
+        Action<? super AppliedPlugin> action
     ) {
         withAllPlugins(
             pluginManager,
@@ -180,7 +180,7 @@ public abstract class PluginManagerUtils {
         String pluginId3,
         String pluginId4,
         String pluginId5,
-        Action<AppliedPlugin> action
+        Action<? super AppliedPlugin> action
     ) {
         withAllPlugins(
             pluginManager,

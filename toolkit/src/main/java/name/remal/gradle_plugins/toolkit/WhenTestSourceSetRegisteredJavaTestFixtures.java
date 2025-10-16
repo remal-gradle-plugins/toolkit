@@ -12,7 +12,7 @@ import org.gradle.api.tasks.SourceSetContainer;
 final class WhenTestSourceSetRegisteredJavaTestFixtures implements WhenTestSourceSetRegistered {
 
     @Override
-    public void registerAction(Project project, Action<SourceSet> action) {
+    public void registerAction(Project project, Action<? super SourceSet> action) {
         project.getPluginManager().withPlugin("java-test-fixtures", __ -> {
             var sourceSets = getExtension(project, SourceSetContainer.class);
             var testFixturesSourceSet = sourceSets.getByName("testFixtures");

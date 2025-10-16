@@ -28,7 +28,7 @@ class ReportContainerUtilsMethods_8_10_lte implements ReportContainerUtilsMethod
     public <T extends Report> ReportContainer<T> createReportContainer(
         Task task,
         Class<? extends T> reportType,
-        Action<ReportContainerConfigurer> configureAction
+        Action<? super ReportContainerConfigurer> configureAction
     ) {
         return new TaskReportContainerImpl<>(task, reportType, configureAction);
     }
@@ -39,7 +39,7 @@ class ReportContainerUtilsMethods_8_10_lte implements ReportContainerUtilsMethod
         public TaskReportContainerImpl(
             Task task,
             Class<? extends T> reportType,
-            Action<ReportContainerConfigurer> configureAction
+            Action<? super ReportContainerConfigurer> configureAction
         ) {
             super(
                 reportType,

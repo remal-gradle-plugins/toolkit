@@ -242,7 +242,7 @@ public abstract class SourceSetUtils {
         () -> loadAllCrossCompileServiceImplementations(WhenTestSourceSetRegistered.class)
     );
 
-    public static void whenTestSourceSetRegistered(Project project, Action<SourceSet> action) {
+    public static void whenTestSourceSetRegistered(Project project, Action<? super SourceSet> action) {
         Set<SourceSet> processedSourceSets = newSetFromMap(new IdentityHashMap<>());
         Action<SourceSet> wrappedAction = sourceSet -> {
             if (processedSourceSets.add(sourceSet)) {

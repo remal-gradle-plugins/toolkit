@@ -14,7 +14,7 @@ import org.gradle.api.tasks.SourceSet;
 final class WhenTestSourceSetRegisteredRemalTestSourceSets implements WhenTestSourceSetRegistered {
 
     @Override
-    public void registerAction(Project project, Action<SourceSet> action) {
+    public void registerAction(Project project, Action<? super SourceSet> action) {
         project.getPluginManager().withPlugin("name.remal.test-source-sets", __ -> {
             var testSourceSetsExtension = getExtension(project, "testSourceSets");
             @SuppressWarnings("unchecked")

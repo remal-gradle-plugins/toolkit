@@ -10,7 +10,7 @@ interface ReportContainerUtilsMethods {
     <T extends Report> ReportContainer<T> createReportContainer(
         Task task,
         Class<? extends T> reportType,
-        Action<ReportContainerConfigurer> configureAction
+        Action<? super ReportContainerConfigurer> configureAction
     );
 
 }

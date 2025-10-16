@@ -14,7 +14,7 @@ import org.gradle.api.tasks.SourceSetContainer;
 final class WhenTestSourceSetRegisteredByName implements WhenTestSourceSetRegistered {
 
     @Override
-    public void registerAction(Project project, Action<SourceSet> action) {
+    public void registerAction(Project project, Action<? super SourceSet> action) {
         project.getPluginManager().withPlugin("java", __ -> {
             var sourceSets = getExtension(project, SourceSetContainer.class);
             sourceSets

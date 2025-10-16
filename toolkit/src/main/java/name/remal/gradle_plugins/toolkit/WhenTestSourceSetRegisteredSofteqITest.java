@@ -15,7 +15,7 @@ import org.gradle.api.tasks.SourceSetContainer;
 final class WhenTestSourceSetRegisteredSofteqITest implements WhenTestSourceSetRegistered {
 
     @Override
-    public void registerAction(Project project, Action<SourceSet> action) {
+    public void registerAction(Project project, Action<? super SourceSet> action) {
         project.getPluginManager().withPlugin("com.softeq.gradle.itest", __ -> {
             var sourceSets = getExtension(project, SourceSetContainer.class);
             sourceSets.matching(sourceSet -> {

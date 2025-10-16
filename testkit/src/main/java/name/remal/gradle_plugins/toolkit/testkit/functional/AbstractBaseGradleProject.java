@@ -75,11 +75,11 @@ public abstract class AbstractBaseGradleProject<
         return getName();
     }
 
-    public final void forBuildFile(Action<BuildFileType> action) {
+    public final void forBuildFile(Action<? super BuildFileType> action) {
         action.execute(buildFile);
     }
 
-    public final void forGradleProperties(Action<Map<String, @Nullable Object>> action) {
+    public final void forGradleProperties(Action<? super Map<String, @Nullable Object>> action) {
         action.execute(gradleProperties);
     }
 
@@ -146,29 +146,50 @@ public abstract class AbstractBaseGradleProject<
         write(destPath, bytes);
     }
 
-    public final void writeTextFile(String relativeFilePath, String content, Charset charset) {
+    public final void writeTextFile(
+        String relativeFilePath,
+        String content,
+        Charset charset
+    ) {
         writeBinaryFile(relativeFilePath, content.getBytes(charset));
     }
 
-    public final void writeTextFile(String relativeFilePath, String content) {
+    public final void writeTextFile(
+        String relativeFilePath,
+        String content
+    ) {
         writeTextFile(relativeFilePath, content, DEFAULT_TEST_FILE_CHARSET);
     }
 
-    public final void writeTextFile(String relativeFilePath, TextContent content, Charset charset) {
+    public final void writeTextFile(
+        String relativeFilePath,
+        TextContent content,
+        Charset charset
+    ) {
         writeTextFile(relativeFilePath, content.toString(), charset);
     }
 
-    public final void writeTextFile(String relativeFilePath, TextContent content) {
+    public final void writeTextFile(
+        String relativeFilePath,
+        TextContent content
+    ) {
         writeTextFile(relativeFilePath, content, DEFAULT_TEST_FILE_CHARSET);
     }
 
-    public final void writeTextFile(String relativeFilePath, Action<TextContent> contentAction, Charset charset) {
+    public final void writeTextFile(
+        String relativeFilePath,
+        Action<? super TextContent> contentAction,
+        Charset charset
+    ) {
         var content = new TextContentDefault();
         contentAction.execute(content);
         writeTextFile(relativeFilePath, content, charset);
     }
 
-    public final void writeTextFile(String relativeFilePath, Action<TextContent> contentAction) {
+    public final void writeTextFile(
+        String relativeFilePath,
+        Action<? super TextContent> contentAction
+    ) {
         writeTextFile(relativeFilePath, contentAction, DEFAULT_TEST_FILE_CHARSET);
     }
 
@@ -188,7 +209,10 @@ public abstract class AbstractBaseGradleProject<
         writeTextFile(relativeFilePath.toString(), content.toString(), charset);
     }
 
-    public final void writeJavaClassSourceFile(String relativeSourcesRootPath, JavaClassFileContent content) {
+    public final void writeJavaClassSourceFile(
+        String relativeSourcesRootPath,
+        JavaClassFileContent content
+    ) {
         writeTextFile(relativeSourcesRootPath, content, DEFAULT_TEST_FILE_CHARSET);
     }
 
@@ -196,7 +220,7 @@ public abstract class AbstractBaseGradleProject<
         String relativeSourcesRootPath,
         @Nullable String packageName,
         String simpleName,
-        Action<JavaClassFileContent> contentAction,
+        Action<? super JavaClassFileContent> contentAction,
         Charset charset
     ) {
         var content = new JavaClassFileContentDefault(packageName, simpleName);
@@ -208,7 +232,7 @@ public abstract class AbstractBaseGradleProject<
         String relativeSourcesRootPath,
         @Nullable String packageName,
         String simpleName,
-        Action<JavaClassFileContent> contentAction
+        Action<? super JavaClassFileContent> contentAction
     ) {
         writeJavaClassSourceFile(relativeSourcesRootPath,
             packageName,

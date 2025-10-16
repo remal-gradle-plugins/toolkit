@@ -29,7 +29,7 @@ class ReportContainerUtilsMethodsDefault implements ReportContainerUtilsMethods 
     public <T extends Report> ReportContainer<T> createReportContainer(
         Task task,
         Class<? extends T> reportType,
-        Action<ReportContainerConfigurer> configureAction
+        Action<? super ReportContainerConfigurer> configureAction
     ) {
         var owner = Describables.quoted("Task", ((TaskInternal) task).getIdentityPath());
 

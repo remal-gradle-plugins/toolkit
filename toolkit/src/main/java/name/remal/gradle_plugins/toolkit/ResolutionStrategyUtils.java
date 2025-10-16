@@ -15,7 +15,7 @@ public abstract class ResolutionStrategyUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(ResolutionStrategyUtils.class);
 
-    public static void configureGlobalResolutionStrategy(Project project, Action<ResolutionStrategy> action) {
+    public static void configureGlobalResolutionStrategy(Project project, Action<? super ResolutionStrategy> action) {
         project.getConfigurations().configureEach(configuration -> {
             configuration.resolutionStrategy(action);
         });

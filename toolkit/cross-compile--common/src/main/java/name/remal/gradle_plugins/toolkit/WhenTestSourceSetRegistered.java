@@ -6,6 +6,6 @@ import org.gradle.api.tasks.SourceSet;
 
 public interface WhenTestSourceSetRegistered {
 
-    void registerAction(Project project, Action<SourceSet> action);
+    void registerAction(Project project, Action<? super SourceSet> action);
 
 }

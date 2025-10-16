@@ -97,7 +97,7 @@ public abstract class AbstractGradleProject<
     }
 
 
-    public final void forSettingsFile(Action<SettingsFileType> action) {
+    public final void forSettingsFile(Action<? super SettingsFileType> action) {
         action.execute(settingsFile);
     }
 
@@ -134,7 +134,7 @@ public abstract class AbstractGradleProject<
         });
     }
 
-    public final Child newChildProject(String name, Action<Child> action) {
+    public final Child newChildProject(String name, Action<? super Child> action) {
         var child = newChildProject(name);
         action.execute(child);
         return child;

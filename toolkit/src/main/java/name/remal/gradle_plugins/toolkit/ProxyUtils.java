@@ -66,7 +66,7 @@ public abstract class ProxyUtils {
     public static <T> T toDynamicInterface(
         Object object,
         Class<T> interfaceClass,
-        Action<ProxyInvocationHandler> invocationHandlerConfigurer
+        Action<? super ProxyInvocationHandler> invocationHandlerConfigurer
     ) {
         if (!interfaceClass.isInterface()) {
             throw new IllegalArgumentException("Not an interface:" + interfaceClass);

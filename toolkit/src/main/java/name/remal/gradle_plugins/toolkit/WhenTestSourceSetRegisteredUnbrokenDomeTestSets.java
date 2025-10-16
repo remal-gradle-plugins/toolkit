@@ -16,7 +16,7 @@ import org.gradle.api.tasks.SourceSet;
 final class WhenTestSourceSetRegisteredUnbrokenDomeTestSets implements WhenTestSourceSetRegistered {
 
     @Override
-    public void registerAction(Project project, Action<SourceSet> action) {
+    public void registerAction(Project project, Action<? super SourceSet> action) {
         if (!JavaVersion.current().isJava11Compatible()) {
             return;
         }

@@ -14,7 +14,7 @@ final class WhenTestSourceSetRegisteredJvmTestSuite implements WhenTestSourceSet
 
     @Override
     @SuppressWarnings("UnstableApiUsage")
-    public void registerAction(Project project, Action<SourceSet> action) {
+    public void registerAction(Project project, Action<? super SourceSet> action) {
         project.getPluginManager().withPlugin("jvm-test-suite", __ -> {
             var testing = getExtension(project, TestingExtension.class);
             var jvmSuites = testing.getSuites().withType(JvmTestSuite.class);

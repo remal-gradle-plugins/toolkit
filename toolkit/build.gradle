@@ -31,11 +31,6 @@ dependencies {
 
 
     testImplementation project(':testkit')
-
-
-    components {
-        withModule('org.unbroken-dome.gradle-plugins:gradle-testsets-plugin', TargetJvmVersionRule) { params(8) }
-    }
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -120,30 +115,3 @@ TaskProvider testXsltWithSaxon = tasks.register('testXsltWithSaxon', Test) {
 
 tasks.named('check').configure { dependsOn(testXsltWithSaxon) }
 tasks.matching { it.name == 'allTests' }.configureEach { dependsOn(testXsltWithSaxon) }
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-@CacheableRule
-abstract class TargetJvmVersionRule implements ComponentMetadataRule {
-
-    final Integer jvmVersion
-
-    @Inject
-    TargetJvmVersionRule(Integer jvmVersion) {
-        this.jvmVersion = jvmVersion
-    }
-
-    void execute(ComponentMetadataContext context) {
-        context.details.allVariants {
-            attributes {
-                attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, jvmVersion)
-            }
-        }
-    }
-
-    @Override
-    String toString() {
-        return "${getClass().simpleName}[$jvmVersion]"
-    }
-
-}

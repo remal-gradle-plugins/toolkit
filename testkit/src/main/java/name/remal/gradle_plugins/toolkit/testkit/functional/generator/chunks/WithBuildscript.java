@@ -7,7 +7,7 @@ public interface WithBuildscript<Block extends JavaLikeContent<Block>> {
 
     Block getBuildscript();
 
-    default void forBuildscript(Action<Block> action) {
+    default void forBuildscript(Action<? super Block> action) {
         action.execute(getBuildscript());
     }
 
