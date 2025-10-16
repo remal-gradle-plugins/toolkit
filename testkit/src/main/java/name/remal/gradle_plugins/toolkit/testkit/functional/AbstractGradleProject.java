@@ -53,6 +53,7 @@ import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
+import org.gradle.testkit.runner.UnexpectedBuildResultException;
 import org.gradle.util.GradleVersion;
 import org.jetbrains.annotations.Unmodifiable;
 import org.jspecify.annotations.Nullable;
@@ -339,7 +340,7 @@ public abstract class AbstractGradleProject<
     }
 
     @SneakyThrows
-    @SuppressWarnings({"java:S106", "java:S3776", "java:S2583", "ConstantValue"})
+    @SuppressWarnings({"java:S106", "java:S3776", "java:S2583", "java:S6541"})
     private BuildResult build(String[] arguments, boolean isExpectingSuccess) {
         if (isExpectingSuccess) {
             logger.lifecycle("Building (expecting success)...");
@@ -370,7 +371,7 @@ public abstract class AbstractGradleProject<
 
 
         File jacocoProjectDir = null;
-        if (withJacoco && withConfigurationCache && isExpectingSuccess) {
+        if (withJacoco && withConfigurationCache) {
             jacocoProjectDir = new File(
                 projectDir.getParentFile(),
                 projectDir.getName() + ".jacoco"
@@ -419,10 +420,18 @@ public abstract class AbstractGradleProject<
                 + " (see https://github.com/gradle/gradle/issues/25979)...\n");
             var jacocoRunner = createGradleRunner(jacocoProjectDir, false, arguments);
             injectJacocoArgs(jacocoRunner);
-            if (isExpectingSuccess) {
-                jacocoRunner.build();
-            } else {
-                jacocoRunner.buildAndFail();
+            try {
+                if (isExpectingSuccess) {
+                    jacocoRunner.build();
+                } else {
+                    jacocoRunner.buildAndFail();
+                }
+            } catch (UnexpectedBuildResultException exception) {
+                if (isExpectingSuccess) {
+                    throw exception;
+                } else {
+                    // do nothing, because the build could fail due to Configuration Cache problems
+                }
             }
         }
 
