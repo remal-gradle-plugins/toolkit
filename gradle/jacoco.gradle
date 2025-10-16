@@ -253,6 +253,7 @@ abstract class DisplayTotalCodeCoverage extends DefaultTask {
     {
         group = 'verification'
         description = 'Displays the total code coverage percentage from the Jacoco XML report'
+        onlyIf { xmlReportFile.get().asFile.exists() }
     }
 
     @Console
@@ -260,6 +261,16 @@ abstract class DisplayTotalCodeCoverage extends DefaultTask {
 
     @TaskAction
     void execute() {
+        File xmlReportFile = this.xmlReportFile.get().asFile
+        double coverage = parseLineCoverage(xmlReportFile)
+        logger.quiet(String.format('Total code coverage: %.2f%% lines', coverage * 100.0))
+    }
+
+    private static double parseLineCoverage(File xmlReportFile) {
+        if (!xmlReportFile.exists()) {
+            return 0.0
+        }
+
         Class XmlParser = Class.forName('groovy.xml.XmlParser')
         def xmlParser = XmlParser.getConstructor(Boolean.TYPE, Boolean.TYPE, Boolean.TYPE).newInstance(false, false, true)
         Closure setFeatureQuietly = { String feature, Object value ->
@@ -279,13 +290,12 @@ abstract class DisplayTotalCodeCoverage extends DefaultTask {
             long missed = (counterNode['@missed'] ?: '0').toString().toLong()
             long covered = (counterNode['@covered'] ?: '0').toString().toLong()
             long total = missed + covered
-            double coverage = ((double) covered) / total
             if ('LINE'.equalsIgnoreCase(type)) {
-                logger.quiet(String.format('Total code coverage: %.2f%% lines', coverage * 100.0))
+                return ((double) covered) / total
             }
         }
+
+        return 0.0
     }
 
 }
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
