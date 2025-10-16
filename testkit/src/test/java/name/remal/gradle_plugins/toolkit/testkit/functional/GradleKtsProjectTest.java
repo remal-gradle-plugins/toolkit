@@ -31,7 +31,10 @@ class GradleKtsProjectTest extends GradleProjectTestBase<GradleKtsProject> {
             build.line("deprecatedFun()");
         });
 
-        project.assertBuildFails("help");
+        var buildResult = project.assertBuildFails("help");
+
+        assertThat(normalizeString(buildResult.getOutput()))
+            .contains("'fun deprecatedFun(): Unit' is deprecated");
     }
 
     @Test
@@ -60,9 +63,8 @@ class GradleKtsProjectTest extends GradleProjectTestBase<GradleKtsProject> {
             prepareSimpleConfigurationCacheFailingScenario();
 
             var buildResult = project.assertBuildFails("help");
-            var normalizedOutput = normalizeString(buildResult.getOutput());
 
-            assertThat(normalizedOutput)
+            assertThat(normalizeString(buildResult.getOutput()))
                 .contains("registration of listener on 'Gradle.addBuildListener' is unsupported");
         }
 
@@ -128,9 +130,8 @@ class GradleKtsProjectTest extends GradleProjectTestBase<GradleKtsProject> {
             });
 
             var buildResult = project.assertBuildFails("failing");
-            var normalizedOutput = normalizeString(buildResult.getOutput());
 
-            assertThat(normalizedOutput)
+            assertThat(normalizeString(buildResult.getOutput()))
                 .contains("The value cannot be decoded properly with 'JavaObjectSerializationCodec'");
         }
 
@@ -148,9 +149,8 @@ class GradleKtsProjectTest extends GradleProjectTestBase<GradleKtsProject> {
             });
 
             var buildResult = project.assertBuildFails("help");
-            var normalizedOutput = normalizeString(buildResult.getOutput());
 
-            assertThat(normalizedOutput)
+            assertThat(normalizeString(buildResult.getOutput()))
                 .contains("cannot access 'Project.configurations' functionality on another project");
         }
 
