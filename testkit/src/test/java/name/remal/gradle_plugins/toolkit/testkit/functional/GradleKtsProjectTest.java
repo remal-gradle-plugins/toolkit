@@ -34,7 +34,11 @@ class GradleKtsProjectTest extends GradleProjectTestBase<GradleKtsProject> {
         var buildResult = project.assertBuildFails("help");
 
         assertThat(normalizeString(buildResult.getOutput()))
-            .contains("'fun deprecatedFun(): Unit' is deprecated");
+            .matches(
+                "[\\s\\S]*\\b"
+                    + "deprecatedFun\\(\\): Unit' is deprecated"
+                    + "\\b[\\s\\S]*"
+            );
     }
 
     @Test
