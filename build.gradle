@@ -117,6 +117,14 @@ includedBuildScripts.forEach { apply from: it }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+Collection<Dependency> snapshotPluginDependencies = project.rootBuildscriptPluginDependencies.findAll { it.version.endsWith('-SNAPSHOT') }
+if (!snapshotPluginDependencies.isEmpty()) {
+    apply plugin: 'java'
+    snapshotPluginDependencies.forEach { dependencies.add('compileOnly', it) }
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 allprojects {
     pluginManager.withPlugin('java') {
         dependencies {
