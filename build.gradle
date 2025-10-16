@@ -29,7 +29,7 @@ buildscript {
             'name.remal.gradle-plugins.test-source-sets:test-source-sets:5.0.3',
             'name.remal.gradle-plugins.sonarlint:sonarlint:7.0.0-rc-2',
             'name.remal.gradle-plugins.build-time-constants:build-time-constants:2.0.2',
-            'name.remal.gradle-plugins.classes-relocation:classes-relocation:2.0.1',
+            'name.remal.gradle-plugins.classes-relocation:classes-relocation:2.1.4',
             'name.remal.gradle-plugins.generate-sources:generate-sources:2.0.2',
             'name.remal.gradle-plugins.idea-settings:idea-settings:4.0.5',
             'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.3',
