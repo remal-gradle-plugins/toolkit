@@ -286,12 +286,16 @@ abstract class DisplayTotalCodeCoverage extends DefaultTask {
         setFeatureQuietly('http://javax.xml.XMLConstants/feature/secure-processing', true)
 
         Node reportNode = xmlParser.parse(xmlReportFile)
-        reportNode.counter?.forEach { Node counterNode ->
+        for (Node counterNode : reportNode.counter ?: []) {
             String type = counterNode['@type']
-            long missed = (counterNode['@missed'] ?: '0').toString().toLong()
-            long covered = (counterNode['@covered'] ?: '0').toString().toLong()
+            if (!'LINE'.equalsIgnoreCase(type)) {
+                continue
+            }
+
+            long missed = counterNode['@missed']?.toString()?.toLong() ?: 0L
+            long covered = counterNode['@covered']?.toString()?.toLong() ?: 0L
             long total = missed + covered
-            if (total > 0 && 'LINE'.equalsIgnoreCase(type)) {
+            if (total > 0) {
                 return ((double) covered) / total
             }
         }
