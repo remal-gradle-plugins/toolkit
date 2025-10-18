@@ -284,7 +284,7 @@ abstract class DisplayTotalCodeCoverage extends DefaultTask {
         setFeatureQuietly('http://apache.org/xml/features/nonvalidating/load-external-dtd', false)
         setFeatureQuietly('http://javax.xml.XMLConstants/feature/secure-processing', true)
 
-        Node reportNode = xmlParser.parse(xmlReportFile.get().asFile)
+        Node reportNode = xmlParser.parse(xmlReportFile)
         reportNode.counter?.forEach { Node counterNode ->
             String type = counterNode['@type']
             long missed = (counterNode['@missed'] ?: '0').toString().toLong()
