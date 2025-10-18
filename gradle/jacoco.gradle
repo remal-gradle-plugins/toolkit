@@ -225,6 +225,7 @@ abstract class MergedJacocoReport extends JacocoReport {}
 tasks.withType(MergedJacocoReport).configureEach { MergedJacocoReport task ->
     task.group = 'verification'
     task.reports.configureEach { ConfigurableReport report ->
+        report.required = true
         DirectoryProperty reportsDir = project.jacoco.reportsDirectory
         if (report.getOutputType() == OutputType.DIRECTORY) {
             report.outputLocation.convention(reportsDir.dir("${task.name}/${report.name}"))
@@ -290,7 +291,7 @@ abstract class DisplayTotalCodeCoverage extends DefaultTask {
             long missed = (counterNode['@missed'] ?: '0').toString().toLong()
             long covered = (counterNode['@covered'] ?: '0').toString().toLong()
             long total = missed + covered
-            if ('LINE'.equalsIgnoreCase(type)) {
+            if (total > 0 && 'LINE'.equalsIgnoreCase(type)) {
                 return ((double) covered) / total
             }
         }
