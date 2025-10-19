@@ -88,7 +88,10 @@ abstract class CiSystemDetectors {
         @Nullable
         public CiSystem detect() {
             if (isConfigurationCacheSafeNotEmptyEnv("TEAMCITY_VERSION")) {
-                // no way to determine build dir
+                return ImmutableCiSystem.builder()
+                    .name("Teamcity")
+                    .buildDir((File) null) // no way to determine build dir
+                    .build();
             }
             return null;
         }
@@ -164,8 +167,11 @@ abstract class CiSystemDetectors {
         @Override
         @Nullable
         public CiSystem detect() {
-            if (isConfigurationCacheSafeNotEmptyEnv("HEROKU_TEST_RUN_BRANCH")) {
-                // no way to determine build dir
+            if (isConfigurationCacheSafeNotEmptyEnv("HEROKU_TEST_RUN_ID")) {
+                return ImmutableCiSystem.builder()
+                    .name("Heroku")
+                    .buildDir((File) null) // no way to determine build dir
+                    .build();
             }
             return null;
         }

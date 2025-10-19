@@ -2,6 +2,7 @@ package name.remal.gradle_plugins.toolkit;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.Optional;
 import org.immutables.gson.Gson;
 import org.immutables.value.Value;
 
@@ -11,6 +12,6 @@ public interface CiSystem extends Serializable {
 
     String getName();
 
-    File getBuildDir();
+    Optional<File> getBuildDir();
 
 }
