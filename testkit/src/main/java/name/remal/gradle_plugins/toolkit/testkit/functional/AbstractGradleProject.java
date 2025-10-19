@@ -115,9 +115,10 @@ public abstract class AbstractGradleProject<
         putGradlePropertyIfAbsent("org.gradle.kotlin.dsl.allWarningsAsErrors", true);
         putGradlePropertyIfAbsent("org.gradle.dependency.verification", "strict");
         putGradlePropertyIfAbsent("org.gradle.dependency.verification.console", "verbose");
-        putGradlePropertyIfAbsent("org.gradle.internal.launcher.welcomeMessageEnabled", false);
 
         putGradlePropertyIfAbsent("systemProp.maven.repo.local", mavenLocalRepoDir);
+
+        putGradlePropertyIfAbsent("systemProp.org.gradle.internal.launcher.welcomeMessageEnabled", false);
 
 
         super.writeToDisk();
