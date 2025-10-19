@@ -200,7 +200,7 @@ abstract class CiSystemDetectors {
 
     /**
      * See
-     * <a href="https://docs.gitlab.com/ce/ci/variables/predefined_variables.html">https://docs.gitlab.com/ce/ci/variables/predefined_variables.html</a>.
+     * <a href="https://docs.gitlab.com/ci/variables/predefined_variables/">https://docs.gitlab.com/ci/variables/predefined_variables/</a>.
      */
     @AutoService(CiSystemDetector.class)
     public static class GitLabCi implements CiSystemDetector {
