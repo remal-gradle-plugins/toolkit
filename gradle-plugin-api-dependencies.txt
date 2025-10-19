@@ -4,7 +4,7 @@
 com.gradle.publish:plugin-publish-plugin:2.0.0
 gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.3
 io.github.gradle-nexus:publish-plugin:2.0.0
-name.remal.gradle-plugins.build-time-constants:build-time-constants:2.0.2
+name.remal.gradle-plugins.build-time-constants:build-time-constants:2.0.3
 name.remal.gradle-plugins.classes-relocation:classes-relocation:2.1.4
 name.remal.gradle-plugins.generate-sources:generate-sources:2.0.2
 name.remal.gradle-plugins.idea-settings:idea-settings:4.0.5
@@ -64,13 +64,12 @@ zzzz-classes-relying-on-external-dependency:name.remal.gradle_plugins.toolkit.Ko
 zzzz-classes-relying-on-external-dependency:name.remal.gradle_plugins.toolkit.WhenTestSourceSetRegisteredRemalTestSourceSets:f7cc5cf7f5019e207e46a729515008a1951a91a432548ee831a079afc1f9986b
 zzzz-classes-relying-on-external-dependency:name.remal.gradle_plugins.toolkit.WhenTestSourceSetRegisteredSofteqITest:1730895aa53b0a759c067265ca7427a2930da9597703f5200debc1ed948b775d
 zzzz-classes-relying-on-external-dependency:name.remal.gradle_plugins.toolkit.WhenTestSourceSetRegisteredUnbrokenDomeTestSets:6efcd70ed49c31bd2c640577e40330cb76c7b4e991e765035318084c7254a360
-zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.build_time_constants.BuildTimeConstantsPlugin:dd1cc0b85416e30d80d61e77492cf3b6dbd41a4d74922767708cc9f198ad4dc0
+zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.build_time_constants.BuildTimeConstantsPlugin:8a1c20a8949922131dd748591469246135bb7a69825061193d374887fb9bc066
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.build_time_constants.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils$1:c128f7bb0ef81575ff88e793c4522a61ea263bf3406225dc05ed95e0818352d8
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.build_time_constants.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils$IfDebugEnabled:f44bb96cd7411b621944eb9be72f2a5edccd18bcde3becc133177829c1fbed34
-zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.build_time_constants.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils:91f0b007ac0b62f41c305d6dda0c1fabf496c336d922fee2bae7f550db32c61c
-zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.build_time_constants.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils$1$1:30fe16ad3866e37a19e4fac976a55a7c23a401a0b39dcc69a263d898ae2c6690
-zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.build_time_constants.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils$1:2e195e640edad2e9fba2a034c998139e5f3ce714cb66268f8abb1b64ccd04ab4
-zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.build_time_constants.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils:fa89dad085b6eb08654d1807580db526da33ce3dd18e07182164064c4549fe75
+zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.build_time_constants.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils:fd0e1abff4517b55da3966583b5e2a8b3f69283f8a6dacbebba6dd1181fa9982
+zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.build_time_constants.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils$1:e00fd8482b3fff5f793287d7811e1027346eee4beffc2c92a0d2fbd6576b31c9
+zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.build_time_constants.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils:f8d7b69a275c795030034689b83fca2e719e69d449783d810886c5da2909ed07
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.classes_relocation.ClassesRelocationPlugin:f0ceaf944b9386c404e8d099890ebf0b831e7f022bcb40eb474011e59317d7e5
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.classes_relocation.internal._relocated.name.remal.gradle_plugins.toolkit.BuildFeaturesUtils:4a74e633b3f91331099748bf4b91bcee66567aed1b120cf925b72f91d180becd
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.classes_relocation.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils$1:c8a0be95c61d6ad72dbe3b23fb6b18d0d02a164bcd8f16447e70316a4b38c0ed
