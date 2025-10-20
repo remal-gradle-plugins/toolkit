@@ -1,6 +1,7 @@
 package name.remal.gradle_plugins.toolkit;
 
 import static lombok.AccessLevel.PRIVATE;
+import static name.remal.gradle_plugins.toolkit.CiUtils.getCiSystem;
 import static name.remal.gradle_plugins.toolkit.PathUtils.normalizePath;
 import static name.remal.gradle_plugins.toolkit.ProjectUtils.getTopLevelDirOf;
 import static name.remal.gradle_plugins.toolkit.git.GitUtils.findGitRepositoryRootFor;
@@ -22,6 +23,13 @@ public abstract class LayoutUtils {
         var repositoryRoot = findGitRepositoryRootFor(topLevelDir);
         if (repositoryRoot != null) {
             return repositoryRoot;
+        }
+
+        var ciBuildDir = getCiSystem()
+            .flatMap(CiSystem::getBuildDir)
+            .orElse(null);
+        if (ciBuildDir != null) {
+            return ciBuildDir.toPath();
         }
 
         return normalizePath(topLevelDir);

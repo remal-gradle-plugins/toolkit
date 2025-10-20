@@ -7,7 +7,6 @@ import static java.nio.file.Files.newInputStream;
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNullElse;
 import static lombok.AccessLevel.PRIVATE;
-import static name.remal.gradle_plugins.toolkit.CiUtils.getCiSystem;
 import static name.remal.gradle_plugins.toolkit.PathUtils.normalizePath;
 import static name.remal.gradle_plugins.toolkit.git.GitBooleanAttribute.newGitBooleanAttributeBuilder;
 import static name.remal.gradle_plugins.toolkit.git.GitStringAttribute.newGitStringAttributeBuilder;
@@ -17,6 +16,7 @@ import static org.eclipse.jgit.attributes.Attribute.State.UNSET;
 import static org.eclipse.jgit.lib.Constants.DOT_GIT;
 import static org.eclipse.jgit.lib.Constants.DOT_GIT_ATTRIBUTES;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,7 +25,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import name.remal.gradle_plugins.toolkit.CiSystem;
 import org.eclipse.jgit.attributes.AttributesNode;
 import org.eclipse.jgit.attributes.AttributesRule;
 import org.jetbrains.annotations.Unmodifiable;
@@ -48,15 +47,15 @@ public abstract class GitUtils {
             }
         }
 
-        var ciBuildDir = getCiSystem()
-            .flatMap(CiSystem::getBuildDir)
-            .orElse(null);
-        if (ciBuildDir != null) {
-            return ciBuildDir.toPath();
-        }
-
         return null;
     }
+
+    @Nullable
+    public static File findGitRepositoryRootFor(File file) {
+        var path = findGitRepositoryRootFor(file.toPath());
+        return path != null ? path.toFile() : null;
+    }
+
 
     @Unmodifiable
     @SneakyThrows
@@ -118,6 +117,10 @@ public abstract class GitUtils {
         return emptyList();
     }
 
+    public static List<GitAttribute> getGitAttributesFor(File repositoryRoot, String relativePath) {
+        return getGitAttributesFor(repositoryRoot.toPath(), relativePath);
+    }
+
     private static List<AttributesRule> parseGitAttributesRules(Path gitAttributesFile) {
         return GIT_ATTRIBUTES_RULES_CACHE.computeIfAbsent(gitAttributesFile, GitUtils::parseGitAttributesRulesImpl);
     }
@@ -145,4 +148,7 @@ public abstract class GitUtils {
         return isDirectory(dotGit) && !isRegularFile(notRootRepoMarker);
     }
 
+    public static boolean isGitRepositoryRoot(File file) {
+        return isGitRepositoryRoot(file.toPath());
+    }
 }
