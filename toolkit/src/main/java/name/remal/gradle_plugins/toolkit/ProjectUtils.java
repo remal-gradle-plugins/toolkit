@@ -18,6 +18,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.jspecify.annotations.Nullable;
 
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ProjectUtils {
@@ -26,10 +27,9 @@ public abstract class ProjectUtils {
         var rootProject = project.getRootProject();
         var projectDir = normalizePath(rootProject.getProjectDir().toPath());
         if (isBuildSrcProject(project)) {
-            return requireNonNull(projectDir.getParent());
-        } else {
-            return projectDir;
+            projectDir = requireNonNull(projectDir.getParent());
         }
+        return projectDir;
     }
 
     public static boolean isBuildSrcProject(Project project) {
@@ -67,7 +67,7 @@ public abstract class ProjectUtils {
         Function<File, FileTree> zipTreeFactory,
         Iterable<File> files
     ) {
-        AtomicReference<FileTree> resultRef = new AtomicReference<>();
+        var resultRef = new AtomicReference<@Nullable FileTree>();
         Consumer<FileTree> addToResult = fileTree -> {
             FileTree result = resultRef.get();
             if (result == null) {

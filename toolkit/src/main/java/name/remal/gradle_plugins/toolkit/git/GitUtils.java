@@ -7,7 +7,7 @@ import static java.nio.file.Files.newInputStream;
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNullElse;
 import static lombok.AccessLevel.PRIVATE;
-import static name.remal.gradle_plugins.toolkit.ContinuousIntegrationUtils.isRunningOnCi;
+import static name.remal.gradle_plugins.toolkit.CiUtils.getCiSystem;
 import static name.remal.gradle_plugins.toolkit.PathUtils.normalizePath;
 import static name.remal.gradle_plugins.toolkit.git.GitBooleanAttribute.newGitBooleanAttributeBuilder;
 import static name.remal.gradle_plugins.toolkit.git.GitStringAttribute.newGitStringAttributeBuilder;
@@ -18,17 +18,14 @@ import static org.eclipse.jgit.lib.Constants.DOT_GIT;
 import static org.eclipse.jgit.lib.Constants.DOT_GIT_ATTRIBUTES;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
-import name.remal.gradle_plugins.toolkit.ObjectUtils;
-import name.remal.gradle_plugins.toolkit.PathUtils;
+import name.remal.gradle_plugins.toolkit.CiSystem;
 import org.eclipse.jgit.attributes.AttributesNode;
 import org.eclipse.jgit.attributes.AttributesRule;
 import org.jetbrains.annotations.Unmodifiable;
@@ -51,19 +48,11 @@ public abstract class GitUtils {
             }
         }
 
-        if (isRunningOnCi()) {
-            var ciProjectPath = Stream.of(
-                    "CI_PROJECT_DIR",
-                    "GITHUB_WORKSPACE"
-                )
-                .map(System::getenv)
-                .filter(ObjectUtils::isNotEmpty)
-                .map(Paths::get)
-                .map(PathUtils::normalizePath)
-                .filter(path::startsWith)
-                .findFirst()
-                .orElse(null);
-            return ciProjectPath;
+        var ciBuildDir = getCiSystem()
+            .flatMap(CiSystem::getBuildDir)
+            .orElse(null);
+        if (ciBuildDir != null) {
+            return ciBuildDir.toPath();
         }
 
         return null;
