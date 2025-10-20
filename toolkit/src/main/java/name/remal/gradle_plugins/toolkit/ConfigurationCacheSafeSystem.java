@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
 
 @NoArgsConstructor(access = PRIVATE)
-abstract class ConfigurationCacheSafeSystem {
+public abstract class ConfigurationCacheSafeSystem {
 
     private static final Method GETENV;
 
