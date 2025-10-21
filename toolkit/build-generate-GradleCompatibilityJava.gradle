@@ -4,6 +4,8 @@ import java.util.regex.Pattern
 import java.util.stream.Stream
 import org.gradle.util.GradleVersion
 
+class ThisScriptLocation {}
+
 @Immutable(copyWith = true, knownImmutableClasses = [
     GradleVersion
 ])
@@ -27,6 +29,8 @@ class GradleVersionRange implements Comparable<GradleVersionRange> {
 }
 
 generateSources.forMainSourceSet.java {
+    inputs.dir(getClassLocationFile(ThisScriptLocation)).withNormalizer(ClasspathNormalizer).optional()
+
     String documentationUrl = 'https://docs.gradle.org/current/userguide/compatibility.html'
     outputs.file(project.getCacheFileForDownloadedUrl(documentationUrl)).optional()
 

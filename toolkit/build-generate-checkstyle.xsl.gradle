@@ -1,4 +1,8 @@
+class ThisScriptLocation {}
+
 generateSources.forMainSourceSet.resources {
+    inputs.dir(getClassLocationFile(ThisScriptLocation)).withNormalizer(ClasspathNormalizer).optional()
+
     withInputClasspathFiles('classpathCheckstyle', Checkstyle)
 
     textFile("${project.calculateBaseJavaPackage().replace('.', '/')}/issues/checkstyle.xsl") {

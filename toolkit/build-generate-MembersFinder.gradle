@@ -1,6 +1,10 @@
 int typedMethodMaxParamsCount = 15
 
+class ThisScriptLocation {}
+
 generateSources.forMainSourceSet.java {
+    inputs.dir(getClassLocationFile(ThisScriptLocation)).withNormalizer(ClasspathNormalizer).optional()
+
     String baseJavaPackage = project.calculateBaseJavaPackage()
 
     classFile("${baseJavaPackage}.reflection", 'MembersFinder') {

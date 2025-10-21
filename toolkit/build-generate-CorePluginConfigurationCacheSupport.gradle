@@ -3,6 +3,8 @@ import org.gradle.util.GradleVersion
 class ResourceLoader {}
 
 generateSources.forMainSourceSet.java {
+    inputs.dir(getClassLocationFile(ResourceLoader)).withNormalizer(ClasspathNormalizer).optional()
+
     ListProperty<GradleVersion> gradleVersions = project.objects.listProperty(GradleVersion).value(provider {
         project.getMinorGradleVersions()
             .findAll { it >= GradleVersion.version('6.6') }

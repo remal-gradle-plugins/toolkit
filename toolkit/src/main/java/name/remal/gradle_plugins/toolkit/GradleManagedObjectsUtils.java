@@ -17,6 +17,7 @@ import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.isPri
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.isRecord;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.makeAccessible;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.streamClassHierarchyWithoutInterfaces;
+import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.unwrapGeneratedSubclass;
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.unwrapPrimitiveType;
 
 import java.lang.reflect.Method;
@@ -60,8 +61,9 @@ public abstract class GradleManagedObjectsUtils {
         SOURCE source,
         TARGET target
     ) {
-        var sourceType = source.getClass();
-        var targetType = target.getClass();
+        var sourceType = unwrapGeneratedSubclass(source.getClass());
+        var targetType = unwrapGeneratedSubclass(target.getClass());
+
         Class parentType = null;
         if (sourceType.isAssignableFrom(targetType)) {
             parentType = sourceType;
@@ -126,11 +128,7 @@ public abstract class GradleManagedObjectsUtils {
             ));
         }
 
-        copyManagedProperties(
-            parentType,
-            source,
-            target
-        );
+        copyManagedProperties(parentType, source, target);
     }
 
     @SneakyThrows
@@ -140,6 +138,8 @@ public abstract class GradleManagedObjectsUtils {
         SOURCE source,
         TARGET target
     ) {
+        parentType = unwrapGeneratedSubclass(parentType);
+
         if (!parentType.isInstance(source)) {
             throw new IllegalArgumentException(format("%s is not instance of %s", source, parentType));
         }
@@ -256,6 +256,8 @@ public abstract class GradleManagedObjectsUtils {
      * <a href="https://docs.gradle.org/current/userguide/properties_providers.html#managed_types">https://docs.gradle.org/current/userguide/properties_providers.html#managed_types</a>.
      */
     public static boolean isGradleManagedType(Class<?> clazz) {
+        clazz = unwrapGeneratedSubclass(clazz);
+
         if (isPrivate(clazz)
             || isFinal(clazz)
             || unwrapPrimitiveType(clazz).isPrimitive()

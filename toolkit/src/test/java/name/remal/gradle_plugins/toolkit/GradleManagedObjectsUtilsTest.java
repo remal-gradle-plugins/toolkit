@@ -77,6 +77,7 @@ class GradleManagedObjectsUtilsTest {
 
         var target = project.getObjects().newInstance(ManagedObject.class);
         GradleManagedObjectsUtils.copyManagedProperties(source, target);
+
         assertEquals(source.getStringProperty().get(), target.getStringProperty().get());
         assertEquals(source.getRegularFileProperty().get(), target.getRegularFileProperty().get());
         assertEquals(source.getDirectoryProperty().get(), target.getDirectoryProperty().get());

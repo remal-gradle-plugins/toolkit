@@ -25,7 +25,11 @@ buildscript {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+class ThisScriptLocation {}
+
 generateSources.forMainSourceSet.java {
+    inputs.dir(getClassLocationFile(ThisScriptLocation)).withNormalizer(ClasspathNormalizer).optional()
+
     List<Class<?>> lambdaClasses = [
         Class.forName('org.gradle.api.Action'),
         Class.forName('java.lang.Runnable'),
