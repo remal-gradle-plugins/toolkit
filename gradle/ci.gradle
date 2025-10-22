@@ -115,6 +115,10 @@ allprojects {
         if (property('disable-verification-except-tests')?.toString()?.toBoolean()) {
             tasks.matching { isVerificationTask(it) && !(it instanceof AbstractTestTask) }.configureEach { disableTask(it) }
         }
+
+        if (property('rerun-tests')?.toString()?.toBoolean()) {
+            tasks.matching { it instanceof AbstractTestTask }.configureEach { outputs.upToDateWhen { false } }
+        }
     }
 
 }

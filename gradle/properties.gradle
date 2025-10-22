@@ -151,6 +151,8 @@ allprojects {
     project.ext['disable-verification'] = getCiProperty('disable-verification', 'false')
     project.ext['disable-verification-except-tests'] = getCiProperty('disable-verification-except-tests', 'false')
 
+    project.ext['rerun-tests'] = getCiProperty('rerun-tests', 'false')
+
     project.ext['repository-full-name'] = getCiProperty('repository-full-name', { getRepositoryFullNameFromGitRemote() ?: '' }, true)
     project.ext['repository-name'] = getCiProperty('repository-name', { project.ext['repository-full-name'].replaceFirst('^.*/', '') }, true)
     project.ext['repository-api-url'] = getCiProperty('repository-api-url', { project.ext['github-api-url'].replaceFirst('/+$', '') + '/repos/' + project.ext['repository-full-name'].replaceFirst('^/+', '') }, true)
