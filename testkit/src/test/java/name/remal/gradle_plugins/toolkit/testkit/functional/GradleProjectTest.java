@@ -2,6 +2,8 @@ package name.remal.gradle_plugins.toolkit.testkit.functional;
 
 import static java.nio.file.Files.writeString;
 import static name.remal.gradle_plugins.toolkit.ArchiveUtils.newEmptyZipArchive;
+import static name.remal.gradle_plugins.toolkit.InTestFlags.IS_IN_FUNCTIONAL_TEST_ENV_VAR;
+import static name.remal.gradle_plugins.toolkit.InTestFlags.IS_IN_TEST_ENV_VAR;
 import static name.remal.gradle_plugins.toolkit.PathUtils.createParentDirectories;
 import static name.remal.gradle_plugins.toolkit.StringUtils.normalizeString;
 import static org.apache.commons.lang3.StringUtils.join;
@@ -18,6 +20,38 @@ class GradleProjectTest extends GradleProjectTestBase<GradleProject> {
         super(project);
     }
 
+
+    @Nested
+    class EnvironmentVariables {
+
+        @Test
+        void defaultEnvironmentVariables() {
+            project.withoutConfigurationCache();
+
+            check("System.getenv('" + IS_IN_TEST_ENV_VAR + "') == 'true'");
+            check("System.getenv('" + IS_IN_FUNCTIONAL_TEST_ENV_VAR + "') == 'true'");
+
+            // to make sure `additionalEnvironmentVariables` test works correctly:
+            check("System.getenv('_TEST_ENV_VAR_') == null");
+
+            project.assertBuildSuccessfully("help");
+        }
+
+        @Test
+        void additionalEnvironmentVariables() {
+            project.withoutConfigurationCache();
+
+            project.putEnvironmentVariable("_TEST_ENV_VAR_", true);
+
+            check("System.getenv('" + IS_IN_TEST_ENV_VAR + "') == 'true'");
+            check("System.getenv('" + IS_IN_FUNCTIONAL_TEST_ENV_VAR + "') == 'true'");
+
+            check("System.getenv('_TEST_ENV_VAR_') == 'true'");
+
+            project.assertBuildSuccessfully("help");
+        }
+
+    }
 
     @Test
     void baseRunnerProperties() {

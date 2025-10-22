@@ -20,13 +20,13 @@ import static name.remal.gradle_plugins.toolkit.InTestFlags.IS_IN_TEST_ENV_VAR;
 import static name.remal.gradle_plugins.toolkit.JacocoJvmArg.currentJvmArgsHaveJacocoJvmArg;
 import static name.remal.gradle_plugins.toolkit.JacocoJvmArg.parseJacocoJvmArgFromCurrentJvmArgs;
 import static name.remal.gradle_plugins.toolkit.ObjectUtils.isEmpty;
+import static name.remal.gradle_plugins.toolkit.ObjectUtils.unwrapProviders;
 import static name.remal.gradle_plugins.toolkit.PathUtils.copyRecursively;
 import static name.remal.gradle_plugins.toolkit.PathUtils.deleteRecursively;
 import static name.remal.gradle_plugins.toolkit.StringUtils.trimRightWith;
 import static name.remal.gradle_plugins.toolkit.testkit.functional.GradleRunnerUtils.withJvmArguments;
 
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableMap;
 import com.google.errorprone.annotations.CheckReturnValue;
 import com.google.errorprone.annotations.ForOverride;
 import com.google.errorprone.annotations.OverridingMethodsMustInvokeSuper;
@@ -298,6 +298,49 @@ public abstract class AbstractGradleProject<
         SuppressedMessage suppressedMessage
     ) {
         suppressedOptimizationsDisabledWarnings.add(suppressedMessage);
+    }
+
+
+    protected final Map<String, @Nullable Object> environmentVariables = new LinkedHashMap<>();
+
+    public final void cleanEnvironmentVariables() {
+        this.environmentVariables.clear();
+    }
+
+    @SuppressWarnings("java:S2259")
+    public final void putEnvironmentVariables(Map<String, @Nullable Object> environmentVariables) {
+        environmentVariables.forEach(this::putGradleProperty);
+    }
+
+    public final void putEnvironmentVariable(String key, @Nullable Object value) {
+        if (value != null) {
+            environmentVariables.put(key, value);
+        } else {
+            environmentVariables.remove(key);
+        }
+    }
+
+    public final void putEnvironmentVariableIfAbsent(String key, @Nullable Object value) {
+        if (value != null && environmentVariables.get(key) == null) {
+            environmentVariables.put(key, value);
+        }
+    }
+
+    public final void inheritEnvironmentVariable(String key) {
+        putEnvironmentVariable(key, System.getenv(key));
+    }
+
+    public final void inheritEnvironmentVariables(Iterable<String> keys) {
+        keys.forEach(this::inheritEnvironmentVariable);
+    }
+
+    public final void inheritEnvironmentVariables(String... keys) {
+        inheritEnvironmentVariables(List.of(keys));
+    }
+
+    @Nullable
+    public final Object getEnvironmentVariable(String key) {
+        return environmentVariables.get(key);
     }
 
 
@@ -653,10 +696,21 @@ public abstract class AbstractGradleProject<
             .withArguments(allArguments);
 
         if (IS_RUNNER_ENVIRONMENT_SUPPORTED) {
-            runner.withEnvironment(ImmutableMap.of(
-                IS_IN_TEST_ENV_VAR, "true",
-                IS_IN_FUNCTIONAL_TEST_ENV_VAR, "true"
-            ));
+            var environment = new LinkedHashMap<String, String>();
+            environment.put(IS_IN_TEST_ENV_VAR, "true");
+            environment.put(IS_IN_FUNCTIONAL_TEST_ENV_VAR, "true");
+            environmentVariables.forEach((key, value) -> {
+                var unwrappedKey = unwrapProviders(key);
+                var unwrappedValue = unwrapProviders(value);
+                if (unwrappedKey != null && unwrappedValue != null) {
+                    environment.put(unwrappedKey.toString(), unwrappedValue.toString());
+                }
+            });
+            runner.withEnvironment(environment);
+        } else if (!environmentVariables.isEmpty()) {
+            throw new UnsupportedOperationException(
+                "Setting environment variables for GradleRunner is not supported in the current Gradle version"
+            );
         }
 
         if (withPluginClasspath) {

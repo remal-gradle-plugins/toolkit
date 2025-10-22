@@ -115,9 +115,10 @@ public abstract class AbstractBaseGradleProject<
     private void writeGradlePropertiesToDisk() {
         var properties = new Properties();
         gradleProperties.forEach((key, value) -> {
-            value = unwrapProviders(value);
-            if (value != null) {
-                properties.setProperty(key, value.toString());
+            var unwrappedKey = unwrapProviders(key);
+            var unwrappedValue = unwrapProviders(value);
+            if (unwrappedKey != null && unwrappedValue != null) {
+                properties.setProperty(unwrappedKey.toString(), unwrappedValue.toString());
             }
         });
 
