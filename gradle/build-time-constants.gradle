@@ -1,3 +1,7 @@
+if (project.isBuildSrcProject) {
+    return
+}
+
 allprojects {
     pluginManager.withPlugin('java') {
         apply plugin: 'name.remal.build-time-constants'
@@ -6,12 +10,12 @@ allprojects {
     pluginManager.withPlugin('name.remal.build-time-constants') {
         buildTimeConstants {
             properties([
-                'project.group': provider { project.group?.toString() ?: '' },
-                'project.name': provider { project.name?.toString() ?: '' },
-                'project.version': provider { project.version?.toString() ?: '' },
-                'repository.html-url': provider { project.ext['repository-html-url']?.toString() ?: '' },
-                'java-runtime.min-version': provider { project.property('java-runtime.min-version')?.toString() ?: '' },
-                'gradle-api.min-version': provider { project.property('gradle-api.min-version')?.toString() ?: '' },
+                'project.group': provider { project.group?.toString() },
+                'project.name': provider { project.name?.toString() },
+                'project.version': provider { project.version?.toString() },
+                'repository.html-url': githubRepositoryInfo.repository.map { it.htmlUrl },
+                'java-runtime.min-version': provider { project.property('java-runtime.min-version')?.toString() },
+                'gradle-api.min-version': provider { project.property('gradle-api.min-version')?.toString() },
             ])
         }
     }

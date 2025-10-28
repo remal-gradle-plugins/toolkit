@@ -216,7 +216,7 @@ allprojects {
                     detector: [
                         name: tookitGroup(),
                         version: tookitVersion(),
-                        url: tookitUrl(),
+                        url: tookitUrlProperty.get(),
                     ],
                     manifests: manifests,
                     scanned: new Date(),
@@ -233,10 +233,10 @@ allprojects {
                     'POST',
                     HttpRequest.BodyPublishers.ofString(jsonContent, UTF_8)
                 )
-                if (responseJson.message) {
+                if (responseJson?.message) {
                     println responseJson.message
                 } else {
-                    println responseBodyJson
+                    println responseJson
                 }
             }
         }

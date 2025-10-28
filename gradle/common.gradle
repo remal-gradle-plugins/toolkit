@@ -3,11 +3,12 @@ import static org.gradle.language.base.plugins.LifecycleBasePlugin.VERIFICATION_
 
 import java.time.Duration
 
-allprojects {
-    // Disable cache for JAR connections:
-    new URL("jar", "", "file:test.jar!/resource.txt").openConnection().setDefaultUseCaches(false)
+// Disable cache for JAR connections:
+new URL("jar", "", "file:test.jar!/resource.txt").openConnection().setDefaultUseCaches(false)
 
+allprojects {
     apply plugin: 'name.remal.merge-resources'
+    apply plugin: 'name.remal.github-repository-info'
 
     configurations.configureEach { Configuration conf ->
         conf.resolutionStrategy.cacheDynamicVersionsFor(1, HOURS)

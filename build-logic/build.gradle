@@ -88,7 +88,7 @@ generateSources.forMainSourceSet.resources {
         [
             tookitGroup: project.tookitGroup(),
             tookitVersion: project.tookitVersion(),
-            tookitUrl: project.tookitUrl(),
+            tookitUrlProperty: project.tookitUrlProperty.get(),
         ]
     }).with { it.finalizeValueOnRead(); it }
     withInputProperty('toolkitProps', toolkitProps)
@@ -102,7 +102,7 @@ generateSources.forMainSourceSet.resources {
             content = content.replaceAll(/\$\{\s*(?:project\s*\.\s*)?(tookitGroup|tookitVersion)\s*\(\s*\)\s*\}/) { matcher ->
                 toolkitProps.get()[matcher[1]]
             }
-            content = content.replaceAll(/\b(?:project\s*\.\s*)?(tookitGroup|tookitVersion|tookitUrl)\s*\(\s*\)/) { matcher ->
+            content = content.replaceAll(/\b(?:project\s*\.\s*)?(tookitGroup|tookitVersion|tookitUrlProperty)\s*(\.\s*get\s*)?\(\s*\)/) { matcher ->
                 '\'' + toolkitProps.get()[matcher[1]] + '\''
             }
 

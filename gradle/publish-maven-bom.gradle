@@ -18,9 +18,8 @@ allprojects {
             publication.artifactId = publication.artifactId?.replaceFirst(/-root$/, '') + '-bom'
 
             publication.pom { MavenPom pom ->
-                String prevName = pom.name.get()
-                pom.name = "${prevName}: BOM"
-                pom.description = "${prevName}: Bill of Materials (BOM)"
+                pom.name = project.mavenPomName.map { "${it}: BOM" }
+                pom.description = project.mavenPomName.map { "${it}: Bill of Materials (BOM)" }
                 pom.withXml {
                     Element root = asElement()
                     Document document = root.ownerDocument

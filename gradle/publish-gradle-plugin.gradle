@@ -15,15 +15,17 @@ allprojects {
         apply plugin: 'com.gradle.plugin-publish'
 
         gradlePlugin {
-            website = property('repository-html-url')
-            vcsUrl = property('repository-html-url')
+            website = githubRepositoryInfo.repository.map { it.htmlUrl }
+            vcsUrl = website
             plugins.all { PluginDeclaration plugin ->
-                plugin.tags.addAll(
-                    property('repository-topics').toString().split(/,/)
+                plugin.description = plugin.description ?: githubRepositoryInfo.repository.map { it.description }
+
+                plugin.tags.addAll(githubRepositoryInfo.repository.map { repo ->
+                    repo.topics
                         .collect { it.trim().toLowerCase() }
                         .findAll { !it.isEmpty() }
                         .findAll { it != 'gradle' && it != 'plugin' && it != 'gradle-plugin' }
-                )
+                })
 
                 if (plugin.name.startsWith('name.remal.')) {
                     String pluginNameTag = plugin.name.substring('name.remal.'.length())
@@ -34,13 +36,11 @@ allprojects {
             }
         }
 
-        if (project.isRunningOnCi) {
-            TaskProvider validatePluginProperties = tasks.register('validatePluginProperties', ValidatePluginProperties) {
-                GradlePluginDevelopmentExtension gradlePlugin = project.gradlePlugin
-                gradlePluginDevelopment = gradlePlugin
-            }
-            tasks.named('check').configure { dependsOn(validatePluginProperties) }
+        TaskProvider validatePluginProperties = tasks.register('validatePluginProperties', ValidatePluginProperties) {
+            GradlePluginDevelopmentExtension gradlePlugin = project.gradlePlugin
+            gradlePlugins = gradlePlugin
         }
+        tasks.named('check').configure { dependsOn(validatePluginProperties) }
 
         pluginManager.withPlugin('maven-publish') {
             afterEvaluate {
@@ -90,7 +90,7 @@ allprojects {
 abstract class ValidatePluginProperties extends DefaultTask implements VerificationTask {
 
     @Internal
-    abstract Property<GradlePluginDevelopmentExtension> getGradlePluginDevelopment()
+    abstract Property<GradlePluginDevelopmentExtension> getGradlePlugins()
 
     ValidatePluginProperties() {
         outputs.upToDateWhen { false }
@@ -99,14 +99,14 @@ abstract class ValidatePluginProperties extends DefaultTask implements Verificat
 
     @TaskAction
     void execute() {
-        GradlePluginDevelopmentExtension gradlePluginDevelopment = this.gradlePluginDevelopment.get()
-        if (gradlePluginDevelopment.website.orNull?.isEmpty() != false) {
+        GradlePluginDevelopmentExtension gradlePlugins = this.gradlePlugins.get()
+        if (gradlePlugins.website.orNull?.isEmpty() != false) {
             throw new GradleException("Website can't be empty for Gradle plugins")
         }
-        if (gradlePluginDevelopment.vcsUrl.orNull?.isEmpty() != false) {
+        if (gradlePlugins.vcsUrl.orNull?.isEmpty() != false) {
             throw new GradleException("VCS URL can't be empty for Gradle plugins")
         }
-        gradlePluginDevelopment.plugins.forEach { plugin ->
+        gradlePlugins.plugins.forEach { plugin ->
             if (plugin.id?.isEmpty() != false) {
                 throw new GradleException("Gradle plugin `${plugin.id}` has empty `id`")
             }

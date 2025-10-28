@@ -10,6 +10,17 @@ allprojects {
     pluginManager.withPlugin('maven-publish') {
         apply plugin: 'java'
 
+        String subProjectName = project.path.substring(1).replace(':', ': ')
+        Provider<String> mavenPomName = project.ext.mavenPomName = githubRepositoryInfo.repository.map { repo ->
+            String name = repo.name
+            String owner = repo.owner.login
+            String result = "$owner: $name"
+            if (!subProjectName.isEmpty()) {
+                result = "$result: $subProjectName"
+            }
+            return result
+        }
+
         publishing.publications.withType(MavenPublication).configureEach {
             versionMapping {
                 usage('java-api') { fromResolutionOf('compileClasspath') }
@@ -19,26 +30,16 @@ allprojects {
             moduleDescriptorGenerator = null
 
             pom {
-                String displayName = property('repository-name')
-                String repoOwner = property('repository-owner')
-                if (!repoOwner.isEmpty()) {
-                    displayName = "$repoOwner: $displayName"
-                }
-                String subProjectName = project.path.substring(1).replace(':', ': ')
-                if (!subProjectName.isEmpty()) {
-                    displayName = "$displayName: $subProjectName"
-                }
-
-                name = displayName
-                description = displayName
-                url = property('repository-html-url')
+                name = mavenPomName
+                description = mavenPomName
+                url = githubRepositoryInfo.repository.map { it.htmlUrl }
                 scm {
-                    url = property('repository-html-url')
+                    url = githubRepositoryInfo.repository.map { it.htmlUrl }
                 }
                 licenses {
                     license {
-                        name = property('repository-license-name')
-                        url = property('repository-license-html-url')
+                        name = githubRepositoryInfo.licenseFile.map { it.license.name }
+                        url = githubRepositoryInfo.licenseFile.map { it.htmlUrl }
                     }
                 }
                 developers {

@@ -138,8 +138,6 @@ allprojects {
     project.ext['git-ref'] = getCiProperty('git-ref', '')
     project.ext['git-sha'] = getCiProperty('git-sha', '')
 
-    project.ext['github-server-url'] = getCiProperty('github-server-url', 'https://github.com/')
-    project.ext['github-api-url'] = getCiProperty('github-api-url', 'https://api.github.com/')
     project.ext['github-actions-token'] = getCiProperty('push-back-token', { getCiProperty('github-actions-token', '') })
     project.ext['github-actions-run-id'] = getCiProperty('github-actions-run-id', '')
     project.ext['github-actions-run-attempt'] = getCiProperty('github-actions-run-attempt', '')
@@ -152,17 +150,6 @@ allprojects {
     project.ext['disable-verification-except-tests'] = getCiProperty('disable-verification-except-tests', 'false')
 
     project.ext['rerun-tests'] = getCiProperty('rerun-tests', 'false')
-
-    project.ext['repository-full-name'] = getCiProperty('repository-full-name', { getRepositoryFullNameFromGitRemote() ?: '' }, true)
-    project.ext['repository-name'] = getCiProperty('repository-name', { project.ext['repository-full-name'].replaceFirst('^.*/', '') }, true)
-    project.ext['repository-api-url'] = getCiProperty('repository-api-url', { project.ext['github-api-url'].replaceFirst('/+$', '') + '/repos/' + project.ext['repository-full-name'].replaceFirst('^/+', '') }, true)
-    project.ext['repository-html-url'] = getCiProperty('repository-html-url', { project.ext['github-server-url'].replaceFirst('/+$', '') + '/' + project.ext['repository-full-name'].replaceFirst('^/+', '') }, true)
-    project.ext['repository-description'] = getCiProperty('repository-description', '', true)
-    project.ext['repository-topics'] = getCiProperty('repository-topics', '', true)
-    project.ext['repository-is-template'] = getCiProperty('repository-is-template', '', true)
-    project.ext['repository-owner'] = getCiProperty('repository-owner', { project.ext['repository-full-name'].replaceFirst('/.*$', '') }, true)
-    project.ext['repository-license-name'] = getCiProperty('repository-license-name', '', true)
-    project.ext['repository-license-html-url'] = getCiProperty('repository-license-html-url', '', true)
 
     String currentVersion = project.version.toString()
     if (currentVersion == 'unspecified') {

@@ -31,6 +31,7 @@ buildscript {
             'name.remal.gradle-plugins.build-time-constants:build-time-constants:2.1.0',
             'name.remal.gradle-plugins.classes-relocation:classes-relocation:2.1.4',
             'name.remal.gradle-plugins.generate-sources:generate-sources:2.0.2',
+            'name.remal.gradle-plugins.github-repository-info:github-repository-info:1.0.0-rc-3',
             'name.remal.gradle-plugins.idea-settings:idea-settings:4.0.6',
             'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.3',
             'com.gradle.publish:plugin-publish-plugin:2.0.0',
@@ -69,15 +70,11 @@ allprojects {
     version = '0-SNAPSHOT'
 }
 
-project.ext.tookitGroup = { return rootProject.group }
-project.ext.tookitVersion = { return rootProject.version }
-project.ext.tookitUrl = { return rootProject.property('repository-html-url') }
-
 List<String> includedBuildScripts = [
+    'gradle/common.gradle',
     'gradle/helpers.gradle',
     'gradle/properties.gradle',
     'gradle/ci.gradle',
-    'gradle/common.gradle',
     'gradle/dependencies.gradle',
     'gradle/check-source-dirs.gradle',
     'gradle/base-package.gradle',
@@ -114,6 +111,10 @@ List<String> includedBuildScripts = [
 ].toUnique()
 project.ext['includedBuildScripts'] = includedBuildScripts
 includedBuildScripts.forEach { apply from: it }
+
+project.ext.tookitGroup = { rootProject.group }
+project.ext.tookitVersion = { rootProject.version }
+project.ext.tookitUrlProperty = githubRepositoryInfo.repository.map { it.htmlUrl }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
