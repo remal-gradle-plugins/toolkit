@@ -83,7 +83,13 @@ generateSources.forMainSourceSet.java {
         Class.forName('java.nio.file.DirectoryStream$Filter'),
         Class.forName('java.nio.file.PathMatcher'),
     ]
-    withInputClasspathFiles('lambdaClassesClasspath', lambdaClasses)
+    inputs.files(
+        lambdaClasses.stream()
+            .map { it.protectionDomain?.codeSource?.location?.toURI() }
+            .filter { it?.toString()?.startsWith("file:") ?: false }
+            .distinct()
+            .toList()
+    ).withPropertyName('lambdaClassesClasspath').withNormalizer(ClasspathNormalizer).optional()
 
     classFile(project.calculateBaseJavaPackage(), 'SneakyThrowUtils') {
         addStaticImport('javax.annotation.meta.When', 'UNKNOWN')

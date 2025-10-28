@@ -1,9 +1,17 @@
+import java.util.stream.Stream
+
 class ThisScriptLocation {}
 
 generateSources.forMainSourceSet.resources {
     inputs.dir(getClassLocationFile(ThisScriptLocation)).withNormalizer(ClasspathNormalizer).optional()
 
-    withInputClasspathFiles('classpathCheckstyle', Checkstyle)
+    inputs.files(
+        Stream.of(Checkstyle)
+            .map { it.protectionDomain?.codeSource?.location?.toURI() }
+            .filter { it?.toString()?.startsWith("file:") ?: false }
+            .distinct()
+            .toList()
+    ).withPropertyName('classpathCheckstyle').withNormalizer(ClasspathNormalizer).optional()
 
     textFile("${project.calculateBaseJavaPackage().replace('.', '/')}/issues/checkstyle.xsl") {
         String resourceName = 'checkstyle-noframes-sorted.xsl'
