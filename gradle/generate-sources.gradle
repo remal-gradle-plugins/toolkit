@@ -6,9 +6,9 @@ allprojects {
     pluginManager.withPlugin('name.remal.generate-sources') {
         Class<Task> AbstractGenerate = (project.generateSources as Object).class.classLoader.loadClass('name.remal.gradle_plugins.generate_sources.task.AbstractGenerate')
         tasks.withType(AbstractGenerate).configureEach {
-            withInputProperty('project.group', provider { project.group?.toString() ?: '' })
-            withInputProperty('project.name', provider { project.name?.toString() ?: '' })
-            withInputProperty('project.version', provider { project.version?.toString() ?: '' })
+            inputs.property('project.group', provider { project.group?.toString() }).optional(true)
+            inputs.property('project.name', provider { project.name?.toString() }).optional(true)
+            inputs.property('project.version', provider { project.version?.toString() }).optional(true)
         }
     }
 }

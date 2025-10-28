@@ -1,3 +1,5 @@
+import static org.gradle.api.tasks.PathSensitivity.RELATIVE
+
 import org.gradle.util.GradleVersion
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -82,7 +84,7 @@ generateSources.forMainSourceSet.resources {
     inputs.dir(getClassLocationFile(ThisScriptLocation)).withNormalizer(ClasspathNormalizer).optional()
 
     dependsOn(configurations.compileClasspath)
-    withInputClasspathFiles('compileClasspath', configurations.compileClasspath)
+    inputs.files(configurations.compileClasspath).withPropertyName('compileClasspath').withNormalizer(ClasspathNormalizer).optional()
 
     MapProperty<String, String> toolkitProps = project.objects.mapProperty(String, String).value(provider {
         [
@@ -91,10 +93,10 @@ generateSources.forMainSourceSet.resources {
             tookitUrlProperty: project.tookitUrlProperty.get(),
         ]
     }).with { it.finalizeValueOnRead(); it }
-    withInputProperty('toolkitProps', toolkitProps)
+    inputs.property('toolkitProps', toolkitProps).optional(true)
 
     scriptsToInclude.get().forEach { includedBuildScriptFile, resource ->
-        withInputFile("scriptsToInclude:$resource", includedBuildScriptFile)
+        inputs.file(includedBuildScriptFile).withPropertyName("scriptsToInclude:$resource").withPathSensitivity(RELATIVE).optional()
 
         textFile(resource) {
             String content = includedBuildScriptFile.getText('UTF-8')
@@ -117,18 +119,18 @@ generateSources.forMainSourceSet.java {
     inputs.dir(getClassLocationFile(ThisScriptLocation)).withNormalizer(ClasspathNormalizer).optional()
 
     Property<String> javaApiMinVersion = project.objects.property(String).value(provider { project.property('java-runtime.min-version').toString() }).with { it.finalizeValueOnRead(); it }
-    withInputProperty('javaApiMinVersion', javaApiMinVersion)
+    inputs.property('javaApiMinVersion', javaApiMinVersion).optional(true)
 
     Property<String> gradleApiMinVersion = project.objects.property(String).value(provider { project.property('gradle-api.min-version').toString() }).with { it.finalizeValueOnRead(); it }
-    withInputProperty('gradleApiMinVersion', gradleApiMinVersion)
+    inputs.property('gradleApiMinVersion', gradleApiMinVersion).optional(true)
 
     Property<String> toolkitVersion = project.objects.property(String).value(provider { project.version?.toString() }).with { it.finalizeValueOnRead(); it }
-    withInputProperty('toolkitVersion', toolkitVersion)
+    inputs.property('toolkitVersion', toolkitVersion).optional(true)
 
     Property<String> toolkitBaseJavaPackage = project.objects.property(String).value(provider {
         project.calculateBaseJavaPackageFor(project(':toolkit'))
     }).with { it.finalizeValueOnRead(); it }
-    withInputProperty('toolkitBaseJavaPackage', toolkitBaseJavaPackage)
+    inputs.property('toolkitBaseJavaPackage', toolkitBaseJavaPackage).optional(true)
 
     classFile(project.calculateBaseJavaPackage(), 'BuildLogicPlugin') {
         addStaticImport("java.lang.String", "format")

@@ -1,3 +1,5 @@
+import static org.gradle.api.tasks.PathSensitivity.ABSOLUTE
+
 apply plugin: 'java-library'
 apply plugin: 'maven-publish'
 apply plugin: 'name.remal.generate-sources'
@@ -20,7 +22,7 @@ dependencies {
 generateSources.forMainSourceSet.java {
     Set<ResolvedDependency> settingsBuildscriptClasspathDependencies = project.settingsBuildscriptClasspathDependencies
     Set<ResolvedArtifact> settingsBuildscriptClasspathArtifacts = project.settingsBuildscriptClasspathArtifacts
-    withInputFiles('settingsBuildscriptClasspathArtifacts', settingsBuildscriptClasspathArtifacts.collect { it.file })
+    inputs.files(settingsBuildscriptClasspathArtifacts.collect { it.file }).withPropertyName('settingsBuildscriptClasspathArtifacts').withPathSensitivity(ABSOLUTE).optional()
 
     classFile("${project.calculateBaseJavaPackage()}.functional", 'GradleSettingsPluginVersions') {
         addStaticImport("lombok.AccessLevel", "PRIVATE")
