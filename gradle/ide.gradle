@@ -16,9 +16,10 @@ allprojects {
 }
 
 idea.project {
-    jdkName = '17'
-    targetBytecodeVersion = JavaVersion.VERSION_17
-    languageLevel = new IdeaLanguageLevel(targetBytecodeVersion.majorVersion)
+    project.findProperty('java-build.version')?.toString()?.with {
+        targetBytecodeVersion = JavaVersion.toVersion(it)
+        languageLevel = new IdeaLanguageLevel(it.toInteger())
+    }
 
     settings {
         doNotDetectFrameworks(

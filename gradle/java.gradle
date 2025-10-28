@@ -10,6 +10,12 @@ allprojects {
             consistentResolution {
                 //useCompileClasspathVersions()
             }
+
+            toolchain {
+                project.findProperty('java-build.version')?.toString()?.toInteger()?.with {
+                    languageVersion = JavaLanguageVersion.of(it)
+                }
+            }
         }
 
         repositories {

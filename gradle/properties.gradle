@@ -1,25 +1,5 @@
 import java.util.stream.Stream
-import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.lib.Constants
-import org.eclipse.jgit.lib.Repository
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder
-import org.eclipse.jgit.transport.URIish
 import org.gradle.util.GradleVersion
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-buildscript {
-    dependencies {
-        classpath('org.eclipse.jgit:org.eclipse.jgit:6.10.1.202505221210-r') {
-            exclude(group: 'org.slf4j')
-        }
-    }
-    repositories {
-        mavenCentral()
-    }
-}
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 allprojects {
     File rootProjectDir = project.rootProjectDir
@@ -80,41 +60,20 @@ allprojects {
         return defaultValue?.toString()
     }
 
-    Closure withGitRepository = { Closure action ->
-        File gitDir = new File(rootProjectDir, Constants.DOT_GIT)
-        if (!gitDir.exists()) {
-            return null
-        }
 
-        FileRepositoryBuilder.create(gitDir).withCloseable { Repository repository ->
-            return action(repository)
-        }
-    }
-    Closure withGit = { Closure action ->
-        withGitRepository { Repository repository ->
-            new Git(repository).withCloseable { Git git ->
-                return action(git)
+    project.ext['java-build.version'] = getCiProperty('java-build.version') {
+        File gradleDaemonJvmPropertiesFile = new File(rootProjectDir, 'gradle/gradle-daemon-jvm.properties')
+        if (gradleDaemonJvmPropertiesFile.isFile()) {
+            Properties props = new Properties()
+            gradleDaemonJvmPropertiesFile.newInputStream().withCloseable { props.load(it) }
+
+            String toolchainVersion = props.getProperty('toolchainVersion')
+            if (!toolchainVersion?.isEmpty()) {
+                return toolchainVersion
             }
         }
-    }
-    Closure<URIish> getGitRemoteUri = { String remoteName = Constants.DEFAULT_REMOTE_NAME ->
-        withGit { Git git ->
-            return git.remoteList().call().stream()
-                .filter { it.name == remoteName }
-                .flatMap { it.getURIs().stream() }
-                .filter { it != null }
-                .findFirst()
-                .orElse(null)
-        }
-    }
-    Closure<String> getRepositoryFullNameFromGitRemote = { String remoteName = Constants.DEFAULT_REMOTE_NAME ->
-        URIish uri = getGitRemoteUri(remoteName)
-        if (uri == null) {
-            return null
-        }
-        String fullName = uri.path
-        fullName = fullName.replaceFirst(/\.git$/, '')
-        return fullName
+
+        return JavaVersion.current().majorVersion
     }
 
 
