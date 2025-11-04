@@ -10,7 +10,7 @@ name.remal.gradle-plugins.generate-sources:generate-sources:2.0.3
 name.remal.gradle-plugins.github-repository-info:github-repository-info:1.0.0-rc-3
 name.remal.gradle-plugins.idea-settings:idea-settings:4.0.6
 name.remal.gradle-plugins.lombok:lombok:3.1.5
-name.remal.gradle-plugins.merge-resources:merge-resources:5.0.4
+name.remal.gradle-plugins.merge-resources:merge-resources:5.0.5
 name.remal.gradle-plugins.sonarlint:sonarlint:7.0.0-rc-4
 name.remal.gradle-plugins.test-source-sets:test-source-sets:5.0.4
 net.ltgt.gradle:gradle-errorprone-plugin:4.3.0
@@ -205,7 +205,7 @@ zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.lombok.int
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.lombok.internal._relocated.name.remal.gradle_plugins.toolkit.Version:14baf3dc34afd237c45c536502a75ad4a74b69bb8e0407f6b63147760af233c9
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.lombok.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils$1:6e9c5c266375080b329a5c4563500162e686e539748b3f4b9b6b60557746b59
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.lombok.internal._relocated.name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils:60f4901a67470458632a3b439340d708458761f023215066af09608f9fc6fe50
-zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.merge_resources.CopyTaskActionMerge:330b75d695a775212b4da843201a985279d3a2f93a0eccd772b6cbe980ab16ce
+zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.merge_resources.CopyTaskActionMerge:5959c9d5a59386b8fae30550df59509a570bc4a85d0ae6b62b4c49362b4e73a6
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.merge_resources.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils$1:bcfbd3bcb04b8b5c93c35652a5a71a22e8cbe2e48a2367a1800d6f38d2edd502
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.merge_resources.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils$IfDebugEnabled:4d89dfbe09bcd3c043f9e7ebfe6179fc71bfae369b03bb578a7860099905190a
 zzzz-classes-relying-on-gradle-internal-api:name.remal.gradle_plugins.merge_resources.internal._relocated.name.remal.gradle_plugins.toolkit.DebugUtils:f83006a905e75485b9508ee153edb3e6cf2ce5f98e400bfb3b1fb91e64efe627
