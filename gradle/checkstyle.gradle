@@ -9,7 +9,7 @@ allprojects {
     pluginManager.withPlugin('checkstyle') {
         dependencies {
             constraints {
-                checkstyle 'com.puppycrawl.tools:checkstyle:12.1.1'
+                checkstyle 'com.puppycrawl.tools:checkstyle:12.1.2'
             }
         }
 
