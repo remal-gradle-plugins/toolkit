@@ -2,7 +2,6 @@ import static java.util.stream.Collectors.toList
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
-import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException
 
 if (project.isBuildSrcProject) {
     return
@@ -32,7 +31,7 @@ tasks.register('pushBackPublishedVersions') { Task task ->
             }
 
             int maxAttempts = 3
-            for (int attempt = 1; attempt <= maxAttempts; ++attempt) {
+            for (int attempt = 1; attempt <= maxAttempts; attempt++) {
                 Map getResponse = sendGitHubRestApiRequest(
                     "contents/${URLDecoder.decode(versionFilePath, 'UTF-8')}",
                 )
@@ -45,8 +44,8 @@ tasks.register('pushBackPublishedVersions') { Task task ->
                     VersionParser parser = new VersionParser()
                     def prevVer = parser.transform(prevContent)
                     def curVer = parser.transform(curContent)
-                    Comparator comparator = new DefaultVersionComparator().asVersionComparator()
-                    int comparisonResult = comparator.compare(prevVer, curVer)
+                    Comparator versionComparator = new DefaultVersionComparator().asVersionComparator()
+                    int comparisonResult = versionComparator.compare(prevVer, curVer)
                     if (comparisonResult == 0) {
                         logger.quiet("Version {} has been already reported to {}", curContent, versionFilePath)
                         return
@@ -68,10 +67,17 @@ tasks.register('pushBackPublishedVersions') { Task task ->
                         ],
                     )
 
-                } catch (HttpErrorStatusCodeException e) {
-                    if (e.statusCode != 409 || attempt >= maxAttempts) {
-                        throw e
+                } catch (Exception exception) {
+                    if (isHttpRequestFailedException(exception)) {
+                        int statusCode = exception.statusCode
+                        if (statusCode != 409 || attempt >= maxAttempts) {
+                            throw exception
+                        } else {
+                            continue
+                        }
                     }
+
+                    throw exception
                 }
             }
         }
