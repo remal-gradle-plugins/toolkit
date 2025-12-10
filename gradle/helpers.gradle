@@ -914,7 +914,7 @@ project.ext.sendGitHubRestApiRequest = { String uriString, String method = null,
                 bodyPublisher = HttpRequest.BodyPublishers.ofString(jsonContent, UTF_8)
             }
 
-            method = me thod?.toUpperCase() ?: 'PUT'
+            method = method?.toUpperCase() ?: 'PUT'
             requestBuilder = requestBuilder.method(method, bodyPublisher)
 
         } else {
