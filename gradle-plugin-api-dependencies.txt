@@ -14,7 +14,7 @@ name.remal.gradle-plugins.merge-resources:merge-resources:5.0.5
 name.remal.gradle-plugins.sonarlint:sonarlint:7.0.0
 name.remal.gradle-plugins.test-source-sets:test-source-sets:5.0.5
 net.ltgt.gradle:gradle-errorprone-plugin:4.3.0
-org.eclipse.jgit:org.eclipse.jgit:7.4.0.202509020913-r
+org.eclipse.jgit:org.eclipse.jgit:7.5.0.202512021534-r
 org.ow2.asm:asm-analysis:9.9
 org.ow2.asm:asm-bom:9.9:@pom
 org.ow2.asm:asm-commons:9.9
