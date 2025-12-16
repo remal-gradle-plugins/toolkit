@@ -8,7 +8,7 @@ import org.objectweb.asm.ClassWriter
 
 buildscript {
     dependencies {
-        classpath platform("org.ow2.asm:asm-bom:9.9")
+        classpath platform("org.ow2.asm:asm-bom:9.9.1")
         classpath 'org.ow2.asm:asm-tree'
     }
     repositories {
