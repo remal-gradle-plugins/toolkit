@@ -12,6 +12,7 @@ import static name.remal.gradle_plugins.toolkit.UrlUtils.openInputStreamForUrl;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -20,6 +21,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URI;
@@ -75,6 +77,20 @@ public abstract class PropertiesUtils {
             : new BufferedReader(reader);
         properties.load(reader);
         return properties;
+    }
+
+    @SneakyThrows
+    public static Properties loadProperties(String string) {
+        try (var reader = new StringReader(string)) {
+            return loadProperties(reader);
+        }
+    }
+
+    @SneakyThrows
+    public static Properties loadProperties(byte[] bytes) {
+        try (var inputStream = new ByteArrayInputStream(bytes)) {
+            return loadProperties(inputStream);
+        }
     }
 
 
