@@ -63,6 +63,7 @@ public abstract class ProxyUtils {
     }
 
     @Contract(pure = true)
+    @SuppressWarnings("java:S3011")
     public static <T> T toDynamicInterface(
         Object object,
         Class<T> interfaceClass,
@@ -83,6 +84,8 @@ public abstract class ProxyUtils {
             } catch (NoSuchMethodException expected) {
                 continue;
             }
+
+            objectMethod.setAccessible(true);
 
             interfaceToObjectMethods.put(interfaceMethod, objectMethod);
         }
