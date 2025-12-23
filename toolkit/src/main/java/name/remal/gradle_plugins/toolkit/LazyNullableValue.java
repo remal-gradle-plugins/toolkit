@@ -11,6 +11,8 @@ public final class LazyNullableValue<T> extends LazyValueBase<T> {
     }
 
 
+    private static final long serialVersionUID = 1L;
+
     private LazyNullableValue(LazyNullableValueSupplier<T> valueSupplier) {
         super(valueSupplier);
     }

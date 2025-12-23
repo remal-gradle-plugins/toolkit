@@ -13,6 +13,8 @@ public final class LazyValue<T> extends LazyValueBase<T> {
     }
 
 
+    private static final long serialVersionUID = 1L;
+
     private LazyValue(LazyValueSupplier<T> valueSupplier) {
         super(valueSupplier);
     }

@@ -1,18 +1,23 @@
 package name.remal.gradle_plugins.toolkit;
 
 import static java.util.Objects.requireNonNull;
-import static javax.annotation.meta.When.UNKNOWN;
 
 import com.google.errorprone.annotations.OverridingMethodsMustInvokeSuper;
 import com.google.errorprone.annotations.concurrent.LazyInit;
-import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import lombok.SneakyThrows;
 import org.jspecify.annotations.Nullable;
 
-abstract class LazyValueBase<T> {
+@SuppressWarnings("java:S1948")
+abstract class LazyValueBase<T> implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
 
     @Nullable
-    private LazyValueSupplierBase<T> valueSupplier;
+    private transient LazyValueSupplierBase<T> valueSupplier;
 
     protected LazyValueBase(LazyValueSupplierBase<T> valueSupplier) {
         this.valueSupplier = valueSupplier;
@@ -21,14 +26,14 @@ abstract class LazyValueBase<T> {
 
     private static final Object NOT_INITIALIZED = new Object[0];
 
-    @Nonnull(when = UNKNOWN)
+    @Nullable
     @LazyInit
     @SuppressWarnings("unchecked")
     private volatile T value = (T) NOT_INITIALIZED;
 
-    @Nonnull(when = UNKNOWN)
-    @SneakyThrows
+    @Nullable
     @OverridingMethodsMustInvokeSuper
+    @SneakyThrows
     protected T get() {
         if (value == NOT_INITIALIZED) {
             synchronized (this) {
@@ -47,12 +52,18 @@ abstract class LazyValueBase<T> {
 
     @Override
     public final String toString() {
-        var value = this.value;
+        Object value = this.value;
         if (value == NOT_INITIALIZED) {
             return "<not initialized>";
         }
 
         return String.valueOf(value);
+    }
+
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        get();
+        out.defaultWriteObject();
     }
 
 }
