@@ -30,7 +30,7 @@ buildscript {
             'name.remal.gradle-plugins.sonarlint:sonarlint:7.0.0',
             'name.remal.gradle-plugins.build-time-constants:build-time-constants:2.1.0',
             'name.remal.gradle-plugins.classes-relocation:classes-relocation:2.1.5',
-            'name.remal.gradle-plugins.generate-sources:generate-sources:2.0.4',
+            'name.remal.gradle-plugins.generate-sources:generate-sources:2.0.5',
             'name.remal.gradle-plugins.github-repository-info:github-repository-info:1.0.0',
             'name.remal.gradle-plugins.idea-settings:idea-settings:4.0.6',
             'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.3',
