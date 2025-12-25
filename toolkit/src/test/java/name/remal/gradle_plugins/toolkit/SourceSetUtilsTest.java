@@ -149,7 +149,11 @@ class SourceSetUtilsTest extends SourceSetUtilsTestBase {
                 "allsource",
                 "java",
                 "alljava",
-                "resources",
+                "resources"
+            );
+        assertThat(allSourceDirectorySetNames)
+            .containsAnyOf(
+                "main kotlin",
                 "main Kotlin source"
             );
     }
