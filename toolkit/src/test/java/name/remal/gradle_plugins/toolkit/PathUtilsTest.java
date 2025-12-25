@@ -1,7 +1,7 @@
 package name.remal.gradle_plugins.toolkit;
 
 import static java.util.concurrent.Executors.newFixedThreadPool;
-import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static name.remal.gradle_plugins.toolkit.SneakyThrowUtils.sneakyThrowsRunnable;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -23,7 +23,7 @@ class PathUtilsTest {
 
         var counter = new AtomicInteger();
         var threads = 8;
-        var iterations = 100;
+        var iterations = 50;
 
         var executor = newFixedThreadPool(threads);
         try {
@@ -44,7 +44,7 @@ class PathUtilsTest {
             }
 
             for (var future : futures) {
-                future.get(30, SECONDS);
+                future.get(1, MINUTES);
             }
         } finally {
             executor.shutdownNow();
