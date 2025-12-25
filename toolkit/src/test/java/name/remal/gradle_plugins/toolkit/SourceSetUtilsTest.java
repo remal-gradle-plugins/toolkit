@@ -149,7 +149,10 @@ class SourceSetUtilsTest extends SourceSetUtilsTestBase {
                 "allsource",
                 "java",
                 "alljava",
-                "resources",
+                "resources"
+            )
+            .containsAnyOf(
+                "main kotlin",
                 "main Kotlin source"
             );
     }
