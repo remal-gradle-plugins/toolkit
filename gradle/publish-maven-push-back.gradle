@@ -32,49 +32,78 @@ tasks.register('pushBackPublishedVersions') { Task task ->
 
             int maxAttempts = 3
             for (int attempt = 1; attempt <= maxAttempts; attempt++) {
-                Map getResponse = sendGitHubRestApiRequest(
-                    "contents/${URLDecoder.decode(versionFilePath, 'UTF-8')}",
-                )
-
-                String prevContent = getResponse?.content?.with {
-                    new String(Base64.decoder.decode(it.trim()), "UTF-8").trim()
-                }
-                String curContent = publication.version
-                if (prevContent != null && !curContent.isEmpty()) {
-                    VersionParser parser = new VersionParser()
-                    def prevVer = parser.transform(prevContent)
-                    def curVer = parser.transform(curContent)
-                    Comparator versionComparator = new DefaultVersionComparator().asVersionComparator()
-                    int comparisonResult = versionComparator.compare(prevVer, curVer)
-                    if (comparisonResult == 0) {
-                        logger.quiet("Version {} has been already reported to {}", curContent, versionFilePath)
-                        return
-                    } else if (comparisonResult > 0) {
-                        logger.quiet("Version {} is less than what was already reported to {}: {}", curContent, versionFilePath, prevContent)
-                        return
-                    }
-                }
-
                 try {
-                    logger.quiet("Reporting version {} to {}", curContent, versionFilePath)
+                    logger.quiet(
+                        "Reporting {}:{} version {} to {}",
+                        publication.groupId,
+                        publication.artifactId,
+                        publication.version,
+                        versionFilePath
+                    )
+                    Map getResponse = null
+                    try {
+                        getResponse = sendGitHubRestApiRequest(
+                            "contents/${URLDecoder.decode(versionFilePath, 'UTF-8')}",
+                        )
+                    } catch (Exception exception) {
+                        if (isHttpRequestFailedException(exception)) {
+                            int statusCode = exception.statusCode.toString().toInteger().intValue()
+                            if (statusCode == 404) {
+                                // do nothing, file does not exist yet
+                                logger.quiet("    File does not exist, creating")
+                            } else {
+                                throw exception
+                            }
+                        } else {
+                            throw exception
+                        }
+                    }
+
+                    String prevContent = getResponse?.content?.with {
+                        new String(Base64.decoder.decode(it.trim()), "UTF-8").trim()
+                    }
+                    String nextContent = publication.version
+                    if (prevContent != null && !nextContent.isEmpty()) {
+                        VersionParser parser = new VersionParser()
+                        def prevVer = parser.transform(prevContent)
+                        def nextVer = parser.transform(nextContent)
+                        Comparator versionComparator = new DefaultVersionComparator().asVersionComparator()
+                        int comparisonResult = versionComparator.compare(prevVer, nextVer)
+                        if (comparisonResult == 0) {
+                            logger.quiet("    Version {} has been already reported", nextContent)
+                            return
+                        } else if (comparisonResult > 0) {
+                            logger.quiet("    Version {} is less than what was already reported: {}", nextContent, prevContent)
+                            return
+                        }
+                    }
+
                     sendGitHubRestApiRequest(
                         "contents/${URLDecoder.decode(versionFilePath, 'UTF-8')}",
                         'PUT',
                         [
                             message: "[no-changelog] Update $versionFilePath",
-                            content: Base64.encoder.encodeToString(curContent.getBytes('UTF-8')),
+                            content: Base64.encoder.encodeToString(nextContent.getBytes('UTF-8')),
                             sha: getResponse?.sha
                         ],
                     )
 
                 } catch (Exception exception) {
                     if (isHttpRequestFailedException(exception)) {
-                        int statusCode = exception.statusCode
-                        if (statusCode != 409 || attempt >= maxAttempts) {
-                            throw exception
-                        } else {
-                            continue
+                        int statusCode = exception.statusCode.toString().toInteger().intValue()
+                        logger.error("    Failed with status code {}", statusCode)
+                        if (400 <= statusCode && statusCode <= 499) {
+                            if ([408, 409, 412, 423, 429].contains(statusCode)) {
+                                // retryable
+                            } else {
+                                throw exception // non-retryable
+                            }
                         }
+                        if (attempt >= maxAttempts) {
+                            throw exception
+                        }
+                        logger.quiet("    Retrying attempt {}/{}...", attempt, maxAttempts)
+                        continue
                     }
 
                     throw exception
