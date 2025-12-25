@@ -3,13 +3,19 @@ package name.remal.gradle_plugins.toolkit;
 import static java.nio.file.FileVisitResult.CONTINUE;
 import static java.nio.file.Files.copy;
 import static java.nio.file.Files.createDirectories;
+import static java.nio.file.Files.createTempFile;
 import static java.nio.file.Files.deleteIfExists;
 import static java.nio.file.Files.getLastModifiedTime;
+import static java.nio.file.Files.move;
 import static java.nio.file.Files.walkFileTree;
+import static java.nio.file.Files.write;
+import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
 import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.nio.file.StandardOpenOption.WRITE;
+import static java.util.Objects.requireNonNull;
 import static java.util.Objects.requireNonNullElseGet;
 import static lombok.AccessLevel.PRIVATE;
 
@@ -19,6 +25,7 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.CopyOption;
 import java.nio.file.FileSystemException;
 import java.nio.file.FileVisitResult;
@@ -87,6 +94,36 @@ public abstract class PathUtils {
         }
     }
 
+    @SneakyThrows
+    public static Path createParentDirectories(Path path) {
+        var parentPath = normalizePath(path).getParent();
+        if (parentPath != null) {
+            createDirectories(parentPath);
+        }
+        return path;
+    }
+
+    @SneakyThrows
+    public static void writeAtomically(Path filePath, byte[] data) {
+        filePath = normalizePath(filePath);
+
+        var dirPath = requireNonNull(filePath.getParent());
+        createDirectories(dirPath);
+
+        var tempFilePath = createTempFile(dirPath, filePath.getFileName() + ".", ".tmp");
+        try {
+            write(tempFilePath, data, TRUNCATE_EXISTING);
+            try {
+                move(tempFilePath, filePath, ATOMIC_MOVE, REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException ignored) {
+                move(tempFilePath, filePath, REPLACE_EXISTING);
+            }
+        } finally {
+            deleteIfExists(tempFilePath);
+        }
+    }
+
+
     private static final int DELETE_ATTEMPTS = 5;
 
     @SneakyThrows
@@ -146,15 +183,6 @@ public abstract class PathUtils {
         if (!tryToDeleteRecursively(path)) {
             // ignore failure
         }
-    }
-
-    @SneakyThrows
-    public static Path createParentDirectories(Path path) {
-        var parentPath = normalizePath(path).getParent();
-        if (parentPath != null) {
-            createDirectories(parentPath);
-        }
-        return path;
     }
 
 
