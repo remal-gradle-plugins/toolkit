@@ -1,5 +1,6 @@
 import static java.util.stream.Collectors.toList
 
+import java.util.concurrent.ThreadLocalRandom
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 
@@ -40,30 +41,21 @@ tasks.register('pushBackPublishedVersions') { Task task ->
                         publication.version,
                         versionFilePath
                     )
-                    Map getResponse = null
-                    try {
-                        getResponse = sendGitHubRestApiRequest(
-                            "contents/${URLDecoder.decode(versionFilePath, 'UTF-8')}",
-                        )
-                    } catch (Exception exception) {
-                        if (isHttpRequestFailedException(exception)) {
-                            int statusCode = exception.statusCode.toString().toInteger().intValue()
-                            if (statusCode == 404) {
-                                // do nothing, file does not exist yet
-                                logger.quiet("    File does not exist, creating")
-                            } else {
-                                throw exception
-                            }
-                        } else {
-                            throw exception
-                        }
+                    Map existingFileInfo = sendGitHubRestApiRequest(
+                        "contents/${URLDecoder.decode(versionFilePath, 'UTF-8')}",
+                    )
+                    if (existingFileInfo == null) {
+                        logger.quiet("    File does not exist, creating")
+                    } else {
+                        logger.quiet("    Existing file SHA: {}", existingFileInfo.sha)
                     }
 
-                    String prevContent = getResponse?.content?.with {
+                    String prevContent = existingFileInfo?.content?.with {
                         new String(Base64.decoder.decode(it.trim()), "UTF-8").trim()
                     }
                     String nextContent = publication.version
-                    if (prevContent != null && !nextContent.isEmpty()) {
+                    if (prevContent != null) {
+                        logger.quiet("    Previously published version: {}", prevContent)
                         VersionParser parser = new VersionParser()
                         def prevVer = parser.transform(prevContent)
                         def nextVer = parser.transform(nextContent)
@@ -84,7 +76,7 @@ tasks.register('pushBackPublishedVersions') { Task task ->
                         [
                             message: "[no-changelog] Update $versionFilePath",
                             content: Base64.encoder.encodeToString(nextContent.getBytes('UTF-8')),
-                            sha: getResponse?.sha
+                            sha: existingFileInfo?.sha
                         ],
                     )
 
@@ -93,7 +85,7 @@ tasks.register('pushBackPublishedVersions') { Task task ->
                         int statusCode = exception.statusCode.toString().toInteger().intValue()
                         logger.error("    Failed with status code {}", statusCode)
                         if (400 <= statusCode && statusCode <= 499) {
-                            if ([408, 409, 412, 423, 429].contains(statusCode)) {
+                            if ([408, 409, 412, 423].contains(statusCode)) {
                                 // retryable
                             } else {
                                 throw exception // non-retryable
@@ -103,6 +95,7 @@ tasks.register('pushBackPublishedVersions') { Task task ->
                             throw exception
                         }
                         logger.quiet("    Retrying attempt {}/{}...", attempt, maxAttempts)
+                        Thread.sleep(ThreadLocalRandom.current().nextLong(2_500, 7_500))
                         continue
                     }
 

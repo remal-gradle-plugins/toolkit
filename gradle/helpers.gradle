@@ -21,6 +21,7 @@ import java.time.Duration
 import java.util.concurrent.Callable
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
+import java.util.concurrent.ThreadLocalRandom
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.function.Supplier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
@@ -891,10 +892,7 @@ project.ext.sendGitHubRestApiRequest = { String uriString, String method = null,
     }
 
     int maxAttempts = 3
-    int attempt = 0
-    while (true) {
-        ++attempt
-
+    for (int attempt = 1; attempt <= maxAttempts; attempt++) {
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
             .timeout(Duration.ofMinutes(1))
             .uri(uri)
@@ -925,7 +923,15 @@ project.ext.sendGitHubRestApiRequest = { String uriString, String method = null,
         HttpRequest request = requestBuilder.build()
         logger.info("{}", request)
 
-        HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString(UTF_8))
+        HttpResponse<String> response
+        HttpClient client = HttpClient.newHttpClient()
+        try {
+            response = client.send(request, HttpResponse.BodyHandlers.ofString(UTF_8))
+        } finally {
+            if (client instanceof AutoCloseable) {
+                ((AutoCloseable) client).close()
+            }
+        }
         logger.info("{}", response)
         int statusCode = response.statusCode()
         if (statusCode == 404 || statusCode == 204) {
@@ -937,7 +943,7 @@ project.ext.sendGitHubRestApiRequest = { String uriString, String method = null,
                 || statusCode >= 500
             ) {
                 if (attempt < maxAttempts) {
-                    Thread.sleep(5_000)
+                    Thread.sleep(ThreadLocalRandom.current().nextLong(5_000, 10_000))
                     continue
                 }
             }
