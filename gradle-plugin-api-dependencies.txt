@@ -4,7 +4,7 @@
 com.gradle.publish:plugin-publish-plugin:2.0.0
 gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.3
 io.github.gradle-nexus:publish-plugin:2.0.0
-name.remal.gradle-plugins.build-time-constants:build-time-constants:2.1.0
+name.remal.gradle-plugins.build-time-constants:build-time-constants:2.1.1
 name.remal.gradle-plugins.classes-relocation:classes-relocation:2.1.5
 name.remal.gradle-plugins.generate-sources:generate-sources:2.0.5
 name.remal.gradle-plugins.github-repository-info:github-repository-info:1.0.1
@@ -21,7 +21,7 @@ org.ow2.asm:asm-commons:9.9.1
 org.ow2.asm:asm-tree:9.9.1
 org.ow2.asm:asm-util:9.9.1
 org.ow2.asm:asm:9.9.1
-zzzz-classes-relying-on-external-dependency:name.remal.gradle_plugins.build_time_constants.internal._relocated.name.remal.gradle_plugins.toolkit.KotlinPluginUtils:a1ec440144c8a62c0711be611f3fbbabbbff11209173214434a0df19c9e14133
+zzzz-classes-relying-on-external-dependency:name.remal.gradle_plugins.build_time_constants.internal._relocated.name.remal.gradle_plugins.toolkit.KotlinPluginUtils:da5c9fef1341968d00ca6d542d8109f8c02e92f85cfdc92e6ae059ce045a38c4
 zzzz-classes-relying-on-external-dependency:name.remal.gradle_plugins.classes_relocation.internal._relocated.name.remal.gradle_plugins.toolkit.KotlinPluginUtils:430544f14e99018aa73218a6fa89d6227bd13dca4b05380e4055c75d742afe1e
 zzzz-classes-relying-on-external-dependency:name.remal.gradle_plugins.classes_relocation.internal._relocated.name.remal.gradle_plugins.toolkit.WhenTestSourceSetRegisteredRemalTestSourceSets:1fca47c31587b8d40966b3f1a5d772112d6b611044b555d04efe3e799e1d2b94
 zzzz-classes-relying-on-external-dependency:name.remal.gradle_plugins.classes_relocation.internal._relocated.name.remal.gradle_plugins.toolkit.WhenTestSourceSetRegisteredSofteqITest:dc6c9af42c0770c6f498f28f267e07caecf137f4da9485e0edd9b0327b4d17f3
