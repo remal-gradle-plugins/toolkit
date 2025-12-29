@@ -47,11 +47,16 @@ tasks.register('pushBackPublishedVersions') { Task task ->
                     if (existingFileInfo == null) {
                         logger.quiet("    File does not exist, creating")
                     } else {
-                        logger.quiet("    Existing file SHA: {}", existingFileInfo.sha)
+                        logger.quiet("    Existing file info:")
+                        logger.quiet("        Type: {}", existingFileInfo.type)
+                        logger.quiet("        SHA: {}", existingFileInfo.sha)
+                        logger.quiet("        URL: {}", existingFileInfo.url)
+                        logger.quiet("        HTML URL: {}", existingFileInfo.html_url)
+                        logger.quiet("        Download URL: {}", existingFileInfo.download_url)
                     }
 
                     String prevContent = existingFileInfo?.content?.with {
-                        new String(Base64.decoder.decode(it.trim()), "UTF-8").trim()
+                        new String(Base64.decoder.decode(it), "UTF-8").trim()
                     }
                     String nextContent = publication.version
                     if (prevContent != null) {
