@@ -8,7 +8,7 @@ name.remal.gradle-plugins.build-time-constants:build-time-constants:2.1.1
 name.remal.gradle-plugins.classes-relocation:classes-relocation:2.1.5
 name.remal.gradle-plugins.generate-sources:generate-sources:2.0.5
 name.remal.gradle-plugins.github-repository-info:github-repository-info:1.0.1
-name.remal.gradle-plugins.idea-settings:idea-settings:4.0.6
+name.remal.gradle-plugins.idea-settings:idea-settings:4.0.7
 name.remal.gradle-plugins.lombok:lombok:3.1.6
 name.remal.gradle-plugins.merge-resources:merge-resources:5.0.6
 name.remal.gradle-plugins.sonarlint:sonarlint:7.0.0
@@ -82,10 +82,10 @@ zzzz-classes-relying-on-external-dependency:name.remal.gradle_plugins.idea_setti
 zzzz-classes-relying-on-external-dependency:name.remal.gradle_plugins.idea_settings.internal._relocated.name.remal.gradle_plugins.toolkit.CiSystemDetectors$DroneCi:7dc2dac40731cbc61081a6f2b32b0ec105ef48059612ac8d5f5d183b129e211e
 zzzz-classes-relying-on-external-dependency:name.remal.gradle_plugins.idea_settings.internal._relocated.name.remal.gradle_plugins.toolkit.CiSystemDetectors$GitHubActions:51bd5e00f7c5579e8de7c1ae20f43d7f3499d986b4a23176553fb9164963e64f
 zzzz-classes-relying-on-external-dependency:name.remal.gradle_plugins.idea_settings.internal._relocated.name.remal.gradle_plugins.toolkit.CiSystemDetectors$GitLabCi:edde23f9acc30a12fb6a297388e4b8c56bc9abd2c78b629fff4353f2aa3c4dc
-zzzz-classes-relying-on-external-dependency:name.remal.gradle_plugins.idea_settings.internal._relocated.name.remal.gradle_plugins.toolkit.CiSystemDetectors$Heroku:b3808af7d022f39fd4ebd31648fced3f993d44f5f1ec6d526a57720373ae744a
+zzzz-classes-relying-on-external-dependency:name.remal.gradle_plugins.idea_settings.internal._relocated.name.remal.gradle_plugins.toolkit.CiSystemDetectors$Heroku:66d7c3c815ac8ab0c823675da24d1e8a8b0be0ded058c48feb8e35837c6bad4
 zzzz-classes-relying-on-external-dependency:name.remal.gradle_plugins.idea_settings.internal._relocated.name.remal.gradle_plugins.toolkit.CiSystemDetectors$Jenkins:6cd4938dba2d1e38b9337b21217aa83fc034e326d43220518f061e2c85565555
 zzzz-classes-relying-on-external-dependency:name.remal.gradle_plugins.idea_settings.internal._relocated.name.remal.gradle_plugins.toolkit.CiSystemDetectors$SemaphoreCi:c37d606b81439e5ed69c776cfaedf100f78b1cd2d840ec333d8cffec957951
-zzzz-classes-relying-on-external-dependency:name.remal.gradle_plugins.idea_settings.internal._relocated.name.remal.gradle_plugins.toolkit.CiSystemDetectors$Teamcity:98f9464611a0d5d5aeeb9c96c8b640a065871ca9d41dd49ae6b81bc75a8d2f0d
+zzzz-classes-relying-on-external-dependency:name.remal.gradle_plugins.idea_settings.internal._relocated.name.remal.gradle_plugins.toolkit.CiSystemDetectors$Teamcity:bdc7796c6a25de5af8f6813621b461755ceb4e5bee12086a8429717354970cea
 zzzz-classes-relying-on-external-dependency:name.remal.gradle_plugins.idea_settings.internal._relocated.name.remal.gradle_plugins.toolkit.CiSystemDetectors$Travis:8df0f9c7f97653a4a49ddac6b53da0cada3291809a9638333fb1e48e2107d913
 zzzz-classes-relying-on-external-dependency:name.remal.gradle_plugins.idea_settings.internal._relocated.name.remal.gradle_plugins.toolkit.CiSystemDetectors:d914912ddd0676491dd83719839013cda1e97c5e0ea17e47b595ca8a2e767bea
 zzzz-classes-relying-on-external-dependency:name.remal.gradle_plugins.lombok.internal._relocated.name.remal.gradle_plugins.toolkit.CiSystemDetectors$AppveyorCi:d8dda9734589e6fd04f183571490c7e19bf192858d5e570d193d209579de6c34
