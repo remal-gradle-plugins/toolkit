@@ -11,7 +11,7 @@ name.remal.gradle-plugins.github-repository-info:github-repository-info:1.0.1
 name.remal.gradle-plugins.idea-settings:idea-settings:4.0.7
 name.remal.gradle-plugins.lombok:lombok:3.1.6
 name.remal.gradle-plugins.merge-resources:merge-resources:5.0.6
-name.remal.gradle-plugins.sonarlint:sonarlint:7.0.0
+name.remal.gradle-plugins.sonarlint:sonarlint:7.0.1
 name.remal.gradle-plugins.test-source-sets:test-source-sets:5.0.6
 net.ltgt.gradle:gradle-errorprone-plugin:4.3.0
 org.eclipse.jgit:org.eclipse.jgit:7.5.0.202512021534-r
