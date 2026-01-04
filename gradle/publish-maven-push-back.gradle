@@ -53,6 +53,7 @@ tasks.register('pushBackPublishedVersions') { Task task ->
                         logger.quiet("        URL: {}", existingFileInfo.url)
                         logger.quiet("        HTML URL: {}", existingFileInfo.html_url)
                         logger.quiet("        Download URL: {}", existingFileInfo.download_url)
+                        logger.quiet("        Encoded content ({}): {}", existingFileInfo.encoding, existingFileInfo.content)
                     }
 
                     String prevContent = existingFileInfo?.content?.with {
