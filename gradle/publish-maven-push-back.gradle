@@ -69,13 +69,14 @@ tasks.register('pushBackPublishedVersions') { Task task ->
                         int comparisonResult = versionComparator.compare(prevVer, nextVer)
                         if (comparisonResult == 0) {
                             logger.quiet("    Version {} has been already reported", nextContent)
-                            return
+                            break
                         } else if (comparisonResult > 0) {
                             logger.quiet("    Version {} is less than what was already reported: {}", nextContent, prevContent)
-                            return
+                            break
                         }
                     }
 
+                    logger.quiet("    Reporting version {}...", nextContent)
                     sendGitHubRestApiRequest(
                         "contents/${URLDecoder.decode(versionFilePath, 'UTF-8')}",
                         'PUT',
@@ -85,6 +86,8 @@ tasks.register('pushBackPublishedVersions') { Task task ->
                             sha: existingFileInfo?.sha
                         ],
                     )
+                    logger.quiet("    Version {} has been reported successfully", nextContent)
+                    break
 
                 } catch (Exception exception) {
                     if (isHttpRequestFailedException(exception)) {
@@ -100,6 +103,7 @@ tasks.register('pushBackPublishedVersions') { Task task ->
                         if (attempt >= maxAttempts) {
                             throw exception
                         }
+                        logger.quiet("    Thrown exception: {}", exception)
                         logger.quiet("    Retrying attempt {}/{}...", attempt, maxAttempts)
                         Thread.sleep(ThreadLocalRandom.current().nextLong(2_500, 7_500))
                         continue
