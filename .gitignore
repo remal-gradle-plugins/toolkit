@@ -3,6 +3,10 @@
 .DS_Store
 
 
+# Ignore generated credentials from google-github-actions/auth
+gha-creds-*.json
+
+
 # Claude
 .claude/*.local.*
 
@@ -37,10 +41,12 @@ build/
 node_modules/
 
 
-# Terraform state and backup files
+# Terraform state, variables, and backup files
 *.tfstate
 *.tfstate.backup
 *.tfstate.lock.info
+*.tfvars
+*.tfvars.backup
 .terraform/
 
 
