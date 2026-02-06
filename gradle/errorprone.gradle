@@ -4,7 +4,7 @@ allprojects {
     }
 
     pluginManager.withPlugin('net.ltgt.errorprone') {
-        String errorproneVersion = '2.46.0'
+        String errorproneVersion = '2.47.0'
 
         dependencies {
             errorprone "com.google.errorprone:error_prone_core:$errorproneVersion"
