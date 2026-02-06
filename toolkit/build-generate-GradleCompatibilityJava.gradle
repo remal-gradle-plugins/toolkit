@@ -59,30 +59,30 @@ generateSources.forMainSourceSet.java {
                 throw new GradleException("Gradle version range is empty: $trElement")
             }
 
-            def parseGradleVersion = { String string ->
-                string = string.replaceAll(/\*/, '9999')
-                while (string.count('.') < 1) {
-                    string += '.0'
-                }
-                return GradleVersion.version(string)
+            def parseGradleVersion = { String string, String wildcard ->
+                string = string.replaceAll(/[*x]/, '9999')
+                string = string.replaceFirst(/^(\d+)(-|$)/, '$1.0$2')
+                string = string.replaceFirst(/^(\d+\.\d+)(-|$)/, '$1.0$2')
+                string = string.replaceFirst(/^([0-8]\.\d+)\.0(-|$)/, '$1$2')
+                return GradleVersion.version(string).baseVersion
             }
 
             GradleVersionRange range =
                 rangeString.with {
-                    Matcher matcher = Pattern.compile(/(?<min>\d+(\.(\d+|\*))+) to (?<max>\d+(\.(\d+|\*))+)/).matcher(it)
+                    Matcher matcher = Pattern.compile(/(?<min>\d+(\.(\d+|[*x]))+) to (?<max>\d+(\.(\d+|[*x]))+)/).matcher(it)
                     if (matcher.matches()) {
                         return new GradleVersionRange(
-                            min: parseGradleVersion(matcher.group('min')),
-                            max: parseGradleVersion(matcher.group('max')),
+                            min: parseGradleVersion(matcher.group('min'), '0'),
+                            max: parseGradleVersion(matcher.group('max'), '9999'),
                         )
                     }
                     return null
                 }
                     ?: rangeString.with {
-                    Matcher matcher = Pattern.compile(/(?<min>\d+(\.(\d+|\*))+) and after/).matcher(it)
+                    Matcher matcher = Pattern.compile(/(?<min>\d+(\.(\d+|[*x]))+) and after/).matcher(it)
                     if (matcher.matches()) {
                         return new GradleVersionRange(
-                            min: parseGradleVersion(matcher.group('min')),
+                            min: parseGradleVersion(matcher.group('min'), '0'),
                             max: null,
                         )
                     }
@@ -126,7 +126,7 @@ generateSources.forMainSourceSet.java {
                     block("else if (javaVersion == $javaVersion)") {
                         List<String> clauses = []
                         if (range.min != null) {
-                            clauses.add("gradleVersion.compareTo(GRADLE_${range.min.version.replace('.', '_')}) >= 0")
+                            clauses.add("GRADLE_${range.min.version.replace('.', '_')}.compareTo(gradleVersion) <= 0")
                         }
                         if (range.max != null) {
                             clauses.add("gradleVersion.compareTo(GRADLE_${range.max.version.replace('.', '_')}) <= 0")
