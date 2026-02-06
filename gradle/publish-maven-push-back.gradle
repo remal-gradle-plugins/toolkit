@@ -56,7 +56,7 @@ tasks.register('pushBackPublishedVersions') { Task task ->
                         logger.quiet("        Encoded content ({}): {}", existingFileInfo.encoding, existingFileInfo.content)
                     }
 
-                    String prevContent = existingFileInfo?.content?.with {
+                    String prevContent = existingFileInfo?.content?.trim()?.with {
                         new String(Base64.decoder.decode(it), "UTF-8").trim()
                     }
                     String nextContent = publication.version
