@@ -33,7 +33,7 @@ buildscript {
             'name.remal.gradle-plugins.generate-sources:generate-sources:2.0.5',
             'name.remal.gradle-plugins.github-repository-info:github-repository-info:1.0.2',
             'name.remal.gradle-plugins.idea-settings:idea-settings:4.0.7',
-            'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.3',
+            'gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.4',
             'com.gradle.publish:plugin-publish-plugin:2.0.0',
             'io.github.gradle-nexus:publish-plugin:2.0.0',
             'net.ltgt.gradle:gradle-errorprone-plugin:4.4.0',
