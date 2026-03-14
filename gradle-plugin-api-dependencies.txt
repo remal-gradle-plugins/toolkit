@@ -1,7 +1,7 @@
 # This file is generated automatically by `collectAllGradlePluginApiDependencies` Gradle task.
 # Do not modify it yourself unless you know what you are doing.
 
-com.gradle.publish:plugin-publish-plugin:2.0.0
+com.gradle.publish:plugin-publish-plugin:2.1.0
 gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.4.1
 io.github.gradle-nexus:publish-plugin:2.0.0
 name.remal.gradle-plugins.build-time-constants:build-time-constants:2.1.1
@@ -14,7 +14,7 @@ name.remal.gradle-plugins.merge-resources:merge-resources:5.0.6
 name.remal.gradle-plugins.sonarlint:sonarlint:7.0.1
 name.remal.gradle-plugins.test-source-sets:test-source-sets:5.0.6
 net.ltgt.gradle:gradle-errorprone-plugin:5.1.0
-org.eclipse.jgit:org.eclipse.jgit:7.5.0.202512021534-r
+org.eclipse.jgit:org.eclipse.jgit:7.6.0.202603022253-r
 org.ow2.asm:asm-analysis:9.9.1
 org.ow2.asm:asm-bom:9.9.1:@pom
 org.ow2.asm:asm-commons:9.9.1
