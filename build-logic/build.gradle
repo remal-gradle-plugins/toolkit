@@ -35,7 +35,7 @@ tasks.withType(Test).configureEach {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 dependencies {
-    indirectApi('org.eclipse.jgit:org.eclipse.jgit:7.5.0.202512021534-r') { transitive = false }
+    indirectApi('org.eclipse.jgit:org.eclipse.jgit:7.6.0.202603022253-r') { transitive = false }
 
     classesRelocation project(':toolkit')
 
