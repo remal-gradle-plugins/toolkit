@@ -67,19 +67,23 @@ allprojects {
         }
 
         Map<Task, Long> allStartNanos = new ConcurrentHashMap<>()
-        task.beforeTest { TestDescriptor descr ->
-            allStartNanos[descr.id] = System.nanoTime()
-        }
-        task.afterTest { TestDescriptor descr, TestResult result ->
-            Long startNanos = allStartNanos[descr.id]
-            if (startNanos == null) {
-                return
-            }
+        task.addTestListener([
+            beforeSuite: { TestDescriptor suite -> },
+            afterSuite: { TestDescriptor suite, TestResult result -> },
+            beforeTest: { TestDescriptor descr ->
+                allStartNanos[descr.id] = System.nanoTime()
+            },
+            afterTest: { TestDescriptor descr, TestResult result ->
+                Long startNanos = allStartNanos[descr.id]
+                if (startNanos == null) {
+                    return
+                }
 
-            long nanos = System.nanoTime() - startNanos
-            if (nanos >= nanosToReport) {
-                task.logger.warn("Long test: {} > {}: {}s", descr.className, descr.displayName, NANOSECONDS.toSeconds(nanos))
-            }
-        }
+                long nanos = System.nanoTime() - startNanos
+                if (nanos >= nanosToReport) {
+                    task.logger.warn("Long test: {} > {}: {}s", descr.className, descr.displayName, NANOSECONDS.toSeconds(nanos))
+                }
+            },
+        ] as TestListener)
     }
 }

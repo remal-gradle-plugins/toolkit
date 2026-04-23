@@ -118,7 +118,7 @@ project.ext.tookitUrlProperty = githubRepositoryInfo.repository.map { it.htmlUrl
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-Collection<Dependency> snapshotPluginDependencies = project.rootBuildscriptPluginDependencies.findAll { it.version.endsWith('-SNAPSHOT') }
+Collection<Dependency> snapshotPluginDependencies = project.rootBuildscriptPluginDependencies.matching { it.version.endsWith('-SNAPSHOT') }
 if (!snapshotPluginDependencies.isEmpty()) {
     apply plugin: 'java'
     snapshotPluginDependencies.forEach { dependencies.add('compileOnly', it) }

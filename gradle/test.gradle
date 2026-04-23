@@ -178,24 +178,29 @@ allprojects {
 
             Set<Object> testsWithStdErr = Collections.newSetFromMap(new ConcurrentHashMap<>())
             ConcurrentMap<Object, List<String>> testsMessages = new ConcurrentHashMap<>()
-            onOutput { TestDescriptor descr, TestOutputEvent event ->
+            addTestOutputListener({ TestDescriptor descr, TestOutputEvent event ->
                 if (event.destination.name() == 'StdErr') {
                     testsWithStdErr.add(descr.id)
                 }
 
                 List<String> testMessages = testsMessages.computeIfAbsent(descr.id, { Collections.synchronizedList(new ArrayList<>()) })
                 testMessages.add(event.getMessage())
-            }
-            afterTest { TestDescriptor descr, TestResult result ->
-                if (result.resultType.name() == 'FAILURE' || testsWithStdErr.contains(descr.id)) {
-                    List<String> testMessages = testsMessages.get(descr.id)
-                    if (testMessages != null) {
-                        println()
-                        println("Output of $descr.className > $descr.displayName:")
-                        testMessages.forEach { print(" > $it") }
+            } as TestOutputListener)
+            addTestListener([
+                beforeSuite: { TestDescriptor suite -> },
+                afterSuite: { TestDescriptor suite, TestResult result -> },
+                beforeTest: { TestDescriptor descr -> },
+                afterTest: { TestDescriptor descr, TestResult result ->
+                    if (result.resultType.name() == 'FAILURE' || testsWithStdErr.contains(descr.id)) {
+                        List<String> testMessages = testsMessages.get(descr.id)
+                        if (testMessages != null) {
+                            println()
+                            println("Output of $descr.className > $descr.displayName:")
+                            testMessages.forEach { print(" > $it") }
+                        }
                     }
-                }
-            }
+                },
+            ] as TestListener)
 
             doFirst { Test task ->
                 def testFrameworkOptions = task.testFrameworkProperty.get().options
