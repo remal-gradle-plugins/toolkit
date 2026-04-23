@@ -64,11 +64,21 @@ allprojects {
                 .matching { !excludedConfigurationNames.contains(it.name) }
                 .configureEach { Configuration conf ->
                     conf.dependencies.withType(ExternalModuleDependency).configureEach { dep ->
-                        if (dep.group != 'name.remal.gradle-api') {
-                            loggingExclusions.forEach { dep.exclude(it) }
-                            getGradleApiResolvedDependencies().forEach { resolvedDep ->
-                                dep.exclude(group: resolvedDep.moduleGroup, module: resolvedDep.moduleName)
-                            }
+                        if (dep.group == 'name.remal.gradle-api') {
+                            return
+                        }
+
+                        // DefaultJvmTestSuite wires junit-jupiter and junit-platform-launcher via
+                        // fromDependencyCollector, which finalizes the collector on the same call
+                        // stack before this callback runs. Gradle 10 errors on post-finalize
+                        // mutation, so skip these groups.
+                        if (dep.group == 'org.junit.jupiter' || dep.group == 'org.junit.platform') {
+                            return
+                        }
+
+                        loggingExclusions.forEach { dep.exclude(it) }
+                        getGradleApiResolvedDependencies().forEach { resolvedDep ->
+                            dep.exclude(group: resolvedDep.moduleGroup, module: resolvedDep.moduleName)
                         }
                     }
                 }
