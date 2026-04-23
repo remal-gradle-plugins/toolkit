@@ -27,6 +27,7 @@ allprojects {
                     'JavaxInjectOnAbstractMethod', // false positives with Gradle
                     'InjectOnConstructorOfAbstractClass', // false positives with Gradle
                     'MissingSummary', // we don't write JavaDocs everywhere
+                    'NotJavadoc', // /** */ on non-declarations is intentional for IDE {@link} refactoring
                     'DoNotCallSuggester', // we don't need this check
                     'UnusedVariable', // buggy and annoying
                     'SameNameButDifferent', // false positives with lombok.val
