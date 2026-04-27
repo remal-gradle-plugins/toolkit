@@ -10,7 +10,7 @@ allprojects {
             Collection<String> mainConfNames = project.getSourceSetConfigurationNames(sourceSets.main)
             configurations.matching { mainConfNames.contains(it.name) }.forEach { Configuration conf ->
                 conf.allDependencies
-                    .findAll { it.group == 'org.ow2.asm' }
+                    .matching { it.group == 'org.ow2.asm' }
                     .collect { Dependency dep ->
                         if (isPlatformDependency(dep)) {
                             return "${dep.group}:${dep.name}:${dep.version}:@pom"

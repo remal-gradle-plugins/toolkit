@@ -33,9 +33,7 @@ allprojects {
         Injections injections = project.objects.newInstance(Injections)
         doLast {
             injections.configurations
-                .findAll { it.canBeResolved }
-                .findAll { it.name != 'default' }
-                .findAll { it.name != 'archives' }
+                .matching { it.canBeResolved && it.name != 'default' && it.name != 'archives' }
                 .forEach { configuration ->
                     configuration.resolvedConfiguration.lenientConfiguration.artifacts
                 }
