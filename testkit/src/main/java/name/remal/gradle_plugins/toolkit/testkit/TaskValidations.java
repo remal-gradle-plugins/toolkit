@@ -23,7 +23,6 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.execution.plan.LocalTaskNode;
@@ -93,16 +92,28 @@ public abstract class TaskValidations {
 
         @DynamicCompatibilityCandidate final Collection<?> problems;
         try {
-            if (isCurrentGradleVersionGreaterThanOrEqualTo("8.12")) {
+            if (isCurrentGradleVersionGreaterThanOrEqualTo("9.6")) {
                 var services = ((ProjectInternal) task.getProject()).getServices();
-                var problemsService = (InternalProblems) services.get(Problems.class);
+                var problemsService = services.get(Problems.class);
                 var problemsProgressEventEmitterHolderClass = Class.forName(
                     "org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder"
                 );
                 invokeStaticMethod(
                     problemsProgressEventEmitterHolderClass,
                     "init",
-                    InternalProblems.class, problemsService
+                    Class.forName("org.gradle.api.problems.internal.ProblemsInternal"), problemsService
+                );
+
+            } else if (isCurrentGradleVersionGreaterThanOrEqualTo("8.12")) {
+                var services = ((ProjectInternal) task.getProject()).getServices();
+                var problemsService = services.get(Problems.class);
+                var problemsProgressEventEmitterHolderClass = Class.forName(
+                    "org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder"
+                );
+                invokeStaticMethod(
+                    problemsProgressEventEmitterHolderClass,
+                    "init",
+                    Class.forName("org.gradle.api.problems.internal.InternalProblems"), problemsService
                 );
             }
 
