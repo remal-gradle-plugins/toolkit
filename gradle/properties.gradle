@@ -36,7 +36,7 @@ allprojects {
             .flatMap {
                 Stream.of(
                     ciProperties.getProperty(name),
-                    project.findProperty(it)?.toString(),
+                    project.rootProject.findProperty(it)?.toString(),
                     System.getProperty(it),
                     System.getenv(it.replaceAll(/\W/, '_').toUpperCase()),
                 )
