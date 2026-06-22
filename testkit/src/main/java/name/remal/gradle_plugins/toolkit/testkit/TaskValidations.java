@@ -11,7 +11,9 @@ import static name.remal.gradle_plugins.toolkit.reflection.MethodsInvoker.invoke
 import static name.remal.gradle_plugins.toolkit.reflection.ReflectionUtils.unwrapGeneratedSubclass;
 
 import com.google.common.annotations.VisibleForTesting;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import lombok.CustomLog;
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
@@ -92,30 +94,7 @@ public abstract class TaskValidations {
 
         @DynamicCompatibilityCandidate final Collection<?> problems;
         try {
-            if (isCurrentGradleVersionGreaterThanOrEqualTo("9.6")) {
-                var services = ((ProjectInternal) task.getProject()).getServices();
-                var problemsService = services.get(Problems.class);
-                var problemsProgressEventEmitterHolderClass = Class.forName(
-                    "org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder"
-                );
-                invokeStaticMethod(
-                    problemsProgressEventEmitterHolderClass,
-                    "init",
-                    Class.forName("org.gradle.api.problems.internal.ProblemsInternal"), problemsService
-                );
-
-            } else if (isCurrentGradleVersionGreaterThanOrEqualTo("8.12")) {
-                var services = ((ProjectInternal) task.getProject()).getServices();
-                var problemsService = services.get(Problems.class);
-                var problemsProgressEventEmitterHolderClass = Class.forName(
-                    "org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder"
-                );
-                invokeStaticMethod(
-                    problemsProgressEventEmitterHolderClass,
-                    "init",
-                    Class.forName("org.gradle.api.problems.internal.InternalProblems"), problemsService
-                );
-            }
+            initProblemsProgressEventEmitterHolder(task);
 
             var taskNode = getLocalTaskNode(task);
 
@@ -129,7 +108,7 @@ public abstract class TaskValidations {
             var typeValidationContext = validationContext.forType(taskType, false);
             taskNode.getTaskProperties().validateType(typeValidationContext);
 
-            problems = invokeMethod(validationContext, Collection.class, "getProblems");
+            problems = getValidationProblems(validationContext);
 
         } catch (Throwable e) {
             if (rethrowExceptions
@@ -155,6 +134,50 @@ public abstract class TaskValidations {
             ));
         }
     }
+
+    @SneakyThrows
+    @DynamicCompatibilityCandidate
+    private static void initProblemsProgressEventEmitterHolder(Task task) {
+        if (isCurrentGradleVersionGreaterThanOrEqualTo("9.6")) {
+            var services = ((ProjectInternal) task.getProject()).getServices();
+            var problemsService = services.get(Problems.class);
+            var holderClass = Class.forName(
+                "org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder"
+            );
+            invokeStaticMethod(
+                holderClass,
+                "init",
+                Class.forName("org.gradle.api.problems.internal.ProblemsInternal"), problemsService
+            );
+
+        } else if (isCurrentGradleVersionGreaterThanOrEqualTo("8.12")) {
+            var services = ((ProjectInternal) task.getProject()).getServices();
+            var problemsService = services.get(Problems.class);
+            var holderClass = Class.forName(
+                "org.gradle.api.problems.internal.ProblemsProgressEventEmitterHolder"
+            );
+            invokeStaticMethod(
+                holderClass,
+                "init",
+                Class.forName("org.gradle.api.problems.internal.InternalProblems"), problemsService
+            );
+        }
+    }
+
+    @DynamicCompatibilityCandidate
+    private static Collection<?> getValidationProblems(Object validationContext) {
+        if (isCurrentGradleVersionGreaterThanOrEqualTo("9.6")) {
+            List<?> errors = invokeMethod(validationContext, List.class, "getErrors");
+            List<?> warnings = invokeMethod(validationContext, List.class, "getWarnings");
+            var combined = new ArrayList<>();
+            combined.addAll(errors);
+            combined.addAll(warnings);
+            return combined;
+        }
+
+        return invokeMethod(validationContext, Collection.class, "getProblems");
+    }
+
 
     @SuppressWarnings("unchecked")
     private static LocalTaskNode getLocalTaskNode(Task task) {
