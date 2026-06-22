@@ -37,6 +37,7 @@ public final class ProxyInvocationHandler implements InvocationHandler {
 
     @Override
     @Nonnull(when = UNKNOWN)
+    @SuppressWarnings("ReferenceEquality")
     public Object invoke(Object proxy, Method method, @Nonnull(when = UNKNOWN) Object[] args) throws Throwable {
         for (var handler : handlers) {
             if (handler.getPredicate().test(method)) {
