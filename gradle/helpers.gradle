@@ -56,28 +56,28 @@ buildscript {
 
 Object MUTEX = new Object[0]
 
-project.ext.isBuildSrcProject = rootProject.name == 'buildSrc'
+allprojects {
+    project.ext.isBuildSrcProject = rootProject.name == 'buildSrc'
 
-File rootProjectDir = project.ext.rootProjectDir = project.rootDir
-if (project.isBuildSrcProject) {
-    rootProjectDir = project.ext.rootProjectDir = rootProjectDir.parentFile
-}
+    File rootProjectDir = project.ext.rootProjectDir = project.rootDir
+    if (project.isBuildSrcProject) {
+        rootProjectDir = project.ext.rootProjectDir = rootProjectDir.parentFile
+    }
 
-project.ext.unwrapProviders = { object ->
-    while (true) {
-        if (object instanceof Provider) {
-            object = object.get()
-        } else if (object instanceof Supplier) {
-            object = object.get()
-        } else if (object instanceof Callable) {
-            object = object.call()
-        } else {
-            return object
+    project.ext.unwrapProviders = { object ->
+        while (true) {
+            if (object instanceof Provider) {
+                object = object.get()
+            } else if (object instanceof Supplier) {
+                object = object.get()
+            } else if (object instanceof Callable) {
+                object = object.call()
+            } else {
+                return object
+            }
         }
     }
-}
 
-allprojects {
     project.ext.afterEvaluateOrNow = { Closure action ->
         if (project.state.executed) {
             project.configure(project, action)
@@ -93,114 +93,113 @@ allprojects {
             }
         }
     }
-}
 
-project.ext.startWithWord = { CharSequence untypedString, CharSequence untypedNeedle ->
-    if (untypedString == null || untypedNeedle == null) {
-        return false
-    }
-    if (untypedNeedle.length() == 0) {
-        return true
-    }
-    if (untypedString.length() == 0) {
-        return false
-    }
-    String string = untypedString.toString()
-    String needle = untypedNeedle.toString()
-    if (string == needle) {
-        return true
-    }
-    if (string.startsWith(needle)) {
-        String remaining = string.substring(needle.length())
-        char firstRemainingChar = remaining.charAt(0)
-        char lastNeedleChar = needle.charAt(needle.length() - 1)
-        if (Character.isDigit(lastNeedleChar)) {
-            return !Character.isDigit(firstRemainingChar)
-        } else if (Character.isLetter(lastNeedleChar)) {
-            if (!Character.isLetter(lastNeedleChar)) {
-                return true
-            } else if (Character.isUpperCase(firstRemainingChar) && !Character.isUpperCase(lastNeedleChar)) {
-                return true
-            } else if (Character.isLowerCase(firstRemainingChar) && !Character.isLowerCase(lastNeedleChar)) {
-                return true
+    project.ext.startWithWord = { CharSequence untypedString, CharSequence untypedNeedle ->
+        if (untypedString == null || untypedNeedle == null) {
+            return false
+        }
+        if (untypedNeedle.length() == 0) {
+            return true
+        }
+        if (untypedString.length() == 0) {
+            return false
+        }
+        String string = untypedString.toString()
+        String needle = untypedNeedle.toString()
+        if (string == needle) {
+            return true
+        }
+        if (string.startsWith(needle)) {
+            String remaining = string.substring(needle.length())
+            char firstRemainingChar = remaining.charAt(0)
+            char lastNeedleChar = needle.charAt(needle.length() - 1)
+            if (Character.isDigit(lastNeedleChar)) {
+                return !Character.isDigit(firstRemainingChar)
+            } else if (Character.isLetter(lastNeedleChar)) {
+                if (!Character.isLetter(lastNeedleChar)) {
+                    return true
+                } else if (Character.isUpperCase(firstRemainingChar) && !Character.isUpperCase(lastNeedleChar)) {
+                    return true
+                } else if (Character.isLowerCase(firstRemainingChar) && !Character.isLowerCase(lastNeedleChar)) {
+                    return true
+                } else {
+                    return false
+                }
             } else {
-                return false
+                return Character.isLetter(firstRemainingChar)
             }
-        } else {
-            return Character.isLetter(firstRemainingChar)
         }
-    }
-    return false
-}
-
-project.ext.isInstanceOf = { Object object, String parentClassName ->
-    if (object == null) {
         return false
     }
 
-    Class<?> parentClass = Class.forName(parentClassName, true, object.class.classLoader)
-    return parentClass.isInstance(object)
-}
-
-project.ext.getAllResolvedDependencyFiles = { ResolvedDependency rootResolvedDep ->
-    Set<File> files = new LinkedHashSet<>()
-
-    Deque<ResolvedDependency> resolvedDepsQueue = new ArrayDeque<>()
-    resolvedDepsQueue.addLast(rootResolvedDep)
-
-    Set<ResolvedDependency> processedResolvedDeps = new LinkedHashSet<>(resolvedDepsQueue)
-    while (true) {
-        ResolvedDependency resolvedDep = resolvedDepsQueue.pollFirst()
-        if (resolvedDep == null) {
-            break
+    project.ext.isInstanceOf = { Object object, String parentClassName ->
+        if (object == null) {
+            return false
         }
 
-        files.addAll(resolvedDep.moduleArtifacts.collect { it.file.absoluteFile })
+        Class<?> parentClass = Class.forName(parentClassName, true, object.class.classLoader)
+        return parentClass.isInstance(object)
+    }
 
-        resolvedDep.children.forEach { childResolvedDep ->
-            if (processedResolvedDeps.add(childResolvedDep)) {
-                resolvedDepsQueue.addLast(childResolvedDep)
+    project.ext.getAllResolvedDependencyFiles = { ResolvedDependency rootResolvedDep ->
+        Set<File> files = new LinkedHashSet<>()
+
+        Deque<ResolvedDependency> resolvedDepsQueue = new ArrayDeque<>()
+        resolvedDepsQueue.addLast(rootResolvedDep)
+
+        Set<ResolvedDependency> processedResolvedDeps = new LinkedHashSet<>(resolvedDepsQueue)
+        while (true) {
+            ResolvedDependency resolvedDep = resolvedDepsQueue.pollFirst()
+            if (resolvedDep == null) {
+                break
+            }
+
+            files.addAll(resolvedDep.moduleArtifacts.collect { it.file.absoluteFile })
+
+            resolvedDep.children.forEach { childResolvedDep ->
+                if (processedResolvedDeps.add(childResolvedDep)) {
+                    resolvedDepsQueue.addLast(childResolvedDep)
+                }
             }
         }
+
+        return files
     }
 
-    return files
-}
-
-project.ext.disableTask = { Task task ->
-    task.enabled = false
-    task.onlyIf { false }
-    task.dependsOn = []
-    Iterator registeredFileProperties = task.inputs.registeredFileProperties.iterator()
-    while (registeredFileProperties.hasNext()) {
-        registeredFileProperties.next()
-        registeredFileProperties.remove()
+    project.ext.disableTask = { Task task ->
+        task.enabled = false
+        task.onlyIf { false }
+        task.dependsOn = []
+        Iterator registeredFileProperties = task.inputs.registeredFileProperties.iterator()
+        while (registeredFileProperties.hasNext()) {
+            registeredFileProperties.next()
+            registeredFileProperties.remove()
+        }
     }
-}
 
-project.ext.isVerificationTask = { Task task ->
-    if (task instanceof VerificationTask
-        || task instanceof AbstractTestTask
-        || task instanceof ValidatePlugins
-        || task instanceof JacocoCoverageVerification
-    ) {
-        return true
+    project.ext.isVerificationTask = { Task task ->
+        if (task instanceof VerificationTask
+            || task instanceof AbstractTestTask
+            || task instanceof ValidatePlugins
+            || task instanceof JacocoCoverageVerification
+        ) {
+            return true
+        }
+        return false
     }
-    return false
-}
 
-
-List<Method> sourceSetGetConfigurationNameMethods = SourceSet.getMethods().findAll {
-    it.name.startsWith('get')
-        && it.name.endsWith('ConfigurationName')
-        && it.returnType == String
-        && it.parameterCount == 0
-        && !Modifier.isStatic(it.modifiers)
-}
-project.ext.getSourceSetConfigurationNames = { SourceSet sourceSet ->
-    return sourceSetGetConfigurationNameMethods.collect { it.invoke(sourceSet) }
-        .findAll { it != null }
-        .toSet()
+    List<Method> sourceSetGetConfigurationNameMethods = SourceSet.getMethods().findAll {
+        it.name.startsWith('get')
+            && it.name.endsWith('ConfigurationName')
+            && it.returnType == String
+            && it.parameterCount == 0
+            && !Modifier.isStatic(it.modifiers)
+    }
+    project.ext.getSourceSetConfigurationNames = { SourceSet sourceSet ->
+        return sourceSetGetConfigurationNameMethods.collect { it.invoke(sourceSet) }
+            .findAll { it != null }
+            .toSet()
+    }
 }
 
 allprojects {
@@ -218,116 +217,116 @@ allprojects {
 }
 
 
-project.ext.getDependencyCategory = { Object dep ->
-    AttributeContainer attributes = null
-    if (dep instanceof ModuleDependency) {
-        attributes = dep.attributes
-    } else if (dep instanceof ResolvedDependencyResult) {
-        attributes = dep.resolvedVariant.attributes
-    } else if (dep instanceof UnresolvedDependencyResult) {
-        attributes = dep.attempted.attributes
-    } else if (dep instanceof Dependency) {
-        return false
-    } else {
-        throw new GradleException("Unsupported dependency type: ${dep.class}")
-    }
-
-    Attribute categoryAttribute = attributes.keySet().find { attr ->
-        if (attr instanceof String) {
-            return attr == CATEGORY_ATTRIBUTE.name
-        } else {
-            return attr.name == CATEGORY_ATTRIBUTE.name
-        }
-    }
-    if (categoryAttribute == null) {
-        return null;
-    }
-
-    Object value = attributes.getAttribute(categoryAttribute)
-    if (value instanceof String) {
-        return value
-    }
-    return value.name
-}
-
-project.ext.isPlatformDependency = { Object dep ->
-    String category = getDependencyCategory(dep)
-    return [REGULAR_PLATFORM, ENFORCED_PLATFORM].contains(category)
-}
-
-project.ext.isEnforcedPlatformDependency = { Object dep ->
-    String category = getDependencyCategory(dep)
-    return [ENFORCED_PLATFORM].contains(category)
-}
-
-project.ext.isDocumentationDependency = { Object dep ->
-    String category = getDependencyCategory(dep)
-    return [DOCUMENTATION].contains(category)
-}
-
-project.ext.isVerificationDependency = { Object dep ->
-    String category = getDependencyCategory(dep)
-    return [VERIFICATION].contains(category)
-}
-
-project.ext.calculateBaseJavaPackageFor = { Project project ->
-    String baseJavaPackage = project.ext.find('baseJavaPackage')
-    if (baseJavaPackage != null) {
-        return baseJavaPackage
-    }
-
-    List<String> baseJavaPackageTokens = "${rootProject.group}:${rootProject.name}${project.path}".split(/[.:]+/)
-        .findAll { !it.isEmpty() }
-
-    int hiddenTokenPos = baseJavaPackageTokens.findIndexOf { it.contains('--') }
-    if (hiddenTokenPos >= 0) {
-        baseJavaPackageTokens = baseJavaPackageTokens.subList(0, hiddenTokenPos)
-    }
-
-    for (int window = 1; window <= baseJavaPackageTokens.size() / 2; ++window) {
-        int index = -1
-        while (true) {
-            ++index
-            int start = index
-            int end = start + window
-            int nextStart = end
-            int nextEnd = nextStart + window
-            if (nextEnd > baseJavaPackageTokens.size()) {
-                break
-            }
-
-            String token = baseJavaPackageTokens.subList(start, end).join('.')
-            String nextToken = baseJavaPackageTokens.subList(nextStart, nextEnd).join('.')
-            if (token == nextToken) {
-                for (int n = 1; n <= window; ++n) {
-                    baseJavaPackageTokens.remove(index)
-                }
-                --index
-            } else if ("${token}-root" == nextToken) {
-                for (int n = 1; n <= window; ++n) {
-                    baseJavaPackageTokens.remove(index + 1)
-                }
-                --index
-            } else if (token == "${nextToken}-root") {
-                for (int n = 1; n <= window; ++n) {
-                    baseJavaPackageTokens.remove(index)
-                }
-                --index
-            }
-        }
-    }
-
-    return baseJavaPackageTokens.join('.')
-        .replaceAll(/[^\w.]+/, '_')
-        .replaceAll(/_{2,}/, '_')
-        .replaceAll(/_\./, '.')
-        .replaceAll(/\._/, '.')
-        .replaceAll(/\.{2,}/, '.')
-        .replaceFirst(/^\./, '')
-        .replaceFirst(/\.$/, '')
-}.memoize()
-
 allprojects {
+    project.ext.getDependencyCategory = { Object dep ->
+        AttributeContainer attributes = null
+        if (dep instanceof ModuleDependency) {
+            attributes = dep.attributes
+        } else if (dep instanceof ResolvedDependencyResult) {
+            attributes = dep.resolvedVariant.attributes
+        } else if (dep instanceof UnresolvedDependencyResult) {
+            attributes = dep.attempted.attributes
+        } else if (dep instanceof Dependency) {
+            return false
+        } else {
+            throw new GradleException("Unsupported dependency type: ${dep.class}")
+        }
+
+        Attribute categoryAttribute = attributes.keySet().find { attr ->
+            if (attr instanceof String) {
+                return attr == CATEGORY_ATTRIBUTE.name
+            } else {
+                return attr.name == CATEGORY_ATTRIBUTE.name
+            }
+        }
+        if (categoryAttribute == null) {
+            return null;
+        }
+
+        Object value = attributes.getAttribute(categoryAttribute)
+        if (value instanceof String) {
+            return value
+        }
+        return value.name
+    }
+
+    project.ext.isPlatformDependency = { Object dep ->
+        String category = project.getDependencyCategory(dep)
+        return [REGULAR_PLATFORM, ENFORCED_PLATFORM].contains(category)
+    }
+
+    project.ext.isEnforcedPlatformDependency = { Object dep ->
+        String category = project.getDependencyCategory(dep)
+        return [ENFORCED_PLATFORM].contains(category)
+    }
+
+    project.ext.isDocumentationDependency = { Object dep ->
+        String category = project.getDependencyCategory(dep)
+        return [DOCUMENTATION].contains(category)
+    }
+
+    project.ext.isVerificationDependency = { Object dep ->
+        String category = project.getDependencyCategory(dep)
+        return [VERIFICATION].contains(category)
+    }
+
+    project.ext.calculateBaseJavaPackageFor = { Project proj ->
+        String baseJavaPackage = proj.ext.find('baseJavaPackage')
+        if (baseJavaPackage != null) {
+            return baseJavaPackage
+        }
+
+        List<String> baseJavaPackageTokens = "${rootProject.group}:${rootProject.name}${proj.path}".split(/[.:]+/)
+            .findAll { !it.isEmpty() }
+
+        int hiddenTokenPos = baseJavaPackageTokens.findIndexOf { it.contains('--') }
+        if (hiddenTokenPos >= 0) {
+            baseJavaPackageTokens = baseJavaPackageTokens.subList(0, hiddenTokenPos)
+        }
+
+        for (int window = 1; window <= baseJavaPackageTokens.size() / 2; ++window) {
+            int index = -1
+            while (true) {
+                ++index
+                int start = index
+                int end = start + window
+                int nextStart = end
+                int nextEnd = nextStart + window
+                if (nextEnd > baseJavaPackageTokens.size()) {
+                    break
+                }
+
+                String token = baseJavaPackageTokens.subList(start, end).join('.')
+                String nextToken = baseJavaPackageTokens.subList(nextStart, nextEnd).join('.')
+                if (token == nextToken) {
+                    for (int n = 1; n <= window; ++n) {
+                        baseJavaPackageTokens.remove(index)
+                    }
+                    --index
+                } else if ("${token}-root" == nextToken) {
+                    for (int n = 1; n <= window; ++n) {
+                        baseJavaPackageTokens.remove(index + 1)
+                    }
+                    --index
+                } else if (token == "${nextToken}-root") {
+                    for (int n = 1; n <= window; ++n) {
+                        baseJavaPackageTokens.remove(index)
+                    }
+                    --index
+                }
+            }
+        }
+
+        return baseJavaPackageTokens.join('.')
+            .replaceAll(/[^\w.]+/, '_')
+            .replaceAll(/_{2,}/, '_')
+            .replaceAll(/_\./, '.')
+            .replaceAll(/\._/, '.')
+            .replaceAll(/\.{2,}/, '.')
+            .replaceFirst(/^\./, '')
+            .replaceFirst(/\.$/, '')
+    }.memoize()
+
     project.ext.calculateBaseJavaPackage = {
         return project.calculateBaseJavaPackageFor(project)
     }.memoize()
