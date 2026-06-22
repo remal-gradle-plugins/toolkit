@@ -81,7 +81,7 @@ MapProperty<File, String> scriptsToInclude = objects.mapProperty(File, String).v
 }).with { it.finalizeValueOnRead(); it }
 
 generateSources.forMainSourceSet.resources {
-    inputs.dir(getClassLocationFile(ThisScriptLocation)).withNormalizer(ClasspathNormalizer).optional()
+    inputs.dir(project.rootProject.getClassLocationFile(ThisScriptLocation)).withNormalizer(ClasspathNormalizer).optional()
 
     dependsOn(configurations.compileClasspath)
     inputs.files(configurations.compileClasspath).withPropertyName('compileClasspath').withNormalizer(ClasspathNormalizer).optional()
@@ -116,7 +116,7 @@ generateSources.forMainSourceSet.resources {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 generateSources.forMainSourceSet.java {
-    inputs.dir(getClassLocationFile(ThisScriptLocation)).withNormalizer(ClasspathNormalizer).optional()
+    inputs.dir(project.rootProject.getClassLocationFile(ThisScriptLocation)).withNormalizer(ClasspathNormalizer).optional()
 
     Property<String> javaApiMinVersion = project.objects.property(String).value(provider { project.property('java-runtime.min-version').toString() }).with { it.finalizeValueOnRead(); it }
     inputs.property('javaApiMinVersion', javaApiMinVersion).optional(true)

@@ -3,7 +3,7 @@ import java.util.stream.Stream
 class ThisScriptLocation {}
 
 generateSources.forMainSourceSet.resources {
-    inputs.dir(getClassLocationFile(ThisScriptLocation)).withNormalizer(ClasspathNormalizer).optional()
+    inputs.dir(project.rootProject.getClassLocationFile(ThisScriptLocation)).withNormalizer(ClasspathNormalizer).optional()
 
     inputs.files(
         Stream.of(Checkstyle)

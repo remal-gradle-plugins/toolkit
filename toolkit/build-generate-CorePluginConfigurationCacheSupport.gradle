@@ -3,7 +3,7 @@ import org.gradle.util.GradleVersion
 class ResourceLoader {}
 
 generateSources.forMainSourceSet.java {
-    inputs.dir(getClassLocationFile(ResourceLoader)).withNormalizer(ClasspathNormalizer).optional()
+    inputs.dir(project.rootProject.getClassLocationFile(ResourceLoader)).withNormalizer(ClasspathNormalizer).optional()
 
     ListProperty<GradleVersion> gradleVersions = project.objects.listProperty(GradleVersion).value(provider {
         project.getMinorGradleVersions()
@@ -22,7 +22,7 @@ generateSources.forMainSourceSet.java {
 
     outputs.files(files(
         gradleVersions.map { versions ->
-            versions.collect { project.getCacheFileForDownloadedUrl(getDocumentationUrl(it)) }
+            versions.collect { project.rootProject.getCacheFileForDownloadedUrl(getDocumentationUrl(it)) }
         }
     )).optional()
 

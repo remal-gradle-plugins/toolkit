@@ -20,8 +20,8 @@ dependencies {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 generateSources.forMainSourceSet.java {
-    Set<ResolvedDependency> settingsBuildscriptClasspathDependencies = project.settingsBuildscriptClasspathDependencies
-    Set<ResolvedArtifact> settingsBuildscriptClasspathArtifacts = project.settingsBuildscriptClasspathArtifacts
+    Set<ResolvedDependency> settingsBuildscriptClasspathDependencies = project.rootProject.settingsBuildscriptClasspathDependencies
+    Set<ResolvedArtifact> settingsBuildscriptClasspathArtifacts = project.rootProject.settingsBuildscriptClasspathArtifacts
     inputs.files(settingsBuildscriptClasspathArtifacts.collect { it.file }).withPropertyName('settingsBuildscriptClasspathArtifacts').withPathSensitivity(ABSOLUTE).optional()
 
     classFile("${project.calculateBaseJavaPackage()}.functional", 'GradleSettingsPluginVersions') {
