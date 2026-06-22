@@ -129,13 +129,13 @@ allCrossCompileProjects.all { CrossCompileProjectInfo crossCompileProjectInfo ->
 
     if (crossCompileProjectInfo.dependency == null) {
         targetProject.configurations.matching { it.name == 'compileOnlyAll' }.configureEach { Configuration conf ->
-            Dependency crossCompileDep = targetProject.dependencies.create(crossCompileProject)
+            Dependency crossCompileDep = targetProject.dependencies.project(path: crossCompileProject.path)
             conf.dependencies.add(crossCompileDep)
         }
 
     } else {
         targetProject.findProject('cross-compile--common')?.with { Project commonProject ->
-            Dependency dep = crossCompileProject.dependencies.create(commonProject)
+            Dependency dep = crossCompileProject.dependencies.project(path: commonProject.path)
             crossCompileProject.configurations.optional.dependencies.add(dep)
         }
 

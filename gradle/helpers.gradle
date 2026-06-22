@@ -753,7 +753,7 @@ allprojects {
     ]).with { it.finalizeValueOnRead(); it }
 
     Closure fatJarWithImpl = { Project otherProject ->
-        configurations.compileOnly.dependencies.add(dependencies.create(otherProject))
+        configurations.compileOnly.dependencies.add(dependencies.project(path: otherProject.path))
 
         otherProject.tasks.withType(Javadoc).configureEach { enabled = false }
 
