@@ -26,7 +26,7 @@ allprojects {
             configurations.jacocoAnt.extendsFrom(conf)
         }
 
-        String jacocoVersion = '0.8.14'
+        String jacocoVersion = '0.8.15'
 
         dependencies {
             constraints {
