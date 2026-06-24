@@ -114,6 +114,7 @@ public abstract class StringUtils {
     }
 
 
+    @SuppressWarnings("ReferenceEquality")
     public static String trimWith(String string, CharPredicate charPredicate) {
         if (string.isEmpty()) {
             return "";
@@ -139,6 +140,7 @@ public abstract class StringUtils {
         return trimWith(string, charPredicateOf(charsToRemove));
     }
 
+    @SuppressWarnings("ReferenceEquality")
     public static String trimLeftWith(String string, CharPredicate charPredicate) {
         if (string.isEmpty()) {
             return "";
@@ -168,6 +170,7 @@ public abstract class StringUtils {
         return trimLeftWith(string, Character::isWhitespace);
     }
 
+    @SuppressWarnings("ReferenceEquality")
     public static String trimRightWith(String string, CharPredicate charPredicate) {
         if (string.isEmpty()) {
             return "";

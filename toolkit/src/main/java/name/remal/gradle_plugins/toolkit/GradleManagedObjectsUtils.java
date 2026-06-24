@@ -132,7 +132,7 @@ public abstract class GradleManagedObjectsUtils {
     }
 
     @SneakyThrows
-    @SuppressWarnings({"unchecked", "rawtypes", "java:S3776", "java:S6541"})
+    @SuppressWarnings({"unchecked", "rawtypes", "java:S3776", "java:S6541", "ReferenceEquality"})
     public static <PARENT, SOURCE extends PARENT, TARGET extends PARENT> void copyManagedProperties(
         Class<PARENT> parentType,
         SOURCE source,
