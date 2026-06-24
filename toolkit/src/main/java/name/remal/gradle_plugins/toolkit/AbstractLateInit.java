@@ -3,6 +3,7 @@ package name.remal.gradle_plugins.toolkit;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jspecify.annotations.Nullable;
 
+@SuppressWarnings("ReferenceEquality")
 abstract class AbstractLateInit<T> {
 
     @Nullable

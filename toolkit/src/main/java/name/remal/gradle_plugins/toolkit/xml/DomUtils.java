@@ -124,6 +124,7 @@ public abstract class DomUtils {
 
             @Override
             @Nullable
+            @SuppressWarnings("ReferenceEquality")
             public Node set(int index, Node element) {
                 int size = size();
                 if (index < 0 || index > size) {

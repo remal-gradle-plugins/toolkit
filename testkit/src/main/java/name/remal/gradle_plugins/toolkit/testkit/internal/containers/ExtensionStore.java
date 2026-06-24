@@ -32,6 +32,7 @@ public class ExtensionStore {
 
 
     @Nullable
+    @SuppressWarnings("ReferenceEquality")
     public <T> T getCurrentStoreValue(ExtensionContext context, Class<T> type) {
         var key = type;
         var value = getStore(context).get(key, type);

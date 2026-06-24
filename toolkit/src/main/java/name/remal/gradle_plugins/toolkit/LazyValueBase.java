@@ -10,7 +10,7 @@ import java.io.Serializable;
 import lombok.SneakyThrows;
 import org.jspecify.annotations.Nullable;
 
-@SuppressWarnings("java:S1948")
+@SuppressWarnings({"java:S1948", "ReferenceEquality"})
 abstract class LazyValueBase<T> implements Serializable {
 
     private static final long serialVersionUID = 1L;
