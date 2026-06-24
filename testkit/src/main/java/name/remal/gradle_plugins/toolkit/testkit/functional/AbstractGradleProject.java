@@ -113,6 +113,7 @@ public abstract class AbstractGradleProject<
         putGradlePropertyIfAbsent("org.gradle.daemon.idletimeout", 5_000);
         putGradlePropertyIfAbsent("org.gradle.vfs.watch", false);
         putGradlePropertyIfAbsent("org.gradle.kotlin.dsl.allWarningsAsErrors", true);
+        putGradlePropertyIfAbsent("org.gradle.console.interactive", false);
         putGradlePropertyIfAbsent("org.gradle.dependency.verification", "strict");
         putGradlePropertyIfAbsent("org.gradle.dependency.verification.console", "verbose");
 
