@@ -90,7 +90,7 @@ rootProject.allprojects {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 Configuration saxonConf = configurations.create('saxon') {
-    dependencies.add(project.dependencies.create('net.sf.saxon:Saxon-HE:12.9'))
+    dependencies.add(project.dependencies.create('net.sf.saxon:Saxon-HE:13.0'))
 }
 
 TaskProvider testXsltWithSaxon = tasks.register('testXsltWithSaxon', Test) {
