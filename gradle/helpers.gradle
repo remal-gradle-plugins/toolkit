@@ -230,9 +230,7 @@ allprojects {
             .findAll { it != null }
             .toSet()
     }
-}
 
-allprojects {
     project.ext.getAllSourceSetConfigurations = { SourceSet sourceSet ->
         Collection<String> sourceSetConfigurationNames = project.getSourceSetConfigurationNames(sourceSet)
         return project.configurations.matching { sourceSetConfigurationNames.contains(it.name) }
@@ -244,10 +242,7 @@ allprojects {
             project.getAllSourceSetConfigurations(sourceSet).all { allSourceSetsConfigurations.add(it) }
         }
     }
-}
 
-
-allprojects {
     project.ext.isPlatformDependency = { Object dep ->
         String category = project.getDependencyCategory(dep)
         return [REGULAR_PLATFORM, ENFORCED_PLATFORM].contains(category)
@@ -332,10 +327,7 @@ allprojects {
     project.ext.calculateJavaModuleName = {
         return project.findProperty('javaModuleName') ?: project.calculateBaseJavaPackage()
     }.memoize()
-}
 
-
-allprojects {
     Closure<TaskProvider> maybeRegisterTask = { String taskName, Closure configurer ->
         try {
             return tasks.named(taskName)
@@ -827,9 +819,7 @@ allprojects {
             }
         }
     }
-}
 
-allprojects {
     project.ext.withAnyOfPlugins = { Collection<String> pluginIds, Closure action ->
         AtomicBoolean isExecuted = new AtomicBoolean()
         pluginIds.forEach { pluginId ->
@@ -1028,6 +1018,13 @@ Closure dumpClassLoader = { ClassLoader classLoader ->
 }
 
 allprojects {
+    project.ext.unwrapProviders = unwrapProviders
+    project.ext.startWithWord = startWithWord
+    project.ext.isInstanceOf = isInstanceOf
+    project.ext.getAllResolvedDependencyFiles = getAllResolvedDependencyFiles
+    project.ext.disableTask = disableTask
+    project.ext.isVerificationTask = isVerificationTask
+    project.ext.getDependencyCategory = getDependencyCategory
     project.ext.sha512hex = sha512hex
     project.ext.getCacheFileForDownloadedUrl = getCacheFileForDownloadedUrl
     project.ext.loadUrlContent = loadUrlContent
@@ -1050,16 +1047,7 @@ allprojects {
     project.ext.addClassLocationFileToInputs = addClassLocationFileToInputs
     project.ext.sendGitHubRestApiRequest = sendGitHubRestApiRequest
     project.ext.dumpClassLoader = dumpClassLoader
-    project.ext.unwrapProviders = unwrapProviders
-    project.ext.startWithWord = startWithWord
-    project.ext.isInstanceOf = isInstanceOf
-    project.ext.getAllResolvedDependencyFiles = getAllResolvedDependencyFiles
-    project.ext.disableTask = disableTask
-    project.ext.isVerificationTask = isVerificationTask
-    project.ext.getDependencyCategory = getDependencyCategory
-}
 
-allprojects {
     project.ext.redefineDependencyTargetJvmVersion = { String moduleNotation, int jvmVersion ->
         allprojects {
             dependencies.components {
