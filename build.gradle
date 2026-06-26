@@ -112,9 +112,11 @@ List<String> includedBuildScripts = [
 project.ext['includedBuildScripts'] = includedBuildScripts
 includedBuildScripts.forEach { apply from: it }
 
-project.ext.tookitGroup = { rootProject.group }
-project.ext.tookitVersion = { rootProject.version }
-project.ext.tookitUrlProperty = githubRepositoryInfo.repository.map { it.htmlUrl }
+allprojects {
+    project.ext.tookitGroup = { rootProject.group }
+    project.ext.tookitVersion = { rootProject.version }
+    project.ext.tookitUrlProperty = rootProject.githubRepositoryInfo.repository.map { it.htmlUrl }
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
