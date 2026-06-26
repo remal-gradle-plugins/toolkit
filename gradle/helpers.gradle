@@ -54,26 +54,152 @@ buildscript {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+Closure unwrapProviders = { object ->
+    while (true) {
+        if (object instanceof Provider) {
+            object = object.get()
+        } else if (object instanceof Supplier) {
+            object = object.get()
+        } else if (object instanceof Callable) {
+            object = object.call()
+        } else {
+            return object
+        }
+    }
+}
+
+Closure startWithWord = { CharSequence untypedString, CharSequence untypedNeedle ->
+    if (untypedString == null || untypedNeedle == null) {
+        return false
+    }
+    if (untypedNeedle.length() == 0) {
+        return true
+    }
+    if (untypedString.length() == 0) {
+        return false
+    }
+    String string = untypedString.toString()
+    String needle = untypedNeedle.toString()
+    if (string == needle) {
+        return true
+    }
+    if (string.startsWith(needle)) {
+        String remaining = string.substring(needle.length())
+        char firstRemainingChar = remaining.charAt(0)
+        char lastNeedleChar = needle.charAt(needle.length() - 1)
+        if (Character.isDigit(lastNeedleChar)) {
+            return !Character.isDigit(firstRemainingChar)
+        } else if (Character.isLetter(lastNeedleChar)) {
+            if (!Character.isLetter(lastNeedleChar)) {
+                return true
+            } else if (Character.isUpperCase(firstRemainingChar) && !Character.isUpperCase(lastNeedleChar)) {
+                return true
+            } else if (Character.isLowerCase(firstRemainingChar) && !Character.isLowerCase(lastNeedleChar)) {
+                return true
+            } else {
+                return false
+            }
+        } else {
+            return Character.isLetter(firstRemainingChar)
+        }
+    }
+    return false
+}
+
+Closure isInstanceOf = { Object object, String parentClassName ->
+    if (object == null) {
+        return false
+    }
+
+    Class<?> parentClass = Class.forName(parentClassName, true, object.class.classLoader)
+    return parentClass.isInstance(object)
+}
+
+Closure getAllResolvedDependencyFiles = { ResolvedDependency rootResolvedDep ->
+    Set<File> files = new LinkedHashSet<>()
+
+    Deque<ResolvedDependency> resolvedDepsQueue = new ArrayDeque<>()
+    resolvedDepsQueue.addLast(rootResolvedDep)
+
+    Set<ResolvedDependency> processedResolvedDeps = new LinkedHashSet<>(resolvedDepsQueue)
+    while (true) {
+        ResolvedDependency resolvedDep = resolvedDepsQueue.pollFirst()
+        if (resolvedDep == null) {
+            break
+        }
+
+        files.addAll(resolvedDep.moduleArtifacts.collect { it.file.absoluteFile })
+
+        resolvedDep.children.forEach { childResolvedDep ->
+            if (processedResolvedDeps.add(childResolvedDep)) {
+                resolvedDepsQueue.addLast(childResolvedDep)
+            }
+        }
+    }
+
+    return files
+}
+
+Closure disableTask = { Task task ->
+    task.enabled = false
+    task.onlyIf { false }
+    task.dependsOn = []
+    Iterator registeredFileProperties = task.inputs.registeredFileProperties.iterator()
+    while (registeredFileProperties.hasNext()) {
+        registeredFileProperties.next()
+        registeredFileProperties.remove()
+    }
+}
+
+Closure isVerificationTask = { Task task ->
+    if (task instanceof VerificationTask
+        || task instanceof AbstractTestTask
+        || task instanceof ValidatePlugins
+        || task instanceof JacocoCoverageVerification
+    ) {
+        return true
+    }
+    return false
+}
+
+Closure getDependencyCategory = { Object dep ->
+    AttributeContainer attributes = null
+    if (dep instanceof ModuleDependency) {
+        attributes = dep.attributes
+    } else if (dep instanceof ResolvedDependencyResult) {
+        attributes = dep.resolvedVariant.attributes
+    } else if (dep instanceof UnresolvedDependencyResult) {
+        attributes = dep.attempted.attributes
+    } else if (dep instanceof Dependency) {
+        return false
+    } else {
+        throw new GradleException("Unsupported dependency type: ${dep.class}")
+    }
+
+    Attribute categoryAttribute = attributes.keySet().find { attr ->
+        if (attr instanceof String) {
+            return attr == CATEGORY_ATTRIBUTE.name
+        } else {
+            return attr.name == CATEGORY_ATTRIBUTE.name
+        }
+    }
+    if (categoryAttribute == null) {
+        return null;
+    }
+
+    Object value = attributes.getAttribute(categoryAttribute)
+    if (value instanceof String) {
+        return value
+    }
+    return value.name
+}
+
 allprojects {
     project.ext.isBuildSrcProject = rootProject.name == 'buildSrc'
 
     File rootProjectDir = project.ext.rootProjectDir = project.rootDir
     if (project.isBuildSrcProject) {
         rootProjectDir = project.ext.rootProjectDir = rootProjectDir.parentFile
-    }
-
-    project.ext.unwrapProviders = { object ->
-        while (true) {
-            if (object instanceof Provider) {
-                object = object.get()
-            } else if (object instanceof Supplier) {
-                object = object.get()
-            } else if (object instanceof Callable) {
-                object = object.call()
-            } else {
-                return object
-            }
-        }
     }
 
     project.ext.afterEvaluateOrNow = { Closure action ->
@@ -90,100 +216,6 @@ allprojects {
                 project.configure(project, action)
             }
         }
-    }
-
-    project.ext.startWithWord = { CharSequence untypedString, CharSequence untypedNeedle ->
-        if (untypedString == null || untypedNeedle == null) {
-            return false
-        }
-        if (untypedNeedle.length() == 0) {
-            return true
-        }
-        if (untypedString.length() == 0) {
-            return false
-        }
-        String string = untypedString.toString()
-        String needle = untypedNeedle.toString()
-        if (string == needle) {
-            return true
-        }
-        if (string.startsWith(needle)) {
-            String remaining = string.substring(needle.length())
-            char firstRemainingChar = remaining.charAt(0)
-            char lastNeedleChar = needle.charAt(needle.length() - 1)
-            if (Character.isDigit(lastNeedleChar)) {
-                return !Character.isDigit(firstRemainingChar)
-            } else if (Character.isLetter(lastNeedleChar)) {
-                if (!Character.isLetter(lastNeedleChar)) {
-                    return true
-                } else if (Character.isUpperCase(firstRemainingChar) && !Character.isUpperCase(lastNeedleChar)) {
-                    return true
-                } else if (Character.isLowerCase(firstRemainingChar) && !Character.isLowerCase(lastNeedleChar)) {
-                    return true
-                } else {
-                    return false
-                }
-            } else {
-                return Character.isLetter(firstRemainingChar)
-            }
-        }
-        return false
-    }
-
-    project.ext.isInstanceOf = { Object object, String parentClassName ->
-        if (object == null) {
-            return false
-        }
-
-        Class<?> parentClass = Class.forName(parentClassName, true, object.class.classLoader)
-        return parentClass.isInstance(object)
-    }
-
-    project.ext.getAllResolvedDependencyFiles = { ResolvedDependency rootResolvedDep ->
-        Set<File> files = new LinkedHashSet<>()
-
-        Deque<ResolvedDependency> resolvedDepsQueue = new ArrayDeque<>()
-        resolvedDepsQueue.addLast(rootResolvedDep)
-
-        Set<ResolvedDependency> processedResolvedDeps = new LinkedHashSet<>(resolvedDepsQueue)
-        while (true) {
-            ResolvedDependency resolvedDep = resolvedDepsQueue.pollFirst()
-            if (resolvedDep == null) {
-                break
-            }
-
-            files.addAll(resolvedDep.moduleArtifacts.collect { it.file.absoluteFile })
-
-            resolvedDep.children.forEach { childResolvedDep ->
-                if (processedResolvedDeps.add(childResolvedDep)) {
-                    resolvedDepsQueue.addLast(childResolvedDep)
-                }
-            }
-        }
-
-        return files
-    }
-
-    project.ext.disableTask = { Task task ->
-        task.enabled = false
-        task.onlyIf { false }
-        task.dependsOn = []
-        Iterator registeredFileProperties = task.inputs.registeredFileProperties.iterator()
-        while (registeredFileProperties.hasNext()) {
-            registeredFileProperties.next()
-            registeredFileProperties.remove()
-        }
-    }
-
-    project.ext.isVerificationTask = { Task task ->
-        if (task instanceof VerificationTask
-            || task instanceof AbstractTestTask
-            || task instanceof ValidatePlugins
-            || task instanceof JacocoCoverageVerification
-        ) {
-            return true
-        }
-        return false
     }
 
     List<Method> sourceSetGetConfigurationNameMethods = SourceSet.getMethods().findAll {
@@ -216,38 +248,6 @@ allprojects {
 
 
 allprojects {
-    project.ext.getDependencyCategory = { Object dep ->
-        AttributeContainer attributes = null
-        if (dep instanceof ModuleDependency) {
-            attributes = dep.attributes
-        } else if (dep instanceof ResolvedDependencyResult) {
-            attributes = dep.resolvedVariant.attributes
-        } else if (dep instanceof UnresolvedDependencyResult) {
-            attributes = dep.attempted.attributes
-        } else if (dep instanceof Dependency) {
-            return false
-        } else {
-            throw new GradleException("Unsupported dependency type: ${dep.class}")
-        }
-
-        Attribute categoryAttribute = attributes.keySet().find { attr ->
-            if (attr instanceof String) {
-                return attr == CATEGORY_ATTRIBUTE.name
-            } else {
-                return attr.name == CATEGORY_ATTRIBUTE.name
-            }
-        }
-        if (categoryAttribute == null) {
-            return null;
-        }
-
-        Object value = attributes.getAttribute(categoryAttribute)
-        if (value instanceof String) {
-            return value
-        }
-        return value.name
-    }
-
     project.ext.isPlatformDependency = { Object dep ->
         String category = project.getDependencyCategory(dep)
         return [REGULAR_PLATFORM, ENFORCED_PLATFORM].contains(category)
@@ -535,19 +535,7 @@ Closure<GPathResult> loadXmlFromUrl = { Object untypedUrl, String encoding = nul
     return xmlParser.parseText(content)
 }
 
-allprojects {
-    project.ext.sha512hex = sha512hex
-    project.ext.getCacheFileForDownloadedUrl = getCacheFileForDownloadedUrl
-    project.ext.loadUrlContent = loadUrlContent
-    project.ext.isHttpRequestFailedException = isHttpRequestFailedException
-    project.ext.loadTextUrlContent = loadTextUrlContent
-    project.ext.loadJsonFromUrl = loadJsonFromUrl
-    project.ext.loadHtmlFromUrl = loadHtmlFromUrl
-    project.ext.loadXmlFromUrl = loadXmlFromUrl
-    project.ext.getMinorGradleVersions = getMinorGradleVersions
-}
-
-Closure<List<GradleVersion>> getAllGradleVersions = project.ext.getAllGradleVersions = {
+Closure<List<GradleVersion>> getAllGradleVersions = {
     List<GradleVersion> result = []
 
     JSONArray versionObjects = loadJsonFromUrl('https://services.gradle.org/versions/all')
@@ -590,7 +578,7 @@ Closure<List<GradleVersion>> getAllGradleVersions = project.ext.getAllGradleVers
     return result
 }.memoize()
 
-Closure<List<GradleVersion>> getStableGradleVersions = project.ext.getStableGradleVersions = {
+Closure<List<GradleVersion>> getStableGradleVersions = {
     return getAllGradleVersions().findAll { it.baseVersion == it }
 }.memoize()
 
@@ -630,20 +618,20 @@ Closure<List<Integer>> getFilteredJavaRuntimeVersions = { Closure<Boolean> filte
     return result
 }
 
-Closure<List<Integer>> getAllJavaRuntimeVersions = project.ext.getAllJavaRuntimeVersions = {
+Closure<List<Integer>> getAllJavaRuntimeVersions = {
     return getFilteredJavaRuntimeVersions { true }
 }.memoize()
 
-Closure<List<Integer>> getLtsJavaRuntimeVersions = project.ext.getLtsJavaRuntimeVersions = {
+Closure<List<Integer>> getLtsJavaRuntimeVersions = {
     return getFilteredJavaRuntimeVersions { JSONObject versionObject ->
         versionObject.getString('term_of_support') == 'LTS'
     }
 }.memoize()
 
 
-Property<String> publishedVersionsDirRelativePathProperty = project.ext.publishedVersionsDirRelativePath = project.objects.property(String)
+Property<String> publishedVersionsDirRelativePathProperty = project.objects.property(String)
 
-Closure<List<String>> getPluginVersions = project.ext.getPluginVersions = { String pluginId ->
+Closure<List<String>> getPluginVersions = { String pluginId ->
     def metadata = null
     try {
         metadata = loadXmlFromUrl("https://plugins.gradle.org/m2/${pluginId.replace('.', '/')}/${pluginId}.gradle.plugin/maven-metadata.xml")
@@ -680,7 +668,7 @@ Closure<List<String>> getPluginVersions = project.ext.getPluginVersions = { Stri
     return versions
 }.memoize()
 
-Closure<String> getPluginLastVersion = project.ext.getPluginLastVersion = { String pluginId ->
+Closure<String> getPluginLastVersion = { String pluginId ->
     List<String> versions = getPluginVersions(pluginId)
     if (!versions.isEmpty()) {
         return versions.first()
@@ -689,7 +677,7 @@ Closure<String> getPluginLastVersion = project.ext.getPluginLastVersion = { Stri
     throw new IllegalStateException("No versions were found for plugin '$pluginId'")
 }
 
-Closure<String> getPluginLastVersionWithCurrentAsFallback = project.ext.getPluginLastVersionWithCurrentAsFallback = { String pluginId ->
+Closure<String> getPluginLastVersionWithCurrentAsFallback = { String pluginId ->
     List<String> versions = getPluginVersions(pluginId)
     if (!versions.isEmpty()) {
         return versions.first()
@@ -750,7 +738,7 @@ class IncludedInFatJarMarkerPlugin implements Plugin<Project> {
     }
 }
 
-Closure<Boolean> isIncludedInFatJar = project.ext.isIncludedInFatJar = { Project otherProject ->
+Closure<Boolean> isIncludedInFatJar = { Project otherProject ->
     return otherProject.plugins.findPlugin(IncludedInFatJarMarkerPlugin) != null
 }
 
@@ -854,7 +842,7 @@ allprojects {
     }
 }
 
-Closure<File> getClassLocationFile = project.ext.getClassLocationFile = { Class clazz ->
+Closure<File> getClassLocationFile = { Class clazz ->
     URL location = clazz?.protectionDomain?.codeSource?.location
     if (location == null) {
         return null
@@ -868,7 +856,7 @@ Closure<File> getClassLocationFile = project.ext.getClassLocationFile = { Class 
     }
 }
 
-Closure<File> addClassLocationFileToInputs = project.ext.addClassLocationFileToInputs = { Class clazz, TaskInputs inputs ->
+Closure<File> addClassLocationFileToInputs = { Class clazz, TaskInputs inputs ->
     File file = getClassLocationFile(clazz)
     if (file == null) {
         // do nothing
@@ -883,7 +871,7 @@ Provider<String> githubApiUrl = project.githubRepositoryInfo.githubApiUrl
 Provider<String> repositoryFullName = project.githubRepositoryInfo.repositoryFullName
 Provider<String> githubApiToken = project.githubRepositoryInfo.githubApiToken
 
-project.ext.sendGitHubRestApiRequest = { String uriString, String method = null, Object requestBody = null ->
+Closure sendGitHubRestApiRequest = { String uriString, String method = null, Object requestBody = null ->
     URI uri = new URI(uriString)
     if (!uri.absolute) {
         if (uri.toString().startsWith('/')) {
@@ -976,7 +964,7 @@ project.ext.sendGitHubRestApiRequest = { String uriString, String method = null,
     }
 }
 
-Closure dumpClassLoader = project.ext.dumpClassLoader = { ClassLoader classLoader ->
+Closure dumpClassLoader = { ClassLoader classLoader ->
     StringBuilder message = new StringBuilder()
 
     while (true) {
@@ -1037,6 +1025,38 @@ Closure dumpClassLoader = project.ext.dumpClassLoader = { ClassLoader classLoade
     }
 
     println message.toString()
+}
+
+allprojects {
+    project.ext.sha512hex = sha512hex
+    project.ext.getCacheFileForDownloadedUrl = getCacheFileForDownloadedUrl
+    project.ext.loadUrlContent = loadUrlContent
+    project.ext.isHttpRequestFailedException = isHttpRequestFailedException
+    project.ext.loadTextUrlContent = loadTextUrlContent
+    project.ext.loadJsonFromUrl = loadJsonFromUrl
+    project.ext.loadHtmlFromUrl = loadHtmlFromUrl
+    project.ext.loadXmlFromUrl = loadXmlFromUrl
+    project.ext.getAllGradleVersions = getAllGradleVersions
+    project.ext.getStableGradleVersions = getStableGradleVersions
+    project.ext.getMinorGradleVersions = getMinorGradleVersions
+    project.ext.getAllJavaRuntimeVersions = getAllJavaRuntimeVersions
+    project.ext.getLtsJavaRuntimeVersions = getLtsJavaRuntimeVersions
+    project.ext.publishedVersionsDirRelativePath = publishedVersionsDirRelativePathProperty
+    project.ext.getPluginVersions = getPluginVersions
+    project.ext.getPluginLastVersion = getPluginLastVersion
+    project.ext.getPluginLastVersionWithCurrentAsFallback = getPluginLastVersionWithCurrentAsFallback
+    project.ext.isIncludedInFatJar = isIncludedInFatJar
+    project.ext.getClassLocationFile = getClassLocationFile
+    project.ext.addClassLocationFileToInputs = addClassLocationFileToInputs
+    project.ext.sendGitHubRestApiRequest = sendGitHubRestApiRequest
+    project.ext.dumpClassLoader = dumpClassLoader
+    project.ext.unwrapProviders = unwrapProviders
+    project.ext.startWithWord = startWithWord
+    project.ext.isInstanceOf = isInstanceOf
+    project.ext.getAllResolvedDependencyFiles = getAllResolvedDependencyFiles
+    project.ext.disableTask = disableTask
+    project.ext.isVerificationTask = isVerificationTask
+    project.ext.getDependencyCategory = getDependencyCategory
 }
 
 allprojects {
