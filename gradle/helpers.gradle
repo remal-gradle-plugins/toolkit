@@ -54,8 +54,6 @@ buildscript {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-Object MUTEX = new Object[0]
-
 allprojects {
     project.ext.isBuildSrcProject = rootProject.name == 'buildSrc'
 
@@ -408,7 +406,7 @@ allprojects {
 }
 
 
-Closure<String> sha512hex = project.ext.sha512hex = { Object content ->
+Closure<String> sha512hex = { Object content ->
     if (content instanceof CharSequence) {
         content = content.toString().getBytes('UTF-8')
     }
@@ -427,9 +425,10 @@ Closure<String> sha512hex = project.ext.sha512hex = { Object content ->
 }
 
 
-File downloadedContentCacheDir = project.layout.buildDirectory.dir('downloaded-content-cache').get().asFile
+File downloadedContentCacheDir = rootProject.layout.buildDirectory.dir('downloaded-content-cache').get().asFile
+ConcurrentMap<String, Object> downloadUrlMutexes = new ConcurrentHashMap<>()
 
-Closure<File> getCacheFileForDownloadedUrl = project.ext.getCacheFileForDownloadedUrl = { Object untypedUrl, String cacheFileNameSuffix = null ->
+Closure<File> getCacheFileForDownloadedUrl = { Object untypedUrl, String cacheFileNameSuffix = null ->
     URL url = project.uri(untypedUrl).toURL()
 
     if (cacheFileNameSuffix == null) {
@@ -445,8 +444,11 @@ Closure<File> getCacheFileForDownloadedUrl = project.ext.getCacheFileForDownload
 
 Set<File> cacheFilesForDownloadedUrlLoadedFirstTimeOnCi = synchronizedSet(new LinkedHashSet<>())
 
-Closure<byte[]> loadUrlContent = project.ext.loadUrlContent = { Object untypedUrl, String cacheFileNameSuffix = null ->
-    synchronized (MUTEX) {
+Closure<byte[]> loadUrlContent = { Object untypedUrl, String cacheFileNameSuffix = null ->
+    URL url = project.uri(untypedUrl).toURL()
+    String urlString = url.toString()
+    Object mutex = downloadUrlMutexes.computeIfAbsent(urlString) { new Object[0] }
+    synchronized (mutex) {
         File cacheFile = getCacheFileForDownloadedUrl(untypedUrl, cacheFileNameSuffix)
 
         if (project.isRunningOnCi && cacheFilesForDownloadedUrlLoadedFirstTimeOnCi.add(cacheFile)) {
@@ -458,7 +460,6 @@ Closure<byte[]> loadUrlContent = project.ext.loadUrlContent = { Object untypedUr
             return cacheFile.bytes
         }
 
-        URL url = project.uri(untypedUrl).toURL()
         URLConnection connection = url.openConnection()
         connection.connectTimeout = 5_000
         connection.readTimeout = 30_000
@@ -468,7 +469,7 @@ Closure<byte[]> loadUrlContent = project.ext.loadUrlContent = { Object untypedUr
                 if (connection.responseCode != 200) {
                     throw new HttpRequestFailedException(
                         'GET',
-                        url.toString(),
+                        urlString,
                         connection.responseCode
                     )
                 }
@@ -503,26 +504,26 @@ class HttpRequestFailedException extends GradleException {
 
 }
 
-project.ext.isHttpRequestFailedException = { Exception exception ->
+Closure isHttpRequestFailedException = { Exception exception ->
     return exception instanceof HttpRequestFailedException
 }
 
-Closure<String> loadTextUrlContent = project.ext.loadTextUrlContent = { Object untypedUrl, String encoding = null, String cacheFileNameSuffix = null ->
+Closure<String> loadTextUrlContent = { Object untypedUrl, String encoding = null, String cacheFileNameSuffix = null ->
     byte[] content = loadUrlContent(untypedUrl, cacheFileNameSuffix)
     return new String(content, encoding ?: 'UTF-8')
 }
 
-Closure<JSONArray> loadJsonFromUrl = project.ext.loadJsonFromUrl = { Object untypedUrl, String encoding = null ->
+Closure<JSONArray> loadJsonFromUrl = { Object untypedUrl, String encoding = null ->
     String content = loadTextUrlContent(untypedUrl, encoding, '.json')
     return new JSONTokener(content).nextValue()
 }
 
-Closure<Document> loadHtmlFromUrl = project.ext.loadHtmlFromUrl = { Object untypedUrl, String encoding = null ->
+Closure<Document> loadHtmlFromUrl = { Object untypedUrl, String encoding = null ->
     String content = loadTextUrlContent(untypedUrl, encoding, '.html')
     return Jsoup.parse(content, project.uri(untypedUrl).toString())
 }
 
-Closure<GPathResult> loadXmlFromUrl = project.ext.loadXmlFromUrl = { Object untypedUrl, String encoding = null ->
+Closure<GPathResult> loadXmlFromUrl = { Object untypedUrl, String encoding = null ->
     XmlSlurper xmlParser = new XmlSlurper(false, true, true)
     xmlParser.entityResolver = new EntityResolver() {
         @Override
@@ -532,6 +533,18 @@ Closure<GPathResult> loadXmlFromUrl = project.ext.loadXmlFromUrl = { Object unty
     }
     String content = loadTextUrlContent(untypedUrl, encoding, '.xml')
     return xmlParser.parseText(content)
+}
+
+allprojects {
+    project.ext.sha512hex = sha512hex
+    project.ext.getCacheFileForDownloadedUrl = getCacheFileForDownloadedUrl
+    project.ext.loadUrlContent = loadUrlContent
+    project.ext.isHttpRequestFailedException = isHttpRequestFailedException
+    project.ext.loadTextUrlContent = loadTextUrlContent
+    project.ext.loadJsonFromUrl = loadJsonFromUrl
+    project.ext.loadHtmlFromUrl = loadHtmlFromUrl
+    project.ext.loadXmlFromUrl = loadXmlFromUrl
+    project.ext.getMinorGradleVersions = getMinorGradleVersions
 }
 
 Closure<List<GradleVersion>> getAllGradleVersions = project.ext.getAllGradleVersions = {
@@ -581,7 +594,7 @@ Closure<List<GradleVersion>> getStableGradleVersions = project.ext.getStableGrad
     return getAllGradleVersions().findAll { it.baseVersion == it }
 }.memoize()
 
-Closure<List<GradleVersion>> getMinorGradleVersions = project.ext.getMinorGradleVersions = {
+Closure<List<GradleVersion>> getMinorGradleVersions = {
     Set<String> minorVersions = new LinkedHashSet<>()
     return getStableGradleVersions().findAll { version ->
         String minorVersion = version.version.replaceFirst(/^(\d+\.\d+).*$/, '$1')
