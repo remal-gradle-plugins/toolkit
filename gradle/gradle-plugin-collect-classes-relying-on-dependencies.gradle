@@ -52,9 +52,9 @@ Closure<Boolean> isNodeAnnotatedWith = { node, simpleClassName ->
 }
 
 DomainObjectSet<Project> projectsToCollectClassesRelyingOnDependency = project.objects.domainObjectSet(Project)
-project.ext.projectsToCollectClassesRelyingOnDependency = projectsToCollectClassesRelyingOnDependency
 
 allprojects {
+    project.ext.projectsToCollectClassesRelyingOnDependency = projectsToCollectClassesRelyingOnDependency
     pluginManager.withPlugin('java') {
         projectsToCollectClassesRelyingOnDependency.add(project)
 

@@ -22,7 +22,7 @@ buildscript {
 
 NamedDomainObjectContainer<CrossCompileDependencyInfo> allCrossCompileDependencies = project.objects.domainObjectContainer(CrossCompileDependencyInfo, { String name -> new CrossCompileDependencyInfo(name) })
 
-project.ext.registerCrossCompileDependencyInfo = { Map<String, Object> params ->
+Closure registerCrossCompileDependencyInfo = { Map<String, Object> params ->
     CrossCompileDependencyInfo crossCompileDependencyInfo = new CrossCompileDependencyInfo(params)
     allCrossCompileDependencies.add(crossCompileDependencyInfo)
 }
@@ -86,9 +86,10 @@ class CrossCompileDependencyInfo implements Named {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 NamedDomainObjectContainer<CrossCompileProjectInfo> allCrossCompileProjects = project.objects.domainObjectContainer(CrossCompileProjectInfo, { throw new UnsupportedOperationException() })
-project.ext.allCrossCompileProjects = allCrossCompileProjects
 
 allprojects {
+    project.ext.registerCrossCompileDependencyInfo = registerCrossCompileDependencyInfo
+    project.ext.allCrossCompileProjects = allCrossCompileProjects
     if (CrossCompileProjectInfo.matches(project)) {
         allCrossCompileProjects.add(new CrossCompileProjectInfo(project))
     }
