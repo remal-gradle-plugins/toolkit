@@ -21,6 +21,7 @@ allprojects {
             options.errorprone {
                 disableWarningsInGeneratedCode = true
                 disable(
+                    'ReferenceEquality', // too strict rule
                     'AssignmentExpression', // too strict rule
                     'EffectivelyPrivate', // too strict rule
                     'StringConcatToTextBlock', // buggy with Lombok
