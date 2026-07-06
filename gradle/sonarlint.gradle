@@ -44,6 +44,7 @@ allprojects {
                     'java:S5976', // Similar tests should be grouped in a single Parameterized test
                     'java:S5993', // Constructors of an "abstract" class should not be declared "public"
                     'java:S6548', // The Singleton design pattern should be used with care
+                    'java:S8786', // Regex with super-linear backtracking performance
 
                     'xml:S125', // Sections of code should not be commented out
                 )
