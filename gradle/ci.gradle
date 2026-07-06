@@ -1,10 +1,9 @@
 allprojects {
-
-    ext['isRunningOnCi'] = false
+    project.ext.isRunningOnCi = false
     if (System.getenv('CI') == 'true') {
-        ext['isRunningOnCi'] = true
+        project.ext.isRunningOnCi = true
     }
-    ext['isNotRunningOnCi'] = !ext['isRunningOnCi']
+    project.ext.isNotRunningOnCi = !project.ext.isRunningOnCi
 
     if (!project.isBuildSrcProject) {
         String gitRef = property('git-ref')

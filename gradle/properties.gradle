@@ -1,6 +1,8 @@
 import java.util.stream.Stream
 import org.gradle.util.GradleVersion
 
+def MUTEX = new Object()
+
 allprojects {
     File rootProjectDir = project.rootProjectDir
 
@@ -18,7 +20,7 @@ allprojects {
     }
 
     File ciPropertiesFile = new File(rootProjectDir, 'build/gradle-ci.properties')
-    synchronized (rootProject) {
+    synchronized (MUTEX) {
         if (!rootProject.hasProperty('ciProperties')) {
             Properties props = new Properties()
             rootProject.ext['ciProperties'] = props
@@ -48,7 +50,7 @@ allprojects {
         if (value != null) {
             if (storeValue) {
                 ciProperties.setProperty(name, value)
-                synchronized (rootProject) {
+                synchronized (MUTEX) {
                     ciPropertiesFile.parentFile.mkdirs()
                     ciPropertiesFile.newOutputStream().withCloseable { ciProperties.store(it, null) }
                 }
@@ -77,11 +79,11 @@ allprojects {
     }
 
 
-    if (rootProject.findProperty('isJavaRuntimeVersionSet') == null) {
-        rootProject.ext.isJavaRuntimeVersionSet = getCiProperty('java-runtime.version', null) != null
+    if (project.findProperty('isJavaRuntimeVersionSet') == null) {
+        project.ext.isJavaRuntimeVersionSet = getCiProperty('java-runtime.version', null) != null
     }
-    if (rootProject.findProperty('isGradleApiVersionSet') == null) {
-        rootProject.ext.isGradleApiVersionSet = getCiProperty('gradle-api.version', null) != null
+    if (project.findProperty('isGradleApiVersionSet') == null) {
+        project.ext.isGradleApiVersionSet = getCiProperty('gradle-api.version', null) != null
     }
 
     project.ext['java-runtime.version'] = getCiProperty('java-runtime.version', JavaVersion.current().majorVersion)
