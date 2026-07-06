@@ -18,6 +18,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Month;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
 import java.time.Period;
@@ -90,7 +91,7 @@ class GsonTypeAdaptersTest {
 
     @Test
     void localDate() {
-        var value = LocalDate.of(2025, 12, 31);
+        var value = LocalDate.of(2025, Month.DECEMBER, 31);
         var json = gson.toJson(value);
         assertEquals('"' + value.toString() + '"', json);
         var deserializedValue = gson.fromJson(json, LocalDate.class);
@@ -109,7 +110,7 @@ class GsonTypeAdaptersTest {
     @Test
     void localDateTime() {
         var value = LocalDateTime.of(
-            LocalDate.of(2025, 12, 31),
+            LocalDate.of(2025, Month.DECEMBER, 31),
             LocalTime.of(23, 13, 11)
         );
         var json = gson.toJson(value);
@@ -151,7 +152,7 @@ class GsonTypeAdaptersTest {
     @Test
     void zonedDateTime() {
         var value = ZonedDateTime.of(
-            LocalDate.of(2025, 12, 31),
+            LocalDate.of(2025, Month.DECEMBER, 31),
             LocalTime.of(23, 13, 11),
             ZoneId.of("America/New_York")
         );
@@ -165,7 +166,7 @@ class GsonTypeAdaptersTest {
     void offsetDateTime() {
         {
             var value = OffsetDateTime.of(
-                LocalDate.of(2025, 12, 31),
+                LocalDate.of(2025, Month.DECEMBER, 31),
                 LocalTime.of(23, 13, 11),
                 ZoneOffset.of("+14:31")
             );
@@ -177,7 +178,7 @@ class GsonTypeAdaptersTest {
 
         {
             var value = ZonedDateTime.of(
-                LocalDate.of(2025, 12, 31),
+                LocalDate.of(2025, Month.DECEMBER, 31),
                 LocalTime.of(23, 13, 11),
                 ZoneId.of("America/New_York")
             );
@@ -200,7 +201,7 @@ class GsonTypeAdaptersTest {
 
         {
             var value = OffsetDateTime.of(
-                LocalDate.of(2025, 12, 31),
+                LocalDate.of(2025, Month.DECEMBER, 31),
                 LocalTime.of(23, 13, 11),
                 ZoneOffset.of("+14:31")
             );
@@ -212,7 +213,7 @@ class GsonTypeAdaptersTest {
 
         {
             var value = ZonedDateTime.of(
-                LocalDate.of(2025, 12, 31),
+                LocalDate.of(2025, Month.DECEMBER, 31),
                 LocalTime.of(23, 13, 11),
                 ZoneId.of("America/New_York")
             );

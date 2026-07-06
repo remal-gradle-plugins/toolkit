@@ -16,7 +16,7 @@ import static name.remal.gradle_plugins.toolkit.UrlUtils.openInputStreamForUrl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
 import static org.objectweb.asm.ClassWriter.COMPUTE_MAXS;
 import static org.objectweb.asm.Opcodes.ACC_ABSTRACT;
@@ -100,12 +100,9 @@ class ExtendedUrlClassLoaderTest {
 
                 assertSame(parentClassLoader, classLoader.loadClass(TEST_PARENT_CLASS_NAME).getClassLoader());
 
-                try {
-                    assertSame(classLoader, classLoader.loadClass(TEST_CHILD_CLASS_NAME).getClassLoader());
-                    fail();
-                } catch (ClassNotFoundException ignored) {
-                    // OK
-                }
+                assertThrows(ClassNotFoundException.class, () ->
+                    classLoader.loadClass(TEST_CHILD_CLASS_NAME)
+                );
             }
         }
     }
@@ -121,12 +118,9 @@ class ExtendedUrlClassLoaderTest {
 
                 assertSame(classLoader, classLoader.loadClass(TEST_CLASS_NAME).getClassLoader());
 
-                try {
-                    assertSame(parentClassLoader, classLoader.loadClass(TEST_PARENT_CLASS_NAME).getClassLoader());
-                    fail();
-                } catch (ClassNotFoundException ignored) {
-                    // OK
-                }
+                assertThrows(ClassNotFoundException.class, () ->
+                    classLoader.loadClass(TEST_PARENT_CLASS_NAME)
+                );
 
                 assertSame(classLoader, classLoader.loadClass(TEST_CHILD_CLASS_NAME).getClassLoader());
             }
