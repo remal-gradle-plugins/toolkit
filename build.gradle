@@ -106,7 +106,6 @@ List<String> includedBuildScripts = [
     'gradle/toolkit-dependencies.gradle',
     'gradle/process-readme.gradle',
     'gradle/ide.gradle',
-    'gradle/github-submit-dependencies.gradle',
     'gradle/build-performance.gradle',
 ].toUnique()
 project.ext['includedBuildScripts'] = includedBuildScripts
