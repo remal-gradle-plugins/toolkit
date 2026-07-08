@@ -132,6 +132,9 @@ generateSources.forMainSourceSet.java {
     }).with { it.finalizeValueOnRead(); it }
     inputs.property('toolkitBaseJavaPackage', toolkitBaseJavaPackage).optional(true)
 
+    ListProperty<String> scriptResourcesToInclude = project.objects.listProperty(String).value(provider { scriptsToInclude.get().values().collect { it.toString() } }).with { it.finalizeValueOnRead(); it }
+    inputs.property('scriptResourcesToInclude', scriptResourcesToInclude).optional(true)
+
     classFile(project.calculateBaseJavaPackage(), 'BuildLogicPlugin') {
         addStaticImport("java.lang.String", "format")
         addStaticImport("${toolkitBaseJavaPackage.get()}.ObjectUtils", "unwrapProviders")
