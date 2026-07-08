@@ -74,9 +74,13 @@ allprojects {
             FailsCounterTestListener failsCounterTestListener = new FailsCounterTestListener()
             task.addTestListener(failsCounterTestListener)
 
-            task.doLast {
+            RegularFileProperty execFileProperty = project.objects.fileProperty().fileProvider(provider {
                 JacocoTaskExtension jacocoTaskExtension = task.extensions.getByType(JacocoTaskExtension)
-                File execFile = jacocoTaskExtension.destinationFile?.absoluteFile
+                return jacocoTaskExtension.destinationFile?.absoluteFile
+            })
+
+            task.doLast {
+                File execFile = execFileProperty.getOrNull()?.asFile
                 if (execFile == null) {
                     return
                 }
