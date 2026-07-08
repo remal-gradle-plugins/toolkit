@@ -79,13 +79,6 @@ allprojects {
     }
 
 
-    if (project.findProperty('isJavaRuntimeVersionSet') == null) {
-        project.ext.isJavaRuntimeVersionSet = getCiProperty('java-runtime.version', null) != null
-    }
-    if (project.findProperty('isGradleApiVersionSet') == null) {
-        project.ext.isGradleApiVersionSet = getCiProperty('gradle-api.version', null) != null
-    }
-
     project.ext['java-runtime.version'] = getCiProperty('java-runtime.version', JavaVersion.current().majorVersion)
     project.ext['java-runtime.min-version'] = getCiProperty('java-runtime.min-version', JavaVersion.current().majorVersion)
     project.ext['gradle-api.version'] = getCiProperty('gradle-api.version', GradleVersion.current().version)
