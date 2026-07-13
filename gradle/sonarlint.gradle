@@ -65,8 +65,15 @@ allprojects {
 
         pluginManager.withPlugin('java') {
             URI mavenCentralUri = project.uri(MAVEN_CENTRAL_URL)
+            // Google Cloud Storage Maven Central mirror, incl. regional hosts:
+            // https://storage-download.googleapis.com/maven-central/index.html
+            String mavenCentralMirrorHostRegex = /maven-central(-[a-z]+)?\.storage-download\.googleapis\.com/
             repositories.withType(MavenArtifactRepository)
-                .matching { MavenArtifactRepository repo -> repo.url.scheme != 'file' && repo.url != mavenCentralUri }
+                .matching { MavenArtifactRepository repo ->
+                    repo.url.scheme != 'file'
+                        && repo.url != mavenCentralUri
+                        && !(repo.url.host ==~ mavenCentralMirrorHostRegex)
+                }
                 .configureEach { MavenArtifactRepository repo ->
                     repo.content { RepositoryContentDescriptor content ->
                         sonarlintConfs.all { Configuration conf ->
