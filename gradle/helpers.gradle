@@ -48,6 +48,13 @@ buildscript {
         classpath "com.vdurmont:semver4j:3.1.0"
     }
     repositories {
+        if (System.getenv('CI') == 'true') {
+            maven {
+                name = "googleMavenCentralMirror"
+                url = uri("https://maven-central.storage-download.googleapis.com/maven2/")
+                mavenContent { releasesOnly() }
+            }
+        }
         mavenCentral()
     }
 }

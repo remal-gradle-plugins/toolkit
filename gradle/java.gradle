@@ -26,8 +26,8 @@ allprojects {
                     mavenContent { releasesOnly() }
                 }
             }
-            mavenCentral()
             gradlePluginPortal()
+            mavenCentral()
 
             exclusiveContent {
                 forRepository {
