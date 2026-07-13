@@ -16,4 +16,8 @@ public class GradleSettingsFileContentGroovyDefault
         applyFoojayToolchainsResolverConventionPlugin(this, () -> withFoojayToolchainsResolver);
     }
 
+    public GradleSettingsFileContentGroovyDefault() {
+        super(true);
+    }
+
 }

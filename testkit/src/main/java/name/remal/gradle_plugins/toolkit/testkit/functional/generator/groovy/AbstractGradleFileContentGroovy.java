@@ -5,6 +5,7 @@ import name.remal.gradle_plugins.generate_sources.generators.java_like.groovy.Gr
 import name.remal.gradle_plugins.generate_sources.generators.java_like.groovy.GroovyFileContentDefault;
 import name.remal.gradle_plugins.toolkit.testkit.functional.generator.GradleFileContent;
 import name.remal.gradle_plugins.toolkit.testkit.functional.generator.chunks.BuildscriptChunkDefault;
+import name.remal.gradle_plugins.toolkit.testkit.functional.generator.chunks.PluginManagementChunkDefault;
 import name.remal.gradle_plugins.toolkit.testkit.functional.generator.chunks.PluginsChunkDefault;
 
 public abstract class AbstractGradleFileContentGroovy
@@ -12,7 +13,14 @@ public abstract class AbstractGradleFileContentGroovy
     implements GradleFileContent<GroovyContent> {
 
     protected AbstractGradleFileContentGroovy() {
+        this(false);
+    }
+
+    protected AbstractGradleFileContentGroovy(boolean withPluginManagementRepositories) {
         super(null, null);
+        if (withPluginManagementRepositories) {
+            addLastChunks(new PluginManagementChunkDefault<>(GroovyContentDefault::new));
+        }
         addLastChunks(
             new BuildscriptChunkDefault<>(GroovyContentDefault::new),
             new PluginsChunkDefault<>(GroovyContentDefault::new)

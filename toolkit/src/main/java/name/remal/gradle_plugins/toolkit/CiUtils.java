@@ -32,13 +32,18 @@ public abstract class CiUtils {
         .findFirst()
         .orElse(null);
 
+    private static Optional<CiSystem> getDetectedCiSystem() {
+        return Optional.ofNullable(CI_SYSTEM);
+    }
+
+
     @Contract(pure = true)
     public static Optional<CiSystem> getCiSystem() {
         if (isInTest()) {
             return Optional.empty();
         }
 
-        return Optional.ofNullable(CI_SYSTEM);
+        return getDetectedCiSystem();
     }
 
     @Contract(pure = true)
@@ -49,6 +54,20 @@ public abstract class CiUtils {
     @Contract(pure = true)
     public static boolean isNotRunningOnCi() {
         return !isRunningOnCi();
+    }
+
+    /**
+     * Do not use it in plugin production code.
+     *
+     * <p>Returns {@code true} if the current process runs on a CI system, even under a test.
+     *
+     * <p>Unlike {@link CiUtils#isRunningOnCi()}, this method reports the real CI environment
+     * regardless of whether the code runs inside a test. It is intended for test-harness and
+     * build-infrastructure code only.
+     */
+    @Contract(pure = true)
+    public static boolean isRunningOnCiIncludingTests() {
+        return getDetectedCiSystem().isPresent();
     }
 
 }

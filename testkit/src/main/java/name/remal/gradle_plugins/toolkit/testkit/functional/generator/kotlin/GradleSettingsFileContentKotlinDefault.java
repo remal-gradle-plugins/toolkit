@@ -16,4 +16,8 @@ public class GradleSettingsFileContentKotlinDefault
         applyFoojayToolchainsResolverConventionPlugin(this, () -> withFoojayToolchainsResolver);
     }
 
+    public GradleSettingsFileContentKotlinDefault() {
+        super(true);
+    }
+
 }

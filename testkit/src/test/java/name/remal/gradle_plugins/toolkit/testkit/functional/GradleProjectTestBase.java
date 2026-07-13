@@ -9,6 +9,7 @@ import com.google.errorprone.annotations.FormatMethod;
 import com.google.errorprone.annotations.FormatString;
 import com.google.errorprone.annotations.OverridingMethodsMustInvokeSuper;
 import lombok.RequiredArgsConstructor;
+import name.remal.gradle_plugins.toolkit.testkit.functional.generator.chunks.PluginManagementChunk;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,11 @@ import org.junit.jupiter.api.Test;
 abstract class GradleProjectTestBase<GradleProjectType extends AbstractGradleProject<?, ?, ?, ?>> {
 
     protected final GradleProjectType project;
+
+    protected final String escapeString(Object value) {
+        return project.getBuildFile().escapeString(value.toString());
+    }
+
 
     @BeforeEach
     @OverridingMethodsMustInvokeSuper
@@ -65,8 +71,30 @@ abstract class GradleProjectTestBase<GradleProjectType extends AbstractGradlePro
     }
 
 
-    protected final String escapeString(Object value) {
-        return project.getBuildFile().escapeString(value.toString());
+    @Test
+    void pluginManagementWithMavenCentralMirror() {
+        project.forSettingsFile(settings -> {
+            settings.getChunk(PluginManagementChunk.class).setWithMavenCentralMirror(true);
+            settings.setWithFoojayToolchainsResolver(false);
+        });
+
+        assertThat(project.getSettingsFile().toString())
+            .contains(escapeString("https://maven-central.storage-download.googleapis.com/maven2/"));
+
+        project.assertBuildSuccessfully("help");
+    }
+
+    @Test
+    void pluginManagementWithoutMavenCentralMirror() {
+        project.forSettingsFile(settings -> {
+            settings.getChunk(PluginManagementChunk.class).setWithMavenCentralMirror(false);
+            settings.setWithFoojayToolchainsResolver(false);
+        });
+
+        assertThat(project.getSettingsFile().toString())
+            .doesNotContain(escapeString("https://maven-central.storage-download.googleapis.com/maven2/"));
+
+        project.assertBuildSuccessfully("help");
     }
 
 }
