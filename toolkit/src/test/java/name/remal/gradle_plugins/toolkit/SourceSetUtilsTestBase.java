@@ -2,8 +2,8 @@ package name.remal.gradle_plugins.toolkit;
 
 import static java.nio.file.Files.writeString;
 import static name.remal.gradle_plugins.toolkit.ArchiveUtils.newEmptyZipArchive;
-import static name.remal.gradle_plugins.toolkit.CiUtils.isRunningOnCiIncludingTests;
 import static name.remal.gradle_plugins.toolkit.PathUtils.createParentDirectories;
+import static name.remal.gradle_plugins.toolkit.testkit.RepositoryHandlerUtils.addMavenCentralRepository;
 import static org.gradle.api.tasks.SourceSet.MAIN_SOURCE_SET_NAME;
 import static org.gradle.api.tasks.SourceSet.TEST_SOURCE_SET_NAME;
 
@@ -13,16 +13,11 @@ import lombok.SneakyThrows;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.artifacts.repositories.MavenRepositoryContentDescriptor;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
 
 abstract class SourceSetUtilsTestBase {
-
-    private static final String MAVEN_CENTRAL_MIRROR_NAME = "googleMavenCentralMirror";
-    private static final String MAVEN_CENTRAL_MIRROR_URL = "https://maven-central.storage-download.googleapis.com/maven2/";
-
 
     @ForOverride
     protected boolean useMavenCentral() {
@@ -52,16 +47,7 @@ abstract class SourceSetUtilsTestBase {
         project.getPluginManager().apply("java");
 
         if (useMavenCentral()) {
-            var repositories = project.getRepositories();
-            if (isRunningOnCiIncludingTests()) {
-                repositories.maven(repo -> {
-                    repo.setName(MAVEN_CENTRAL_MIRROR_NAME);
-                    repo.setUrl(MAVEN_CENTRAL_MIRROR_URL);
-                    repo.mavenContent(MavenRepositoryContentDescriptor::releasesOnly);
-                });
-            }
-            repositories.mavenCentral();
-
+            addMavenCentralRepository(project.getRepositories());
         } else {
             var props = project.getExtensions().getExtraProperties();
             props.set("kotlin.stdlib.default.dependency", "false");
