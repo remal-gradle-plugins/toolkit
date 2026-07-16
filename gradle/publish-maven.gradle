@@ -29,6 +29,13 @@ allprojects {
 
             moduleDescriptorGenerator = null
 
+            // Gradle 9.8 is expected to stop publishing checksums for signature files by default
+            // and to add this property: https://github.com/gradle/gradle/pull/35247.
+            // Pin the desired behavior. If this assignment fails after a Gradle upgrade, the API changed: revisit it.
+            if (GradleVersion.current().baseVersion >= GradleVersion.version('9.8')) {
+                enableChecksumsForDerivedArtifacts = false
+            }
+
             pom {
                 name = mavenPomName
                 description = mavenPomName
