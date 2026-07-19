@@ -138,6 +138,13 @@ public abstract class TaskValidations {
     @SneakyThrows
     @DynamicCompatibilityCandidate
     private static void initProblemsProgressEventEmitterHolder(Task task) {
+        if (isCurrentGradleVersionGreaterThanOrEqualTo("9.7")) {
+            // ProblemsProgressEventEmitterHolder was removed in Gradle 9.7.
+            // The task property validation path obtains the Problems service via dependency injection,
+            // so no static initialization is needed anymore.
+            return;
+        }
+
         if (isCurrentGradleVersionGreaterThanOrEqualTo("9.6")) {
             var services = ((ProjectInternal) task.getProject()).getServices();
             var problemsService = services.get(Problems.class);

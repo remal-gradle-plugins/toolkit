@@ -650,6 +650,26 @@ public abstract class AbstractGradleProject<
     }
 
 
+    private String[] getIsolatedProjectsArguments() {
+        if (!withIsolatedProjects) {
+            return new String[0];
+        }
+
+        if (isCurrentGradleVersionGreaterThanOrEqualTo("9.7")) {
+            // Isolated Projects was renamed from `org.gradle.unsafe.isolated-projects` in Gradle 9.7.
+            // The diagnostics mode reports all violations instead of failing on the first one.
+            return new String[]{
+                "-Dorg.gradle.isolated-projects=true",
+                "-Dorg.gradle.isolated-projects.diagnostics=true",
+            };
+        }
+
+        return new String[]{
+            "-Dorg.gradle.unsafe.isolated-projects=true",
+        };
+    }
+
+
     @SneakyThrows
     @SuppressWarnings("java:S2259")
     private GradleRunner createGradleRunner(
@@ -685,8 +705,8 @@ public abstract class AbstractGradleProject<
                     // TODO: add test (https://github.com/remal-gradle-plugins/toolkit/issues/1018):
                     "-Dorg.gradle.configuration-cache.parallel=true",
                     "-Dorg.gradle.configuration-cache.integrity-check=true",
-                    withIsolatedProjects ? "-Dorg.gradle.unsafe.isolated-projects=true" : null,
-                }
+                },
+                getIsolatedProjectsArguments()
             );
         }
 
