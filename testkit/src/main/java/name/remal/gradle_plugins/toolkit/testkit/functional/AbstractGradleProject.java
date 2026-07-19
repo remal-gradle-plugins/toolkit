@@ -421,7 +421,9 @@ public abstract class AbstractGradleProject<
 
 
         File jacocoProjectDir = null;
-        if (withJacoco && withConfigurationCache) {
+        // Only needed before Gradle 9.7, where the JaCoCo agent couldn't run under the configuration cache in TestKit
+        // (https://github.com/gradle/gradle/issues/25979); since 9.7 the main configuration-cache build collects coverage directly.
+        if (withJacoco && withConfigurationCache && !isCurrentGradleVersionGreaterThanOrEqualTo("9.7")) {
             jacocoProjectDir = new File(
                 projectDir.getParentFile(),
                 projectDir.getName() + ".jacoco"
