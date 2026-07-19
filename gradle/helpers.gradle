@@ -772,7 +772,8 @@ allprojects {
         }
 
         tasks.withType(Javadoc).configureEach { Javadoc task ->
-            task.dependsOn(project.provider { otherProject.registerResolveConfigurationTask('optionalHidden') })
+            task.dependsOn(otherProject.registerResolveConfigurationTask('compileClasspath'))
+            task.dependsOn(otherProject.registerResolveConfigurationTask('optionalHidden'))
 
             task.onlyIf {
                 task.classpath += otherProject.configurations.optionalHidden
