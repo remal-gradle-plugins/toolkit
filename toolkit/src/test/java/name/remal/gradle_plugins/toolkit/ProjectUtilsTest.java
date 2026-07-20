@@ -1,6 +1,7 @@
 package name.remal.gradle_plugins.toolkit;
 
 import static java.nio.file.Files.write;
+import static java.util.Objects.requireNonNull;
 import static name.remal.gradle_plugins.toolkit.ArchiveUtils.newZipArchiveWriter;
 import static name.remal.gradle_plugins.toolkit.PathUtils.createParentDirectories;
 import static name.remal.gradle_plugins.toolkit.PathUtils.normalizePath;
@@ -35,8 +36,8 @@ class ProjectUtilsTest {
         }
 
         var fileTree = ProjectUtils.newClasspathFileTree(project, List.of(
-            fileA.getParent().toFile(),
-            fileB.getParent().toFile(),
+            requireNonNull(fileA.getParent()).toFile(),
+            requireNonNull(fileB.getParent()).toFile(),
             archive.toFile()
         ));
 

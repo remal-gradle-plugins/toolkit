@@ -39,7 +39,8 @@ class ReportContainerUtilsMethodsDefault implements ReportContainerUtilsMethods 
             factory -> {
                 var reports = new ArrayList<T>();
                 configureAction.execute(new ReportContainerConfigurer() {
-                    private <R extends Report> R add(Class<R> type, Object... args) {
+                    @SuppressWarnings({"NullAway", "NullableProblems"})
+                    private <R extends Report> R add(Class<R> type, @Nullable Object... args) {
                         var report = factory.instantiateReport((Class<T>) type, args);
                         reports.add(report);
                         return (R) report;

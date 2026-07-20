@@ -8,6 +8,7 @@ allprojects {
 
         dependencies {
             errorprone "com.google.errorprone:error_prone_core:$errorproneVersion"
+            errorprone 'com.uber.nullaway:nullaway:0.13.8'
 
             compileOnlyAll "com.google.errorprone:error_prone_annotations:$errorproneVersion"
         }
@@ -37,6 +38,8 @@ allprojects {
                     'BugPatternNaming', // too strict rule
                     'StringCaseLocaleUsage', // too strict rule
                 )
+                option('NullAway:OnlyNullMarked', 'true')
+                option('NullAway:JSpecifyMode', 'true')
             }
         }
     }

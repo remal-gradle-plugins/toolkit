@@ -6,6 +6,7 @@ import org.jspecify.annotations.Nullable;
 public interface LazyNullableValueSupplier<T> extends LazyValueSupplierBase<T> {
 
     @Nullable
+    @SuppressWarnings("NullAway")
     T get() throws Throwable;
 
 }

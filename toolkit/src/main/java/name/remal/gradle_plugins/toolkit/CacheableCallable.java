@@ -23,6 +23,7 @@ public final class CacheableCallable<V> implements Callable<V> {
 
     @Nonnull(when = UNKNOWN)
     @Override
+    @SuppressWarnings("NullAway")
     public V call() {
         return lazyValue.get();
     }

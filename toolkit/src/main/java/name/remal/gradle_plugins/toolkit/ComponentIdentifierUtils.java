@@ -16,11 +16,13 @@ import org.jspecify.annotations.Nullable;
 @NoArgsConstructor(access = PRIVATE)
 public abstract class ComponentIdentifierUtils {
 
+    @Nullable
     @ReliesOnInternalGradleApi
     @SuppressWarnings("rawtypes")
     private static final TypedMethod0<OpaqueComponentIdentifier, Enum> getClassPathNotation =
         findMethod(OpaqueComponentIdentifier.class, Enum.class, "getClassPathNotation");
 
+    @Nullable
     @ReliesOnInternalGradleApi
     private static final TypedMethod0<OpaqueComponentIdentifier, String> getDisplayName =
         findMethod(OpaqueComponentIdentifier.class, String.class, "getDisplayName");

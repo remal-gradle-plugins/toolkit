@@ -53,6 +53,7 @@ public abstract class TimeoutUtils {
         }
     }
 
+    @SuppressWarnings("NullAway")
     public static void withTimeout(Duration timeout, SneakyThrowsRunnable action) {
         withTimeout(timeout, () -> {
             action.run();

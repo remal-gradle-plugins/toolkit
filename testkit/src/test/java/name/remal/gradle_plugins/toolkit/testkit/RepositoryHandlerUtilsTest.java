@@ -25,8 +25,10 @@ class RepositoryHandlerUtilsTest {
         var mirror = repositories.findByName("googleMavenCentralMirror");
         assertThat(mirror)
             .as("googleMavenCentralMirror repository")
+            .isNotNull()
             .isInstanceOf(MavenArtifactRepository.class);
-        assertThat(((MavenArtifactRepository) mirror).getUrl())
+        assertThat(mirror)
+            .extracting("url")
             .hasToString("https://maven-central.storage-download.googleapis.com/maven2/");
     }
 

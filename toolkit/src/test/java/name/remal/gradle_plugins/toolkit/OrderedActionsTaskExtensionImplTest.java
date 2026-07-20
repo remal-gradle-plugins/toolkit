@@ -19,6 +19,7 @@ class OrderedActionsTaskExtensionImplTest {
         var isExecuted = new AtomicBoolean(false);
 
         @Data
+        @SuppressWarnings("NullAway.Init")
         class MutableAction implements OrderedAction<Object> {
             private String id;
             private int stage;

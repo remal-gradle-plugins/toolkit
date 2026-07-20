@@ -24,7 +24,7 @@ public final class LateInit<T> extends AbstractLateInit<T> {
     }
 
     @Override
-    @SuppressWarnings({"NullableProblems", "java:S2638"})
+    @SuppressWarnings({"NullableProblems", "java:S2638", "NullAway"})
     public void set(@NonNull T value) {
         super.set(value);
     }

@@ -20,7 +20,7 @@ abstract class AbstractLateInit<T> {
     private static final Object NOT_INITIALIZED = new Object[0];
 
     @SuppressWarnings("unchecked")
-    private final AtomicReference<T> valueRef = new AtomicReference<>((T) NOT_INITIALIZED);
+    private final AtomicReference<@Nullable T> valueRef = new AtomicReference<>((T) NOT_INITIALIZED);
 
     @SuppressWarnings("unchecked")
     public void set(@Nullable T value) {

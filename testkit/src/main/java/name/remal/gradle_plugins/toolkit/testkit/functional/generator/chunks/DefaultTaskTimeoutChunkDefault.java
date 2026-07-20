@@ -22,6 +22,7 @@ public class DefaultTaskTimeoutChunkDefault<Block extends JavaLikeContent<Block>
 
     @Override
     public String toString() {
+        var defaultTaskTimeout = this.defaultTaskTimeout;
         if (defaultTaskTimeout == null) {
             return "";
         }
