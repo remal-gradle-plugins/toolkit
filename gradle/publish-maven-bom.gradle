@@ -11,34 +11,54 @@ allprojects {
     pluginManager.withPlugin('maven-publish') {
         if (project != rootProject) {
             rootProject.pluginManager.apply('maven-publish')
-            return
         }
+    }
+}
 
-        publishing.publications.register('mavenBom', MavenPublication) { MavenPublication publication ->
-            publication.artifactId = publication.artifactId?.replaceFirst(/-root$/, '') + '-bom'
+gradle.projectsEvaluated {
+    if (!rootProject.pluginManager.hasPlugin('maven-publish')) {
+        return
+    }
 
-            publication.pom { MavenPom pom ->
-                pom.name = project.mavenPomName.map { "${it}: BOM" }
-                pom.description = project.mavenPomName.map { "${it}: Bill of Materials (BOM)" }
-                pom.withXml {
-                    Element root = asElement()
-                    Document document = root.ownerDocument
-                    Node dependencyManagement = root.appendChild(document.createElement("dependencyManagement"))
-                    Node dependencies = dependencyManagement.appendChild(document.createElement("dependencies"))
-                    List<MavenPublication> otherPublications = allprojects
-                        .findAll { it.pluginManager.hasPlugin('maven-publish') }
-                        .collect { it.publishing.publications.withType(MavenPublication).collect() }
-                        .flatten()
-                        .findAll { it !== publication }
-                    for (MavenPublication otherPublication : otherPublications) {
-                        Node dependency = dependencies.appendChild(document.createElement("dependency"))
-                        dependency.appendChild(document.createElement("groupId"))
-                            .setTextContent(otherPublication.groupId)
-                        dependency.appendChild(document.createElement("artifactId"))
-                            .setTextContent(otherPublication.artifactId)
-                        dependency.appendChild(document.createElement("version"))
-                            .setTextContent(otherPublication.version)
-                    }
+    Collection<Project> mavenCentralProjects = rootProject.allprojects.findAll { Project publishingProject ->
+        publishingProject.pluginManager.hasPlugin('maven-publish')
+            && isPublishedToMavenCentral(publishingProject)
+            && !publishingProject.publishing.publications.withType(MavenPublication).isEmpty()
+    }
+
+    // The BOM is published iff at least 2 projects are published to Maven Central.
+    // Set the `publish.maven-bom` property to override this rule in either direction.
+    Boolean explicitFlag = rootProject.property('publish.maven-bom')?.toString()?.toBoolean()
+    boolean shouldPublishMavenBom = explicitFlag != null ? explicitFlag : mavenCentralProjects.size() >= 2
+    if (!shouldPublishMavenBom) {
+        return
+    }
+
+    rootProject.publishing.publications.register('mavenBom', MavenPublication) { MavenPublication publication ->
+        publication.artifactId = publication.artifactId?.replaceFirst(/-root$/, '') + '-bom'
+
+        publication.pom { MavenPom pom ->
+            pom.name = rootProject.mavenPomName.map { "${it}: BOM" }
+            pom.description = rootProject.mavenPomName.map { "${it}: Bill of Materials (BOM)" }
+            pom.withXml {
+                Element root = asElement()
+                Document document = root.ownerDocument
+                Node dependencyManagement = root.appendChild(document.createElement("dependencyManagement"))
+                Node dependencies = dependencyManagement.appendChild(document.createElement("dependencies"))
+                List<MavenPublication> otherPublications = rootProject.allprojects
+                    .findAll { it.pluginManager.hasPlugin('maven-publish') }
+                    .findAll { isPublishedToMavenCentral(it) }
+                    .collect { it.publishing.publications.withType(MavenPublication).collect() }
+                    .flatten()
+                    .findAll { it !== publication }
+                for (MavenPublication otherPublication : otherPublications) {
+                    Node dependency = dependencies.appendChild(document.createElement("dependency"))
+                    dependency.appendChild(document.createElement("groupId"))
+                        .setTextContent(otherPublication.groupId)
+                    dependency.appendChild(document.createElement("artifactId"))
+                        .setTextContent(otherPublication.artifactId)
+                    dependency.appendChild(document.createElement("version"))
+                        .setTextContent(otherPublication.version)
                 }
             }
         }

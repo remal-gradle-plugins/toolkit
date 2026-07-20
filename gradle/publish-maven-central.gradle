@@ -30,9 +30,27 @@ allprojects {
 
 File flagFile = project.layout.buildDirectory.file('publish-maven-central.flag').get().asFile
 flagFile.delete()
-allprojects {
-    pluginManager.withPlugin('io.github.gradle-nexus.publish-plugin') {
-        flagFile.parentFile.mkdirs()
-        flagFile.createNewFile()
+gradle.projectsEvaluated {
+    // Gradle plugins are published to the Gradle Plugin Portal only, never to Maven Central:
+    rootProject.allprojects { Project publishingProject ->
+        if (!isPublishedToMavenCentral(publishingProject)) {
+            publishingProject.tasks.matching {
+                it.name == 'publishToSonatype' || it.name.contains('ToSonatypeRepository')
+            }.configureEach { disableTask(it) }
+        }
     }
+
+    boolean anyMavenCentralPublications = rootProject.allprojects.any { Project publishingProject ->
+        publishingProject.pluginManager.hasPlugin('maven-publish')
+            && isPublishedToMavenCentral(publishingProject)
+            && !publishingProject.publishing.publications.withType(MavenPublication).isEmpty()
+    }
+    if (!anyMavenCentralPublications) {
+        // Nothing is published to Maven Central: disable the staging repository machinery too:
+        rootProject.tasks.matching { it.name.contains('Sonatype') }.configureEach { disableTask(it) }
+        return
+    }
+
+    flagFile.parentFile.mkdirs()
+    flagFile.createNewFile()
 }

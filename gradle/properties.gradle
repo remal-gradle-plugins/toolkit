@@ -105,6 +105,10 @@ allprojects {
 
     project.ext['rerun-tests'] = getCiProperty('rerun-tests', 'false')
 
+    project.ext['publish.gradle-plugin'] = getCiProperty('publish.gradle-plugin', 'true')
+    project.ext['publish.maven-central'] = getCiProperty('publish.maven-central')
+    project.ext['publish.maven-bom'] = getCiProperty('publish.maven-bom')
+
     String currentVersion = project.version.toString()
     if (currentVersion == 'unspecified') {
         project.version = '0-SNAPSHOT'

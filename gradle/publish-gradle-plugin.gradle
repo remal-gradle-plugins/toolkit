@@ -6,7 +6,7 @@ if (project.isBuildSrcProject) {
 
 allprojects {
     pluginManager.withPlugin('java-gradle-plugin') {
-        if (project.ext.find('javaGradlePluginWithoutPublish')) {
+        if (!property('publish.gradle-plugin')?.toString()?.toBoolean()) {
             gradlePlugin.automatedPublishing = false
             return
         }

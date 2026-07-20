@@ -3,6 +3,21 @@ if (project.isBuildSrcProject) {
 }
 
 allprojects {
+    // A project is published to Maven Central iff it applies `maven-publish` and is NOT published
+    // to the Gradle Plugin Portal (i.e. `com.gradle.plugin-publish` is not applied).
+    // Set the `publish.maven-central` property to override this rule in either direction.
+    // Only evaluate this in `gradle.projectsEvaluated` or later: in repos where the root project
+    // is a Gradle plugin, `maven-publish` can be applied to it (via publish-maven-bom.gradle)
+    // before `com.gradle.plugin-publish` is.
+    project.ext.isPublishedToMavenCentral = { Project publishingProject ->
+        Boolean explicitFlag = publishingProject.property('publish.maven-central')?.toString()?.toBoolean()
+        if (explicitFlag != null) {
+            return explicitFlag
+        }
+        return publishingProject.pluginManager.hasPlugin('maven-publish')
+            && !publishingProject.pluginManager.hasPlugin('com.gradle.plugin-publish')
+    }
+
     pluginManager.withPlugin('com.gradle.plugin-publish') {
         apply plugin: 'maven-publish'
     }
