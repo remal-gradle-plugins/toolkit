@@ -32,7 +32,9 @@ allprojects {
             Project curProject = project
             while (curProject != null) {
                 curProject.ext.getProperties().forEach { key, value ->
-                    extraProps.putIfAbsent(key, value)
+                    if (value != null) {
+                        extraProps.putIfAbsent(key, value)
+                    }
                 }
 
                 curProject = curProject.parent
