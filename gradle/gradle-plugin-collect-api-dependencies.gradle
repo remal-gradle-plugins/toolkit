@@ -2,7 +2,19 @@ if (project.isBuildSrcProject) {
     return
 }
 
+// Global, cross-project registry of the exact files backing dependencies that are already
+// guaranteed to get a plain "group:artifact:version" line somewhere in the merged output file.
+// Written only from resolveGradlePluginApiDependencyFiles's own doLast (each project resolving its
+// own gradlePluginApiDependenciesConf under its own project lock -- see below for why that matters)
+// and read only after every such task has run (enforced via dependsOn in
+// gradle-plugin-collect-classes-relying-on-dependencies.gradle), so finalizeValueOnRead() never
+// trips on a late write.
+SetProperty<File> trackedGradlePluginApiDependencyFiles = project.objects.setProperty(File)
+    .with { it.finalizeValueOnRead(); it }
+
 allprojects {
+    project.ext.trackedGradlePluginApiDependencyFiles = trackedGradlePluginApiDependencyFiles
+
     pluginManager.withPlugin('java-gradle-plugin') {
         project.ext.nonJavaApiDependencies = project.objects.setProperty(String)
 
@@ -29,6 +41,81 @@ allprojects {
             conf.canBeConsumed = false
             conf.extendsFrom(configurations.api)
             conf.extendsFrom(configurations.indirectApi)
+        }
+
+        // Moved out of doLast below so it can be shared with resolveGradlePluginApiDependencyFiles's
+        // doLast (registered further down).
+        Closure<Boolean> isExcludedCategory = { ResolvedDependencyResult resolvedDependency ->
+            return isPlatformDependency(resolvedDependency) || isDocumentationDependency(resolvedDependency) || isVerificationDependency(resolvedDependency)
+        }
+
+        // Single source of truth for "which resolved dependencies are eligible for a plain line"
+        // -- used both by doLast below (unchanged behavior) and by trackedGradlePluginApiDependencyFiles.
+        // Extracted from the two blocks that used to be inlined directly in doLast. Also the one
+        // place that forbids a SNAPSHOT dependency from ever being tracked: since both consumers
+        // go through here, neither has to special-case snapshots itself.
+        Closure<List<ResolvedDependencyResult>> collectTrackedResolvedDependencies = { ->
+            List<ResolvedDependencyResult> result = []
+            result.addAll(
+                gradlePluginApiDependenciesConf.incoming.resolutionResult
+                    .root
+                    .dependencies
+                    .findAll { it instanceof ResolvedDependencyResult }
+                    .collect { (ResolvedDependencyResult) it }
+                    .findAll { !isExcludedCategory(it) }
+            )
+            result.addAll(
+                gradlePluginApiDependenciesConf.incoming.resolutionResult
+                    .allDependencies
+                    .findAll { it instanceof ResolvedDependencyResult }
+                    .collect { (ResolvedDependencyResult) it }
+                    .findAll { !isExcludedCategory(it) }
+                    .findAll { !it.selected.selectionReason.expected }
+            )
+
+            result.forEach { ResolvedDependencyResult resolvedDependency ->
+                def selectedId = resolvedDependency.selected.id
+                if (selectedId instanceof ModuleComponentIdentifier && selectedId.version.endsWith('-SNAPSHOT')) {
+                    throw new GradleException(
+                        "${project.path}: gradlePluginApiDependencies must not resolve a SNAPSHOT dependency,"
+                            + " but got ${selectedId.group}:${selectedId.module}:${selectedId.version}."
+                            + " Pin it to a released version."
+                    )
+                }
+            }
+
+            return result
+        }
+
+        // Gradle forbids resolving a Configuration from a thread executing a *different*
+        // project's task ("attempted without an exclusive lock") -- confirmed by running this
+        // under org.gradle.parallel=true: two collectGradlePluginApiDependencies tasks in
+        // different projects each threw while evaluating the *other* project's
+        // gradlePluginApiDependencies conf during nonJavaApiDependencies input fingerprinting.
+        // So resolution of THIS project's gradlePluginApiDependenciesConf must only ever happen
+        // inside THIS project's own task execution -- never lazily, from a Provider that some
+        // other project's task might realize. This dedicated, output-less task (same shape as
+        // registerResolveSourceSetRuntimeClasspathTask in helpers.gradle) is that safe execution
+        // point: it always runs, resolves this project's own conf under this project's own lock,
+        // and pushes the resulting files into the global set from inside doLast.
+        tasks.register('resolveGradlePluginApiDependencyFiles') { Task task ->
+            task.doLast {
+                logger.info("[{}] resolveGradlePluginApiDependencyFiles: resolving own gradlePluginApiDependencies conf", project.path)
+                Collection<ResolvedArtifact> resolvedArtifacts = gradlePluginApiDependenciesConf.resolvedConfiguration.resolvedArtifacts
+                Set<File> files = new LinkedHashSet<File>()
+                collectTrackedResolvedDependencies().forEach { ResolvedDependencyResult resolvedDependency ->
+                    def selectedId = resolvedDependency.selected.id
+                    if (!(selectedId instanceof ModuleComponentIdentifier) || isPlatformDependency(resolvedDependency)) {
+                        return // no jar backs a platform/BOM dependency
+                    }
+                    resolvedArtifacts.findAll { it.id.componentIdentifier == selectedId }
+                        .forEach { files.add(it.file) }
+                }
+                logger.info("[{}] resolveGradlePluginApiDependencyFiles: contributing {} tracked file(s): {}", project.path, files.size(), files)
+                synchronized (trackedGradlePluginApiDependencyFiles) {
+                    trackedGradlePluginApiDependencyFiles.addAll(files)
+                }
+            }
         }
 
         tasks.register('collectGradlePluginApiDependencies') { Task task ->
@@ -64,15 +151,12 @@ allprojects {
             task.doFirst { outputFile.delete() }
 
             task.doLast {
+                logger.info("[{}] collectGradlePluginApiDependencies: writing to {}", project.path, outputFile)
                 outputFile.parentFile.mkdirs()
 
                 Collection<String> dependencies = new TreeSet<String>()
 
                 Collection<ResolvedArtifact> resolvedArtifacts = gradlePluginApiDependenciesConf.resolvedConfiguration.resolvedArtifacts
-
-                Closure<Boolean> isExcludedCategory = { ResolvedDependencyResult resolvedDependency ->
-                    return isPlatformDependency(resolvedDependency) || isDocumentationDependency(resolvedDependency) || isVerificationDependency(resolvedDependency)
-                }
 
                 Closure processResolvedDependency = { ResolvedDependencyResult resolvedDependency ->
                     ModuleComponentIdentifier id = resolvedDependency.selected.id.with { id ->
@@ -100,26 +184,13 @@ allprojects {
                     }
                 }
 
-                gradlePluginApiDependenciesConf.incoming.resolutionResult
-                    .root
-                    .dependencies
-                    .findAll { it instanceof ResolvedDependencyResult }
-                    .collect { (ResolvedDependencyResult) it }
-                    .findAll { !isExcludedCategory(it) }
-                    .forEach { processResolvedDependency(it) }
-
-                gradlePluginApiDependenciesConf.incoming.resolutionResult
-                    .allDependencies
-                    .findAll { it instanceof ResolvedDependencyResult }
-                    .collect { (ResolvedDependencyResult) it }
-                    .findAll { !isExcludedCategory(it) }
-                    .findAll { !it.selected.selectionReason.expected }
-                    .forEach { processResolvedDependency(it) }
+                collectTrackedResolvedDependencies().forEach { processResolvedDependency(it) }
 
                 nonJavaApiDependencies.get()
                     .findAll { it != null && !it.isEmpty() }
                     .forEach { dependencies.add(it) }
 
+                logger.info("[{}] collectGradlePluginApiDependencies: writing {} line(s)", project.path, dependencies.size())
                 outputFile.setText(dependencies.join('\n') + '\n', 'UTF-8')
             }
         }

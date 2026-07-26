@@ -125,9 +125,23 @@ allprojects {
     pluginManager.withPlugin('java-gradle-plugin') {
         Closure<MapProperty<String, ClassNode>> createClassesRelyingOnDependency = { String annotationSimpleName ->
             return project.objects.mapProperty(String, ClassNode).value(provider {
+                // Files already guaranteed to get a plain dependency line in the merged output
+                // (published by gradle-plugin-collect-api-dependencies.gradle, which is applied
+                // before this script) -- classes inside them don't need their own zzzz-* entry.
+                // Safe to read here: the dependsOn added below on every project's
+                // resolveGradlePluginApiDependencyFiles task guarantees this global set is fully
+                // populated by the time collectGradlePluginApiDependencies's nonJavaApiDependencies
+                // input (which this provider feeds) gets fingerprinted.
+                Set<File> trackedDependencyFiles = project.trackedGradlePluginApiDependencyFiles.get()
+                logger.info("[{}] createClassesRelyingOnDependency({}): read {} tracked file(s): {}", project.path, annotationSimpleName, trackedDependencyFiles.size(), trackedDependencyFiles)
+
                 FileTree classesFileTree = project.files().asFileTree
                 projectsToCollectClassesRelyingOnDependency.forEach { currentProject ->
                     for (File runtimeClasspathFile : currentProject.sourceSets.main.runtimeClasspath.files) {
+                        if (runtimeClasspathFile in trackedDependencyFiles) {
+                            logger.info("[{}] createClassesRelyingOnDependency({}): skipping tracked artifact {} (from {}'s runtimeClasspath)", project.path, annotationSimpleName, runtimeClasspathFile, currentProject.path)
+                            continue
+                        }
                         if (runtimeClasspathFile.isDirectory()) {
                             classesFileTree += project.fileTree(runtimeClasspathFile)
                         } else if (runtimeClasspathFile.isFile()) {
@@ -200,6 +214,18 @@ allprojects {
                         currentProject.registerResolveSourceSetRuntimeClasspathTask('main'),
                     ]
                 }.flatten()
+            })
+            // Every java-gradle-plugin project's resolveGradlePluginApiDependencyFiles task must
+            // complete before this task's nonJavaApiDependencies input is fingerprinted, since that
+            // input's provider (createClassesRelyingOnDependency above) reads the global
+            // trackedGradlePluginApiDependencyFiles set those tasks populate. Deferred in a
+            // provider so the lookup runs at task-graph-calculation time, once every project has
+            // applied java-gradle-plugin (mirrors the dependsOn above). No cycle:
+            // resolveGradlePluginApiDependencyFiles never depends on collectGradlePluginApiDependencies.
+            dependsOn(provider {
+                project.rootProject.allprojects
+                    .findAll { it.pluginManager.hasPlugin('java-gradle-plugin') }
+                    .collect { it.tasks.named('resolveGradlePluginApiDependencyFiles') }
             })
         }
 
