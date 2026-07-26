@@ -1,4 +1,4 @@
-project.ext['publish.maven-central'] = false
+project.ext['publish.any'] = false
 
 apply plugin: 'java-gradle-plugin'
 

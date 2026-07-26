@@ -28,7 +28,7 @@ gradle.projectsEvaluated {
 
     // The BOM is published iff at least 2 projects are published to Maven Central.
     // Set the `publish.maven-bom` property to override this rule in either direction.
-    Boolean explicitFlag = rootProject.property('publish.maven-bom')?.toString()?.toBoolean()
+    Boolean explicitFlag = rootProject.findProperty('publish.maven-bom')?.toString()?.toBoolean()
     boolean shouldPublishMavenBom = explicitFlag != null ? explicitFlag : mavenCentralProjects.size() >= 2
     if (!shouldPublishMavenBom) {
         return

@@ -9,8 +9,15 @@ allprojects {
     // Only evaluate this in `gradle.projectsEvaluated` or later: in repos where the root project
     // is a Gradle plugin, `maven-publish` can be applied to it (via publish-maven-bom.gradle)
     // before `com.gradle.plugin-publish` is.
+    // Set the `publish.any` property to `false` to force `publish.maven-central` off, regardless
+    // of its own value. `publish.any` set to `true` or left unset has no effect here.
     project.ext.isPublishedToMavenCentral = { Project publishingProject ->
-        Boolean explicitFlag = publishingProject.property('publish.maven-central')?.toString()?.toBoolean()
+        Boolean publishAny = publishingProject.findProperty('publish.any')?.toString()?.toBoolean()
+        if (Boolean.FALSE.equals(publishAny)) {
+            return false
+        }
+
+        Boolean explicitFlag = publishingProject.findProperty('publish.maven-central')?.toString()?.toBoolean()
         if (explicitFlag != null) {
             return explicitFlag
         }
@@ -148,5 +155,17 @@ allprojects {
                 .flatten()
                 .toList()
         })
+    }
+}
+
+gradle.projectsEvaluated {
+    // Set the `publish.any` property to `false` to disable all Maven publication tasks for a
+    // project (both local install and remote deploy). `publish.any` set to `true` or left unset
+    // has no effect here.
+    rootProject.allprojects { Project publishingProject ->
+        Boolean publishAny = publishingProject.findProperty('publish.any')?.toString()?.toBoolean()
+        if (Boolean.FALSE.equals(publishAny)) {
+            publishingProject.tasks.matching { it instanceof AbstractPublishToMaven }.configureEach { disableTask(it) }
+        }
     }
 }

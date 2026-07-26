@@ -6,7 +6,11 @@ if (project.isBuildSrcProject) {
 
 allprojects {
     pluginManager.withPlugin('java-gradle-plugin') {
-        if (!property('publish.gradle-plugin')?.toString()?.toBoolean()) {
+        // Set the `publish.any` property to `false` to force `publish.gradle-plugin` off,
+        // regardless of its own value. `publish.any` set to `true` or left unset has no effect here.
+        boolean publishGradlePlugin = !Boolean.FALSE.equals(findProperty('publish.gradle-plugin')?.toString()?.toBoolean())
+            && !Boolean.FALSE.equals(findProperty('publish.any')?.toString()?.toBoolean())
+        if (!publishGradlePlugin) {
             gradlePlugin.automatedPublishing = false
             return
         }
@@ -79,17 +83,19 @@ File flagFile = project.layout.buildDirectory.file('publish-gradle-plugin.flag')
 flagFile.delete()
 
 gradle.projectsEvaluated {
-    // `publish.gradle-plugin` can be read here even if it was set after `java-gradle-plugin` /
-    // `com.gradle.plugin-publish` were already applied elsewhere in a project's build script.
-    // This cannot make a project start publishing that never applied `com.gradle.plugin-publish`
-    // in the first place - it can only stop one that did.
+    // `publish.gradle-plugin` and `publish.any` can be read here even if they were set after
+    // `java-gradle-plugin` / `com.gradle.plugin-publish` were already applied elsewhere in a
+    // project's build script. This cannot make a project start publishing that never applied
+    // `com.gradle.plugin-publish` in the first place - it can only stop one that did.
     boolean anyGradlePluginPublications = false
     rootProject.allprojects { Project publishingProject ->
         if (!publishingProject.pluginManager.hasPlugin('com.gradle.plugin-publish')) {
             return
         }
 
-        if (!publishingProject.property('publish.gradle-plugin')?.toString()?.toBoolean()) {
+        boolean publishGradlePlugin = !Boolean.FALSE.equals(publishingProject.findProperty('publish.gradle-plugin')?.toString()?.toBoolean())
+            && !Boolean.FALSE.equals(publishingProject.findProperty('publish.any')?.toString()?.toBoolean())
+        if (!publishGradlePlugin) {
             publishingProject.tasks.matching { it.name == 'publishPlugins' }.configureEach { disableTask(it) }
         } else {
             anyGradlePluginPublications = true

@@ -18,6 +18,9 @@ tasks.register('pushBackPublishedVersions') { Task task ->
     ListProperty<MavenPublication> allMavenPublications = objects.listProperty(MavenPublication).value(provider {
         project.allprojects.stream()
             .filter { it.pluginManager.hasPlugin('maven-publish') }
+            // Set the `publish.any` property to `false` to skip pushing back a project's published
+            // version. `publish.any` set to `true` or left unset has no effect here.
+            .filter { !Boolean.FALSE.equals(it.findProperty('publish.any')?.toString()?.toBoolean()) }
             .flatMap { it.publishing.publications.withType(MavenPublication).stream() }
             .map { MavenPublication.cast(it) }
             .collect(toList())
