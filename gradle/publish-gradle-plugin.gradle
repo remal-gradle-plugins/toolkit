@@ -77,18 +77,13 @@ allprojects {
 
 File flagFile = project.layout.buildDirectory.file('publish-gradle-plugin.flag').get().asFile
 flagFile.delete()
-allprojects {
-    pluginManager.withPlugin('com.gradle.plugin-publish') {
-        flagFile.parentFile.mkdirs()
-        flagFile.createNewFile()
-    }
-}
 
 gradle.projectsEvaluated {
     // `publish.gradle-plugin` can be read here even if it was set after `java-gradle-plugin` /
     // `com.gradle.plugin-publish` were already applied elsewhere in a project's build script.
     // This cannot make a project start publishing that never applied `com.gradle.plugin-publish`
     // in the first place - it can only stop one that did.
+    boolean anyGradlePluginPublications = false
     rootProject.allprojects { Project publishingProject ->
         if (!publishingProject.pluginManager.hasPlugin('com.gradle.plugin-publish')) {
             return
@@ -96,7 +91,14 @@ gradle.projectsEvaluated {
 
         if (!publishingProject.property('publish.gradle-plugin')?.toString()?.toBoolean()) {
             publishingProject.tasks.matching { it.name == 'publishPlugins' }.configureEach { disableTask(it) }
+        } else {
+            anyGradlePluginPublications = true
         }
+    }
+
+    if (anyGradlePluginPublications) {
+        flagFile.parentFile.mkdirs()
+        flagFile.createNewFile()
     }
 }
 
