@@ -84,6 +84,22 @@ allprojects {
     }
 }
 
+gradle.projectsEvaluated {
+    // `publish.gradle-plugin` can be read here even if it was set after `java-gradle-plugin` /
+    // `com.gradle.plugin-publish` were already applied elsewhere in a project's build script.
+    // This cannot make a project start publishing that never applied `com.gradle.plugin-publish`
+    // in the first place - it can only stop one that did.
+    rootProject.allprojects { Project publishingProject ->
+        if (!publishingProject.pluginManager.hasPlugin('com.gradle.plugin-publish')) {
+            return
+        }
+
+        if (!publishingProject.property('publish.gradle-plugin')?.toString()?.toBoolean()) {
+            publishingProject.tasks.matching { it.name == 'publishPlugins' }.configureEach { disableTask(it) }
+        }
+    }
+}
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 @DisableCachingByDefault(because = "Should not be cached")
