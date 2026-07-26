@@ -13,6 +13,7 @@ import static name.remal.gradle_plugins.toolkit.BytecodeTestUtils.wrapWithTestCl
 import static name.remal.gradle_plugins.toolkit.CrossCompileServices.loadCrossCompileService;
 import static name.remal.gradle_plugins.toolkit.InTestFlags.isInTest;
 import static name.remal.gradle_plugins.toolkit.LazyProxy.asLazyProxy;
+import static name.remal.gradle_plugins.toolkit.ReportContainerSerHolder.ReportContainerSer;
 import static name.remal.gradle_plugins.toolkit.ReportUtils.setReportDestination;
 import static name.remal.gradle_plugins.toolkit.ReportUtils.setReportEnabled;
 import static name.remal.gradle_plugins.toolkit.ReportingExtensionUtils.getTaskReportsDirProvider;
@@ -28,12 +29,15 @@ import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
 import static org.objectweb.asm.Opcodes.ALOAD;
+import static org.objectweb.asm.Opcodes.ARETURN;
+import static org.objectweb.asm.Opcodes.DUP;
 import static org.objectweb.asm.Opcodes.GETFIELD;
 import static org.objectweb.asm.Opcodes.ILOAD;
 import static org.objectweb.asm.Opcodes.INVOKEINTERFACE;
 import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static org.objectweb.asm.Opcodes.IRETURN;
+import static org.objectweb.asm.Opcodes.NEW;
 import static org.objectweb.asm.Opcodes.PUTFIELD;
 import static org.objectweb.asm.Opcodes.RETURN;
 import static org.objectweb.asm.Opcodes.V1_8;
@@ -48,11 +52,13 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.reflect.TypeToken;
 import java.io.File;
+import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -83,6 +89,7 @@ import org.objectweb.asm.tree.LdcInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.ParameterNode;
+import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
 @ReliesOnInternalGradleApi
@@ -239,7 +246,7 @@ public abstract class ReportContainerUtils {
 
     @SneakyThrows
     @SuppressWarnings("unchecked")
-    private static <C extends ReportContainer<?>> C withReportGetters(
+    static <C extends ReportContainer<?>> C withReportGetters(
         Class<C> reportContainerType,
         ReportContainer<?> reportContainerDelegate
     ) {
@@ -269,7 +276,7 @@ public abstract class ReportContainerUtils {
             classNode.name = getInternalName(ReportContainerUtils.class) + '$' + classNode.name.replace('/', '$');
         }
         classNode.superName = getInternalName(Object.class);
-        classNode.interfaces = singletonList(getInternalName(reportContainerType));
+        classNode.interfaces = List.of(getInternalName(reportContainerType), getInternalName(Serializable.class));
         classNode.fields = new ArrayList<>();
         classNode.methods = new ArrayList<>();
 
@@ -408,6 +415,48 @@ public abstract class ReportContainerUtils {
             ));
 
             instructions.add(new InsnNode(getType(method.getReturnType()).getOpcode(IRETURN)));
+        }
+
+        {
+            // Configuration cache can't resolve this runtime-generated class by name on reload
+            // (it isn't created via Gradle's own Instantiator, so it never qualifies for Gradle's
+            // "regenerate a decorated type" shortcut). writeReplace swaps this instance out for
+            // ReportContainerSer, a real compiled class, whose readResolve() rebuilds an
+            // equivalent delegating instance fresh after reload.
+            var methodNode = new MethodNode(
+                ACC_PRIVATE,
+                "writeReplace",
+                getMethodDescriptor(getType(Object.class)),
+                null,
+                null
+            );
+            classNode.methods.add(methodNode);
+
+            var instructions = methodNode.instructions = new InsnList();
+            instructions.add(new LabelNode());
+
+            instructions.add(new TypeInsnNode(NEW, getInternalName(ReportContainerSer.class)));
+            instructions.add(new InsnNode(DUP));
+            instructions.add(new LdcInsnNode(getType(reportContainerType)));
+            instructions.add(new VarInsnNode(ALOAD, 0));
+            instructions.add(new FieldInsnNode(
+                GETFIELD,
+                classNode.name,
+                delegateField.name,
+                delegateField.desc
+            ));
+            instructions.add(new MethodInsnNode(
+                INVOKESPECIAL,
+                getInternalName(ReportContainerSer.class),
+                "<init>",
+                getMethodDescriptor(
+                    VOID_TYPE,
+                    getType(Class.class),
+                    getType(ReportContainer.class)
+                )
+            ));
+
+            instructions.add(new InsnNode(ARETURN));
         }
 
         var classWriter = new ClassWriter(COMPUTE_MAXS | COMPUTE_FRAMES);

@@ -1,0 +1,19 @@
+project.ext['publish.maven-central'] = false
+
+apply plugin: 'java-gradle-plugin'
+
+dependencies {
+    classesRelocation project(':toolkit')
+
+    testImplementation project(':testkit')
+}
+
+gradlePlugin {
+    plugins {
+        create('testsFunctional') {
+            id = 'name.remal.toolkit.tests-functional'
+            implementationClass = 'name.remal.gradle_plugins.toolkit.tests_functional.TestsFunctionalPlugin'
+            displayName = 'Toolkit Functional Tests'
+        }
+    }
+}

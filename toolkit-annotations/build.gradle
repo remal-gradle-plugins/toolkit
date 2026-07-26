@@ -1,3 +1,5 @@
+project.ext['publish.maven-central'] = false
+
 project.ext['baseJavaPackage'] = project.calculateBaseJavaPackageFor(rootProject) + '.annotations'
 
 apply plugin: 'java-library'

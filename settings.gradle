@@ -44,4 +44,5 @@ include(
     ':toolkit:cross-compile--gradle-8.9999-lt',
     ':testkit',
     ':build-logic',
+    ':tests-functional',
 )

@@ -12,6 +12,13 @@
           "parameterTypes": []
         }
       ]
+    },
+    {
+      "type": "name.remal.gradle_plugins.toolkit.ReportContainerSerHolder$ReportContainerSer",
+      "condition": {
+        "typeReached": "name.remal.gradle_plugins.toolkit.ReportContainerUtils"
+      },
+      "allPublicConstructors": true
     }
   ]
 }

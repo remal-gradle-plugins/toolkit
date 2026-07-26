@@ -135,6 +135,8 @@ if (!snapshotPluginDependencies.isEmpty()) {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 allprojects {
+    project.ext['publish.gradle-plugin'] = false
+
     pluginManager.withPlugin('java') {
         dependencies {
             optional 'name.remal.gradle-api:gradle-api'
