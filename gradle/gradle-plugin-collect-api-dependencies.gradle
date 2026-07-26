@@ -43,6 +43,10 @@ allprojects {
             conf.extendsFrom(configurations.indirectApi)
         }
 
+        // Captured at configuration time so collectTrackedResolvedDependencies below (called from
+        // execution-time doLast blocks) never has to reach through a live Project reference.
+        String projectPath = project.path
+
         // Moved out of doLast below so it can be shared with resolveGradlePluginApiDependencyFiles's
         // doLast (registered further down).
         Closure<Boolean> isExcludedCategory = { ResolvedDependencyResult resolvedDependency ->
@@ -77,7 +81,7 @@ allprojects {
                 def selectedId = resolvedDependency.selected.id
                 if (selectedId instanceof ModuleComponentIdentifier && selectedId.version.endsWith('-SNAPSHOT')) {
                     throw new GradleException(
-                        "${project.path}: gradlePluginApiDependencies must not resolve a SNAPSHOT dependency,"
+                        "${projectPath}: gradlePluginApiDependencies must not resolve a SNAPSHOT dependency,"
                             + " but got ${selectedId.group}:${selectedId.module}:${selectedId.version}."
                             + " Pin it to a released version."
                     )
@@ -100,7 +104,7 @@ allprojects {
         // and pushes the resulting files into the global set from inside doLast.
         tasks.register('resolveGradlePluginApiDependencyFiles') { Task task ->
             task.doLast {
-                logger.info("[{}] resolveGradlePluginApiDependencyFiles: resolving own gradlePluginApiDependencies conf", project.path)
+                logger.info("resolveGradlePluginApiDependencyFiles: resolving own gradlePluginApiDependencies conf")
                 Collection<ResolvedArtifact> resolvedArtifacts = gradlePluginApiDependenciesConf.resolvedConfiguration.resolvedArtifacts
                 Set<File> files = new LinkedHashSet<File>()
                 collectTrackedResolvedDependencies().forEach { ResolvedDependencyResult resolvedDependency ->
@@ -111,7 +115,7 @@ allprojects {
                     resolvedArtifacts.findAll { it.id.componentIdentifier == selectedId }
                         .forEach { files.add(it.file) }
                 }
-                logger.info("[{}] resolveGradlePluginApiDependencyFiles: contributing {} tracked file(s): {}", project.path, files.size(), files)
+                logger.info("resolveGradlePluginApiDependencyFiles: contributing {} tracked file(s): {}", files.size(), files)
                 synchronized (trackedGradlePluginApiDependencyFiles) {
                     trackedGradlePluginApiDependencyFiles.addAll(files)
                 }
@@ -151,7 +155,7 @@ allprojects {
             task.doFirst { outputFile.delete() }
 
             task.doLast {
-                logger.info("[{}] collectGradlePluginApiDependencies: writing to {}", project.path, outputFile)
+                logger.info("collectGradlePluginApiDependencies: writing to {}", outputFile)
                 outputFile.parentFile.mkdirs()
 
                 Collection<String> dependencies = new TreeSet<String>()
@@ -190,7 +194,7 @@ allprojects {
                     .findAll { it != null && !it.isEmpty() }
                     .forEach { dependencies.add(it) }
 
-                logger.info("[{}] collectGradlePluginApiDependencies: writing {} line(s)", project.path, dependencies.size())
+                logger.info("collectGradlePluginApiDependencies: writing {} line(s)", dependencies.size())
                 outputFile.setText(dependencies.join('\n') + '\n', 'UTF-8')
             }
         }
