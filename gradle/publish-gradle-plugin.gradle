@@ -1,3 +1,5 @@
+import java.beans.Introspector
+import java.lang.reflect.Method
 import org.gradle.work.DisableCachingByDefault
 
 if (project.isBuildSrcProject) {
@@ -130,6 +132,12 @@ abstract class ValidatePluginProperties extends DefaultTask implements Verificat
         if (gradlePlugins.vcsUrl.orNull?.isEmpty() != false) {
             throw new GradleException("VCS URL can't be empty for Gradle plugins")
         }
+        // `CompatibleFeatures` (from the `org.gradle.plugin-compatibility` plugin, applied transitively
+        // by `com.gradle.plugin-publish`) lives in a plugin-isolated classloader, so it can't be imported
+        // or referenced as a static type here. Discover its `Property`-returning getters reflectively
+        // instead, off the first plugin's `features` instance, and reuse that for the rest.
+        List<Method> compatibilityFeatureGetters = null
+
         gradlePlugins.plugins.forEach { plugin ->
             if (plugin.id?.isEmpty() != false) {
                 throw new GradleException("Gradle plugin `${plugin.id}` has empty `id`")
@@ -145,6 +153,22 @@ abstract class ValidatePluginProperties extends DefaultTask implements Verificat
             }
             if (plugin.tags.orNull?.isEmpty() != false) {
                 throw new GradleException("Gradle plugin `${plugin.id}` has empty `tags")
+            }
+
+            def features = plugin.compatibility.features
+            if (compatibilityFeatureGetters == null) {
+                compatibilityFeatureGetters = features.class.methods.findAll {
+                    Property.isAssignableFrom(it.returnType) && it.parameterCount == 0
+                }
+                assert compatibilityFeatureGetters.any { it.name == 'getConfigurationCache' } :
+                    "Reflection over the `compatibility.features` extension didn't find `getConfigurationCache`; the feature-discovery logic is broken"
+            }
+            compatibilityFeatureGetters.forEach { Method getter ->
+                Property<?> property = getter.invoke(features) as Property<?>
+                if (!property.isPresent()) {
+                    String featureName = Introspector.decapitalize(getter.name.substring(3))
+                    throw new GradleException("Gradle plugin `${plugin.id}` has no `compatibility.features.${featureName}` set")
+                }
             }
         }
     }
