@@ -31,7 +31,7 @@ buildscript {
     addRootBuildscriptDependencies(
         'rootBuildscriptPluginDependencies',
         [
-            'name.remal.gradle-plugins.lombok:lombok:3.2.0',
+            'name.remal.gradle-plugins.lombok:lombok:3.2.1',
             'name.remal.gradle-plugins.merge-resources:merge-resources:5.0.7',
             'name.remal.gradle-plugins.test-source-sets:test-source-sets:5.0.7',
             'name.remal.gradle-plugins.sonarlint:sonarlint:7.1.4',
