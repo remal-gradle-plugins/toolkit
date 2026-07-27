@@ -459,29 +459,42 @@ Closure<byte[]> loadUrlContent = { Object untypedUrl, String cacheFileNameSuffix
             return cacheFile.bytes
         }
 
-        URLConnection connection = url.openConnection()
-        connection.connectTimeout = 5_000
-        connection.readTimeout = 30_000
-        connection.useCaches = false
-        try {
-            if (connection instanceof HttpURLConnection) {
-                if (connection.responseCode != 200) {
-                    throw new HttpRequestFailedException(
-                        'GET',
-                        urlString,
-                        connection.responseCode
-                    )
+        int maxAttempts = 3
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            URLConnection connection = url.openConnection()
+            connection.connectTimeout = 5_000
+            connection.readTimeout = 30_000
+            connection.useCaches = false
+            try {
+                if (connection instanceof HttpURLConnection) {
+                    int responseCode = connection.responseCode
+                    if (responseCode != 200) {
+                        if (responseCode == 429
+                            || responseCode >= 500
+                        ) {
+                            if (attempt < maxAttempts) {
+                                Thread.sleep(ThreadLocalRandom.current().nextLong(5_000, 10_000))
+                                continue
+                            }
+                        }
+
+                        throw new HttpRequestFailedException(
+                            'GET',
+                            urlString,
+                            responseCode
+                        )
+                    }
                 }
-            }
 
-            byte[] content = connection.inputStream.bytes
-            cacheFile.parentFile.mkdirs()
-            cacheFile.bytes = content
-            return content
+                byte[] content = connection.inputStream.bytes
+                cacheFile.parentFile.mkdirs()
+                cacheFile.bytes = content
+                return content
 
-        } finally {
-            if (connection instanceof HttpURLConnection) {
-                connection.disconnect()
+            } finally {
+                if (connection instanceof HttpURLConnection) {
+                    connection.disconnect()
+                }
             }
         }
     }
