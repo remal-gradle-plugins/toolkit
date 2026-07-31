@@ -15,5 +15,10 @@ gradlePlugin {
             implementationClass = 'name.remal.gradle_plugins.toolkit.tests_functional.TestsFunctionalPlugin'
             displayName = 'Toolkit Functional Tests'
         }
+        create('settingsAwarePluginFixture') {
+            id = 'name.remal.toolkit.tests-functional.settings-aware-plugin-fixture'
+            implementationClass = 'name.remal.gradle_plugins.toolkit.tests_functional.SettingsAwarePluginFixture'
+            displayName = 'Settings-aware plugin fixture (for functional tests only)'
+        }
     }
 }
