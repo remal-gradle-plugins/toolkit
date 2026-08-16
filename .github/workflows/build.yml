@@ -93,6 +93,8 @@ jobs:
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v6
+      with:
+        add-job-summary: never
 
     - name: Download dependencies
       run: |
@@ -222,6 +224,7 @@ jobs:
       with:
         validate-wrappers: false
         cache-read-only: true
+        add-job-summary: never
 
     - name: Download and extract workspace
       uses: ./.github/actions/download-extract-workspace
@@ -290,6 +293,7 @@ jobs:
       with:
         validate-wrappers: false
         cache-read-only: true
+        add-job-summary: never
     - name: Download and extract workspace
       uses: ./.github/actions/download-extract-workspace
 
@@ -412,6 +416,7 @@ jobs:
       with:
         validate-wrappers: false
         cache-read-only: true
+        add-job-summary: never
     - name: Download and extract workspace
       uses: ./.github/actions/download-extract-workspace
 
@@ -490,6 +495,7 @@ jobs:
       with:
         validate-wrappers: false
         cache-read-only: true
+        add-job-summary: never
 
     - name: Download and extract workspace
       uses: ./.github/actions/download-extract-workspace
