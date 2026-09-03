@@ -8,7 +8,7 @@ allprojects {
 
         dependencies {
             errorprone "com.google.errorprone:error_prone_core:$errorproneVersion"
-            errorprone 'com.uber.nullaway:nullaway:0.13.8'
+            errorprone 'com.uber.nullaway:nullaway:0.14.0'
 
             compileOnlyAll "com.google.errorprone:error_prone_annotations:$errorproneVersion"
         }
