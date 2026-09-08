@@ -20,12 +20,32 @@ allprojects {
 
         apply plugin: 'com.gradle.plugin-publish'
 
+        // PluginDeclaration.description is a plain String and can't hold a Provider, but
+        // resolving githubRepositoryInfo.repository eagerly would hit the GitHub API during
+        // configuration. Resolve it just before the value is consumed instead: onlyIf runs
+        // before input fingerprinting (PublishTask snapshots getConfig(), an @Input property)
+        // and before task actions. Not configuration-cache safe.
+        def resolvePluginDescriptions = {
+            gradlePlugin.plugins.all { PluginDeclaration plugin ->
+                if (plugin.description == null) {
+                    plugin.description = githubRepositoryInfo.repository.get().description
+                }
+            }
+        }
+
+        // 'publishPlugins' is registered by com.gradle.plugin-publish (PublishTask); matching by
+        // name because the plugin classes aren't visible to this script at compile time.
+        tasks.named('publishPlugins') {
+            onlyIf {
+                resolvePluginDescriptions()
+                return true
+            }
+        }
+
         gradlePlugin {
             website = githubRepositoryInfo.repository.map { it.htmlUrl }
             vcsUrl = website
             plugins.all { PluginDeclaration plugin ->
-                plugin.description = plugin.description ?: githubRepositoryInfo.repository.map { it.description }
-
                 plugin.tags.addAll(githubRepositoryInfo.repository.map { repo ->
                     repo.topics
                         .collect { it.trim().toLowerCase() }
@@ -45,6 +65,10 @@ allprojects {
         TaskProvider validatePluginProperties = tasks.register('validatePluginProperties', ValidatePluginProperties) {
             GradlePluginDevelopmentExtension gradlePlugin = project.gradlePlugin
             gradlePlugins = gradlePlugin
+            onlyIf {
+                resolvePluginDescriptions()
+                return true
+            }
         }
         tasks.named('check').configure { dependsOn(validatePluginProperties) }
 
