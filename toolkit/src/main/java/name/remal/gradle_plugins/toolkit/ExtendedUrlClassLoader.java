@@ -92,7 +92,7 @@ public class ExtendedUrlClassLoader extends URLClassLoader {
             Class<?> loadedClass = findLoadedClass(className);
 
             if (loadedClass == null) {
-                loadedClass = findBootstrapClassOrNull(className);
+                loadedClass = loadBootstrapClassOrNull(className);
             }
 
             if (loadedClass == null) {
@@ -139,7 +139,7 @@ public class ExtendedUrlClassLoader extends URLClassLoader {
     }
 
     @Nullable
-    protected static Class<?> findBootstrapClassOrNull(String className) {
+    protected static Class<?> loadBootstrapClassOrNull(String className) {
         try {
             return BOOTSTRAP_CLASS_LOADER.loadClass(className);
         } catch (ClassNotFoundException expected) {
