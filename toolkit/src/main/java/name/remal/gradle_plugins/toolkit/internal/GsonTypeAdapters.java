@@ -116,7 +116,7 @@ public class GsonTypeAdapters implements TypeAdapterFactory {
     @RequiredArgsConstructor
     private static class OptionalTypeAdapter<E> extends TypeAdapter<Optional<E>> {
 
-        private final TypeAdapter<@Nullable E> delegate;
+        private final TypeAdapter<E> delegate;
 
         @Override
         @SuppressWarnings({"java:S2789", "java:S2259", "OptionalAssignedToNull", "NullableOptional"})
