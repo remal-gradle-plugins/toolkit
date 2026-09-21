@@ -653,6 +653,10 @@ public abstract class AbstractGradleProject<
 
 
     private String[] getIsolatedProjectsArguments() {
+        if (!withConfigurationCache) {
+            return new String[0];
+        }
+
         if (!withIsolatedProjects) {
             return new String[0];
         }
