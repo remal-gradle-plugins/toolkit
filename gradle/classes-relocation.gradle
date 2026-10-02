@@ -6,7 +6,6 @@ allprojects {
     pluginManager.withPlugin('java') {
         if (project.name.contains('--')) {
             configurations.create('classesRelocation') { Configuration conf ->
-                conf.visible = false
                 conf.canBeResolved = false
                 conf.canBeConsumed = false
                 configurations.compileOnly.extendsFrom(conf)
