@@ -35,7 +35,7 @@ allprojects {
 
         conf.dependencies.addAll(
             [
-                'org.ow2.asm:asm-bom:9.10.1',
+                'org.ow2.asm:asm-bom:9.11',
             ].collect { project.dependencies.platform(it) }
         )
 
