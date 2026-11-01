@@ -76,6 +76,7 @@ class LazyProxyTest {
     }
 
     @Test
+    @SuppressWarnings("UndefinedEquals")
     void asLazyCollectionProxy() {
         {
             var lazyProxy = LazyProxy.asLazyCollectionProxy(() ->
