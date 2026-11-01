@@ -72,7 +72,7 @@ class CrossCompileServiceDependencyVersion
             result = Boolean.compare(this.selfIncluded, other.selfIncluded);
         }
         if (result == 0) {
-            result = -1 * Boolean.compare(this.earlierIncluded, other.earlierIncluded);
+            result = Boolean.compare(other.earlierIncluded, this.earlierIncluded);
         }
         return result;
     }
